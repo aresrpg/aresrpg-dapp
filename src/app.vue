@@ -23,13 +23,6 @@ sc-disableScollBar()
 :root
   font-size 18px
   background #212121
-  --el-text-color-primary #eee
-  --el-color-white #212121
-  --el-input-text-color #fefefe
-  --el-text-color-regular #fefefe
-  --el-bg-color transparent
-  --el-color-info #eee
-  --lt-color-overlay-dark #212121
 
 *
   sc-reset()
