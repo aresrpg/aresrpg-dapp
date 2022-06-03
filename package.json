@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "vue": "^3.2.36",
-    "vue-router": "^4.0.15"
+    "vue-router": "^4.0.15",
+    "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
