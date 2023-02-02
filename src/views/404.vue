@@ -2,7 +2,7 @@
 .container
   h1 404
   span there is nothing here..
-  el-button(plain @click.native="$router.push('/')") take me back 🤗
+  .btn(@click.native="$router.push('/')") take me back 🤗
 </template>
 
 <style lang="stylus" scoped>
@@ -16,6 +16,8 @@
   color #fff
   h1
     font-size 10rem
-  .el-button
-    margin-top 1rem
+  .btn
+    cursor pointer
+    text-decoration underline
+    font-size .7em
 </style>
