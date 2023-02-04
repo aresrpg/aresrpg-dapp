@@ -14,7 +14,6 @@ const {
   MICROSOFT_CLIENT_SECRET,
   MICROSOFT_REDIRECT_URI = 'http://localhost:8888/minecraft-oauth',
   MICROSOFT_TENANT_ID,
-  CORS_ORIGIN = 'https://localhost:80',
   DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET,
   DISCORD_REDIRECT_URI = 'http://localhost:8888/discord-oauth',

@@ -1,5 +1,5 @@
-const BASE_PATH = 'http://localhost:8888';
-// const BASE_PATH = '/.netlify/edge-functions/'
+// const BASE_PATH = 'http://localhost:8888';
+const BASE_PATH = '/.netlify/edge-functions/';
 
 export default (path, options) =>
   fetch(`${BASE_PATH}${path}`, {
