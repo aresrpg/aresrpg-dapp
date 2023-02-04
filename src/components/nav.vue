@@ -9,7 +9,7 @@ const logged = computed(() => user?.uuid);
 
 <template lang="pug">
 nav
-  img.logo(src="src/assets/text_logo.png")
+  img.logo(src="../assets/text_logo.png")
   discord_card.discord(v-if="logged")
   login_card
 </template>
