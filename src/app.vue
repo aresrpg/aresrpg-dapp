@@ -3,14 +3,24 @@ router-view
 </template>
 
 <script setup>
+import { provide, reactive, watch, ref } from 'vue';
+import fetch_api from './fetch_api.js';
+
 const name = 'app';
+const user = reactive({});
+const resync = ref(0);
+
+watch(resync, () => {
+  fetch_api(`/me`).then(me => {
+    if (me.uuid) Object.assign(user, me);
+  });
+});
+
+provide('user', user);
+provide('resync', resync);
 </script>
 
 <style lang="stylus">
-@font-face
-  font-family "nimbus-sans"
-  src url("assets/nimbus-sans.bold.otf") format("otf");
-
 sc-reset()
     margin 0
     padding 0
@@ -27,7 +37,7 @@ sc-disableScollBar()
 *
   sc-reset()
   sc-disableScollBar()
-  font-family 'Raleway', sans-serif
+  font-family 'Rubik', sans-serif
   outline none
   scroll-behavior smooth
   &::-webkit-scrollbar-track

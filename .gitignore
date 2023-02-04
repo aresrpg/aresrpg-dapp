@@ -4,4 +4,7 @@ dist
 dist-ssr
 *.local
 .env
+netlify/.env
 .vscode
+# Local Netlify folder
+.netlify

@@ -1,0 +1,15 @@
+{
+  "lint": {
+    "files": {
+      "include": ["netlify/"]
+    },
+    "rules": {
+      "exclude": ["require-await", "no-empty"]
+    }
+  },
+  "fmt": {
+    "options": {
+      "semiColons": false
+    }
+  }
+}

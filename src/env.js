@@ -1,0 +1,15 @@
+const {
+  VITE_AZURE_CLIENT,
+  VITE_MICROSOFT_REDIRECT_URI = 'http://localhost:8888/minecraft-oauth',
+  VITE_RECAPTCHA_KEY,
+  VITE_DISCORD_CLIENT_ID,
+  VITE_DISCORD_REDIRECT_URI = 'http://localhost:8888/discord-oauth',
+} = import.meta.env;
+
+export {
+  VITE_AZURE_CLIENT,
+  VITE_DISCORD_CLIENT_ID,
+  VITE_DISCORD_REDIRECT_URI,
+  VITE_MICROSOFT_REDIRECT_URI,
+  VITE_RECAPTCHA_KEY,
+};
