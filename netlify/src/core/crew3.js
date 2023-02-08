@@ -20,13 +20,6 @@ export default {
     const { data } = await fetch_crew3(
       `/claimed-quests?user_id=${crew3_id}&status=success`,
     );
-    return [
-      ...data.map(({ reward }) => reward),
-      [{ type: "other", value: "Familier Krinan Le Fourvoyeur" }, {
-        type: "other",
-        value: "Familier Krinan Le Fourvoyeur",
-      }],
-      [{ type: "other", value: "Familier Siluri" }],
-    ];
+    return data.map(({ reward }) => reward);
   },
 };
