@@ -16,7 +16,10 @@ const microsoft_login = `https://login.live.com/oauth20_authorize.srf
 const router = useRouter();
 
 const connect = () => (window.location.href = microsoft_login);
-const disconnect = () => fetch_api(`/logout`).then(router.go);
+const disconnect = () =>
+  fetch_api(`/logout`).then(() => {
+    window.location.reload();
+  });
 const on_click = () => {
   if (!user.uuid) connect();
 };

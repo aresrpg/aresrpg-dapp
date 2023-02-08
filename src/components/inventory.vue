@@ -15,7 +15,7 @@ const REGISTRY = {
     src: siluri,
     type: 'Familier',
   },
-  ['Familier Corbac 🦤']: {
+  ['Familier Corbac']: {
     name: 'Corbac',
     src: corbac,
     type: 'Familier',

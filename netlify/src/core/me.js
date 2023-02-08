@@ -41,8 +41,9 @@ export default async (_, { uuid }) => {
         ...(crew3?.id && { quests: await Crew3.get_quests(crew3.id) }),
       },
     }
+
     // if user was updated, save it
-    if (is_discord_user_expired) {
+    if (is_discord_user_expired || !crew3_id) {
       await database.push(uuid, {
         ...user,
         discord: {
