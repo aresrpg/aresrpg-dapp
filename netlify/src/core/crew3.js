@@ -17,9 +17,9 @@ export default {
     return { level, rank, id }
   },
   async get_quests(crew3_id) {
-    const { data } = await fetch_crew3(
+    const { data = [] } = await fetch_crew3(
       `/claimed-quests?user_id=${crew3_id}&status=success`,
-    )
+    ) ?? {}
     return {
       completed: data.length,
       items: data
