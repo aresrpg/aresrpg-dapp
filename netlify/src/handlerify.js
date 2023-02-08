@@ -20,7 +20,6 @@ export default (handle, { secure } = {}) => async (request, { cookies }) => {
     set_cookies: (name, value, options) =>
       cookies.set({ name, value, ...options }),
     get_cookies: (name) => cookies.get(name),
-    del_cookies: (name) => cookies.delete(name),
   })
 
   const context = {

@@ -18,7 +18,7 @@ const router = useRouter();
 const connect = () => (window.location.href = microsoft_login);
 const disconnect = () =>
   fetch_api(`/logout`).then(() => {
-    // window.location.reload();
+    window.location.reload();
   });
 const on_click = () => {
   if (!user.uuid) connect();

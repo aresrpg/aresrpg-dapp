@@ -58,7 +58,6 @@ export default ({ get_cookies, set_cookies, del_cookies }) => ({
       ...(COOKIE_DOMAIN && { domain: COOKIE_DOMAIN }),
     }
 
-    del_cookies(ACCESS_TOKEN_COOKIE_NAME)
-    // set_cookies(ACCESS_TOKEN_COOKIE_NAME, "buy bitcoin :)", cookie_options)
+    set_cookies(ACCESS_TOKEN_COOKIE_NAME, "buy_bitcoin", cookie_options)
   },
 })
