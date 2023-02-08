@@ -1,12 +1,11 @@
 import { useToast } from 'vue-toastification';
 
-const BASE_PATH = 'http://localhost:8888';
-// const BASE_PATH = '/.netlify/edge-functions/';
+import { VITE_BASE_API_PATH } from './env.js';
 
 const toast = useToast();
 
 export default (path, options) =>
-  fetch(`${BASE_PATH}${path}`, {
+  fetch(`${VITE_BASE_API_PATH}${path}`, {
     credentials: 'include',
     method: 'POST',
     body: JSON.stringify({}),
