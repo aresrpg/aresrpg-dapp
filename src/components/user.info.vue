@@ -12,9 +12,7 @@ const open_crew3 = () => {
   window.open('https://aresrpg.crew3.xyz', '_blank');
 };
 
-const items_owned = computed(
-  () => user?.crew3?.quests?.filter(({ type }) => type === 'other')?.length
-);
+const items_owned = computed(() => user?.crew3?.quests?.items?.length);
 </script>
 
 <template lang="pug">
@@ -31,7 +29,7 @@ const items_owned = computed(
           .num {{ user.crew3.level }}
         div
           .name Quests completed
-          .num {{  user.crew3.quests.length }}
+          .num {{  user.crew3.quests.completed }}
         div
           .name Rank
           .num {{ user.crew3.rank }}

@@ -26,25 +26,16 @@ const user = inject('user');
 const inventory = computed(() => {
   if (user?.crew3?.id) {
     const {
-      crew3: { quests },
+      crew3: {
+        quests: { items },
+      },
     } = user;
-    return quests
-      .flat()
-      .filter(({ type }) => type === 'other')
-      .map(({ value }) => value.trim())
-      .map(name => ({
+    return items
+      .map(({ name, amount }) => ({
         ...REGISTRY[name],
-        amount: 1,
+        amount,
       }))
-      .filter(value => !!value)
-      .reduce((result, item) => {
-        const existing = result.find(
-          processed_item => processed_item.name === item.name
-        );
-        if (existing) existing.amount++;
-        else result.push(item);
-        return result;
-      }, []);
+      .filter(({ name }) => !!name);
   }
   return [];
 });
@@ -58,7 +49,7 @@ const inventory = computed(() => {
       .item(v-for="item of inventory" :key="item.name" :style="{ background: `url(${item.src}) center / cover` }")
         .info
           .name {{ item.name }}
-          .quantity x {{ item.amount ?? 1 }}
+          .quantity x {{ item.amount }}
           .tag {{ item.type }}
 </template>
 

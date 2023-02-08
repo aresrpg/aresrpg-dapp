@@ -20,6 +20,20 @@ export default {
     const { data } = await fetch_crew3(
       `/claimed-quests?user_id=${crew3_id}&status=success`,
     )
-    return data.map(({ reward }) => reward)
+    return {
+      completed: data.length,
+      items: data
+        .flatMap(({ reward }) => reward)
+        .filter(({ type }) => type === "other")
+        .map(({ value }) => ({ name: value.trim(), amount: 1 }))
+        .reduce((result, item) => {
+          const existing = result.find(
+            (processed_item) => processed_item.name === item.name,
+          )
+          if (existing) existing.amount++
+          else result.push(item)
+          return result
+        }, []),
+    }
   },
 }
