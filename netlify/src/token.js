@@ -47,5 +47,18 @@ export default ({ get_cookies, set_cookies, del_cookies }) => ({
     const access_token = await create({ alg: "ES256" }, bearer, private_key)
     set_cookies(ACCESS_TOKEN_COOKIE_NAME, access_token, cookie_options)
   },
-  rm: () => del_cookies(ACCESS_TOKEN_COOKIE_NAME),
+  rm: () => {
+    const cookie_options = {
+      httpOnly: true,
+      overwrite: true,
+      expires: new Date(0),
+      ...(COOKIE_PATH && { path: COOKIE_PATH }),
+      ...(COOKIE_SAMESITE && { sameSite: COOKIE_SAMESITE }),
+      ...(COOKIE_SECURE && { secure: COOKIE_SECURE }),
+      ...(COOKIE_DOMAIN && { domain: COOKIE_DOMAIN }),
+    }
+
+    del_cookies(ACCESS_TOKEN_COOKIE_NAME)
+    // set_cookies(ACCESS_TOKEN_COOKIE_NAME, "buy bitcoin :)", cookie_options)
+  },
 })
