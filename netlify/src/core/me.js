@@ -1,13 +1,13 @@
-import database from '../database.js';
+import database from "../database.js"
 
-import { fetch_user } from './discord.js';
-import Crew3 from './crew3.js';
+import { fetch_user } from "./discord.js"
+import Crew3 from "./crew3.js"
 
-const HOUR_1 = 1000 * 60 * 60;
+const HOUR_1 = 1000 * 60 * 60
 
 export default async (_, { uuid }) => {
   const {
-    username: minecraft_username = '',
+    username: minecraft_username = "",
     discord: {
       id,
       username,
@@ -20,18 +20,17 @@ export default async (_, { uuid }) => {
       refresh_token,
     } = {},
     crew3: { id: crew3_id, level, rank } = {},
-  } = (await database.pull(uuid)) ?? {};
-  const is_discord_user_expired = last_update + HOUR_1 < Date.now();
+  } = (await database.pull(uuid)) ?? {}
+  const is_discord_user_expired = last_update + HOUR_1 < Date.now()
 
   if (refresh_token) {
     const discord = is_discord_user_expired
       ? await fetch_user({ access_token, refresh_token, expiration })
-      : { id, username, discriminator, staff, avatar };
+      : { id, username, discriminator, staff, avatar }
 
-    const crew3 =
-      is_discord_user_expired || !crew3_id
-        ? await Crew3.get_user(discord.id)
-        : { level, rank, id: crew3_id };
+    const crew3 = is_discord_user_expired || !crew3_id
+      ? await Crew3.get_user(discord.id)
+      : { level, rank, id: crew3_id }
 
     const user = {
       username: minecraft_username,
@@ -41,7 +40,7 @@ export default async (_, { uuid }) => {
         ...crew3,
         ...(crew3?.id && { quests: await Crew3.get_quests(crew3.id) }),
       },
-    };
+    }
     // if user was updated, save it
     if (is_discord_user_expired) {
       await database.push(uuid, {
@@ -53,10 +52,10 @@ export default async (_, { uuid }) => {
           expiration,
           refresh_token,
         },
-      });
+      })
     }
 
-    return user;
+    return user
   }
-  return { username: minecraft_username, uuid };
-};
+  return { username: minecraft_username, uuid }
+}
