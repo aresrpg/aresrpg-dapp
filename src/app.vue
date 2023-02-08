@@ -5,19 +5,24 @@ router-view
 <script setup>
 import { provide, reactive, watch, ref } from 'vue';
 import fetch_api from './fetch_api.js';
+import { useToast } from 'vue-toastification';
 
 const name = 'app';
 const user = reactive({});
+const server_info = reactive({});
 const resync = ref(0);
+const toast = useToast();
 
 watch(resync, () => {
   fetch_api(`/me`).then(me => {
-    if (me.uuid) Object.assign(user, me);
+    if (me?.uuid) Object.assign(user, me);
   });
+  fetch_api('/server-info').then(info => Object.assign(server_info, info));
 });
 
 provide('user', user);
 provide('resync', resync);
+provide('server-info', server_info);
 </script>
 
 <style lang="stylus">

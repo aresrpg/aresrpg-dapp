@@ -10,9 +10,12 @@ const DISCORD_API = 'https://discord.com/api';
 const ARESRPG_STAFF_ID = '311251749182767105';
 
 function fetch_discord(endpoint, options) {
-  return fetch(`${DISCORD_API}/${endpoint}`, options).then(response =>
-    response.json()
-  );
+  return fetch(`${DISCORD_API}/${endpoint}`, options)
+    .then(response => response.json())
+    .then(({ message, ...result }) => {
+      if (message) throw new Error(message);
+      return result;
+    });
 }
 
 async function get_access_token(refresh_token) {
@@ -87,30 +90,25 @@ export async function link({ code }, { uuid }) {
   );
 
   const expiration = Date.now() + expires_in * 1000 - 5000;
-  const { id } =
-    (await fetch_user({ access_token, refresh_token, expiration })) ?? {};
+  const discord_user = await fetch_user({
+    access_token,
+    refresh_token,
+    expiration,
+  });
 
-  if (!id) throw 'USER_NOT_FOUND';
+  if (!discord_user?.id) throw 'USER_NOT_FOUND';
+  if (await database.is_already_linked(discord_user.id)) throw 'ALREADY_LINKED';
 
-  // when an user link a discord account
-  // we save the discord id in the user object
-  // but we also push a raw uuid for the discord id key
-  // as we use reJson there is no (simple) way to use additional search index
-  // to be able to check if a discord id is already linked to another microsoft account
-  const discord_key = `discord:${id}`;
   const minecraft_user = await database.pull(uuid);
 
-  const uuid_linked_to_discord_id = await database.pull(discord_key);
-  if (uuid_linked_to_discord_id) throw 'ALREADY_LINKED';
-
-  await database.push(discord_key, uuid);
   await database.push(uuid, {
     ...minecraft_user,
     discord: {
-      id,
+      ...discord_user,
       refresh_token,
       access_token,
       expiration,
+      last_update: Date.now(),
     },
   });
 
@@ -123,7 +121,6 @@ export async function unlink(_, { uuid }) {
 
   if (!id) throw 'NOT_LINKED';
 
-  await database.delete(`discord:${id}`);
   await database.push(uuid, {
     ...user,
     discord: undefined,

@@ -10,4 +10,13 @@ export default {
   async delete(key) {
     return database.delete(key);
   },
+  async increment(key, property) {
+    database.get(key)[property]++;
+  },
+  async is_already_linked(id) {
+    return [...database.values()].some(({ discord }) => discord?.id === id);
+  },
+  async count() {
+    return database.size;
+  },
 };

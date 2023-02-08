@@ -4,7 +4,10 @@ const Result = {
   success: result => new Response(JSON.stringify({ result }), { status: 200 }),
   failure: failure => {
     console.error(failure);
-    return new Response(JSON.stringify({ failure }), { status: 400 });
+    return new Response(
+      JSON.stringify({ failure: failure.message ?? failure }),
+      { status: 400 }
+    );
   },
 };
 

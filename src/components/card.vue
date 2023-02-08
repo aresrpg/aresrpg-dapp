@@ -30,9 +30,11 @@ const hovering_dropdown = ref(false);
 <style lang="stylus" scoped>
 .card__container
   position relative
+  user-select none
   .card
     cursor pointer
     padding 4px 0 0 4px
+    width max-content
     .content__container
       position relative
       .content
@@ -70,6 +72,7 @@ const hovering_dropdown = ref(false);
     right 0
     padding-top .5em
     width 100%
+    z-index 10
     .drop_down
       border 1px solid v-bind('color')
       background #212121

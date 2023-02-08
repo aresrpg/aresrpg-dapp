@@ -18,11 +18,9 @@ onMounted(() => {
   fetch_api(`/login`, {
     method: 'POST',
     body: JSON.stringify({ code }),
-  })
-    .then(() => {
-      router.push('/');
-      resync.value++;
-    })
-    .catch(error => console.error(error));
+  }).then(() => {
+    router.push('/');
+    resync.value++;
+  });
 });
 </script>

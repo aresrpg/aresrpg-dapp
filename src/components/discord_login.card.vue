@@ -7,6 +7,7 @@ import { VITE_DISCORD_CLIENT_ID, VITE_DISCORD_REDIRECT_URI } from '../env.js';
 
 const color = '#ECF0F1';
 const user = inject('user');
+const resync = inject('resync');
 const discord_login = `https://discord.com/api/oauth2/authorize
 ?client_id=${VITE_DISCORD_CLIENT_ID}
 &redirect_uri=${VITE_DISCORD_REDIRECT_URI}
@@ -15,10 +16,14 @@ const discord_login = `https://discord.com/api/oauth2/authorize
 `;
 
 const router = useRouter();
-const linked = computed(() => user?.discord);
+const linked = computed(() => !!user?.discord);
 
 const connect = () => (window.location.href = discord_login);
-const unlink = () => fetch_api(`/discord/unlink`).then(router.go);
+const unlink = () =>
+  fetch_api(`/discord/unlink`).then(() => {
+    resync.value++;
+    router.go();
+  });
 const on_click = () => {
   if (!linked.value) connect();
 };

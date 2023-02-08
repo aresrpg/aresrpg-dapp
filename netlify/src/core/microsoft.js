@@ -99,10 +99,9 @@ export default async ({ code }, { Token }) => {
     .then(Auth.xtsts)
     .then(Auth.minecraft);
 
-  const normalized_uuid = hyphenize_uuid(uuid.toLowerCase());
-
   if (!uuid) throw 'NOT_FOUND';
 
+  const normalized_uuid = hyphenize_uuid(uuid.toLowerCase());
   const user = await database.pull(normalized_uuid);
 
   await database.push(normalized_uuid, {
@@ -111,5 +110,5 @@ export default async ({ code }, { Token }) => {
   });
 
   await Token.set({ uuid: normalized_uuid });
-  return username;
+  return true;
 };
