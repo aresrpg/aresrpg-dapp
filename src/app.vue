@@ -9,20 +9,25 @@ import { useToast } from 'vue-toastification';
 
 const name = 'app';
 const user = reactive({});
+const loading = ref(false);
 const server_info = reactive({});
 const resync = ref(0);
 const toast = useToast();
 
 watch(resync, () => {
-  fetch_api(`/me`).then(me => {
-    if (me?.uuid) Object.assign(user, me);
-  });
+  loading.value = true;
+  fetch_api(`/me`)
+    .then(me => {
+      if (me?.uuid) Object.assign(user, me);
+    })
+    .finally(() => (loading.value = false));
   fetch_api('/server-info').then(info => Object.assign(server_info, info));
 });
 
 provide('user', user);
 provide('resync', resync);
 provide('server-info', server_info);
+provide('loading', loading);
 </script>
 
 <style lang="stylus">

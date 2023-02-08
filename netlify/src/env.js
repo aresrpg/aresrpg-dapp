@@ -1,9 +1,12 @@
 import { config } from 'https://deno.land/x/dotenv@v3.2.0/mod.ts';
+import { decode } from 'https://deno.land/std@0.176.0/encoding/base64.ts';
+
+config();
 
 const {
   PORT: port = 3000,
-  PRIVATE_KEY,
-  PUBLIC_KEY,
+  PRIVATE_KEY: private_key,
+  PUBLIC_KEY: public_key,
   COOKIE_SAMESITE = 'none',
   COOKIE_PATH = '/',
   COOKIE_SECURE: cookie_secure = 'true',
@@ -20,7 +23,7 @@ const {
   DISCORD_CLIENT_SECRET,
   DISCORD_REDIRECT_URI = 'http://localhost:8888/discord-oauth',
   CREW3_API_KEY,
-} = config();
+} = Deno.env.toObject();
 
 export const PORT = +port;
 
@@ -28,6 +31,7 @@ export {
   COOKIE_DOMAIN,
   COOKIE_PATH,
   COOKIE_SAMESITE,
+  CREW3_API_KEY,
   DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET,
   DISCORD_REDIRECT_URI,
@@ -35,13 +39,12 @@ export {
   MICROSOFT_CLIENT_SECRET,
   MICROSOFT_REDIRECT_URI,
   MICROSOFT_TENANT_ID,
-  PRIVATE_KEY,
-  PUBLIC_KEY,
   REDIS_HOST,
   REDIS_PORT,
   REDIS_PWD,
-  CREW3_API_KEY,
 };
 
+export const PRIVATE_KEY = new TextDecoder().decode(decode(private_key));
+export const PUBLIC_KEY = new TextDecoder().decode(decode(public_key));
 export const COOKIE_SECURE = cookie_secure === 'true';
 export const USE_PERSISTENT_STORAGE = use_persistent_storage === 'true';
