@@ -88,8 +88,6 @@ export async function link({ code }, { uuid }) {
     },
   );
 
-  console.dir({ access_token, refresh_token, expires_in });
-
   const expiration = Date.now() + expires_in * 1000 - 5000;
   const discord_user = await fetch_user({
     access_token,
