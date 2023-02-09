@@ -1,6 +1,17 @@
+<i18n>
+  fr:
+    unique_1: Il y a
+    unique_2: joueurs enregistrés
+  en:
+    unique_1: There are
+    unique_2: registered players
+</i18n>
+
 <script setup>
 import { inject } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const server_info = inject('server-info');
 </script>
 
@@ -8,7 +19,7 @@ const server_info = inject('server-info');
 .container
   .banner
   .content
-    .name Unique players: #[b {{ server_info.registrations ?? 0 }}]
+    .name {{ t('unique_1') }} #[b {{ server_info.registrations ?? 0 }}] {{ t('unique_2') }}
     .quests
 </template>
 
@@ -39,6 +50,6 @@ const server_info = inject('server-info');
       align-items baseline
       b
         color #F39C12
-        padding-left .25em
+        padding 0 .25em
         font-size 1.1em
 </style>

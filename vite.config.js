@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
+import vueI18n from '@intlify/unplugin-vue-i18n/vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
+    vueI18n(),
     VitePWA({
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       registerType: 'autoUpdate',
@@ -45,10 +47,11 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: '',
-        short_name: '',
-        description: 'lorem ipsum..',
-        theme_color: '#ffffff',
+        name: 'AresRPG | dApp',
+        short_name: 'AresRPG | dApp',
+        description:
+          'Start your adventure right now and join thousands of players in an immersive open-world ! Fight for your life and become the strongest warrior.',
+        theme_color: '#212121',
         icons: [
           {
             src: 'android-chrome-192x192.png',

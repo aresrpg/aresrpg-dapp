@@ -7,6 +7,7 @@ const props = defineProps({
   border: { default: '#eee' },
   background: { default: undefined },
   dropdown: { default: false },
+  height: { default: '55px' },
 });
 
 const background = computed(() => props.background ?? props.border);
@@ -39,7 +40,7 @@ const hovering_dropdown = ref(false);
       position relative
       .content
         border-radius 12px
-        height 55px
+        height v-bind('props.height')
         position relative
         border 1px solid v-bind('props.border')
         background #212121

@@ -55,7 +55,8 @@ const Auth = {
       },
     })
       .then((response) => response.json())
-      .then(({ Token, DisplayClaims: { xui } }) => {
+      .then(({ Token, DisplayClaims: { xui } = {} }) => {
+        if (!xui) throw "MINECRAFT_NOT_OWNED"
         const [{ uhs }] = xui
         return {
           xsts_token: Token,

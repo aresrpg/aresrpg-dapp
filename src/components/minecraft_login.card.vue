@@ -1,9 +1,20 @@
+<i18n>
+  fr:
+    logout: Déconnexion
+    connect: Connexion
+  en:
+    logout: Logout
+    connect: Connect
+</i18n>
+
 <script setup>
 import { inject, computed } from 'vue';
 import card from './card.vue';
 import fetch_api from '../fetch_api.js';
 import { useRouter } from 'vue-router';
 import { VITE_MICROSOFT_REDIRECT_URI, VITE_AZURE_CLIENT } from '../env.js';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const color = '#ECF0F1';
 const user = inject('user');
@@ -39,10 +50,10 @@ card(
 )
   template(#content)
     img.head(v-if="user.uuid" :src="avatar_link")
-    .name {{ user.uuid ? user.username : 'Connect' }}
+    .name {{ user.uuid ? user.username : t('connect') }}
   template(#dropdown)
     .item.disabled settings
-    .item.logout(@click="disconnect") Logout
+    .item.logout(@click="disconnect") {{ t('logout') }}
 </template>
 
 <style lang="stylus" scoped>
@@ -58,7 +69,6 @@ img.head
   cursor pointer
   border-radius 10px
   font-size .7em
-  // font-weight 100
   padding .75em 1em
   text-transform uppercase
   &:hover

@@ -1,6 +1,23 @@
+<i18n>
+  fr:
+    quest: Quêtes terminées
+    rank: Rang
+    items: Objets obtenus
+    crew3: Lier Crew3
+    hour: (peut mettre jusqu'à 1h pour se synchroniser)
+  en:
+    quest: Quests completed
+    rank: Rank
+    items: Items owned
+    crew3: Connect to Crew3
+    hour: (can take up to 1h to sync)
+</i18n>
+
 <script setup>
 import { inject, computed } from 'vue';
 import card from './card.vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const user = inject('user');
 const avatar = computed(
@@ -28,13 +45,13 @@ const items_owned = computed(() => user?.crew3?.quests?.items?.length);
           .name Mastery
           .num {{ user.crew3.level }}
         div
-          .name Quests completed
+          .name {{ t('quest') }}
           .num {{  user.crew3.quests.completed }}
         div
-          .name Rank
+          .name {{ t('rank') }}
           .num {{ user.crew3.rank }}
         div
-          .name Items owned
+          .name {{ t('items') }}
           .num {{ items_owned }}
       .card(v-else)
         card(
@@ -44,8 +61,8 @@ const items_owned = computed(() => user?.crew3?.quests?.items?.length);
         )
           template(#content)
             img.logo(src="../assets/crew3.svg")
-            .name Connect to Crew3
-        span (can take up to 1h to sync)
+            .name {{ t('crew3') }}
+        span {{ t('hour') }}
 </template>
 
 <style lang="stylus" scoped>

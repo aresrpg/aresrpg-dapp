@@ -1,10 +1,21 @@
+<i18n>
+  fr:
+    link: Lier Discord
+    disconnect: Déconnecter
+  en:
+    link: Link Discord
+    disconnect: Disconnect
+</i18n>
+
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { inject, computed } from 'vue';
 import card from './card.vue';
 import fetch_api from '../fetch_api.js';
 import { useRouter } from 'vue-router';
 import { VITE_DISCORD_CLIENT_ID, VITE_DISCORD_REDIRECT_URI } from '../env.js';
 
+const { t } = useI18n();
 const color = '#ECF0F1';
 const user = inject('user');
 const resync = inject('resync');
@@ -39,11 +50,11 @@ card(
 )
   template(#content)
     img.logo(src="../assets/discord.png")
-    .name(:class="{ unlinked: !linked }") {{ linked ? user.discord.username : 'Link Discord' }}
+    .name(:class="{ unlinked: !linked }") {{ linked ? user.discord.username : t('link') }}
     .sep(v-if="linked") ₪
     .id(v-if="linked") {{  user.discord.discriminator }}
   template(#dropdown)
-    .item.logout(@click="unlink") Disconnect
+    .item.logout(@click="unlink") {{  t('disconnect') }}
 </template>
 
 <style lang="stylus" scoped>

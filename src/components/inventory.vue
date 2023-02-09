@@ -1,8 +1,21 @@
+<i18n>
+  fr:
+    empty: Ton inventaire est vide, gagne des items sur Crew3 !
+    please_connect: Connecte toi pour voir ton inventaire
+  en:
+    empty: Your inventory is empty, get some items on Crew3 !
+    please_connect: Login to see your inventory
+</i18n>
+
 <script setup>
 import { inject, computed } from 'vue';
 import corbac from '../assets/corbac.png';
 import siluri from '../assets/siluri.png';
 import krinan from '../assets/krinan.png';
+import { useI18n } from 'vue-i18n';
+import card from './card.vue';
+
+const { t } = useI18n();
 
 const REGISTRY = {
   ['Familier Krinan Le Fourvoyeur']: {
@@ -23,6 +36,9 @@ const REGISTRY = {
 };
 
 const user = inject('user');
+const open_crew3 = () => {
+  window.open('https://aresrpg.crew3.xyz', '_blank');
+};
 const inventory = computed(() => {
   if (user?.crew3?.id) {
     const {
@@ -43,10 +59,19 @@ const inventory = computed(() => {
 
 <template lang="pug">
 .container
-  .content(:class="{ empty: !inventory.length }")
-    .empty(v-if="!inventory.length") Start doing quests to collect items..
+  .content( :class="{ empty: !inventory.length }")
+    span(v-if="!user?.uuid") {{ t('please_connect') }}
     .items(v-else)
-      .item(v-for="item of inventory" :key="item.name" :style="{ background: `url(${item.src}) center / cover` }")
+      card(
+        v-if="!inventory.length"
+        :clickable="true"
+        @click="open_crew3"
+        background="#E74C3C"
+      )
+        template(#content)
+          img.logo(src="../assets/crew3.svg")
+          .name {{ t('empty') }}
+      .item(v-else v-for="item of inventory" :key="item.name" :style="{ background: `url(${item.src}) center / cover` }")
         .info
           .name {{ item.name }}
           .quantity x {{ item.amount }}
@@ -79,6 +104,19 @@ const inventory = computed(() => {
       display flex
       flex-flow row wrap
       justify-content start
+      >span
+        font-size .7em
+        margin-top .5em
+        font-style italic
+      .name
+        margin-right .5em
+        font-weight 100
+        font-size .7em
+      img.logo
+        margin .5em
+        width 32px
+        border-radius 50px
+        border 1px solid #ECF0F1
       .item
         position relative
         overflow hidden
