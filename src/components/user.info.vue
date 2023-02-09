@@ -29,7 +29,9 @@ const open_crew3 = () => {
   window.open('https://aresrpg.crew3.xyz', '_blank');
 };
 
-const items_owned = computed(() => user?.crew3?.quests?.items?.length);
+const items_owned = computed(() =>
+  user?.crew3?.quests?.items?.reduce((total, { amount }) => total + amount, 0)
+);
 </script>
 
 <template lang="pug">

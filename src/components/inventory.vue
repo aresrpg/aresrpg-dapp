@@ -12,6 +12,8 @@ import { inject, computed } from 'vue';
 import corbac from '../assets/corbac.png';
 import siluri from '../assets/siluri.png';
 import krinan from '../assets/krinan.png';
+import betakey from '../assets/key.png';
+import scroll from '../assets/title.png';
 import { useI18n } from 'vue-i18n';
 import card from './card.vue';
 
@@ -32,6 +34,16 @@ const REGISTRY = {
     name: 'Corbac',
     src: corbac,
     type: 'Familier',
+  },
+  ['Clé Beta']: {
+    name: 'Clé Beta',
+    src: betakey,
+    type: 'Item',
+  },
+  ['Titre Porteur de la Sagesse Ancestrale']: {
+    name: 'Porteur de la Sagesse Ancestrale',
+    src: scroll,
+    type: 'Titre',
   },
 };
 
