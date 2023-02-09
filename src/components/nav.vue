@@ -3,13 +3,17 @@ import login_card from './minecraft_login.card.vue';
 import discord_card from './discord_login.card.vue';
 import lang_selector from '../components/lang_selector.vue';
 import { inject, computed } from 'vue';
+import useBreakpoints from 'vue-next-breakpoints';
 
 const user = inject('user');
 const logged = computed(() => user?.uuid);
+const breakpoints = useBreakpoints({
+  mobile: 1000,
+});
 </script>
 
 <template lang="pug">
-nav
+nav(:class="{ small: breakpoints.mobile.matches }")
   img.logo(src="../assets/text_logo.png")
   discord_card.space_right(v-if="logged")
   login_card.space_right
@@ -25,6 +29,9 @@ nav
   align-items center
   padding 1em 2em
   color white
+  &.small
+    .space_right
+      display none
 
   .space_right
     margin-right 1em

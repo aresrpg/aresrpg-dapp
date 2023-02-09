@@ -33,6 +33,7 @@ loading(v-if="is_loading")
 .app(v-else)
   a_nav
   .mobile(v-if="breakpoints.mobile.matches")
+    server_info.info
     img(src="../assets/moai.png")
     span {{  t('mobile') }}
   .content(v-else)
@@ -47,16 +48,23 @@ loading(v-if="is_loading")
   display flex
   flex-flow column nowrap
   height 100vh
-  .mobile
+  >.mobile
     display flex
     justify-content center
     align-items center
-    height 100%
+    height 100vh
+    overflow hidden
     color #eee
     flex-flow column nowrap
+    position relative
     span
       font-size .8em
+      margin-top 1em
     img
+      position absolute
+      transform rotate(-20deg)
+      bottom -50px
+      right 0
       width 200px
       filter drop-shadow(1px 2px 3px black)
   .content
