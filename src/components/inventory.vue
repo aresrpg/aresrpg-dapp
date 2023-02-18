@@ -45,6 +45,11 @@ const REGISTRY = {
     src: scroll,
     type: 'Titre',
   },
+  [`Titre Survivant de l'ancien monde`]: {
+    name: `Survivant de l'ancien monde`,
+    src: scroll,
+    type: 'Titre',
+  },
 };
 
 const user = inject('user');
