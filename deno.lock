@@ -36,7 +36,15 @@
     "https://deno.land/x/redis@v0.29.0/vendor/https/deno.land/std/async/deferred.ts": "a466d02795e34cd0c5cb495cbc8e3e817b4bdc282a7806f67b9d4c5e5677f9a0",
     "https://deno.land/x/redis@v0.29.0/vendor/https/deno.land/std/async/delay.ts": "68b527cdb30ef2e9955dec4ae510630fbae86f782170bd4f350a7ac9bded4bdd",
     "https://deno.land/x/redis@v0.29.0/vendor/https/deno.land/std/io/buf_reader.ts": "5cfd680079d78201b0112cb328862702250bbe1088b50f117b3305d4fc225751",
-    "https://deno.land/x/redis@v0.29.0/vendor/https/deno.land/std/io/buf_writer.ts": "7d5bf248bdb9fc01c1e1c7deb3be76470603d090e5e0a1f2302a77b52fde451a"
+    "https://deno.land/x/redis@v0.29.0/vendor/https/deno.land/std/io/buf_writer.ts": "7d5bf248bdb9fc01c1e1c7deb3be76470603d090e5e0a1f2302a77b52fde451a",
+    "https://edge.netlify.com/": "610a527f95d87f722762bf3745be72361ad681411f25bf7b86e3ace654513531",
+    "https://edge.netlify.com/bootstrap/account.ts": "db03119ab77f583fe3085958b3739043713f84454adba665666b7d437531dab4",
+    "https://edge.netlify.com/bootstrap/config.ts": "c62c806de0153a128ceeb91aad7aaef220290debc3d7abe3f98262f02cc85f7f",
+    "https://edge.netlify.com/bootstrap/context.ts": "09207189e7a90ef6bb2921354204ad03f351f2c388d6e488da140201fd08d8ca",
+    "https://edge.netlify.com/bootstrap/cookie.ts": "fa4756ae48228373107f789b18b7db5244d9e6a1bcb5abf4487f0a838aae1c44",
+    "https://edge.netlify.com/bootstrap/edge_function.ts": "b8253e86aa83c67341f5cfedeba5049d77fbf84dcab7eceff7566b7728ae9b39",
+    "https://edge.netlify.com/bootstrap/geo.ts": "aa52dbe3bd74ae7568e20772700568751f812aa8ca2af728db7462a1d67c2d76",
+    "https://edge.netlify.com/bootstrap/site.ts": "92469673f289c124a9985c7027dc6c166364371b209b5a674aa05d482ad5583b"
   },
   "npm": {
     "specifiers": {

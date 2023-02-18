@@ -28,7 +28,7 @@ const public_key = await import_key(PUBLIC_KEY, ["verify"])
 const ACCESS_TOKEN_COOKIE_NAME = "justeleblanc"
 const A_YEAR = 60000 * 60 * 24 * 365
 
-export default ({ get_cookies, set_cookies, del_cookies }) => ({
+export default ({ get_cookies, set_cookies }) => ({
   get: async () => {
     try {
       return await verify(get_cookies(ACCESS_TOKEN_COOKIE_NAME), public_key)

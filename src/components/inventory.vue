@@ -91,7 +91,7 @@ const inventory = computed(() => {
       .item(v-else v-for="item of inventory" :key="item.name" :style="{ background: `url(${item.src}) center / cover` }")
         .info
           .name {{ item.name }}
-          .quantity x {{ item.amount }}
+          .quantity x{{ item.amount }}
           .tag {{ item.type }}
 </template>
 
