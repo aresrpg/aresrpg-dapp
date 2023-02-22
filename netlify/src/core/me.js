@@ -20,7 +20,7 @@ export default async (_, { uuid }) => {
       expiration,
       refresh_token,
     } = {},
-    crew3: { id: crew3_id, level, rank, quests, completed_quests } = {},
+    crew3: { id: crew3_id, level, rank, quests = {}, completed_quests } = {},
     inventory: last_inventory = [],
   } = (await database.pull(uuid)) ?? {}
   const is_cache_expired = last_update + HOUR_1 < Date.now()
@@ -43,7 +43,8 @@ export default async (_, { uuid }) => {
           : {
             completed: quests?.completed ?? completed_quests ?? 0,
             items: [
-              ...quests?.items.map((item) => ({ issuer: "crew3", ...item })),
+              ...quests?.items?.map((item) => ({ issuer: "crew3", ...item })) ??
+                [],
               ...last_inventory,
             ].filter(({ issuer }) => issuer === "crew3"),
           }
@@ -107,6 +108,7 @@ export default async (_, { uuid }) => {
         })
         return user
       }
+      console.error(error)
     }
   }
   return { username: minecraft_username, uuid, inventory: last_inventory }

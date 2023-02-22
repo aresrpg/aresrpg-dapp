@@ -38,7 +38,7 @@ export default {
       `@discord_id:{${discord_id}}`,
       "NOCONTENT",
     )
-    return found_uuid !== uuid
+    return found_uuid && found_uuid !== uuid
   },
   async count() {
     const { num_docs } = await send_command("FT.INFO", "users").then((result) =>
