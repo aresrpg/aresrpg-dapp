@@ -8,6 +8,7 @@ FT.CREATE users
   NOOFFSETS
   NOFREQS
   SCHEMA
+    $.uuid AS uuid TAG
     $.username AS username TAG
     $.discord.id AS discord_id TAG
     $.crew3.quests.items[*].amount AS item_amount NUMERIC

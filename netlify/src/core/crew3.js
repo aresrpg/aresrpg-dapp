@@ -25,15 +25,11 @@ export default {
       items: data
         .flatMap(({ reward }) => reward)
         .filter(({ type }) => type === "other")
-        .map(({ value }) => ({ name: value.trim(), amount: 1 }))
-        .reduce((result, item) => {
-          const existing = result.find(
-            (processed_item) => processed_item.name === item.name,
-          )
-          if (existing) existing.amount++
-          else result.push(item)
-          return result
-        }, []),
+        .map(({ value }) => ({
+          name: value.trim(),
+          amount: 1,
+          issuer: "crew3",
+        })),
     }
   },
 }

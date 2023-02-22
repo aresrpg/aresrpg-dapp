@@ -119,7 +119,8 @@ export async function link({ code }, { uuid }) {
   })
 
   if (!discord_user?.id) throw "USER_NOT_FOUND"
-  if (await database.is_already_linked(discord_user.id)) throw "ALREADY_LINKED"
+  if (await database.is_already_linked({ uuid, discord_id: discord_user.id }))
+    throw "ALREADY_LINKED"
 
   const minecraft_user = await database.pull(uuid)
 
@@ -146,6 +147,7 @@ export async function unlink(_, { uuid }) {
   await database.push(uuid, {
     ...user,
     discord: undefined,
+    crew3: undefined,
   })
 
   return true

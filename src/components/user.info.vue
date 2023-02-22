@@ -29,14 +29,15 @@ const open_crew3 = () => {
   window.open('https://aresrpg.crew3.xyz', '_blank');
 };
 
-const items_owned = computed(() =>
-  user?.crew3?.quests?.items?.reduce((total, { amount }) => total + amount, 0)
-);
+const items_owned = computed(() => {
+  return user?.inventory?.reduce((total, { amount }) => total + amount, 0);
+});
 </script>
 
 <template lang="pug">
 .container
   .banner
+  .mastery {{ user?.mastery ?? 1 }}
   img.avatar(:src="avatar")
   .content
     .rank {{ user.discord.staff ? 'Staff' : 'Player' }} #[img.staff_icon(v-if="user.discord.staff" src="../assets/037-freeze.png")]
@@ -44,11 +45,8 @@ const items_owned = computed(() =>
       .name {{ user.discord.username || 'Sceat' }}
       .infos(v-if="user.crew3?.id")
         div
-          .name Mastery
-          .num {{ user.crew3.level }}
-        div
           .name {{ t('quest') }}
-          .num {{  user.crew3.quests.completed }}
+          .num {{  user.crew3.completed_quests }}
         div
           .name {{ t('rank') }}
           .num {{ user.crew3.rank }}
@@ -88,6 +86,15 @@ const items_owned = computed(() =>
     width 100%
     height 70px
     border-bottom 1px solid #ECF0F1
+
+  .mastery
+    position absolute
+    top 0
+    right 10px
+    font-size 3em
+    opacity .5
+    font-weight 900
+
   img.avatar
     position absolute
     top 20px

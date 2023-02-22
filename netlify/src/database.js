@@ -31,14 +31,14 @@ export default {
   async delete(key) {
     await send_command("JSON.DEL", key)
   },
-  async is_already_linked(id) {
-    const [amount_found] = await send_command(
+  async is_already_linked({ uuid, discord_id }) {
+    const [, found_uuid] = await send_command(
       "FT.SEARCH",
       "users",
-      `@discord_id:{${id}}`,
+      `@discord_id:{${discord_id}}`,
       "NOCONTENT",
     )
-    return !!amount_found
+    return found_uuid !== uuid
   },
   async count() {
     const { num_docs } = await send_command("FT.INFO", "users").then((result) =>

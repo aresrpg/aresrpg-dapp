@@ -14,6 +14,7 @@ import siluri from '../assets/siluri.png';
 import krinan from '../assets/krinan.png';
 import betakey from '../assets/key.png';
 import scroll from '../assets/title.png';
+import talokan_feu from '../assets/talokan_feu.png';
 import { useI18n } from 'vue-i18n';
 import card from './card.vue';
 
@@ -24,31 +25,43 @@ const REGISTRY = {
     name: 'Krinan',
     src: krinan,
     type: 'Familier',
+    desc: `Ce familier, si vous le nourrissez, augmentera vos dommages fixes`,
   },
   ['Familier Siluri']: {
     name: 'Siluri',
     src: siluri,
     type: 'Familier',
+    desc: `Ce familier, si vous le nourrissez, augmentera vos caractéristiques d'esprit`,
   },
   ['Familier Corbac']: {
     name: 'Corbac',
     src: corbac,
     type: 'Familier',
+    desc: `Ce familier, si vous le nourrissez, augmentera votre portée`,
   },
   ['Clé Beta']: {
     name: 'Clé Beta',
     src: betakey,
     type: 'Item',
+    desc: `Cette clé mystérieuse vous permet surement l'accès aux versions de test d'AresRPG`,
   },
   ['Titre Porteur de la Sagesse Ancestrale']: {
     name: 'Porteur de la Sagesse Ancestrale',
     src: scroll,
     type: 'Titre',
+    desc: 'Cet ornement devrait imposer le respect parmi la plèbe',
   },
   [`Titre Survivant de l'ancien monde`]: {
     name: `Survivant de l'ancien monde`,
     src: scroll,
     type: 'Titre',
+    desc: 'Cet ornement devrait imposer le respect parmi la plèbe',
+  },
+  ['Familier Talokan Feu']: {
+    name: 'Talokan Feu',
+    src: talokan_feu,
+    type: 'Familier',
+    desc: `Ce familier, si vous le nourrissez, augmentera vos caractéristiques d'intelligence`,
   },
 };
 
@@ -57,20 +70,13 @@ const open_crew3 = () => {
   window.open('https://aresrpg.crew3.xyz', '_blank');
 };
 const inventory = computed(() => {
-  if (user?.crew3?.id) {
-    const {
-      crew3: {
-        quests: { items },
-      },
-    } = user;
-    return items
-      .map(({ name, amount }) => ({
-        ...REGISTRY[name],
-        amount,
-      }))
-      .filter(({ name }) => !!name);
-  }
-  return [];
+  return (
+    user.inventory?.map(({ name, issuer, amount }) => ({
+      ...REGISTRY[name],
+      amount,
+      issuer,
+    })) ?? []
+  );
 });
 </script>
 
@@ -88,11 +94,13 @@ const inventory = computed(() => {
         template(#content)
           img.logo(src="../assets/crew3.svg")
           .name {{ t('empty') }}
-      .item(v-else v-for="item of inventory" :key="item.name" :style="{ background: `url(${item.src}) center / cover` }")
+      .item(v-else v-for="item of inventory" :key="item.name")
+        img(:src="item.src")
         .info
           .name {{ item.name }}
           .quantity x{{ item.amount }}
           .tag {{ item.type }}
+        .desc {{ item.desc }}
 </template>
 
 <style lang="stylus" scoped>
@@ -139,33 +147,47 @@ const inventory = computed(() => {
         overflow hidden
         border-radius 12px
         width 200px
-        height @width
         margin .25em
-        border 1px solid black
+        border 1px solid #eee
+        display flex
+        flex-flow column nowrap
+        >img
+          width 100%
+          height 200px
+          object-fit cover
+
+        .desc
+          color white
+          font-size .6em
+          padding .5em
+          opacity .7
+          text-align center
         .info
           display flex
-          flex-flow column nowrap
           position absolute
-          bottom 0
+          top 0
           left 0
           right 0
-          margin .25em
-          border-radius 10px
-          background rgba(black, .5)
+          padding .25em .5em
+          background rgba(#212121, .5)
           backdrop-filter blur(5px)
-          padding .5em 1em
+          flex-flow column nowrap
+          margin .2em
+          border-radius 10px
+          display grid
+          grid "name amount" 1fr "type amount" max-content / 1fr max-content
           .name
+            grid-area name
+            width 100%
             text-transform uppercase
             font-size .9em
             font-weight 900
             text-shadow 1px 2px 3px #212121
           .quantity
-            position absolute
+            grid-area amount
             font-size .9em
-            top 50%
-            transform translateY(-50%)
-            right 10px
           .tag
+            grid-area type
             width max-content
             color #BDC3C7
             font-size .7em
