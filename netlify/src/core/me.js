@@ -5,6 +5,18 @@ import Crew3 from "./crew3.js"
 
 const HOUR_1 = 1000 * 60 * 60
 
+function augment_with_amount(inventory) {
+  return inventory.map((item) => ({ ...item, amount: 1 }))
+    .reduce((result, item) => {
+      const existing = result.find(
+        (processed_item) => processed_item.name === item.name,
+      )
+      if (existing) existing.amount++
+      else result.push(item)
+      return result
+    }, [])
+}
+
 export default async (_, { uuid }) => {
   const {
     username: minecraft_username = "",
@@ -87,16 +99,7 @@ export default async (_, { uuid }) => {
 
       return {
         ...user,
-        inventory: user.inventory
-          .map((item) => ({ ...item, amount: 1 }))
-          .reduce((result, item) => {
-            const existing = result.find(
-              (processed_item) => processed_item.name === item.name,
-            )
-            if (existing) existing.amount++
-            else result.push(item)
-            return result
-          }, []),
+        inventory: augment_with_amount(user.inventory),
       }
     } catch (error) {
       if (error === "INVALID_GRANT") {
@@ -111,5 +114,9 @@ export default async (_, { uuid }) => {
       console.error(error)
     }
   }
-  return { username: minecraft_username, uuid, inventory: last_inventory }
+  return {
+    username: minecraft_username,
+    uuid,
+    inventory: augment_with_amount(last_inventory),
+  }
 }

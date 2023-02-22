@@ -149,6 +149,7 @@ export async function unlink(_, { uuid }) {
     ...user,
     discord: undefined,
     crew3: undefined,
+    inventory: inventory.filter(({ issuer }) => issuer !== "crew3"),
   })
 
   return true
