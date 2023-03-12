@@ -11,6 +11,7 @@
     "https://deno.land/std@0.168.0/io/buf_writer.ts": "b1ee5325cec3386596c67b1c7510bfc7e42b2f505060fe2e9d6536cdefdbb30c",
     "https://deno.land/std@0.168.0/io/types.d.ts": "790d3a3fa6b7f298d4cfbcf8bfd9d4be595c1b1acaa3eebb3009177df98bf93c",
     "https://deno.land/std@0.176.0/encoding/base64.ts": "7de04c2f8aeeb41453b09b186480be90f2ff357613b988e99fabb91d2eeceba1",
+    "https://deno.land/x/deno_google_recaptcha@v1.0/mod.ts": "97548a9d6d2a7d67da88a6f39d774037b9dc0ea3af859a5685c6be53fc95b581",
     "https://deno.land/x/djwt@v2.8/algorithm.ts": "fa4c7354ab9f4808d38104fdc6f21c8270f65f109ed84136d4fe31a4504426d4",
     "https://deno.land/x/djwt@v2.8/deps.ts": "261b7b6bfe2602329d8f9de2938c2a898cd6dfa746b3454ae415df2c53e6ae4d",
     "https://deno.land/x/djwt@v2.8/mod.ts": "7abba8518688e88648882a95161b42391ac6043c142b1ab491b36f712189e1e1",

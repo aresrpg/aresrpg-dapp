@@ -17,7 +17,7 @@ onMounted(() => {
   const { query: { code } = {} } = route;
   fetch_api(`/discord/link`, {
     method: 'POST',
-    body: JSON.stringify({ code }),
+    body: { code },
   }).then(() => {
     resync.value++;
     router.push('/');

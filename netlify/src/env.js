@@ -19,6 +19,7 @@ const {
   DISCORD_CLIENT_SECRET,
   DISCORD_REDIRECT_URI = "http://localhost:8888/discord-oauth",
   CREW3_API_KEY,
+  RECAPTCHA_SECRET,
 } = Deno.env.toObject()
 
 export const PORT = +port
@@ -35,6 +36,7 @@ export {
   MICROSOFT_CLIENT_SECRET,
   MICROSOFT_REDIRECT_URI,
   MICROSOFT_TENANT_ID,
+  RECAPTCHA_SECRET,
   REDIS_HOST,
   REDIS_PORT,
   REDIS_PWD,

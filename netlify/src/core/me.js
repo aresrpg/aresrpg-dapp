@@ -34,6 +34,7 @@ export default async (_, { uuid }) => {
     } = {},
     crew3: { id: crew3_id, level, rank, quests = {}, completed_quests } = {},
     inventory: last_inventory = [],
+    gtla,
   } = (await database.pull(uuid)) ?? {}
   const is_cache_expired = last_update + HOUR_1 < Date.now()
 
@@ -79,6 +80,7 @@ export default async (_, { uuid }) => {
           completed_quests: completed,
         },
         inventory,
+        gtla,
       }
 
       // if user was updated, save it
@@ -118,5 +120,6 @@ export default async (_, { uuid }) => {
     username: minecraft_username,
     uuid,
     inventory: augment_with_amount(last_inventory),
+    gtla,
   }
 }

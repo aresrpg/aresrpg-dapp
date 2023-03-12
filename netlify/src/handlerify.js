@@ -1,4 +1,6 @@
 import token from "./token.js"
+import { RECaptcha } from "https://deno.land/x/deno_google_recaptcha@v1.0/mod.ts"
+import { RECAPTCHA_SECRET } from "./env.js"
 
 const Result = {
   success: (result) =>
@@ -12,9 +14,21 @@ const Result = {
   },
 }
 
-export default (handle, { secure } = {}) => async (request, { cookies }) => {
+export default (handle, { secure, captcha } = {}) =>
+async (request, { cookies }) => {
   const body = await request.json()
   if (!body) return Result.failure("MISSING_BODY")
+
+  const { captcha_token } = body
+
+  if (captcha) {
+    const is_human = await RECaptcha.verify(
+      RECAPTCHA_SECRET,
+      captcha_token,
+      0.5,
+    )
+    if (!is_human) return Result.failure("CAPTCHA_FAILED")
+  }
 
   const Token = token({
     set_cookies: (name, value, options) =>
