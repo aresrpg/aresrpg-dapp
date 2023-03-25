@@ -15,6 +15,7 @@ import krinan from '../assets/krinan.png';
 import betakey from '../assets/key.png';
 import scroll from '../assets/title.png';
 import talokan_feu from '../assets/talokan_feu.png';
+import zot from '../assets/zot.png';
 import { useI18n } from 'vue-i18n';
 import card from './card.vue';
 
@@ -62,6 +63,12 @@ const REGISTRY = {
     src: talokan_feu,
     type: 'Familier',
     desc: `Ce familier, si vous le nourrissez, augmentera vos caractéristiques d'intelligence`,
+  },
+  ['Familier Zot']: {
+    name: 'Zot',
+    src: zot,
+    type: 'Familier',
+    desc: `Ce familier, si vous le nourrissez, augmentera votre puissance`,
   },
 };
 
