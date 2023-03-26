@@ -107,6 +107,7 @@ const inventory = computed(() => {
           .name {{ item.name }}
           .quantity x{{ item.amount }}
           .tag {{ item.type }}
+          .issuer via #[b {{  item.issuer }}]
         .desc {{ item.desc }}
 </template>
 
@@ -182,7 +183,7 @@ const inventory = computed(() => {
           margin .2em
           border-radius 10px
           display grid
-          grid "name amount" 1fr "type amount" max-content / 1fr max-content
+          grid "name amount" 1fr "type issuer" max-content / 1fr max-content
           .name
             grid-area name
             width 100%
@@ -193,10 +194,20 @@ const inventory = computed(() => {
           .quantity
             grid-area amount
             font-size .9em
+            justify-self end
+
           .tag
             grid-area type
             width max-content
             color #BDC3C7
             font-size .7em
             font-family 'Itim', cursive
+          .issuer
+            grid-area issuer
+            color #BDC3C7
+            font-size .7em
+            font-family 'Itim', cursive
+            b
+              font-weight 100
+              color #A5D6A7
 </style>
