@@ -7,6 +7,10 @@ function fetch_crew3(endpoint, options) {
       "x-api-key": CREW3_API_KEY,
     },
   }).then((result) => result.json())
+    .catch((error) => {
+      console.error(error)
+      return {}
+    })
 }
 
 export default {

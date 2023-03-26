@@ -5,16 +5,33 @@ import Crew3 from "./crew3.js"
 
 const HOUR_1 = 1000 * 60 * 60
 
-function augment_with_amount(inventory) {
-  return inventory.map((item) => ({ ...item, amount: 1 }))
+const identical = (a) => (b) => a.name === b.name && a.issuer === b.issuer
+
+function normalize_inventory(inventory) {
+  const with_amount = inventory
+    .filter(({ amount }) => amount)
     .reduce((result, item) => {
-      const existing = result.find(
-        (processed_item) => processed_item.name === item.name,
-      )
+      const existing = result.find(identical(item))
+      if (existing) existing.amount += item.amount
+      else result.push(item)
+      return result
+    }, [])
+  const without_amount = inventory
+    .filter(({ amount }) => !amount)
+    .map((item) => ({ ...item, amount: 1 }))
+    .reduce((result, item) => {
+      const existing = result.find(identical(item))
       if (existing) existing.amount++
       else result.push(item)
       return result
     }, [])
+
+  return [...with_amount, ...without_amount].reduce((result, item) => {
+    const existing = result.find(identical(item))
+    if (existing) existing.amount = Math.max(existing.amount, item.amount)
+    else result.push(item)
+    return result
+  }, [])
 }
 
 export default async (_, { uuid }) => {
@@ -62,13 +79,10 @@ export default async (_, { uuid }) => {
             ].filter(({ issuer }) => issuer === "crew3"),
           }
 
-      const inventory = [
+      const inventory = normalize_inventory([
         ...last_inventory.filter(({ issuer }) => issuer !== "crew3"),
         ...items,
-      ].flatMap(({ amount, ...item }) => {
-        if (amount) return Array.from({ length: amount }).fill(item)
-        return item
-      })
+      ])
 
       const user = {
         username: minecraft_username,
@@ -99,15 +113,13 @@ export default async (_, { uuid }) => {
         })
       }
 
-      return {
-        ...user,
-        inventory: augment_with_amount(user.inventory),
-      }
+      return user
     } catch (error) {
       if (error === "INVALID_GRANT") {
         const user = { username: minecraft_username, uuid }
         await database.push(uuid, {
           ...user,
+          inventory: normalize_inventory(last_inventory),
           discord: undefined,
           crew3: undefined,
         })
@@ -119,7 +131,7 @@ export default async (_, { uuid }) => {
   return {
     username: minecraft_username,
     uuid,
-    inventory: augment_with_amount(last_inventory),
+    inventory: normalize_inventory(last_inventory),
     gtla,
   }
 }
