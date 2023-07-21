@@ -27,7 +27,7 @@ const router = useRouter();
 const linked = computed(() => user?.gtla != null);
 const found = computed(() => user?.gtla);
 const color = computed(() =>
-  linked.value ? (found.value ? found_color : notfound_color) : notlinked_color
+  linked.value ? (found.value ? found_color : notfound_color) : notlinked_color,
 );
 
 const on_click = () => {

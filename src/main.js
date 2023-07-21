@@ -12,11 +12,11 @@ import router from './router.js';
 
 console.log(
   `%c You're curious, I like you 🤭🍑`,
-  'color: #1565C0;font-weight:bold;font-size:22px;'
+  'color: #1565C0;font-weight:bold;font-size:22px;',
 );
 console.log(
   "%c but don't bother, i'm open-source!",
-  'color: #E67E22;font-size:18px;'
+  'color: #E67E22;font-size:18px;',
 );
 console.log('%c https://github.com/aresrpg/app', 'font-size:15px;');
 

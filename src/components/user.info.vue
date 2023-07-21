@@ -22,7 +22,7 @@ const { t } = useI18n();
 const user = inject('user');
 const avatar = computed(
   () =>
-    `https://cdn.discordapp.com/avatars/${user.discord.id}/${user.discord.avatar}.png?size=128`
+    `https://cdn.discordapp.com/avatars/${user.discord.id}/${user.discord.avatar}.png?size=128`,
 );
 
 const open_crew3 = () => {
