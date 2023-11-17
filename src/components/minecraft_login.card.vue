@@ -9,11 +9,13 @@
 
 <script setup>
 import { inject, computed } from 'vue';
-import card from './card.vue';
-import fetch_api from '../fetch_api.js';
 import { useRouter } from 'vue-router';
-import { VITE_MICROSOFT_REDIRECT_URI, VITE_AZURE_CLIENT } from '../env.js';
 import { useI18n } from 'vue-i18n';
+
+import fetch_api from '../fetch_api.js';
+import { VITE_MICROSOFT_REDIRECT_URI, VITE_AZURE_CLIENT } from '../env.js';
+
+import card from './card.vue';
 const { t } = useI18n();
 
 const color = '#ECF0F1';

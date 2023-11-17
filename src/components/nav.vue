@@ -1,10 +1,12 @@
 <script setup>
+import { inject, computed } from 'vue';
+import useBreakpoints from 'vue-next-breakpoints';
+
+import lang_selector from '../components/lang_selector.vue';
+
 import login_card from './minecraft_login.card.vue';
 import discord_card from './discord_login.card.vue';
 import gtla_card from './gtla.card.vue';
-import lang_selector from '../components/lang_selector.vue';
-import { inject, computed } from 'vue';
-import useBreakpoints from 'vue-next-breakpoints';
 
 const user = inject('user');
 const logged = computed(() => user?.uuid);

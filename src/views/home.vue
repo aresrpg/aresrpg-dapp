@@ -8,12 +8,13 @@
 <script setup>
 import { onMounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
+import useBreakpoints from 'vue-next-breakpoints';
+
 import a_nav from '../components/nav.vue';
 import discord_info from '../components/user.info.vue';
 import server_info from '../components/server.info.vue';
 import inventory from '../components/inventory.vue';
 import loading from '../components/loading.vue';
-import useBreakpoints from 'vue-next-breakpoints';
 
 const resync = inject('resync');
 const user = inject('user');

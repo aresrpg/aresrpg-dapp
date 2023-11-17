@@ -1,5 +1,6 @@
 import token from './token.js';
 import { RECAPTCHA_SECRET } from './env.js';
+import cookie from 'cookie';
 
 async function verifyRecaptcha(token) {
   const response = await fetch(
@@ -21,7 +22,8 @@ async function verifyRecaptcha(token) {
 
 export default (handle, { secure, captcha } = {}) =>
   async (request, response) => {
-    const { cookies, body } = request;
+    const { cookies, body: body_json } = request;
+    const body = body_json ? JSON.parse(body_json) : undefined;
     if (!body) return response.status(400).json({ failure: 'MISSING BODY' });
 
     const { captcha_token } = body;
@@ -33,9 +35,11 @@ export default (handle, { secure, captcha } = {}) =>
     }
 
     const Token = token({
-      set_cookies: (name, value, options) =>
-        cookies.set({ name, value, ...options }),
-      get_cookies: name => cookies.get(name),
+      set_cookie: ({ name, value, options }) =>
+        response.setHeader('Set-Cookie', [
+          cookie.serialize(name, value, options),
+        ]),
+      get_cookie: name => cookies[name],
     });
 
     const context = {
@@ -50,7 +54,9 @@ export default (handle, { secure, captcha } = {}) =>
     }
 
     return handle(body, context)
-      .then(result => response.status(200).json(result))
+      .then(result => {
+        response.status(200).json({ result });
+      })
       .catch(failure =>
         response.status(400).json({ failure: failure.message ?? failure }),
       );
