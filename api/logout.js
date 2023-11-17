@@ -1,4 +1,4 @@
-import handlerify from './src/handlerify.js';
+import handlerify from '../src/core/handlerify.js';
 
 export default handlerify(async (_, { Token }) => {
   Token.rm();

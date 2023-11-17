@@ -1,9 +1,9 @@
-import database from '../database.js';
+import database from './database.js';
 import {
   VITE_AZURE_CLIENT,
   MICROSOFT_CLIENT_SECRET,
   VITE_MICROSOFT_REDIRECT_URI,
-} from '../env.js';
+} from './env.js';
 
 const Auth = {
   microsoft: auth_code =>

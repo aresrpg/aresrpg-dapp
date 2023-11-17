@@ -2,8 +2,8 @@ import {
   VITE_DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET,
   VITE_DISCORD_REDIRECT_URI,
-} from '../env.js';
-import database from '../database.js';
+} from './env.js';
+import database from './database.js';
 
 const ARESRPG_DISCORD_ID = '265104803531587584';
 const DISCORD_API = 'https://discord.com/api/v10';

@@ -1,5 +1,5 @@
-import handlerify from './src/handlerify.js';
-import database from './src/database.js';
+import handlerify from '../src/core/handlerify.js';
+import database from '../src/core/database.js';
 
 export default handlerify(async () => {
   return {

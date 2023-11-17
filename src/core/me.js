@@ -1,5 +1,4 @@
-import database from '../database.js';
-
+import database from './database.js';
 import { fetch_user, get_expiration } from './discord.js';
 import Crew3 from './crew3.js';
 

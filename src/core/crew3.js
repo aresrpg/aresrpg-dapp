@@ -1,4 +1,4 @@
-import { CREW3_API_KEY } from '../env.js';
+import { CREW3_API_KEY } from './env.js';
 
 function fetch_crew3(endpoint, options) {
   return fetch(`https://api.crew3.xyz/communities/aresrpg${endpoint}`, {

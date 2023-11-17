@@ -1,5 +1,5 @@
-import players from '../players.json' assert { type: 'json' };
-import database from '../database.js';
+import players from './players.json' assert { type: 'json' };
+import database from './database.js';
 
 export default async (_, { uuid }) => {
   const player = players.find(({ uuid: player_uuid }) => player_uuid === uuid);
