@@ -8,12 +8,14 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { inject, computed, watchEffect } from 'vue';
-import card from './card.vue';
-import fetch_api from '../fetch_api.js';
 import { useRouter } from 'vue-router';
+
+import fetch_api from '../fetch_api.js';
 import found_icon from '../assets/verified.png';
 import notfound_icon from '../assets/warning.png';
 import notlinked_icon from '../assets/search.png';
+
+import card from './card.vue';
 
 const { t } = useI18n();
 const found_color = '#2ECC71';
@@ -31,7 +33,7 @@ const color = computed(() =>
 );
 
 const on_click = () => {
-  if (!linked.value) fetch_api('/gtla').then(() => resync.value++);
+  if (!linked.value) fetch_api('/api/gtla').then(() => resync.value++);
   else router.push({ name: 'gtla', params: { uuid: user.uuid } });
 };
 </script>

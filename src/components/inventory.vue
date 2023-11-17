@@ -9,6 +9,8 @@
 
 <script setup>
 import { inject, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import corbac from '../assets/corbac.png';
 import siluri from '../assets/siluri.png';
 import krinan from '../assets/krinan.png';
@@ -16,37 +18,37 @@ import betakey from '../assets/key.png';
 import scroll from '../assets/title.png';
 import talokan_feu from '../assets/talokan_feu.png';
 import zot from '../assets/zot.png';
-import { useI18n } from 'vue-i18n';
+
 import card from './card.vue';
 
 const { t } = useI18n();
 
 const REGISTRY = {
-  ['Familier Krinan Le Fourvoyeur']: {
+  'Familier Krinan Le Fourvoyeur': {
     name: 'Krinan',
     src: krinan,
     type: 'Familier',
     desc: `Ce familier, si vous le nourrissez, augmentera vos dommages fixes`,
   },
-  ['Familier Siluri']: {
+  'Familier Siluri': {
     name: 'Siluri',
     src: siluri,
     type: 'Familier',
     desc: `Ce familier, si vous le nourrissez, augmentera vos caractéristiques d'esprit`,
   },
-  ['Familier Corbac']: {
+  'Familier Corbac': {
     name: 'Corbac',
     src: corbac,
     type: 'Familier',
     desc: `Ce familier, si vous le nourrissez, augmentera votre portée`,
   },
-  ['Clé Beta']: {
+  'Clé Beta': {
     name: 'Clé Beta',
     src: betakey,
     type: 'Item',
     desc: `Cette clé mystérieuse vous permet surement l'accès aux versions de test d'AresRPG`,
   },
-  ['Titre Porteur de la Sagesse Ancestrale']: {
+  'Titre Porteur de la Sagesse Ancestrale': {
     name: 'Porteur de la Sagesse Ancestrale',
     src: scroll,
     type: 'Titre',
@@ -58,13 +60,13 @@ const REGISTRY = {
     type: 'Titre',
     desc: 'Cet ornement devrait imposer le respect parmi la plèbe',
   },
-  ['Familier Talokan Feu']: {
+  'Familier Talokan Feu': {
     name: 'Talokan Feu',
     src: talokan_feu,
     type: 'Familier',
     desc: `Ce familier, si vous le nourrissez, augmentera vos caractéristiques d'intelligence`,
   },
-  ['Familier Zot']: {
+  'Familier Zot': {
     name: 'Zot',
     src: zot,
     type: 'Familier',

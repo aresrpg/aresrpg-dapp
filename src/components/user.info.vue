@@ -15,8 +15,9 @@
 
 <script setup>
 import { inject, computed } from 'vue';
-import card from './card.vue';
 import { useI18n } from 'vue-i18n';
+
+import card from './card.vue';
 const { t } = useI18n();
 
 const user = inject('user');

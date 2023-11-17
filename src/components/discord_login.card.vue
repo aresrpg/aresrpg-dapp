@@ -10,10 +10,12 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { inject, computed } from 'vue';
-import card from './card.vue';
-import fetch_api from '../fetch_api.js';
 import { useRouter } from 'vue-router';
+
+import fetch_api from '../fetch_api.js';
 import { VITE_DISCORD_CLIENT_ID, VITE_DISCORD_REDIRECT_URI } from '../env.js';
+
+import card from './card.vue';
 
 const { t } = useI18n();
 const color = '#ECF0F1';
@@ -31,7 +33,7 @@ const linked = computed(() => !!user?.discord);
 
 const connect = () => (window.location.href = discord_login);
 const unlink = () =>
-  fetch_api(`/discord/unlink`).then(() => {
+  fetch_api(`/api/discord_unlink`).then(() => {
     resync.value++;
     router.go();
   });

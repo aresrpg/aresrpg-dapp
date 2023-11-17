@@ -15,7 +15,7 @@ const resync = inject('resync');
 
 onMounted(() => {
   const { query: { code } = {} } = route;
-  fetch_api(`/login`, {
+  fetch_api(`/api/login`, {
     method: 'POST',
     body: { code },
   }).then(() => {

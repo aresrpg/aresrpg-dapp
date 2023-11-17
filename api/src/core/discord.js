@@ -1,38 +1,41 @@
 import {
-  DISCORD_CLIENT_ID,
+  VITE_DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET,
-  DISCORD_REDIRECT_URI,
-} from "../env.js"
-import database from "../database.js"
+  VITE_DISCORD_REDIRECT_URI,
+} from '../env.js';
+import database from '../database.js';
 
-const ARESRPG_DISCORD_ID = "265104803531587584"
-const DISCORD_API = "https://discord.com/api/v10"
-const ARESRPG_STAFF_ID = "311251749182767105"
+const ARESRPG_DISCORD_ID = '265104803531587584';
+const DISCORD_API = 'https://discord.com/api/v10';
+const ARESRPG_STAFF_ID = '311251749182767105';
 
 function fetch_discord(endpoint, options) {
   return fetch(`${DISCORD_API}/${endpoint}`, options)
-    .then((response) => response.json())
+    .then(response => response.json())
     .then(({ message, ...result }) => {
-      if (message) throw new Error(message)
-      return result
-    })
+      if (message) throw new Error(message);
+      return result;
+    });
 }
 
 async function get_access_token(refresh_token) {
-  const { access_token, refresh_token: new_refresh_token, expires_in } =
-    await fetch_discord(`/oauth2/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: DISCORD_CLIENT_ID,
-        client_secret: DISCORD_CLIENT_SECRET,
-        grant_type: "refresh_token",
-        refresh_token,
-      }),
-    })
-  return { access_token, refresh_token: new_refresh_token, expires_in }
+  const {
+    access_token,
+    refresh_token: new_refresh_token,
+    expires_in,
+  } = await fetch_discord(`/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: VITE_DISCORD_CLIENT_ID,
+      client_secret: DISCORD_CLIENT_SECRET,
+      grant_type: 'refresh_token',
+      refresh_token,
+    }),
+  });
+  return { access_token, refresh_token: new_refresh_token, expires_in };
 }
 
 export async function fetch_user({
@@ -40,31 +43,28 @@ export async function fetch_user({
   expiration,
   refresh_token: old_refresh_token,
 } = {}) {
-  if (!unsure_access_token) return
+  if (!unsure_access_token) return;
 
-  const {
-    access_token,
-    refresh_token,
-    expires_in,
-  } = expiration <= Date.now()
-    ? await get_access_token(old_refresh_token)
-    : { access_token: unsure_access_token, refresh_token: old_refresh_token }
+  const { access_token, refresh_token, expires_in } =
+    expiration <= Date.now()
+      ? await get_access_token(old_refresh_token)
+      : { access_token: unsure_access_token, refresh_token: old_refresh_token };
 
   if (!access_token) {
     // Discord issues a new refresh_token on each refresh..
     // so some user had a wrong refresh_token in the database
     // no access_token means discord api errored, we need to force disconnect
-    throw "INVALID_GRANT"
+    throw 'INVALID_GRANT';
   }
 
   const { id, username, discriminator, avatar } = await fetch_discord(
-    "/users/@me",
+    '/users/@me',
     {
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
     },
-  )
+  );
 
   const { roles } = await fetch_discord(
     `/users/@me/guilds/${ARESRPG_DISCORD_ID}/member`,
@@ -73,9 +73,9 @@ export async function fetch_user({
         Authorization: `Bearer ${access_token}`,
       },
     },
-  )
+  );
 
-  const staff = roles.includes(ARESRPG_STAFF_ID)
+  const staff = roles.includes(ARESRPG_STAFF_ID);
   return {
     id,
     username,
@@ -84,46 +84,46 @@ export async function fetch_user({
     avatar,
     refresh_token,
     expires_in,
-  }
+  };
 }
 
 export function get_expiration(expires_in) {
-  return Date.now() + expires_in * 1000 - 5000
+  return Date.now() + expires_in * 1000 - 5000;
 }
 
 export async function link({ code }, { uuid }) {
-  if (!code) throw "CODE_MISSING"
+  if (!code) throw 'CODE_MISSING';
 
   const { access_token, refresh_token, expires_in } = await fetch_discord(
     `/oauth2/token`,
     {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        grant_type: "authorization_code",
-        redirect_uri: DISCORD_REDIRECT_URI,
-        client_id: DISCORD_CLIENT_ID,
+        grant_type: 'authorization_code',
+        redirect_uri: VITE_DISCORD_REDIRECT_URI,
+        client_id: VITE_DISCORD_CLIENT_ID,
         client_secret: DISCORD_CLIENT_SECRET,
         code,
-        scope: "identify%20guilds.members.read",
+        scope: 'identify%20guilds.members.read',
       }),
     },
-  )
+  );
 
   const discord_user = await fetch_user({
     access_token,
     refresh_token,
     expiration: get_expiration(expires_in),
-  })
+  });
 
-  if (!discord_user?.id) throw "USER_NOT_FOUND"
+  if (!discord_user?.id) throw 'USER_NOT_FOUND';
   if (await database.is_already_linked({ uuid, discord_id: discord_user.id })) {
-    throw "ALREADY_LINKED"
+    throw 'ALREADY_LINKED';
   }
 
-  const minecraft_user = await database.pull(uuid)
+  const minecraft_user = await database.pull(uuid);
 
   await database.push(uuid, {
     ...minecraft_user,
@@ -134,23 +134,23 @@ export async function link({ code }, { uuid }) {
       expiration: get_expiration(discord_user.expires_in ?? expires_in),
       last_update: Date.now(),
     },
-  })
+  });
 
-  return true
+  return true;
 }
 
 export async function unlink(_, { uuid }) {
-  const user = await database.pull(uuid)
-  const { id } = user?.discord
+  const user = await database.pull(uuid);
+  const { id } = user?.discord;
 
-  if (!id) throw "NOT_LINKED"
+  if (!id) throw 'NOT_LINKED';
 
   await database.push(uuid, {
     ...user,
     discord: undefined,
     crew3: undefined,
-    inventory: user.inventory?.filter(({ issuer }) => issuer !== "crew3") ?? [],
-  })
+    inventory: user.inventory?.filter(({ issuer }) => issuer !== 'crew3') ?? [],
+  });
 
-  return true
+  return true;
 }

@@ -32,7 +32,7 @@ const player = reactive({
 });
 
 onMounted(() => {
-  fetch_api('/gtla-proof', {
+  fetch_api('/api/gtla_proof', {
     body: { uuid: router.currentRoute.value.params.uuid },
   }).then(result => Object.assign(player, result));
 });

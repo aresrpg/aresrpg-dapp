@@ -1,42 +1,42 @@
-import database from "../database.js"
+import database from '../database.js';
 
-import { fetch_user, get_expiration } from "./discord.js"
-import Crew3 from "./crew3.js"
+import { fetch_user, get_expiration } from './discord.js';
+import Crew3 from './crew3.js';
 
-const HOUR_1 = 1000 * 60 * 60
+const HOUR_1 = 1000 * 60 * 60;
 
-const identical = (a) => (b) => a.name === b.name && a.issuer === b.issuer
+const identical = a => b => a.name === b.name && a.issuer === b.issuer;
 
 function normalize_inventory(inventory) {
   const with_amount = inventory
     .filter(({ amount }) => amount)
     .reduce((result, item) => {
-      const existing = result.find(identical(item))
-      if (existing) existing.amount += item.amount
-      else result.push(item)
-      return result
-    }, [])
+      const existing = result.find(identical(item));
+      if (existing) existing.amount += item.amount;
+      else result.push(item);
+      return result;
+    }, []);
   const without_amount = inventory
     .filter(({ amount }) => !amount)
-    .map((item) => ({ ...item, amount: 1 }))
+    .map(item => ({ ...item, amount: 1 }))
     .reduce((result, item) => {
-      const existing = result.find(identical(item))
-      if (existing) existing.amount++
-      else result.push(item)
-      return result
-    }, [])
+      const existing = result.find(identical(item));
+      if (existing) existing.amount++;
+      else result.push(item);
+      return result;
+    }, []);
 
   return [...with_amount, ...without_amount].reduce((result, item) => {
-    const existing = result.find(identical(item))
-    if (existing) existing.amount = Math.max(existing.amount, item.amount)
-    else result.push(item)
-    return result
-  }, [])
+    const existing = result.find(identical(item));
+    if (existing) existing.amount = Math.max(existing.amount, item.amount);
+    else result.push(item);
+    return result;
+  }, []);
 }
 
 export default async (_, { uuid }) => {
   const {
-    username: minecraft_username = "",
+    username: minecraft_username = '',
     mastery,
     discord: {
       id,
@@ -52,37 +52,40 @@ export default async (_, { uuid }) => {
     crew3: { id: crew3_id, level, rank, quests = {}, completed_quests } = {},
     inventory: last_inventory = [],
     gtla,
-  } = (await database.pull(uuid)) ?? {}
-  const is_cache_expired = last_update + HOUR_1 < Date.now()
+  } = (await database.pull(uuid)) ?? {};
+  const is_cache_expired = last_update + HOUR_1 < Date.now();
 
   if (refresh_token) {
     try {
       const discord = is_cache_expired
         ? await fetch_user({ access_token, refresh_token, expiration })
-        : { id, username, discriminator, staff, avatar }
+        : { id, username, discriminator, staff, avatar };
 
-      const crew3 = is_cache_expired || !crew3_id
-        ? await Crew3.get_user(discord.id)
-        : { level, rank, id: crew3_id }
+      const crew3 =
+        is_cache_expired || !crew3_id
+          ? await Crew3.get_user(discord.id)
+          : { level, rank, id: crew3_id };
 
-      const crew3_newly_initialized = !crew3_id && crew3.id
+      const crew3_newly_initialized = !crew3_id && crew3.id;
 
       const { completed, items } =
         (is_cache_expired && crew3.id) || crew3_newly_initialized
           ? await Crew3.get_quests(crew3.id)
           : {
-            completed: quests?.completed ?? completed_quests ?? 0,
-            items: [
-              ...quests?.items?.map((item) => ({ issuer: "crew3", ...item })) ??
-                [],
-              ...last_inventory,
-            ].filter(({ issuer }) => issuer === "crew3"),
-          }
+              completed: quests?.completed ?? completed_quests ?? 0,
+              items: [
+                ...(quests?.items?.map(item => ({
+                  issuer: 'crew3',
+                  ...item,
+                })) ?? []),
+                ...last_inventory,
+              ].filter(({ issuer }) => issuer === 'crew3'),
+            };
 
       const inventory = normalize_inventory([
-        ...last_inventory.filter(({ issuer }) => issuer !== "crew3"),
+        ...last_inventory.filter(({ issuer }) => issuer !== 'crew3'),
         ...items,
-      ])
+      ]);
 
       const user = {
         username: minecraft_username,
@@ -95,7 +98,7 @@ export default async (_, { uuid }) => {
         },
         inventory,
         gtla,
-      }
+      };
 
       // if user was updated, save it
       if (is_cache_expired || !crew3_id) {
@@ -110,22 +113,22 @@ export default async (_, { uuid }) => {
               : expiration,
             refresh_token: discord.refresh_token ?? refresh_token,
           },
-        })
+        });
       }
 
-      return user
+      return user;
     } catch (error) {
-      if (error === "INVALID_GRANT") {
-        const user = { username: minecraft_username, uuid }
+      if (error === 'INVALID_GRANT') {
+        const user = { username: minecraft_username, uuid };
         await database.push(uuid, {
           ...user,
           inventory: normalize_inventory(last_inventory),
           discord: undefined,
           crew3: undefined,
-        })
-        return user
+        });
+        return user;
       }
-      console.error(error)
+      console.error(error);
     }
   }
   return {
@@ -133,5 +136,5 @@ export default async (_, { uuid }) => {
     uuid,
     inventory: normalize_inventory(last_inventory),
     gtla,
-  }
-}
+  };
+};

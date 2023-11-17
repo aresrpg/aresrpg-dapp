@@ -4,8 +4,9 @@ router-view
 
 <script setup>
 import { provide, reactive, watch, ref } from 'vue';
-import fetch_api from './fetch_api.js';
 import { useToast } from 'vue-toastification';
+
+import fetch_api from './fetch_api.js';
 
 const name = 'app';
 const user = reactive({});
@@ -16,12 +17,12 @@ const toast = useToast();
 
 watch(resync, () => {
   loading.value = true;
-  fetch_api(`/me`)
+  fetch_api(`/api/me`)
     .then(me => {
       if (me?.uuid) Object.assign(user, me);
     })
     .finally(() => (loading.value = false));
-  fetch_api('/server-info').then(info => Object.assign(server_info, info));
+  fetch_api('/api/server_info').then(info => Object.assign(server_info, info));
 });
 
 provide('user', user);
