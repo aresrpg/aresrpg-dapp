@@ -9,7 +9,8 @@
 import { onMounted, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import fetch_api from '../fetch_api.js';
+
+import fetch_api from '../request.js';
 
 const { t } = useI18n();
 

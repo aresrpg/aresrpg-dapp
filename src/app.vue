@@ -4,25 +4,54 @@ router-view
 
 <script setup>
 import { provide, reactive, watch, ref } from 'vue';
-import { useToast } from 'vue-toastification';
+import { VsLoadingFn } from 'vuesax-alpha';
 
-import fetch_api from './fetch_api.js';
+import fetch_api from './request.js';
 
 const name = 'app';
 const user = reactive({});
 const loading = ref(false);
 const server_info = reactive({});
 const resync = ref(0);
-const toast = useToast();
+
+let loading_instance = null;
+
+watch(loading, value => {
+  if (value === 1) {
+    loading_instance = VsLoadingFn({
+      type: 'square',
+      color: '#F1C40F',
+      background: '#212121',
+    });
+  } else if (!value) loading_instance.close();
+});
 
 watch(resync, () => {
-  loading.value = true;
-  fetch_api(`/api/me`)
-    .then(me => {
-      if (me?.uuid) Object.assign(user, me);
+  loading.value++;
+  fetch_api(`
+  { me
+    {
+      uuid
+      mastery
+      auth {
+        discord { id username avatar staff }
+        minecraft { uuid username }
+        gtla { pseudo }
+        zealy { level rank completed_quests }
+      }
+      app { inventory { name amount issuer } }
+    }
+  }`)
+    .then(data => {
+      if (data) {
+        Object.assign(user, data.me);
+      }
     })
-    .finally(() => (loading.value = false));
-  fetch_api('/api/server_info').then(info => Object.assign(server_info, info));
+    .finally(() => loading.value--);
+
+  fetch_api('{ server { registrations } }').then(({ server }) =>
+    Object.assign(server_info, server),
+  );
 });
 
 provide('user', user);
@@ -41,9 +70,23 @@ sc-disableScollBar()
     ::-webkit-scrollbar
         display: none;
 
+.vs-sidebar-item__icon
+  background none
+
+.vs-switch__text.is-on
+  align-items normal
+
+.btn
+  font-size .9em
+  i
+    margin-right .5em
+
 :root
   font-size 18px
   background #212121
+
+[class^=vs]
+  font-family 'Rubik', sans-serif !important
 
 *
   sc-reset()

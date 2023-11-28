@@ -1,26 +1,27 @@
 <template lang="pug">
-oauth
+.oauth
 </template>
 
 <script setup>
 import { onMounted, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import oauth from '../components/loading.vue';
-import fetch_api from '../fetch_api.js';
+import fetch_api from '../request.js';
 
 const route = useRoute();
 const router = useRouter();
 const resync = inject('resync');
+const loading = inject('loading');
 
 onMounted(() => {
   const { query: { code } = {} } = route;
-  fetch_api(`/api/login`, {
-    method: 'POST',
-    body: { code },
+  loading.value++;
+  fetch_api('mutation($code: String!) { minecraft { link(code: $code) } }', {
+    code,
   }).then(() => {
     router.push('/');
     resync.value++;
+    loading.value--;
   });
 });
 </script>

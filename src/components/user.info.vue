@@ -17,7 +17,6 @@
 import { inject, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import card from './card.vue';
 const { t } = useI18n();
 
 const user = inject('user');
@@ -25,10 +24,6 @@ const avatar = computed(
   () =>
     `https://cdn.discordapp.com/avatars/${user.discord.id}/${user.discord.avatar}.png?size=128`,
 );
-
-const open_crew3 = () => {
-  window.open('https://aresrpg.crew3.xyz', '_blank');
-};
 
 const items_owned = computed(() => {
   return user?.inventory?.reduce((total, { amount }) => total + amount, 0);
@@ -54,16 +49,6 @@ const items_owned = computed(() => {
         div
           .name {{ t('items') }}
           .num {{ items_owned }}
-      .card(v-else)
-        card(
-          :clickable="true"
-          @click="open_crew3"
-          background="#E74C3C"
-        )
-          template(#content)
-            img.logo(src="../assets/crew3.svg")
-            .name {{ t('crew3') }}
-        span {{ t('hour') }}
 </template>
 
 <style lang="stylus" scoped>
