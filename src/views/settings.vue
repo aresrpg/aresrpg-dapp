@@ -8,6 +8,10 @@ fr:
   accounts_desc: Vous pouvez lier vos comptes pour accéder à plus de fonctionnalités et vous connecter depuis n'importe lequel.
   mastery_desc: Vous pouvez gagner des items sur Zealy en accomplissant des tonnes de quêtes ! N'oubliez pas de vérifier si vous étiez sur AresRPG v1 pour encore plus de récompenses
   success_v1: GG ! Vous êtes un vétéran confirmé 😀
+  discord_account: Compte Discord
+  google_account: Compte Google
+  minecraft_account: Compte Minecraft
+  sui_account: Wallet SUI
 en:
   unlink: Unlink
   sure: Unlink this account ?
@@ -17,6 +21,10 @@ en:
   accounts_desc: You can link your accounts to get access to more features and login from any of them.
   mastery_desc: You can win items on Zealy by accomplishing tons of quests ! Don't forget to check if you were part of AresRPG v1 for even more rewards
   success_v1: GG ! You are a confirmed veteran 😀
+  discord_account: Discord Account
+  google_account: Google Account
+  minecraft_account: Minecraft Account
+  sui_account: Wallet SUI
 </i18n>
 
 <template lang="pug">
@@ -26,22 +34,22 @@ en:
     .desc {{ t('accounts_desc') }}
     .content
       .discord
-        .title Discord Account
+        .title {{ t('discord_account') }}
         vs-switch(v-model="discord_toggle" color="#7289da")
           span {{ discord_toggle ? discord_username : 'Link now' }}
           i.bx.bxl-discord-alt
       .google.disabled
-        .title Google Account
+        .title {{ t('google_account') }}
         vs-switch(v-model="google_toggle" color="#E74C3C")
           span {{ google_toggle ? google_email : 'Link now' }}
           i.bx.bxl-google
       .minecraft
-        .title Minecraft Account
+        .title {{ t('minecraft_account') }}
         vs-switch(v-model="minecraft_toggle" color="#2ECC71")
           span {{ minecraft_toggle ? minecraft_username : 'Link now' }}
           i.bx.bxl-microsoft
       .sui.disabled
-        .title SUI Account
+        .title {{ t('sui_account') }}
         vs-switch(v-model="sui_toggle" color="#3498DB")
           span {{ sui_toggle ? 'Linked' : 'Link now' }}
           i.bx.bx-droplet
