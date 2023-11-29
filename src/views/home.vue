@@ -110,7 +110,7 @@ onMounted(() => {
       vs-button.btn(v-if="user.uuid" type="gradient" color="#F39C12" @click="play_now")
         span.play {{ t('play') }}
       template(#logo)
-        img.logo(src="../assets/text_logo.png")
+        img.logo(src="../assets/text_logo.png" @click="router.push('/')")
       vs-sidebar-item(id="inventory" @click="router.push('/inventory')" :disabled="!user.uuid") {{ t('inv') }}
         template(#icon)
           i.bx.bx-wallet
@@ -204,6 +204,7 @@ b
       max-width 100%
       padding 1em
       max-height 100%
+      cursor pointer
     .right
       width calc(100vw - 260px)
       height calc(100vh - 90px)
