@@ -49,7 +49,7 @@ watch(resync, () => {
     })
     .finally(() => loading.value--);
 
-  fetch_api('{ server { registrations } }').then(({ server }) =>
+  fetch_api('{ server { registrations online } }').then(({ server }) =>
     Object.assign(server_info, server),
   );
 });

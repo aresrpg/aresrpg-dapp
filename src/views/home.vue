@@ -5,6 +5,8 @@ fr:
   settings: Paramètres
   unique_1: Il y a
   unique_2: joueurs enregistrés
+  online_1: ainsi que
+  online_2: joueurs en ligne
   lang: Choisissez une langue
   server: Serveur
   play: Jouer Maintenant
@@ -14,6 +16,8 @@ en:
   settings: Settings
   unique_1: There are
   unique_2: registered players
+  online_1: and
+  online_2: players online
   lang: Choose a language
   server: Server
   play: Play Now
@@ -131,7 +135,8 @@ onMounted(() => {
               template(#img)
                 img(src="../assets/ice_dragon.gif")
               template(#text)
-                span {{ t('unique_1') }} #[b {{ server_info.registrations ?? 0 }}] {{ t('unique_2') }}
+                .stats {{ t('unique_1') }} #[b {{ server_info.registrations ?? 0 }}] {{ t('unique_2') }}
+                .stats {{ t('online_1') }} #[b {{ server_info.online ?? 0 }}] {{ t('online_2') }}
           .lang(@click="lang_dialog = true") choose language
     .right
       router-view.view
@@ -177,6 +182,8 @@ b
   display flex
   flex-flow column nowrap
   align-items center
+  .stats
+    width 100%
   .lang
     font-size .8em
     margin-top .5em
