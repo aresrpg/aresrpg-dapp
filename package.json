@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . && prettier . --check",
-    "format": "prettier . --write && eslint . --fix"
+    "format": "prettier . --write && eslint . --fix",
+    "postversion": "git push --follow-tags"
   },
   "dependencies": {
     "@intlify/unplugin-vue-i18n": "^1.5.0",
