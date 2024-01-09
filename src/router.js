@@ -17,8 +17,11 @@ export default createRouter({
     },
     {
       path: '/',
-      component: home,
       redirect: '/inventory',
+    },
+    {
+      path: '/inventory',
+      component: home,
       children: [
         {
           name: 'inventory',
