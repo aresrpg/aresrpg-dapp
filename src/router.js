@@ -17,20 +17,17 @@ export default createRouter({
     },
     {
       path: '/',
-      redirect: '/inventory',
-    },
-    {
-      path: '/inventory',
       component: home,
+      redirect: '/inventory',
       children: [
         {
           name: 'inventory',
-          path: 'inventory',
+          path: '/inventory',
           component: inventory,
         },
         {
           name: 'settings',
-          path: 'settings',
+          path: '/settings',
           component: settings,
         },
         {
