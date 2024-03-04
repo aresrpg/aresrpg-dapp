@@ -1,15 +1,14 @@
 <i18n>
   fr:
     empty: Ton inventaire est vide, gagne des items sur Zealy !
-    please_connect: Connecte toi pour voir ton inventaire
   en:
     empty: Your inventory is empty, get some items on Zealy !
-    please_connect: Login to see your inventory
 </i18n>
 
 <script setup>
-import { inject, computed } from 'vue';
+import { inject, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import corbac from '../assets/corbac.png';
 import siluri from '../assets/siluri.png';
@@ -20,7 +19,7 @@ import talokan_feu from '../assets/talokan_feu.png';
 import zot from '../assets/zot.png';
 
 const { t } = useI18n();
-
+const router = useRouter();
 const REGISTRY = {
   'Familier Krinan Le Fourvoyeur': {
     name: 'Krinan',
@@ -72,10 +71,6 @@ const REGISTRY = {
   },
 };
 
-const user = inject('user');
-const open_crew3 = () => {
-  window.open('https://zealy.io/c/aresrpg', '_blank');
-};
 const inventory = computed(() => {
   return (
     user.app?.inventory?.map(({ name, issuer, amount }) => ({
@@ -95,8 +90,7 @@ const go_to_zealy = () => {
 .container
   .banner
   .content( :class="{ empty: !inventory.length }")
-    span(v-if="!user?.uuid") {{ t('please_connect') }}
-    .items(v-else)
+    .items
       vs-button.empty(v-if="!inventory.length" type="gradient" color="#F39C12" @click="go_to_zealy") {{ t('empty') }}
       .item(v-else v-for="item of inventory" :key="item.name")
         img(:src="item.src")

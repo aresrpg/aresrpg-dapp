@@ -28,49 +28,43 @@ en:
 </i18n>
 
 <template lang="pug">
-.settings
-  section.accounts
-    .title Accounts
-    .desc {{ t('accounts_desc') }}
-    .content
-      .discord
-        .title {{ t('discord_account') }}
-        vs-switch(v-model="discord_toggle" color="#7289da")
-          span {{ discord_toggle ? discord_username : 'Link now' }}
-          i.bx.bxl-discord-alt
-      .google.disabled
-        .title {{ t('google_account') }}
-        vs-switch(v-model="google_toggle" color="#E74C3C")
-          span {{ google_toggle ? google_email : 'Link now' }}
-          i.bx.bxl-google
-      .minecraft
-        .title {{ t('minecraft_account') }}
-        vs-switch(v-model="minecraft_toggle" color="#2ECC71")
-          span {{ minecraft_toggle ? minecraft_username : 'Link now' }}
-          i.bx.bxl-microsoft
-      .sui.disabled
-        .title {{ t('sui_account') }}
-        vs-switch(v-model="sui_toggle" color="#3498DB")
-          span {{ sui_toggle ? 'Linked' : 'Link now' }}
-          i.bx.bx-droplet
-  section.mastery
-    .title Mastery
-    .desc {{ t('mastery_desc') }}
-    .content
-      .zealy
-        img(src="../assets/crew3.svg")
-        .title Zealy
-        vs-button.btn(type="gradient" color="#3498DB" @click="refresh_zealy" :loading="zealy_loading")
-          i.bx.bx-sm.bx-refresh
-          span Refresh
-      .v1
-        img(src="../assets/logov1.png")
-        .title Ares V1
-        vs-button.btn(v-if="gtla == null" type="gradient" color="#F39C12" @click="refresh_v1")
-          i.bx-sm.bx.bx-cloud-rain
-          span {{ t('check') }}
-        i.bx.bx-message-square-check(v-else-if="gtla")
-        i.bx.bx-no-entry(v-else)
+sectionContainer
+  sectionHeader(title="Accounts" :desc="t('accounts_desc')")
+    .section-item.discord
+      .title {{ t('discord_account') }}
+      vs-switch(v-model="discord_toggle" color="#7289da")
+        span {{ discord_toggle ? discord_username : 'Link now' }}
+        i.bx.bxl-discord-alt
+    .section-item.google.disabled
+      .title {{ t('google_account') }}
+      vs-switch(v-model="google_toggle" color="#E74C3C")
+        span {{ google_toggle ? google_email : 'Link now' }}
+        i.bx.bxl-google
+    .section-item.minecraft
+      .title {{ t('minecraft_account') }}
+      vs-switch(v-model="minecraft_toggle" color="#2ECC71")
+        span {{ minecraft_toggle ? minecraft_username : 'Link now' }}
+        i.bx.bxl-microsoft
+    .section-item.sui.disabled
+      .title {{ t('sui_account') }}
+      vs-switch(v-model="sui_toggle" color="#3498DB")
+        span {{ sui_toggle ? 'Linked' : 'Link now' }}
+        i.bx.bx-droplet
+  sectionHeader(title="Mastery" :desc="t('mastery_desc')")
+    .section-item.zealy
+      img(src="../assets/crew3.svg")
+      .title Zealy
+      vs-button.btn(type="gradient" color="#3498DB" @click="refresh_zealy" :loading="zealy_loading")
+        i.bx.bx-sm.bx-refresh
+        span Refresh
+    .section-item.v1
+      img(src="../assets/logov1.png")
+      .title Ares V1
+      vs-button.btn(v-if="gtla == null" type="gradient" color="#F39C12" @click="refresh_v1")
+        i.bx-sm.bx.bx-cloud-rain
+        span {{ t('check') }}
+      i.bx.bx-message-square-check(v-else-if="gtla")
+      i.bx.bx-no-entry(v-else)
   vs-dialog(v-model="unlink_discord_dialog" overlay-blur)
     span {{ t('sure') }}
     template(#footer)
@@ -97,7 +91,10 @@ en:
 import { ref, computed, inject, watchEffect, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { VsNotification } from 'vuesax-alpha';
+import { useRouter } from 'vue-router';
 
+import sectionHeader from '../components/misc/section-header.vue';
+import sectionContainer from '../components/misc/section-container.vue';
 import request from '../request.js';
 import {
   VITE_AZURE_CLIENT,
@@ -105,11 +102,11 @@ import {
   VITE_DISCORD_CLIENT_ID,
   VITE_DISCORD_REDIRECT_URI,
 } from '../env';
-import router from '../router';
 
 const { t } = useI18n();
 const user = inject('user');
 const resync = inject('resync');
+const router = useRouter();
 
 const discord_toggle = ref(false);
 const google_toggle = ref(false);
@@ -179,10 +176,6 @@ watchEffect(() => {
   minecraft_toggle.value = !!user?.auth?.minecraft?.uuid;
 });
 
-onMounted(() => {
-  if (!user.uuid) router.push('/');
-});
-
 function refresh_zealy() {
   zealy_loading.value = true;
   request('mutation { zealy { refresh } }').then(success => {
@@ -231,51 +224,19 @@ function refresh_v1() {
 .disabled
   opacity .5
 
-.settings
+.section-item
   display flex
-  flex-flow column nowrap
-  padding 3em
-  >section
-    width 100%
-    border-top 1px solid white
-    display flex
-    flex-flow column nowrap
-    >.title
-      font-size .8em
-      margin-bottom .5em
-      text-transform uppercase
-      font-weight 900
-    >.desc
-      font-size .9em
-      margin-bottom .5em
-      opacity .7
-      position relative
-      margin-left 1em
-      &:before
-        content ''
-        margin-right .5em
-        height 100%
-        background #ddd
-        width 2px
-        position absolute
-        left -10px
-    .content
-      display flex
-      flex-flow column nowrap
-      padding 2em
-      >div
-        display flex
-        flex-flow row nowrap
-        align-items center
-        margin-bottom .5em
-        img
-          width 30px
-          height @width
-          object-fit contain
-          margin-right .5em
-          filter drop-shadow(1px 2px 3px black)
-        .title
-          padding-right 1em
-          width 150px
-          font-size .875em
+  flex-flow row nowrap
+  align-items center
+  margin-bottom .5em
+  img
+    width 30px
+    height @width
+    object-fit contain
+    margin-right .5em
+    filter drop-shadow(1px 2px 3px black)
+  .title
+    padding-right 1em
+    width 150px
+    font-size .875em
 </style>
