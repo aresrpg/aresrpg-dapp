@@ -1,4 +1,4 @@
-import { createApp, provide } from 'vue';
+import { createApp } from 'vue';
 import { registerSW } from 'virtual:pwa-register';
 import { createI18n } from 'vue-i18n';
 import { inject } from '@vercel/analytics';
@@ -8,6 +8,7 @@ import 'vuesax-alpha/theme-chalk/dark/css-vars.css';
 
 import app from './app.vue';
 import router from './router.js';
+import toast from './toast.js';
 
 inject();
 
@@ -22,9 +23,10 @@ console.log(
 console.log('%c https://github.com/aresrpg/app', 'font-size:15px;');
 
 const vue_app = createApp(app);
+
 export const i18n = createI18n({
   legacy: false,
-  locale: 'fr',
+  locale: 'en',
   allowComposition: true, // you need to specify that!
   messages: {
     fr: {
@@ -59,28 +61,10 @@ export const i18n = createI18n({
   },
 });
 
-vue_app
-  .use(router)
-  .use(Vuesax, {
-    colors: {
-      primary: '#F1C40F',
-      success: '#2ECC71',
-      danger: '#E74C3C',
-      warning: '#E67E22',
-      dark: '#2C3E50',
-    },
-  })
-  .use(i18n)
-  .mount('#app');
+vue_app.use(router).use(Vuesax, {}).use(i18n).mount('#app');
 
 const updateSW = registerSW({
   onOfflineReady() {
-    toast('ready to work offline!');
+    toast.info('ready to work offline!', 'Browser');
   },
 });
-
-vue_app.config.compilerOptions.isCustomElement = tag => {
-  if (tag.startsWith('el-')) return true;
-  if (tag.startsWith('upload-')) return true;
-  return false;
-};
