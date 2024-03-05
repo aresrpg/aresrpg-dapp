@@ -1,5 +1,4 @@
 import { VsNotification } from 'vuesax-alpha';
-import { load } from 'recaptcha-v3';
 
 import { VITE_BASE_API_PATH } from './env.js';
 
@@ -25,11 +24,12 @@ export default async function fetch_api(query, variables = {}) {
     t = i18n.global.t;
   }
 
-  const recaptcha = await load(RECAPTCHA_PUBLIC, {
-    autoHideBadge: true,
-  });
+  // const recaptcha = await load(RECAPTCHA_PUBLIC, {
+  //   autoHideBadge: true,
+  // });
 
-  const captcha_token = await recaptcha.execute('app_fetch');
+  // const captcha_token = await recaptcha.execute('app_fetch');
+  const captcha_token = null;
   return fetch(VITE_BASE_API_PATH, {
     credentials: 'include',
     method: 'POST',

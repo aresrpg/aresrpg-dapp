@@ -6,8 +6,6 @@ dist-ssr
 .env
 netlify/.env
 .vscode
-# Local Netlify folder
-.netlify
 .vercel
 .env*.local
 dev-dist

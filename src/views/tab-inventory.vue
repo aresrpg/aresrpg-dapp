@@ -6,10 +6,10 @@
 </i18n>
 
 <script setup>
-import { inject, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+import sectionContainer from '../components/misc/section-container.vue';
 import corbac from '../assets/corbac.png';
 import siluri from '../assets/siluri.png';
 import krinan from '../assets/krinan.png';
@@ -71,15 +71,16 @@ const REGISTRY = {
   },
 };
 
-const inventory = computed(() => {
-  return (
-    user.app?.inventory?.map(({ name, issuer, amount }) => ({
-      ...REGISTRY[name],
-      amount,
-      issuer,
-    })) ?? []
-  );
-});
+// const inventory = computed(() => {
+//   return (
+//     user.app?.inventory?.map(({ name, issuer, amount }) => ({
+//       ...REGISTRY[name],
+//       amount,
+//       issuer,
+//     })) ?? []
+//   );
+// });
+const inventory = [];
 
 const go_to_zealy = () => {
   window.open('https://zealy.io/c/aresrpg', '_blank');
@@ -87,7 +88,7 @@ const go_to_zealy = () => {
 </script>
 
 <template lang="pug">
-.container
+sectionContainer
   .banner
   .content( :class="{ empty: !inventory.length }")
     .items

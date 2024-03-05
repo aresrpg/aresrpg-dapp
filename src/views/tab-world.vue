@@ -1,9 +1,10 @@
-<script setup></script>
-
 <template lang="pug">
-.container
-  span World
+sectionContainer
 </template>
+
+<script setup>
+import sectionContainer from '../components/misc/section-container.vue';
+</script>
 
 <style lang="stylus" scoped>
 .container

@@ -18,6 +18,7 @@ const loading = ref(0);
 const wallets = ref([]);
 const selected_wallet = ref(null);
 const selected_account = ref(null);
+const sidebar_reduced = ref(false);
 
 const last_selected_address = localStorage.getItem('last_selected_address');
 
@@ -32,11 +33,6 @@ watch(selected_wallet, () => {
 });
 
 let loading_instance = null;
-
-router.beforeEach(to => {
-  if (selected_wallet.value) return true;
-  if (to.name !== 'profiles' && to.path !== '/') return { name: 'profiles' };
-});
 
 onMounted(async () => {
   wallet_emitter.on('wallet', async wallet => {
@@ -107,6 +103,7 @@ provide('wallets', wallets);
 provide('selected_wallet', selected_wallet);
 provide('selected_account', selected_account);
 provide('loading', loading);
+provide('sidebar_reduced', sidebar_reduced);
 </script>
 
 <style lang="stylus">
@@ -121,6 +118,10 @@ sc-disableScollBar()
 
 .vs-sidebar-item__icon
   background none
+
+.vs-sidebar.is-reduce
+  .vs-sidebar-item__text
+    margin-left 0 !important
 
 .vs-switch__text.is-on
   align-items normal
