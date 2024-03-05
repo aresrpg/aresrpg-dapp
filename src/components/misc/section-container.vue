@@ -1,14 +1,16 @@
 <i18n>
   en:
     chain_not_supported: The Sui {0} is not supported at the moment, please switch to another network
+    please_connect: Welcome on AresRPG, please login to get started
   fr:
     chain_not_supported: Vous utilisez le {0} Sui, qui n'est actuellement pas pris en charge, veuillez changer de network
+    please_connect: Bienvenue sur AresRPG, veuillez vous connecter pour commencer
 </i18n>
 
 <template lang="pug">
 .container
-  span(v-if="!selected_wallet") {{ props.placeholder || '' }}
-  span(v-else-if="!is_chain_supported")
+  span(v-if="!selected_wallet && !props.allow_offline") {{ t('please_connect') }}
+  span(v-else-if="!is_chain_supported && !props.allow_offline")
     .content
         i18n-t(keypath="chain_not_supported") #[b.sui-network {{ network }}]
   slot(v-else)
@@ -26,7 +28,7 @@ import {
 
 const { t } = useI18n();
 const selected_wallet = inject('selected_wallet');
-const props = defineProps(['placeholder']);
+const props = defineProps(['allow_offline']);
 
 const network = computed(() => {
   const current_chain = selected_wallet.value?.chain;

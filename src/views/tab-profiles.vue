@@ -1,6 +1,5 @@
 <i18n>
   fr:
-    please_connect: Bienvenue sur AresRPG, veuillez vous connecter pour commencer
     welcome: Bienvenue, Aventurier !
     explanation: |
       AresRPG est un MMORPG voxel basé sur navigateur construit sur {0}. Nos serveurs n'ont pas de base de données du tout, tout est stocké on-chain.
@@ -23,7 +22,6 @@
     create_storage: Créer un nouveau stockage
     crate_storage_desc: Commençons par demander de l'espace de stockage pour verrouiller vos profils !
   en:
-    please_connect: Welcome on AresRPG, please login to get started
     welcome: Welcome Adventurer!
     explanation: |
       AresRPG is a browser-based voxel MMORPG built on {0}. Our servers have no database at all, everything is stored on-chain.
@@ -49,7 +47,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { ref, inject, computed, onMounted, watch, onUnmounted } from 'vue';
+import { ref, inject, computed, watch, onUnmounted } from 'vue';
 
 import sectionHeader from '../components/misc/section-header.vue';
 import userProfile from '../components/cards/user-profile.vue';
@@ -136,7 +134,7 @@ watch(
 </script>
 
 <template lang="pug">
-sectionContainer(:placeholder="t('please_connect')")
+sectionContainer
   vs-alert(type="relief" color="#0D47A1")
     template(#title) {{ t('welcome') }}
     .alert-content

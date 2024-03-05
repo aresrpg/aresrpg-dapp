@@ -27,7 +27,7 @@ const breakpoints = useBreakpoints({
 });
 
 const lang = ref('');
-const selected_wallet = inject('selected_wallet');
+const sidebar_reduced = inject('sidebar_reduced');
 const lang_dialog = ref(false);
 const langs = {
   fr: 'Français',
@@ -81,8 +81,8 @@ onMounted(() => {
     // Main content (sub view)
     .right
       router-view.view
-      bubbles
-      svg(style="position:fixed; top:100vh")
+      bubbles(v-if="!sidebar_reduced")
+      svg(v-if="!sidebar_reduced" style="position:fixed; top:100vh")
         defs
           filter#blob
             feGaussianBlur(in="SourceGraphic" stdDeviation="10" result="blur")

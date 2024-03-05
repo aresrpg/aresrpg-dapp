@@ -165,7 +165,7 @@ export function use_client() {
         },
       });
 
-      const [storage = {}] = result.data.map(
+      const [storage = { storage_cap_id: null }] = result.data.map(
         ({
           data: {
             content: {
