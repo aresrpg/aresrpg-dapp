@@ -24,8 +24,6 @@ import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
 
 import {
-  VITE_MICROSOFT_REDIRECT_URI,
-  VITE_AZURE_CLIENT,
   VITE_DISCORD_CLIENT_ID,
   VITE_DISCORD_REDIRECT_URI,
 } from '../../env.js';
@@ -36,7 +34,7 @@ const { t } = useI18n();
 
 const selected_wallet = inject('selected_wallet');
 const selected_account = inject('selected_account');
-const sui_balance = ref(null);
+const user = inject('user');
 
 const update_selected_account = account => {
   selected_account.value = account;
@@ -64,19 +62,6 @@ const available_accounts = computed(() => {
   );
 });
 
-watch(
-  selected_account,
-  async () => {
-    if (!selected_account.value) return;
-    try {
-      sui_balance.value = (await client.get_sui_balance()).toFixed(3);
-    } catch (error) {
-      console.error(error);
-    }
-  },
-  { immediate: true },
-);
-
 const network = computed(() => {
   const current_chain = selected_wallet.value?.chain;
   if (!current_chain) return 'mainnet';
@@ -100,13 +85,10 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       i.bx.bx-droplet
       span {{ t('connect') }}
     vs-row.row(v-else justify="end")
-      //- .badge Mastery {{ user.mastery }} #[img.icon(src="../assets/056-light.png")]
-      .sui-balance(v-if="sui_balance !== null")
-        span {{ sui_balance }}
-        img.icon(src="../../assets/sui-logo.png")
+      .sui-balance(v-if="user.balance_sui != null")
+        span {{ user.balance_sui }}
+        img.icon(src="../../assets/sui/sui-logo.png")
       .badge(:class="{ mainnet: network === 'mainnet' }") Sui {{ network }} #[img.icon(:src="selected_wallet.icon")]
-      //- .badge(v-if="user.auth.zealy") {{ user.auth.zealy.completed_quests }} {{ t('quest') }} #[img.icon(src="../assets/019-priest.png")]
-      //- .badge(v-if="user.auth.discord") {{ user.auth.discord.staff ? 'Staff' : 'Player' }} #[img.icon(v-if="user.auth.discord.staff" src="../assets/037-freeze.png")]
       // Address container with dropdown
 
       Dropdown(:border="false" ref="dropdown")
@@ -211,7 +193,6 @@ nav
       font-size .8em
       color #ECF0F1
       padding .25em 1em
-      font-family 'Itim', cursive
       &.mainnet
         border 1px solid #27AE60
     .username
