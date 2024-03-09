@@ -10,7 +10,6 @@ import fetch_api from '../request.js';
 
 const route = useRoute();
 const router = useRouter();
-const resync = inject('resync');
 const loading = inject('loading');
 
 onMounted(() => {
@@ -19,7 +18,6 @@ onMounted(() => {
   fetch_api('mutation($code: String!) { discord { link(code: $code) } }', {
     code,
   }).then(() => {
-    resync.value++;
     router.push('/');
     loading.value--;
   });

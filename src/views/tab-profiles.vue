@@ -60,13 +60,11 @@ const new_profile_dialog = ref(false);
 const new_profile_name = ref('');
 const profile_creation_loading = ref(false);
 
-const locked_profiles = ref(null);
-const unlocked_profiles = ref(null);
-
 const client = use_client();
 
 const loading = inject('loading');
 const selected_account = inject('selected_account');
+const user = inject('user');
 
 async function create_profile() {
   profile_creation_loading.value = true;
@@ -94,42 +92,7 @@ async function request_storage() {
 
 const is_profile_name_valid = computed(
   () =>
-    new_profile_name.value.length >= 3 && new_profile_name.value.length <= 20,
-);
-
-const current_client_subscription = null;
-
-onUnmounted(async () => {
-  if (current_client_subscription) await current_client_subscription();
-});
-
-watch(
-  selected_account,
-  async () => {
-    if (!selected_account.value) return;
-    try {
-      loading.value++;
-
-      // if (current_client_subscription) await current_client_subscription();
-
-      // current_client_subscription = await client.on_user_update(data => {
-      //   console.log('onMessage', data);
-      // });
-
-      const { storage_cap_id } = await client.get_storage_id();
-
-      unlocked_profiles.value = await client.get_unlocked_user_profiles();
-
-      if (storage_cap_id)
-        locked_profiles.value =
-          await client.get_locked_profiles(storage_cap_id);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      loading.value--;
-    }
-  },
-  { immediate: true },
+    new_profile_name.value.length > 3 && new_profile_name.value.length <= 20,
 );
 </script>
 
@@ -143,18 +106,18 @@ sectionContainer
       .explanation2 {{ t('explanation2') }}
   .space
   // Locked profiles
-  sectionHeader(:title="t('locked_profiles')" :desc="locked_profiles ? t('locked_profiles_desc') : null" color="#00C853")
+  sectionHeader(:title="t('locked_profiles')" :desc="user.locked_profiles ? t('locked_profiles_desc') : null" color="#00C853")
     .profile-container
       div.nothing(v-if="loading")
-      .request-storage(v-else-if="!locked_profiles")
+      .request-storage(v-else-if="!user.locked_profiles")
         .desc {{ t('crate_storage_desc') }}
         vs-button(type="floating" color="#00C853" @click="request_storage") {{ t('create_storage') }}
-      userProfile(v-else v-for="profile in locked_profiles" :key="profile.id" :locked="true" :profile="profile")
+      userProfile(v-else v-for="profile in user.locked_profiles" :key="profile.id" :locked="true" :profile="profile")
 
   // Unlocked profiles
   sectionHeader(:title="t('unlocked_profiles')" :desc="t('unlocked_profiles_desc')" color="#212121")
     .profile-container
-      userProfile(v-if="unlocked_profiles" v-for="profile in unlocked_profiles" :key="profile.id" :profile="profile")
+      userProfile(v-if="user.unlocked_profiles" v-for="profile in user.unlocked_profiles" :key="profile.id" :profile="profile")
       .new(@click="new_profile_dialog = true") {{ t('new') }}
 
   // Create a new profile
