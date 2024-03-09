@@ -149,7 +149,7 @@ async function lock_profile() {
   try {
     lock_loading.value = true;
     const { storage_id, storage_cap_id } = await client.get_storage_id();
-
+    console.log('locking', storage_id, storage_cap_id, props.profile.id);
     await client.lock_user_profile({
       profile_id: props.profile.id,
       storage_id,
