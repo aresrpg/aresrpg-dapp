@@ -1,32 +1,32 @@
-import { VsNotification } from 'vuesax-alpha';
+import { VsNotification } from 'vuesax-alpha'
 
 export default {
-  success(text, title = 'AresRPG') {
+  success(content, title = 'AresRPG') {
     VsNotification({
       flat: true,
       color: 'success',
       title,
-      text,
-    });
+      content,
+    })
   },
-  error(text, title = 'Oh no!', icon = `<i class='bx bxs-bug'></i>`) {
+  error(content, title = 'Oh no!', icon = `<i class='bx bxs-bug'></i>`) {
     VsNotification({
       flat: true,
       color: 'danger',
       position: 'bottom-right',
       title,
-      text,
+      content,
       duration: 7000,
       icon,
-    });
+    })
   },
-  info(text, title = 'AresRPG') {
+  info(content, title = 'AresRPG') {
     VsNotification({
       flat: true,
       color: 'primary',
       position: 'bottom-right',
       title,
-      text,
-    });
+      content,
+    })
   },
-};
+}
