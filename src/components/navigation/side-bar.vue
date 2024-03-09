@@ -71,6 +71,7 @@ const sidebar_reduced = inject('sidebar_reduced');
 watch(
   route,
   () => {
+    // @ts-ignore
     active_sidebar.value = route.name;
   },
   { immediate: true },

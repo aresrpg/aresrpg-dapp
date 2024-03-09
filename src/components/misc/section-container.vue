@@ -21,9 +21,8 @@ import { computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
-  VITE_ARESRPG_PACKAGE_DEVNET_ORIGINAL,
-  VITE_ARESRPG_PACKAGE_MAINNET,
-  VITE_ARESRPG_PACKAGE_TESTNET,
+  VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
+  VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
 } from '../../env';
 
 const { t } = useI18n();
@@ -39,11 +38,11 @@ const network = computed(() => {
 const is_chain_supported = computed(() => {
   switch (selected_wallet.value?.chain) {
     case 'sui:mainnet':
-      return !!VITE_ARESRPG_PACKAGE_MAINNET;
+      return !!VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL;
     case 'sui:testnet':
-      return !!VITE_ARESRPG_PACKAGE_TESTNET;
+      return !!VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL;
     case 'sui:devnet':
-      return !!VITE_ARESRPG_PACKAGE_DEVNET_ORIGINAL;
+      return false;
     default:
       return true;
   }
