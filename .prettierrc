@@ -1,5 +1,13 @@
 {
-  "semi": true,
+  "semi": false,
   "singleQuote": true,
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
+  "overrides": [
+    {
+      "files": "*.vue",
+      "options": {
+        "semi": true
+      }
+    }
+  ]
 }
