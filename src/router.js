@@ -1,15 +1,15 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router'
 
-import home from './views/home.vue';
-import microsoft_oauth from './views/microsoft.oauth.vue';
-import discord_oauth from './views/discord.oauth.vue';
-import gtla from './views/gtla.vue';
-import inventory from './views/tab-inventory.vue';
-import settings from './views/tab-settings.vue';
-import world from './views/tab-world.vue';
-import profiles from './views/tab-profiles.vue';
-import terrainEditor from './views/tab-terrain-editor.vue';
-import { VITE_ENABLE_TERRAIN_EDITOR } from './env';
+import home from './views/home.vue'
+import microsoft_oauth from './views/microsoft.oauth.vue'
+import discord_oauth from './views/discord.oauth.vue'
+import gtla from './views/gtla.vue'
+import inventory from './views/tab-inventory.vue'
+import settings from './views/tab-settings.vue'
+import world from './views/tab-world.vue'
+import profiles from './views/tab-profiles.vue'
+import terrainEditor from './views/tab-terrain-editor.vue'
+import { VITE_ENABLE_TERRAIN_EDITOR } from './env'
 
 export default createRouter({
   history: createWebHistory(),
@@ -48,7 +48,7 @@ export default createRouter({
           path: '/terrain-editor',
           component: terrainEditor,
           beforeEnter: () => {
-            if (!VITE_ENABLE_TERRAIN_EDITOR) return false;
+            if (!VITE_ENABLE_TERRAIN_EDITOR) return false
           },
         },
         {
@@ -67,4 +67,4 @@ export default createRouter({
       component: gtla,
     },
   ],
-});
+})
