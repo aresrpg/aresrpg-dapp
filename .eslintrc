@@ -5,9 +5,7 @@
     "requireConfigFile": false,
     "sourceType": "module",
     "ecmaVersion": "latest",
-    "babelOptions": {
-      "plugins": ["@babel/plugin-syntax-import-assertions"]
-    }
+    "parser": "@typescript-eslint/parser"
   },
   "rules": {
     "camelcase": "off",
@@ -23,7 +21,7 @@
     "import/order": ["error", { "newlines-between": "always" }],
     "no-unused-vars": 0,// <script setup>
     "node/no-callback-literal": 0,
-    "no-fallthrough": 0,
-    "no-throw-literal": 0
+    "no-dupe-class-members": 0,
+    "no-labels": 0
   }
 }
