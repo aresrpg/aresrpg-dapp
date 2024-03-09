@@ -88,7 +88,7 @@ sectionContainer
 </template>
 
 <script setup>
-import { ref, computed, inject, watchEffect, watch, onMounted } from 'vue';
+import { ref, computed, inject, watchEffect, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { VsNotification } from 'vuesax-alpha';
 import { useRouter } from 'vue-router';
@@ -96,16 +96,10 @@ import { useRouter } from 'vue-router';
 import sectionHeader from '../components/misc/section-header.vue';
 import sectionContainer from '../components/misc/section-container.vue';
 import request from '../request.js';
-import {
-  VITE_AZURE_CLIENT,
-  VITE_MICROSOFT_REDIRECT_URI,
-  VITE_DISCORD_CLIENT_ID,
-  VITE_DISCORD_REDIRECT_URI,
-} from '../env';
+import { VITE_DISCORD_CLIENT_ID, VITE_DISCORD_REDIRECT_URI } from '../env';
 
 const { t } = useI18n();
 const user = inject('user');
-const resync = inject('resync');
 const router = useRouter();
 
 const discord_toggle = ref(false);
@@ -118,12 +112,6 @@ const discord_username = computed(() => user?.auth?.discord?.username);
 const google_email = computed(() => user?.auth?.google?.email);
 const minecraft_username = computed(() => user?.auth?.minecraft?.username);
 const gtla = computed(() => user?.auth?.gtla);
-
-const microsoft_login = `https://login.live.com/oauth20_authorize.srf
-?client_id=${VITE_AZURE_CLIENT}
-&response_type=code
-&redirect_uri=${VITE_MICROSOFT_REDIRECT_URI}
-&scope=XboxLive.signin%20offline_access`;
 
 const discord_login = `https://discord.com/api/oauth2/authorize
 ?client_id=${VITE_DISCORD_CLIENT_ID}
@@ -160,16 +148,6 @@ watch(discord_toggle, () => {
   }
 });
 
-watch(minecraft_toggle, () => {
-  if (minecraft_toggle.value && !user?.auth?.minecraft?.uuid) {
-    minecraft_toggle.value = false;
-    window.location.href = microsoft_login;
-  } else if (!minecraft_toggle.value && user?.auth?.minecraft?.uuid) {
-    unlink_minecraft_dialog.value = true;
-    minecraft_toggle.value = true;
-  }
-});
-
 watchEffect(() => {
   discord_toggle.value = !!user?.auth?.discord?.id;
   google_toggle.value = false;
@@ -182,23 +160,6 @@ function refresh_zealy() {
     zealy_loading.value = false;
     if (success) {
       router.push('/');
-      resync.value++;
-    }
-  });
-}
-
-function refresh_v1() {
-  request('mutation { minecraft { refreshV1Data } }').then(success => {
-    if (success) {
-      VsNotification({
-        icon: `<i class='bx bx-rocket'></i>`,
-        flat: true,
-        color: 'success',
-        position: 'top-center',
-        title: 'Yay!',
-        text: t('success_v1'),
-      });
-      resync.value++;
     }
   });
 }

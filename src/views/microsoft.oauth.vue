@@ -10,7 +10,6 @@ import fetch_api from '../request.js';
 
 const route = useRoute();
 const router = useRouter();
-const resync = inject('resync');
 const loading = inject('loading');
 
 onMounted(() => {
@@ -20,7 +19,6 @@ onMounted(() => {
     code,
   }).then(() => {
     router.push('/');
-    resync.value++;
     loading.value--;
   });
 });

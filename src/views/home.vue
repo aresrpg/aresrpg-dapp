@@ -21,7 +21,6 @@ import serverInfo from '../components/cards/server-info.vue';
 
 const { t, locale, isGlobal } = useI18n();
 
-const resync = inject('resync');
 const breakpoints = useBreakpoints({
   mobile: 1000,
 });
@@ -48,8 +47,6 @@ const select = lang => {
 };
 
 onMounted(() => {
-  resync.value++;
-
   // set lang from localstorage
   if (localStorage.getItem('lang'))
     // @ts-ignore
@@ -73,7 +70,7 @@ onMounted(() => {
   TopBar
   .mobile(v-if="breakpoints.mobile.matches")
     serverInfo.info
-    img(src="../assets/moai.png")
+    img(src="../assets/mobile/moai.png")
     span {{  t('mobile') }}
   .content(v-else)
     // Side panel
@@ -110,7 +107,7 @@ h3.title
     position absolute
     width 100%
     height 100%
-    background url('../assets/bg.jpg') center / cover
+    background url('../assets/main-app-ice-background.jpg') center / cover
     background-color #181818
     background-blend-mode color-dodge
     filter blur(50px)
