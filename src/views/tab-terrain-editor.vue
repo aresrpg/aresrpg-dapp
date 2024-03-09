@@ -1,13 +1,21 @@
+<i18n>
+  en:
+    no_webgl: It seems WebGL is not available in your browser, please use a descent one 😀
+  fr:
+    no_webgl: Il semble que WebGL ne soit pas disponible dans votre navigateur, veuillez en utiliser
+</i18n>
+
 <template lang="pug">
 sectionContainer(allow_offline="true")
   .editor(v-if="webgl_available")
     .canvas(ref='renderer_container')
-  .no_webgl(v-else) It seems WebGL is not available in your browser, please use a descent one 😀
+  .no_webgl(v-else) {{ t('no_webgl') }}
 </template>
 
 <script setup>
-import { inject, nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
 import WebGL from 'three/addons/capabilities/WebGL.js';
+import { useI18n } from 'vue-i18n';
 
 import sectionContainer from '../components/misc/section-container.vue';
 import { create_terrain_editor } from '../core/terrain-editor/terrain_editor';
@@ -15,6 +23,8 @@ import { create_terrain_editor } from '../core/terrain-editor/terrain_editor';
 const webgl_available = ref(true);
 const renderer_container = ref(null);
 const terrain_editor = ref(null);
+
+const { t } = useI18n();
 
 const loading = inject('loading');
 const sidebar_reduced = inject('sidebar_reduced');
