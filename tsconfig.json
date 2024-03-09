@@ -1,6 +1,6 @@
 {
   "include": ["src/**/*"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.vue"],
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
@@ -11,6 +11,8 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "resolveJsonModule": true,
-    "outDir": "types"
+    "outDir": "types",
+    "skipLibCheck": true,
+    "types": ["vite-plugin-pwa/client", "vite/client", "node", "vue"]
   }
 }
