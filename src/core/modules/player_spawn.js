@@ -24,11 +24,18 @@ export default function () {
         player.title.text = name
 
         dispatch('action/register_player', player)
+        dispatch('packet/playerPosition', {
+          position: {
+            x: 0,
+            y: 105,
+            z: 0,
+          },
+        })
 
-        setTimeout(() => {
-          // notify the server that we are ready to receive chunks and more
-          send_packet('packet/joinGameReady', {})
-        }, 10)
+        // setTimeout(() => {
+        //   // notify the server that we are ready to receive chunks and more
+        //   send_packet('packet/joinGameReady', {})
+        // }, 10)
 
         signal.addEventListener('abort', () => {
           player.remove()

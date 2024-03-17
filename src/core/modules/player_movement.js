@@ -109,7 +109,7 @@ export default function () {
           jump_cooldown = JUMP_COOLDWON
           on_ground = false
 
-          send_packet('packet/entityAction', { id: '', action: 'JUMP' })
+          // send_packet('packet/entityAction', { id: '', action: 'JUMP' })
           is_walking = false
         } else {
           jump_state = jump_states.NONE
@@ -152,7 +152,7 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       // const ground_height = HEIGHTFIELD(dummy.position.x, dummy.position.z)
-      const ground_height = 100
+      const ground_height = 98.5
 
       if (!ground_height) return
 
@@ -179,7 +179,7 @@ export default function () {
       if (inputs.dance && !is_dancing && Date.now() - last_dance > 1000) {
         is_dancing = true
         last_dance = Date.now()
-        send_packet('packet/entityAction', { id: '', action: 'DANCE' })
+        // send_packet('packet/entityAction', { id: '', action: 'DANCE' })
       }
 
       if (is_moving_horizontally) {
@@ -189,12 +189,12 @@ export default function () {
         if (on_ground) {
           if (inputs.walk && !is_walking) {
             is_walking = true
-            send_packet('packet/entityAction', { id: '', action: 'WALK' })
+            // send_packet('packet/entityAction', { id: '', action: 'WALK' })
           }
 
           if (!inputs.walk && is_walking) {
             is_walking = false
-            send_packet('packet/entityAction', { id: '', action: 'RUN' })
+            // send_packet('packet/entityAction', { id: '', action: 'RUN' })
           }
         }
 
@@ -263,7 +263,7 @@ export default function () {
             last_position.y !== y ||
             last_position.z !== z
           ) {
-            send_packet('packet/playerPosition', { position })
+            // send_packet('packet/playerPosition', { position })
           }
 
           return { x, y, z }

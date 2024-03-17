@@ -14,11 +14,26 @@ export default function () {
 
   return {
     name: 'ui_settings',
-    observe({ events, dispatch, signal, get_state }) {
-      let gui = new GUI()
+    observe({
+      events,
+      dispatch,
+      signal,
+      get_state,
+      on_game_hide,
+      on_game_show,
+    }) {
+      const gui = new GUI()
+
       signal.addEventListener('abort', () => {
-        gui?.destroy()
-        gui = new GUI()
+        gui.destroy()
+      })
+
+      on_game_show(() => {
+        gui.show()
+      })
+
+      on_game_hide(() => {
+        gui.hide()
       })
 
       const game_folder = gui.addFolder('Game Settings')

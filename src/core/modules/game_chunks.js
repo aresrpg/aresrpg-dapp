@@ -3,7 +3,13 @@ import { setInterval } from 'timers/promises'
 
 import { to_chunk_position, spiral_array } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
-import { BoxGeometry, FrontSide, Mesh, MeshPhongMaterial } from 'three'
+import {
+  BoxGeometry,
+  FrontSide,
+  Mesh,
+  MeshPhongMaterial,
+  PlaneGeometry,
+} from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import { abortable } from '../core-utils/iterator.js'
@@ -14,6 +20,26 @@ export default function () {
     name: 'game_chunks',
     observe({ events, signal, scene, get_state, camera_controls }) {
       window.dispatchEvent(new Event('assets_loading'))
+
+      function display_chunk() {
+        const plane = new PlaneGeometry(100, 100)
+        const material = new MeshPhongMaterial({
+          color: 0xeeeeee,
+          side: FrontSide,
+        })
+        const mesh = new Mesh(plane, material)
+
+        mesh.castShadow = false
+        mesh.receiveShadow = true
+
+        mesh.position.y = 99.5
+        mesh.rotation.x = -Math.PI / 2
+        scene.add(mesh)
+
+        events.emit('CHUNKS_LOADED')
+      }
+
+      display_chunk()
 
       events.on('CLEAR_CHUNKS', () => {
         // reset_chunks(true)
@@ -37,13 +63,14 @@ export default function () {
             if (
               last_view_distance !== view_distance ||
               last_far_view_distance !== far_view_distance
-            )
+            ) {
               // await reset_chunks(true)
+            }
 
-              return {
-                last_view_distance: view_distance,
-                last_far_view_distance: far_view_distance,
-              }
+          return {
+            last_view_distance: view_distance,
+            last_far_view_distance: far_view_distance,
+          }
         },
       )
 
