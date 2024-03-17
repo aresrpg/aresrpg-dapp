@@ -116,31 +116,31 @@ export function use_client(
     },
 
     // @ts-ignore
-    async create_profile(name, storage_id) {
+    async create_character(name, storage_id) {
       const tx = new TransactionBlock()
 
-      const [profile] = tx.moveCall({
-        target: `${package_upgraded}::user::create_user_profile`,
+      const [character] = tx.moveCall({
+        target: `${package_upgraded}::user::create_user_character`,
         arguments: [tx.pure(name)],
       })
 
-      tx.transferObjects([profile], account.value.address)
+      tx.transferObjects([character], account.value.address)
 
       await execute(tx)
     },
 
-    async delete_profile(id) {
+    async delete_character(id) {
       const tx = new TransactionBlock()
 
       tx.moveCall({
-        target: `${package_upgraded}::user::delete_user_profile`,
+        target: `${package_upgraded}::user::delete_user_character`,
         arguments: [tx.object(id)],
       })
 
       await execute(tx)
     },
 
-    async lock_user_profile({ storage_id, storage_cap_id, profile_id }) {
+    async lock_user_character({ storage_id, storage_cap_id, character_id }) {
       const tx = new TransactionBlock()
 
       tx.moveCall({
@@ -148,27 +148,27 @@ export function use_client(
         arguments: [
           tx.object(storage_cap_id),
           tx.object(storage_id),
-          tx.pure(profile_id),
-          tx.object(profile_id),
+          tx.pure(character_id),
+          tx.object(character_id),
         ],
-        typeArguments: [`${package_original}::user::UserProfile`],
+        typeArguments: [`${package_original}::user::Usercharacter`],
       })
 
       await execute(tx)
     },
 
-    async unlock_user_profile({ storage_id, storage_cap_id, profile_id }) {
+    async unlock_user_character({ storage_id, storage_cap_id, character_id }) {
       const tx = new TransactionBlock()
-      const [profile] = tx.moveCall({
+      const [character] = tx.moveCall({
         target: `${package_upgraded}::storage::remove`,
         arguments: [
           tx.object(storage_cap_id),
           tx.object(storage_id),
-          tx.pure(profile_id),
+          tx.pure(character_id),
         ],
-        typeArguments: [`${package_original}::user::UserProfile`],
+        typeArguments: [`${package_original}::user::Usercharacter`],
       })
-      tx.transferObjects([profile], tx.pure(account.value.address))
+      tx.transferObjects([character], tx.pure(account.value.address))
 
       await execute(tx)
     },
@@ -217,7 +217,7 @@ export function use_client(
       return storage
     },
 
-    async get_locked_profiles(storage_cap_id) {
+    async get_locked_characters(storage_cap_id) {
       const result = await client.getObject({
         id: storage_cap_id,
         options: { showContent: true },
@@ -238,12 +238,12 @@ export function use_client(
         },
       } = result
 
-      const profiles = await client.multiGetObjects({
+      const characters = await client.multiGetObjects({
         ids: contents,
         options: { showContent: true },
       })
 
-      return profiles.map(
+      return characters.map(
         ({
           data: {
             // @ts-ignore
@@ -256,11 +256,11 @@ export function use_client(
       )
     },
 
-    async get_unlocked_user_profiles() {
+    async get_unlocked_user_characters() {
       const result = await client.getOwnedObjects({
         owner: account.value.address,
         filter: {
-          StructType: `${package_original}::user::UserProfile`,
+          StructType: `${package_original}::user::Usercharacter`,
         },
         options: {
           showContent: true,
@@ -279,6 +279,8 @@ export function use_client(
         }),
       )
     },
+
+    async get_inventory() {},
 
     async on_update() {
       const emitter = new EventEmitter()
