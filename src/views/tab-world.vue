@@ -6,7 +6,7 @@
 </i18n>
 
 <template lang="pug">
-sectionContainer
+sectionContainer(allow_offline="true")
   Suspense
     gameCanvas
 </template>
@@ -19,17 +19,3 @@ import sectionContainer from '../components/misc/section-container.vue';
 
 const { t } = useI18n();
 </script>
-
-<style lang="stylus">
-.aresrpg
-  width 100vw
-  height 100vh
-  overflow hidden
-
-.no_webgl
-  display flex
-  justify-content center
-  align-items center
-  height 100vh
-  color #e1c79b
-</style>
