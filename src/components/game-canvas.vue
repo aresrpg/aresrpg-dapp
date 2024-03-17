@@ -1,14 +1,24 @@
 <template lang="pug">
 .aresrpg(v-if="webgl_available")
-  Interface
+  Interface(v-if="game_visible")
   .canvas(ref='renderer_container')
 .no_webgl(v-else) {{ t('no_webgl') }}
 </template>
 
 <script setup>
 import { PassThrough } from 'stream';
+import { EventEmitter } from 'events';
 
-import { inject, onMounted, onUnmounted, provide, ref, watch } from 'vue';
+import {
+  inject,
+  onActivated,
+  onDeactivated,
+  onMounted,
+  onUnmounted,
+  provide,
+  ref,
+  watch,
+} from 'vue';
 import { useWebSocket } from '@vueuse/core';
 import { create_client } from '@aresrpg/aresrpg-protocol';
 import WebGL from 'three/addons/capabilities/WebGL.js';
@@ -16,8 +26,9 @@ import WebGL from 'three/addons/capabilities/WebGL.js';
 import create_game, { FILTER_PACKET_IN_LOGS } from '../core/game/game.js';
 import logger from '../logger.js';
 import toast from '../toast.js';
+import { VITE_SERVER_URL } from '../env.js';
 
-import Interface from './game-ui/ui.vue';
+import Interface from './game-ui/game-interface.vue';
 
 const renderer_container = ref(null);
 const packets = new PassThrough({ objectMode: true });
@@ -25,15 +36,37 @@ const ares_client = ref(null);
 
 const loading = inject('loading');
 const sidebar_reduced = inject('sidebar_reduced');
+const show_topbar = inject('show_topbar');
+
 const webgl_available = ref(true);
 const ws_status = ref('');
 const STATE = ref({});
 
 let disconnect_reason = null;
 
+const game_visible = ref(false);
+const game_visible_emitter = new EventEmitter();
+
+watch(game_visible, (value, previous) => {
+  if (value === previous) return;
+  if (value) {
+    show_topbar.value = false;
+    game_visible_emitter.emit('show');
+  } else {
+    show_topbar.value = true;
+    game_visible_emitter.emit('hide');
+  }
+});
+
 const game = ref(
   await create_game({
     packets,
+    on_game_show: handler => {
+      game_visible_emitter.on('show', handler);
+    },
+    on_game_hide: handler => {
+      game_visible_emitter.on('hide', handler);
+    },
     send_packet(type, payload) {
       if (!ares_client.value) throw new Error('Not connected to server');
       if (!FILTER_PACKET_IN_LOGS.includes(type))
@@ -116,6 +149,7 @@ onMounted(() => {
     game.value.start(renderer_container.value);
     game.value.events.on('STATE_UPDATED', update_state);
     sidebar_reduced.value = true;
+    game_visible.value = true;
   }
 });
 
@@ -123,5 +157,26 @@ onUnmounted(() => {
   game.value.events.off('STATE_UPDATED', update_state);
   game.value.stop();
   sidebar_reduced.value = false;
+  game_visible.value = false;
+});
+
+onActivated(() => {
+  sidebar_reduced.value = true;
+  game_visible.value = true;
+});
+
+onDeactivated(() => {
+  sidebar_reduced.value = false;
+  game_visible.value = false;
 });
 </script>
+
+<style lang="stylus" scoped>
+.aresrpg
+  position absolute
+  bottom 0
+  right 0
+  width 100vw
+  height 100vh
+</style>
+./game-ui/game-interface.vue/index.js

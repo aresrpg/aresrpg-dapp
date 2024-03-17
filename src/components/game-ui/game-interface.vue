@@ -1,14 +1,9 @@
 <template lang="pug">
 .ui
-  .top_left
-    .zone Plaine des Caffres
-    .position {{ position }}
-    .chunk_position {{ chunk_position }}
-    .version version {{ pkg.version }}
-    .ws
-      .title socket
-      .status(:class="{ online: ws_status === 'OPEN', connecting: ws_status === 'CONNECTING', offline: ws_status === 'CLOSED' }")
-    .server players {{ server_info.online }}/{{ server_info.max }}
+  .top
+    zoneVue
+    characterSelectVue
+    wsConnectBtnVue
   //- .top_right
   .bottom_panel
     .chat
@@ -19,35 +14,22 @@
   .escape_menu(v-if="escape_menu_open")
     vs-button.keys.disabled(@click="on_menu_controls_btn" type="shadow") Controls
     vs-button.quit(@click="on_menu_quit_btn" type="shadow") Change Character
-
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, inject, computed, ref, reactive } from 'vue';
-import { to_chunk_position } from '@aresrpg/aresrpg-protocol';
+import { onMounted, onUnmounted, inject, ref, reactive } from 'vue';
 import { Vector3 } from 'three';
 
-import pkg from '../../../package.json';
+import characterSelectVue from './character-select.vue';
+import wsConnectBtnVue from './ws-connect-btn.vue';
+import zoneVue from './zone.vue';
 
 const ws_status = inject('ws_status');
-const state = inject('state');
 const game = inject('game');
 const escape_menu_open = ref(false);
 const server_info = reactive({
   online: 0,
   max: 0,
-});
-
-const position = computed(() => {
-  if (!state.value.player?.position) return [0, 0, 0];
-  const { x, y, z } = state.value.player.position;
-  return [Math.round(x), Math.round(y), Math.round(z)];
-});
-
-const chunk_position = computed(() => {
-  const [x, , z] = position.value;
-  const { x: cx, z: cz } = to_chunk_position({ x, z });
-  return [cx, cz];
 });
 
 function on_escape({ key }) {
@@ -83,52 +65,19 @@ onUnmounted(() => {
 .ui
   >*
     position absolute
-  .top_left
-    width 300px
-    height 200px
+  .top
+    width 100vw
+    height 70px
     left 0
     top 0
-    padding 1em
     text-shadow 1px 2px 3px black
-    .zone
-      font-size 1.5em
-      color #EEEEEE
-    .position, .chunk_position
-      font-size 1em
-      color #EEEEEE
-    .version
-      margin-top 1em
-      font-size .8em
-      color #EEEEEE
-    .ws
-      display flex
-      flex-flow row nowrap
-      font-size .8em
-      align-items center
-      .title
-        color #EEEEEE
-        padding-right .5em
-      .status
-        width 10px
-        height @width
-        border-radius 50%
-        &.online
-          background limegreen
-          box-shadow 0 0 5px limegreen
-        &.connecting
-          background orange
-          box-shadow 0 0 5px orange
-        &.offline
-          background crimson
-          box-shadow 0 0 5px crimson
+    display flex
+    flex-flow row nowrap
+    justify-content center
+    align-items center
     .server
       font-size .8em
       color #EEEEEE
-  .top_right
-    width 300px
-    height 200px
-    top 0
-    right 0
   .bottom_panel
     background #212121
     opacity .7
