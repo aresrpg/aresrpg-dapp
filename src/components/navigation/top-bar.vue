@@ -1,36 +1,40 @@
 <i18n>
 fr:
   logout: Déconnexion
+  disconnect: Déconnexion
   connect: Connexion
   with: Avec
   login: Choisir une méthode de connexion
   alt: Utiliser google vous fournira un portefeuille Sui invisible utilisant {0}
   alt2: Si vous préférez utiliser votre propre portefeuille et gérer chaque transaction, choisissez l'option Sui
   quest: Quêtes terminées
+  offline_ws: Hors ligne
+  online_ws: En ligne
 en:
   logout: Logout
+  disconnect: Disconnect
   connect: Connect
   with: With
   login: Choose a login method
   alt: Using google will provide you with an invisible Sui wallet using {0}
   alt2: If you prefer using your own wallet and manage each transaction, choose the Sui option
   quest: Quests completed
+  offline_ws: Offline
+  online_ws: Online
 </i18n>
 
 <script setup>
-import { inject, ref, computed, onMounted, watch } from 'vue';
+import { inject, ref, computed } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
 import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
+import { useRoute } from 'vue-router';
 
-import {
-  VITE_DISCORD_CLIENT_ID,
-  VITE_DISCORD_REDIRECT_URI,
-} from '../../env.js';
 import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
 import { use_client } from '../../core/sui/client';
 
 const { t } = useI18n();
+const route = useRoute();
 
 const selected_wallet = inject('selected_wallet');
 const selected_account = inject('selected_account');
@@ -40,6 +44,8 @@ const update_selected_account = account => {
   selected_account.value = account;
   localStorage.setItem('last_selected_address', account.address);
 };
+
+const is_world_tab = computed(() => route.name === 'world');
 
 const breakpoints = useBreakpoints({
   mobile: 1000,
@@ -81,6 +87,7 @@ function address_display(account) {
 <template lang="pug">
 nav(:class="{ small: breakpoints.mobile.matches }")
   vs-row(justify="end")
+    // ======
     vs-button.btn(v-if="!selected_wallet" type="border" color="#eee" @click="login_dialog = true")
       i.bx.bx-droplet
       span {{ t('connect') }}

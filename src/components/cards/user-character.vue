@@ -5,35 +5,35 @@
     unlock: Unlock
     delete: Delete
     send: Send
-    delete_desc: Are you sure you want to delete this profile?
+    delete_desc: Are you sure you want to delete this character?
     cancel: Cancel
     confirm: Confirm
     invalid_address: Invalid Sui address
-    lock_desc: You're about to lock this profile to access it in game, you can unlock it at anytime when you're done playing
-    unlock_desc: You're about to unlock this profile and retrieve it in your wallet
+    lock_desc: You're about to lock this character to access it in game, you can unlock it at anytime when you're done playing
+    unlock_desc: You're about to unlock this character and retrieve it in your wallet
   fr:
     edit: Modifier
     lock: Verrouiller
     unlock: Déverrouiller
     delete: Supprimer
     send: Envoyer
-    delete_desc: Êtes-vous sûr de vouloir supprimer ce profil ?
+    delete_desc: Êtes-vous sûr de vouloir supprimer ce personnage ?
     cancel: Annuler
     confirm: Confirmer
     invalid_address: Adresse Sui invalide
-    lock_desc: Vous êtes sur le point de verrouiller ce profil pour y accéder en jeu, vous pouvez le déverrouiller à tout moment lorsque vous avez fini de jouer
-    unlock_desc: Vous êtes sur le point de déverrouiller ce profil et de le récupérer dans votre portefeuille
+    lock_desc: Vous êtes sur le point de verrouiller ce personnage pour y accéder en jeu, vous pouvez le déverrouiller à tout moment lorsque vous avez fini de jouer
+    unlock_desc: Vous êtes sur le point de déverrouiller ce personnage et de le récupérer dans votre portefeuille
 </i18n>
 
 <template lang="pug">
-.profile(:class="{ locked: props.locked }")
-  span.name {{ props.profile.name }}
+.character(:class="{ locked: props.locked }")
+  span.name {{ props.character.name }}
   .field
     .title mastery
-    .value.mastery {{ props.profile.mastery }}
+    .value.mastery {{ props.character.mastery }}
   .field
     .title id
-    a.value.id(:href="profile_explorer_link" target="_blank") {{ props.profile.id.slice(0, 24) }}...
+    a.value.id(:href="character_explorer_link" target="_blank") {{ props.character.id.slice(0, 24) }}...
   .actions
     vs-button(v-if="!props.locked" type="transparent" size="small" disabled color="#FFCA28") {{ t('edit') }}
     vs-button(
@@ -53,7 +53,7 @@
       template(#footer)
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="delete_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="delete_profile") {{ t('confirm') }}
+          vs-button(type="transparent" color="#2ECC71" @click="delete_character") {{ t('confirm') }}
 
     /// lock dialog
     vs-dialog(v-model="lock_dialog" :loading="lock_loading")
@@ -62,7 +62,7 @@
       template(#footer)
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="lock_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="lock_profile") {{ t('confirm') }}
+          vs-button(type="transparent" color="#2ECC71" @click="lock_character") {{ t('confirm') }}
 
     /// unlock dialog
     vs-dialog(v-model="unlock_dialog" :loading="unlock_loading")
@@ -71,7 +71,7 @@
       template(#footer)
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="unlock_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="unlock_profile") {{ t('confirm') }}
+          vs-button(type="transparent" color="#2ECC71" @click="unlock_character") {{ t('confirm') }}
 
     /// send dialog
     vs-dialog(v-model="send_dialog" :loading="send_loading")
@@ -84,7 +84,7 @@
       template(#footer)
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="send_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="send_profile") {{ t('confirm') }}
+          vs-button(type="transparent" color="#2ECC71" @click="send_character") {{ t('confirm') }}
 </template>
 
 <script setup>
@@ -95,7 +95,7 @@ import { isValidSuiAddress } from '@mysten/sui.js/utils';
 import { use_client } from '../../core/sui/client';
 
 const { t } = useI18n();
-const props = defineProps(['profile', 'locked']);
+const props = defineProps(['character', 'locked']);
 const client = use_client();
 
 const selected_wallet = inject('selected_wallet');
@@ -109,8 +109,8 @@ const network = computed(() => {
   return chain;
 });
 
-const profile_explorer_link = computed(
-  () => `https://suiscan.xyz/${network.value}/object/${props.profile.id}`,
+const character_explorer_link = computed(
+  () => `https://suiscan.xyz/${network.value}/object/${props.character.id}`,
 );
 
 const is_valid_sui_address = computed(() => {
@@ -133,10 +133,10 @@ const send_loading = ref(false);
 const unlock_dialog = ref(false);
 const unlock_loading = ref(false);
 
-async function delete_profile() {
+async function delete_character() {
   try {
     delete_loading.value = true;
-    await client.delete_profile(props.profile.id);
+    await client.delete_character(props.character.id);
   } catch (error) {
     console.error(error);
   } finally {
@@ -145,13 +145,13 @@ async function delete_profile() {
   }
 }
 
-async function lock_profile() {
+async function lock_character() {
   try {
     lock_loading.value = true;
     const { storage_id, storage_cap_id } = await client.get_storage_id();
-    console.log('locking', storage_id, storage_cap_id, props.profile.id);
-    await client.lock_user_profile({
-      profile_id: props.profile.id,
+    console.log('locking', storage_id, storage_cap_id, props.character.id);
+    await client.lock_user_character({
+      character_id: props.character.id,
       storage_id,
       storage_cap_id,
     });
@@ -163,15 +163,15 @@ async function lock_profile() {
   }
 }
 
-async function unlock_profile() {
+async function unlock_character() {
   try {
     unlock_loading.value = true;
     const { storage_id, storage_cap_id } = await client.get_storage_id();
 
-    console.log('unlocking', storage_id, storage_cap_id, props.profile.id);
+    console.log('unlocking', storage_id, storage_cap_id, props.character.id);
 
-    await client.unlock_user_profile({
-      profile_id: props.profile.id,
+    await client.unlock_user_character({
+      character_id: props.character.id,
       storage_id,
       storage_cap_id,
     });
@@ -183,11 +183,11 @@ async function unlock_profile() {
   }
 }
 
-async function send_profile() {
+async function send_character() {
   try {
     send_loading.value = true;
     if (!is_valid_sui_address.value) throw new Error('Invalid Sui address');
-    await client.send_object(props.profile.id, send_to.value);
+    await client.send_object(props.character.id, send_to.value);
   } catch (error) {
     console.error(error);
   } finally {
@@ -198,7 +198,7 @@ async function send_profile() {
 </script>
 
 <style lang="stylus" scoped>
-.profile
+.character
   width 300px
   height max-content
   backdrop-filter blur(10px)

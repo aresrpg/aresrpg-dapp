@@ -3,14 +3,14 @@
     inv: Inventaire
     settings: Paramètres
     world: Monde
-    profiles: Profils
+    characters: Personnages
     terrain-editor: Editeur de terrain
   en:
     inv: Inventory
     settings: Settings
     lang: Choose a language
     world: World
-    profiles: Profiles
+    characters: Characters
     terrain-editor: Terrain Editor
 </i18n>
 
@@ -24,7 +24,7 @@
     template(#logo)
       img.logo(v-if="!sidebar_reduced" src="../../assets/logo.png" @click="router.push('/')")
       .logo(v-else)
-    vs-sidebar-item(id="profiles" @click="router.push('/profiles')") {{ t('profiles') }}
+    vs-sidebar-item(id="characters" @click="router.push('/characters')") {{ t('characters') }}
       template(#icon)
         i.bx.bxs-user-account
     vs-sidebar-item(id="world" @click="router.push('/world')") {{ t('world') }}
