@@ -113,13 +113,19 @@ export const INITIAL_STATE = {
 
   /** @type {Type.Entity} */
   player: null,
-  selected_character_id: null,
+  selected_character_id: 'default',
   characters_limit: 3,
+  /** @type {import("@aresrpg/aresrpg-protocol/src/types").Character[]} */
   characters: [
     {
-      id: 'some-id',
-      name: 'some-name',
+      id: 'default',
+      name: 'Anon',
+      position: { x: 0, y: 100, z: 0 },
       level: 1,
+      head: 0,
+      cape: 0,
+      classe: 'IOP',
+      female: false,
     },
   ],
 
@@ -143,25 +149,25 @@ CameraControls.install({
 
 const MODULES = [
   ui_fps,
-  // ui_settings,
+  ui_settings,
 
-  // window_resize,
+  window_resize,
 
-  // player_inputs,
-  // player_settings,
-  // player_characters,
-  // player_movement,
-  // player_spawn,
+  player_inputs,
+  player_settings,
+  player_characters,
+  player_movement,
+  player_spawn,
 
-  // game_sky,
+  game_sky,
   // game_connect,
-  // game_render,
-  // game_lights,
-  // game_instanced,
-  // game_camera,
-  // game_audio,
-  // game_entities,
-  // game_chunks,
+  game_render,
+  game_lights,
+  game_instanced,
+  game_camera,
+  game_audio,
+  game_entities,
+  game_chunks,
 ]
 
 function last_event_value(emitter, event, default_value = null) {
@@ -173,7 +179,12 @@ function last_event_value(emitter, event, default_value = null) {
 }
 
 // create the context passed to all modules
-async function create_context({ send_packet, connect_ws }) {
+async function create_context({
+  send_packet,
+  connect_ws,
+  on_game_show,
+  on_game_hide,
+}) {
   const scene = new Scene()
   const renderer = new WebGLRenderer({ antialias: true })
   const composer = new EffectComposer(renderer)
@@ -205,7 +216,7 @@ async function create_context({ send_packet, connect_ws }) {
   renderer.toneMapping = ACESFilmicToneMapping
   renderer.toneMappingExposure = Math.pow(0.6, 4.0)
   renderer.info.autoReset = false
-  renderer.debug.checkShaderErrors = false
+  // renderer.debug.checkShaderErrors = false
 
   composer.setSize(window.innerWidth, window.innerHeight)
 
@@ -233,6 +244,8 @@ async function create_context({ send_packet, connect_ws }) {
     camera,
     signal: controller.signal,
     controller,
+    on_game_show,
+    on_game_hide,
   }
 }
 
@@ -240,13 +253,26 @@ export default async function create_game({
   packets,
   send_packet,
   connect_ws,
+  on_game_show,
+  on_game_hide,
 }) {
   const { actions, ...context } = await create_context({
     send_packet,
     connect_ws,
+    on_game_show,
+    on_game_hide,
   })
-  const { events, renderer, get_state, dispatch, composer, controller } =
-    context
+
+  const {
+    events,
+    renderer,
+    get_state,
+    dispatch,
+    composer,
+    scene,
+    camera,
+    controller,
+  } = context
 
   const modules = MODULES.map(create => create())
 
