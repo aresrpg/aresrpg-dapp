@@ -9,7 +9,7 @@ en:
 </i18n>
 
 <script setup>
-import { onMounted, inject, ref, provide, computed } from 'vue';
+import { onMounted, inject, ref, provide } from 'vue';
 import { useI18n } from 'vue-i18n';
 import useBreakpoints from 'vue-next-breakpoints';
 
@@ -28,6 +28,10 @@ const breakpoints = useBreakpoints({
 const lang = ref('');
 const sidebar_reduced = inject('sidebar_reduced');
 const lang_dialog = ref(false);
+const show_topbar = ref(true);
+
+provide('show_topbar', show_topbar);
+
 const langs = {
   fr: 'Français',
   en: 'English',
@@ -67,7 +71,7 @@ onMounted(() => {
         vs-option(v-for="lang in langs" :key="lang" :value="lang") {{ lang }}
 
   // nav containing the address
-  TopBar
+  TopBar(v-if="show_topbar")
   .mobile(v-if="breakpoints.mobile.matches")
     serverInfo.info
     img(src="../assets/mobile/moai.png")
@@ -76,8 +80,10 @@ onMounted(() => {
     // Side panel
     SideBar
     // Main content (sub view)
-    .right
-      router-view.view
+    .right(:class="{ 'no-top-bar': !show_topbar }")
+      router-view.view(v-slot="{ Component }")
+        keep-alive(include="tab-world")
+          component(:is="Component")
       bubbles(v-if="!sidebar_reduced")
       svg(v-if="!sidebar_reduced" style="position:fixed; top:100vh")
         defs
@@ -120,6 +126,8 @@ h3.title
       height calc(100vh - 90px)
       margin-left auto
       position relative
+      &.no-top-bar
+        height 100vh
       .not_logged
         width 100%
         display flex

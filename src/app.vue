@@ -3,8 +3,6 @@ router-view
 </template>
 
 <script setup>
-import { on } from 'events';
-
 import { onMounted, provide, watch, ref, reactive, onUnmounted } from 'vue';
 import { VsLoadingFn } from 'vuesax-alpha';
 import { useRouter } from 'vue-router';
@@ -23,11 +21,16 @@ const selected_account = ref(null);
 const sidebar_reduced = ref(false);
 const resync = ref(0);
 
+const selected_character = ref(null);
 const user = reactive({
   has_shared_storage: false,
-  locked_profiles: null,
-  unlocked_profiles: null,
+  locked_characters: null,
+  unlocked_characters: null,
   balance_sui: null,
+  // is the user connected to the websocket
+  online: false,
+
+  inventory: [],
 });
 
 const last_selected_address = localStorage.getItem('last_selected_address');
@@ -41,6 +44,7 @@ provide('selected_account', selected_account);
 provide('loading', loading);
 provide('sidebar_reduced', sidebar_reduced);
 provide('user', user);
+provide('selected_character', selected_character);
 
 const client = use_client(selected_wallet, selected_account);
 
@@ -69,9 +73,15 @@ async function update_user_data() {
   try {
     const { storage_cap_id } = await client.get_storage_id();
 
-    user.unlocked_profiles = await client.get_unlocked_user_profiles();
-    if (storage_cap_id)
-      user.locked_profiles = await client.get_locked_profiles(storage_cap_id);
+    user.unlocked_characters = await client.get_unlocked_user_characters();
+    if (storage_cap_id) {
+      const locked_characters =
+        await client.get_locked_characters(storage_cap_id);
+      user.locked_characters = locked_characters;
+
+      if (!selected_character.value && locked_characters.length)
+        [selected_character.value] = locked_characters;
+    }
   } catch (error) {
     console.error('Error while updating the user data', error);
   }
@@ -86,8 +96,8 @@ watch(
     if (!selected_account.value) return;
     loading.value++; // prevent interraction when switching accounts
 
-    user.unlocked_profiles = null;
-    user.locked_profiles = null;
+    user.unlocked_characters = null;
+    user.locked_characters = null;
 
     // we want a non blocking subscription call
     // it's currently unstable on Sui

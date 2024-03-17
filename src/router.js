@@ -7,7 +7,7 @@ import gtla from './views/gtla.vue'
 import inventory from './views/tab-inventory.vue'
 import settings from './views/tab-settings.vue'
 import world from './views/tab-world.vue'
-import profiles from './views/tab-profiles.vue'
+import characters from './views/tab-characters.vue'
 import terrainEditor from './views/tab-terrain-editor.vue'
 import { VITE_ENABLE_TERRAIN_EDITOR } from './env'
 
@@ -16,22 +16,23 @@ export default createRouter({
   routes: [
     {
       path: '/:catchAll(.*)',
-      redirect: '/profiles',
+      redirect: '/characters',
     },
     {
       path: '/',
       component: home,
-      redirect: '/profiles',
+      redirect: '/characters',
       children: [
         {
-          name: 'profiles',
-          path: '/profiles',
-          component: profiles,
+          name: 'characters',
+          path: '/characters',
+          component: characters,
         },
         {
           name: 'world',
           path: '/world',
           component: world,
+          meta: { keepAlive: true },
         },
         {
           name: 'inventory',
