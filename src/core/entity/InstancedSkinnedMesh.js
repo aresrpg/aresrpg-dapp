@@ -21,7 +21,7 @@ ShaderChunk.morphinstance_vertex = /* glsl */ `
         #ifdef MORPHTARGETS_COUNT
           ${ShaderChunk.morphinstance_vertex}
         #endif
-`;
+`
 ShaderChunk.skinning_pars_vertex = /* glsl */ `
         #ifdef USE_SKINNING
 
