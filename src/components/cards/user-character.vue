@@ -29,8 +29,8 @@
 .character(:class="{ locked: props.locked }")
   span.name {{ props.character.name }}
   .field
-    .title mastery
-    .value.mastery {{ props.character.mastery }}
+    .title Xp
+    .value.mastery {{ props.character.experience }}
   .field
     .title id
     a.value.id(:href="character_explorer_link" target="_blank") {{ props.character.id.slice(0, 24) }}...
@@ -99,6 +99,7 @@ const props = defineProps(['character', 'locked']);
 const client = use_client();
 
 const selected_wallet = inject('selected_wallet');
+const user = inject('user');
 
 const network = computed(() => {
   const current_chain = selected_wallet.value?.chain;
@@ -133,6 +134,12 @@ const send_loading = ref(false);
 const unlock_dialog = ref(false);
 const unlock_loading = ref(false);
 
+const receipt_id = computed(() => {
+  return user.character_lock_receipts?.find(
+    ({ character_id }) => character_id === props.character.id,
+  )?.id;
+});
+
 async function delete_character() {
   try {
     delete_loading.value = true;
@@ -148,13 +155,8 @@ async function delete_character() {
 async function lock_character() {
   try {
     lock_loading.value = true;
-    const { storage_id, storage_cap_id } = await client.get_storage_id();
-    console.log('locking', storage_id, storage_cap_id, props.character.id);
-    await client.lock_user_character({
-      character_id: props.character.id,
-      storage_id,
-      storage_cap_id,
-    });
+    console.log('locking', props.character.id);
+    await client.lock_character(props.character.id);
   } catch (error) {
     console.error(error);
   } finally {
@@ -166,15 +168,12 @@ async function lock_character() {
 async function unlock_character() {
   try {
     unlock_loading.value = true;
-    const { storage_id, storage_cap_id } = await client.get_storage_id();
 
-    console.log('unlocking', storage_id, storage_cap_id, props.character.id);
+    console.log('unlocking', props.character.id, receipt_id.value);
 
-    await client.unlock_user_character({
-      character_id: props.character.id,
-      storage_id,
-      storage_cap_id,
-    });
+    if (!receipt_id.value) throw new Error('No receipt id found');
+
+    await client.unlock_character(receipt_id.value);
   } catch (error) {
     console.error(error);
   } finally {

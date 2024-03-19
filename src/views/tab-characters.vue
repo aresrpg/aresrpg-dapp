@@ -10,7 +10,7 @@
     explanation2: |
       Le jeu offre une création de personnages illimitée, vous permettant de forger autant de personnas que vous le souhaitez.
       Chaque personnage se lance dans son propre voyage unique, avec un inventaire personnalisé et un chemin de progression.
-      La liberté vous appartient : équipez vos personnages à votre guise et, si vous le décidez, vous pouvez facilement retirer ses objets pour les placer dans l'hôtel de vente ou les échanger.
+      La liberté est vôtre : équipez vos personnages comme bon vous semble, et si vous le souhaitez, vous pouvez facilement les retirer ou leurs objets pour les mettre en vente sur le marché.
       AresRPG n'est pas seulement un jeu ; c'est un royaume dans lequel vos décisions façonnent votre destin, et vos actifs vous appartiennent véritablement.
     locked_characters: 🔒 personnages verrouillés
     locked_characters_desc: Ces personnages sont actuellement utilisés, vous pouvez jouer avec eux dans le jeu
@@ -23,8 +23,6 @@
     character_name_valid: Le nom du personnage doit être compris entre 3 et 20 caractères
     create_button: Créer
     cancel_button: Annuler
-    create_storage: Créer un nouveau stockage
-    crate_storage_desc: Commençons par demander de l'espace de stockage pour verrouiller vos personnages !
   en:
     welcome: Welcome Adventurer!
     explanation: |
@@ -36,7 +34,7 @@
     explanation2: |
       The game offers limitless character creation, enabling you to forge as many personas as you wish.
       Each character embarks on its own unique journey, boasting a personalized inventory and progression pathway.
-      The freedom is yours: equip your characters as you see fit, and should you decide, you can easily withdraw items to feature them on the marketplace for trade.
+      The freedom is yours: Stuff your characters as you see fit, and should you decide, you can easily withdraw them or their items to feature anything on the marketplace for trade.
       AresRPG is not just a game; it's a realm where your decisions craft your destiny, and your assets are truly your own.
     locked_characters: 🔒 Locked characters
     locked_characters_desc: Those characters are currently in use, you can play with them in the game
@@ -49,8 +47,6 @@
     character_name_valid: The character name must be between 3 and 20 chars
     create_button: Create
     cancel_button: Cancel
-    create_storage: Create a new storage
-    crate_storage_desc: Let's start by requesting some storage space to lock your characters !
 </i18n>
 
 <script setup>
@@ -87,17 +83,6 @@ async function create_character() {
   }
 }
 
-async function request_storage() {
-  try {
-    loading.value++;
-    await client.request_storage();
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loading.value--;
-  }
-}
-
 const is_character_name_valid = computed(
   () =>
     new_character_name.value.length > 3 &&
@@ -118,9 +103,6 @@ sectionContainer
   sectionHeader(:title="t('locked_characters')" :desc="user.locked_characters ? t('locked_characters_desc') : null" color="#00C853")
     .character-container
       div.nothing(v-if="loading")
-      .request-storage(v-else-if="!user.locked_characters")
-        .desc {{ t('crate_storage_desc') }}
-        vs-button(type="floating" color="#00C853" @click="request_storage") {{ t('create_storage') }}
       usercharacter(v-else v-for="character in user.locked_characters" :key="character.id" :locked="true" :character="character")
 
   // Unlocked characters
