@@ -12,10 +12,14 @@ import { LRUCache } from 'lru-cache'
 import { inject } from 'vue'
 
 import {
+  VITE_ARESRPG_NAME_REGISTRY_MAINNET,
+  VITE_ARESRPG_NAME_REGISTRY_TESTNET,
   VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
   VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
   VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
   VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
+  VITE_ARESRPG_SERVER_STORAGE_MAINNET,
+  VITE_ARESRPG_SERVER_STORAGE_TESTNET,
   VITE_USE_ANKR,
 } from '../../env.js'
 
@@ -23,10 +27,14 @@ const PACKAGES = {
   'sui:testnet': {
     original: VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
     upgraded: VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
+    name_registry: VITE_ARESRPG_NAME_REGISTRY_TESTNET,
+    server_storage: VITE_ARESRPG_SERVER_STORAGE_TESTNET,
   },
   'sui:mainnet': {
     original: VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
     upgraded: VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
+    name_registry: VITE_ARESRPG_NAME_REGISTRY_MAINNET,
+    server_storage: VITE_ARESRPG_SERVER_STORAGE_MAINNET,
   },
 }
 
@@ -66,6 +74,8 @@ let client = get_client('mainnet')
 let last_used_network = 'sui:mainnet'
 let package_original = VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL
 let package_upgraded = VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED
+let name_registry = VITE_ARESRPG_NAME_REGISTRY_MAINNET
+let server_storage = VITE_ARESRPG_SERVER_STORAGE_MAINNET
 
 export const set_network = network => {
   if (network === 'sui:mainnet' || network === 'sui:testnet') {
@@ -75,9 +85,16 @@ export const set_network = network => {
     console.log('switch network to', network)
 
     client = get_client(network.split(':')[1])
-    const { original, upgraded } = PACKAGES[network]
+    const {
+      original,
+      upgraded,
+      name_registry: name_reg,
+      server_storage: srv_storage,
+    } = PACKAGES[network]
     package_original = original
     package_upgraded = upgraded
+    name_registry = name_reg
+    server_storage = srv_storage
   }
 }
 
@@ -120,8 +137,8 @@ export function use_client(
       const tx = new TransactionBlock()
 
       const [character] = tx.moveCall({
-        target: `${package_upgraded}::user::create_user_character`,
-        arguments: [tx.pure(name)],
+        target: `${package_upgraded}::character::create_character`,
+        arguments: [tx.pure(name), tx.pure(name_registry)],
       })
 
       tx.transferObjects([character], account.value.address)
@@ -133,40 +150,29 @@ export function use_client(
       const tx = new TransactionBlock()
 
       tx.moveCall({
-        target: `${package_upgraded}::user::delete_user_character`,
-        arguments: [tx.object(id)],
+        target: `${package_upgraded}::character::delete_character`,
+        arguments: [tx.object(id), tx.object(name_registry)],
       })
 
       await execute(tx)
     },
 
-    async lock_user_character({ storage_id, storage_cap_id, character_id }) {
+    async lock_character(character_id) {
       const tx = new TransactionBlock()
 
       tx.moveCall({
-        target: `${package_upgraded}::storage::store`,
-        arguments: [
-          tx.object(storage_cap_id),
-          tx.object(storage_id),
-          tx.pure(character_id),
-          tx.object(character_id),
-        ],
-        typeArguments: [`${package_original}::user::Usercharacter`],
+        target: `${package_upgraded}::server::lock_character`,
+        arguments: [tx.object(server_storage), tx.object(character_id)],
       })
 
       await execute(tx)
     },
 
-    async unlock_user_character({ storage_id, storage_cap_id, character_id }) {
+    async unlock_character(receipt_id) {
       const tx = new TransactionBlock()
       const [character] = tx.moveCall({
-        target: `${package_upgraded}::storage::remove`,
-        arguments: [
-          tx.object(storage_cap_id),
-          tx.object(storage_id),
-          tx.pure(character_id),
-        ],
-        typeArguments: [`${package_original}::user::Usercharacter`],
+        target: `${package_upgraded}::server::unlock_character`,
+        arguments: [tx.object(server_storage), tx.object(receipt_id)],
       })
       tx.transferObjects([character], tx.pure(account.value.address))
 
@@ -185,61 +191,34 @@ export function use_client(
       await execute(tx)
     },
 
-    async get_storage_id() {
+    async get_receipts() {
       const result = await client.getOwnedObjects({
         owner: account.value.address,
         filter: {
-          StructType: `${package_original}::storage::StorageCap`,
+          StructType: `${package_original}::server::CharacterLockReceipt`,
         },
         options: {
           showContent: true,
         },
       })
 
-      const [storage = { storage_cap_id: null, storage_id: null }] =
-        result.data.map(
-          ({
-            data: {
-              content: {
-                // @ts-ignore
-                fields: {
-                  storage_id,
-                  id: { id },
-                },
-              },
-            },
-          }) => ({
-            storage_id,
-            storage_cap_id: id,
-          }),
-        )
+      const receipts = result.data.map(({ data }) => ({
+        // @ts-ignore
+        character_id: data.content.fields.character_id,
+        // @ts-ignore
+        id: data.content.fields.id.id,
+      }))
 
-      return storage
+      return receipts
     },
 
-    async get_locked_characters(storage_cap_id) {
-      const result = await client.getObject({
-        id: storage_cap_id,
-        options: { showContent: true },
-      })
+    async get_locked_characters() {
+      const receipts = await this.get_receipts()
 
-      if (!result) throw new Error('No storage found')
-
-      const {
-        data: {
-          content: {
-            // @ts-ignore
-            fields: {
-              stored: {
-                fields: { contents },
-              },
-            },
-          },
-        },
-      } = result
+      if (!receipts.length) return []
 
       const characters = await client.multiGetObjects({
-        ids: contents,
+        ids: receipts.map(({ character_id }) => character_id),
         options: { showContent: true },
       })
 
@@ -260,7 +239,7 @@ export function use_client(
       const result = await client.getOwnedObjects({
         owner: account.value.address,
         filter: {
-          StructType: `${package_original}::user::Usercharacter`,
+          StructType: `${package_original}::character::Character`,
         },
         options: {
           showContent: true,

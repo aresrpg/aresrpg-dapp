@@ -23,7 +23,7 @@ const resync = ref(0);
 
 const selected_character = ref(null);
 const user = reactive({
-  has_shared_storage: false,
+  character_lock_receipts: null,
   locked_characters: null,
   unlocked_characters: null,
   balance_sui: null,
@@ -71,17 +71,18 @@ async function update_sui_balance() {
 
 async function update_user_data() {
   try {
-    const { storage_cap_id } = await client.get_storage_id();
-
     user.unlocked_characters = await client.get_unlocked_user_characters();
-    if (storage_cap_id) {
-      const locked_characters =
-        await client.get_locked_characters(storage_cap_id);
-      user.locked_characters = locked_characters;
+    user.character_lock_receipts = await client.get_receipts();
+    user.locked_characters = await client.get_locked_characters();
 
-      if (!selected_character.value && locked_characters.length)
-        [selected_character.value] = locked_characters;
-    }
+    if (
+      selected_character.value &&
+      !user.locked_characters.find(c => c.id === selected_character.value.id)
+    )
+      selected_character.value = null;
+
+    if (!selected_character.value && user.locked_characters.length)
+      [selected_character.value] = user.locked_characters;
   } catch (error) {
     console.error('Error while updating the user data', error);
   }
