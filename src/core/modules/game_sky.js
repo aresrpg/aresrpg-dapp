@@ -122,7 +122,7 @@ export default function () {
       const updateSunDirection = daytimeCycleValue => {
         const sunDirection = new Vector3().setFromSphericalCoords(
           1,
-          2 * Math.PI * daytimeCycleValue,
+          0.00001 + 1.99999 * Math.PI * daytimeCycleValue,
           0.1,
         )
         material.uniforms.uSunDirection.value = sunDirection.normalize()
