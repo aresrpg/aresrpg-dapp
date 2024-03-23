@@ -1,4 +1,4 @@
-import { Color } from 'three'
+import { Color, Vector3 } from 'three'
 
 declare module '*.ogg'
 declare module '*.png'
@@ -69,7 +69,10 @@ declare namespace Type {
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
       SKY_SUNSIZE_CHANGED: number
-      SKY_SUNCOLOR_CHANGED: Color
+      SKY_FOGCOLOR_CHANGED: Color
+      SKY_LIGHT_COLOR_CHANGED: Color
+      SKY_LIGHT_MOVED: Vector3
+      SKY_LIGHT_INTENSITY_CHANGED: number
     } & Packets
   >
 

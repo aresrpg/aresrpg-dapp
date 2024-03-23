@@ -117,6 +117,7 @@ export default function () {
         { color: new Color('#173480'), threshold: -0.3 },
       ]
       const nightRotationAxis = new Vector3(0.2, 0.4, 0.3).normalize()
+      const moonColor = new Color(0x777777)
 
       const updateSunDirection = daytimeCycleValue => {
         const sunDirection = new Vector3().setFromSphericalCoords(
@@ -124,7 +125,7 @@ export default function () {
           0.00001 + 1.99999 * Math.PI * daytimeCycleValue,
           0.1,
         )
-        material.uniforms.uSunDirection.value = sunDirection.normalize()
+        material.uniforms.uSunDirection.value = sunDirection
 
         let sunColor = sunColors[sunColors.length - 1].color
         for (let iC = 1; iC < sunColors.length; iC++) {
@@ -145,7 +146,27 @@ export default function () {
           }
         }
 
-        events.emit('SKY_SUNCOLOR_CHANGED', sunColor.clone())
+        events.emit('SKY_FOGCOLOR_CHANGED', sunColor.clone())
+
+        const lightDirection =
+          sunDirection.y >= 0
+            ? sunDirection.clone()
+            : sunDirection.clone().multiplyScalar(-1)
+        events.emit('SKY_LIGHT_MOVED', lightDirection)
+        const lightIntensity =
+          1 -
+          Math.min(
+            smoothstep(sunDirection.y, -0.3, -0.2),
+            1 - smoothstep(sunDirection.y, 0, 0.05),
+          )
+        console.log(lightIntensity)
+        events.emit('SKY_LIGHT_INTENSITY_CHANGED', lightIntensity)
+        const lightColor = new Color().lerpColors(
+          moonColor,
+          sunColor,
+          smoothstep(sunDirection.y, -0.1, 1.0),
+        )
+        events.emit('SKY_LIGHT_COLOR_CHANGED', lightColor)
 
         sunColor.lerp(sunColor, smoothstep(-0.3, 0.0, sunDirection.y))
         material.uniforms.uSunColor.value = sunColor
