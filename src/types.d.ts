@@ -62,9 +62,10 @@ declare namespace Type {
       MOVE_MENU_CAMERA: [number, number, number] // move the camera of the menu screen
       CONNECT_TO_SERVER: void // request ws connection to the server
       SET_TIME: number // set the time of the day
-      TIME_CHANGE: number // the time of the day has changed
       CLEAR_CHUNKS: void // clear all chunks
       CHUNKS_LOADED: void // notify that the loading of new chunks is finished
+      DAYTIME_PAUSED: boolean // pause/resume the normal running of time
+      DAYTIME_SET: { value: number; fromUi: boolean } // the daytime has changed
     } & Packets
   >
 

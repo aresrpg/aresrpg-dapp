@@ -17,9 +17,11 @@ import { DAY_DURATION } from './game_lights.js'
 
 /** @type {Type.Module} */
 export default function () {
+  let daytime = 0
+
   return {
     name: 'game_sky',
-    observe({ scene, events, signal }) {
+    observe({ scene, events, get_state }) {
       // Load day skybox texture
       const day_skybox = new CubeTextureLoader().load([
         day_px,
@@ -45,10 +47,12 @@ export default function () {
       // Set initial skybox
       scene.background = day_skybox
 
-      // Event listener for time change
-      events.on('TIME_CHANGE', time => {
+      daytime = get_state().settings.dayTime.value
+      events.on('DAYTIME_SET', ({ value }) => {
+        daytime = value
+
         // Calculate blend factor based on time, 0 being day and 1 being night
-        const is_day = time > DAY_DURATION / 2
+        const is_day = daytime > 0.5
         const texture = is_day ? day_skybox : night_skybox
 
         if (scene.background !== texture) {

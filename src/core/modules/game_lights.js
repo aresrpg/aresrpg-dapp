@@ -50,6 +50,8 @@ export default function () {
     fog: true,
   })
 
+  let daytimePaused = false
+
   return {
     name: 'game_nature',
     tick() {
@@ -139,8 +141,12 @@ export default function () {
       let day_time = DAY_DURATION * 0.7 // Track the time of day as a value between 0 and DAY_DURATION
       const day_time_step = 3000 // How much ms between updates
 
-      events.on('SET_TIME', time => {
-        day_time = time
+      daytimePaused = get_state().settings.dayTime.paused
+      events.on('DAYTIME_PAUSED', paused => (daytimePaused = paused))
+      events.on('DAYTIME_SET', ({ value, fromUi }) => {
+        if (fromUi) {
+          day_time = value * DAY_DURATION
+        }
       })
 
       function get_player_chunk_position() {
@@ -155,9 +161,14 @@ export default function () {
       }
 
       function update_cycle() {
-        // Update day_time and calculate day_ratio
-        day_time = (day_time + day_time_step) % DAY_DURATION
-        const day_ratio = day_time / DAY_DURATION
+        let day_ratio = day_time / DAY_DURATION
+
+        if (!daytimePaused) {
+          // Update day_time and calculate day_ratio
+          day_time = (day_time + day_time_step) % DAY_DURATION
+          day_ratio = day_time / DAY_DURATION
+          events.emit('DAYTIME_SET', { value: day_ratio, fromUi: false })
+        }
 
         const chunk_position = get_player_chunk_position()
 
@@ -242,8 +253,6 @@ export default function () {
         scene_env.add(sky)
         render_target = pmrem_generator.fromScene(scene_env)
         scene.environment = render_target.texture
-
-        events.emit('TIME_CHANGE', day_time)
       }
 
       update_cycle()

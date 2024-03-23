@@ -95,6 +95,11 @@ export const INITIAL_STATE = {
     ]),
     show_entities_collider: false,
 
+    dayTime: {
+      paused: true,
+      value: 0.7,
+    },
+
     view_distance: 3,
     far_view_distance: 20,
 
