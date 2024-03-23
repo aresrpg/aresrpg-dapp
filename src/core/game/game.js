@@ -95,9 +95,10 @@ export const INITIAL_STATE = {
     ]),
     show_entities_collider: false,
 
-    dayTime: {
+    sky: {
       paused: true,
-      value: 0.7,
+      value: 0.76,
+      sunSize: 0.0004,
     },
 
     view_distance: 3,

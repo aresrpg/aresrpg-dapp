@@ -141,9 +141,9 @@ export default function () {
       let day_time = DAY_DURATION * 0.7 // Track the time of day as a value between 0 and DAY_DURATION
       const day_time_step = 3000 // How much ms between updates
 
-      daytimePaused = get_state().settings.dayTime.paused
-      events.on('DAYTIME_PAUSED', paused => (daytimePaused = paused))
-      events.on('DAYTIME_SET', ({ value, fromUi }) => {
+      daytimePaused = get_state().settings.sky.paused
+      events.on('SKY_CYCLE_PAUSED', paused => (daytimePaused = paused))
+      events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
         if (fromUi) {
           day_time = value * DAY_DURATION
         }
@@ -167,7 +167,7 @@ export default function () {
           // Update day_time and calculate day_ratio
           day_time = (day_time + day_time_step) % DAY_DURATION
           day_ratio = day_time / DAY_DURATION
-          events.emit('DAYTIME_SET', { value: day_ratio, fromUi: false })
+          events.emit('SKY_CYCLE_CHANGED', { value: day_ratio, fromUi: false })
         }
 
         const chunk_position = get_player_chunk_position()
