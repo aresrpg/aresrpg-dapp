@@ -75,7 +75,7 @@ export default function () {
           vec3 nightSkyColor = textureCube(uNightTexture, rayDirection).rgb;
           skyColor = mix(nightSkyColor, skyColor, skyIllumination);
 
-          float horizonGlow = 1.0 - smoothstep(0.0, 0.2, abs(rayDirection.y));
+          float horizonGlow = 1.0 - smoothstep(0.0, 0.2, rayDirection.y);
           float facingSun = 0.5 + 0.5 * dot(normalize(rayDirection.xz), normalize(sunDirection.xz));
           float isSunset = 1.0 - smoothstep(0.0, 0.2, abs(sunDirection.y));
           horizonGlow = mix(horizonGlow, horizonGlow * pow(facingSun, 8.0), isSunset);
