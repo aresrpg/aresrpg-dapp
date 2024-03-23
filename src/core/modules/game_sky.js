@@ -65,16 +65,16 @@ export default function () {
           float horizon = (1.0 - smoothstep(0.0, 0.75, rayDirection.y));
 
           const vec3 baseSkyColor = vec3(0.2,0.4,0.8);
-          float skyIllumination = smoothstep(-0.2, 0.2, sunDirection.y);
+          float skyIllumination = smoothstep(-0.2, 0.1, sunDirection.y);
           vec3 skyColor = baseSkyColor * skyIllumination;
           vec3 nightRayDirection = (uNightRotation * vec4(rayDirection, 0)).xyz;
           vec3 nightSkyColor = textureCube(uNightTexture, nightRayDirection).rgb;
           skyColor = mix(nightSkyColor, skyColor, skyIllumination);
 
-          float horizonGlow = 1.0 - smoothstep(0.0, 0.2, rayDirection.y);
+          float horizonGlow = 1.0 - smoothstep(-0.25, 0.5, rayDirection.y);
           float facingSun = 0.501 + 0.5 * dot(normalize(rayDirection.xz), normalize(sunDirection.xz));
-          float isSunset = 1.0 - smoothstep(0.0, 0.2, abs(sunDirection.y));
-          horizonGlow = mix(horizonGlow, horizonGlow * pow(facingSun, 8.0), isSunset);
+          float isSunset = min(1.0 - smoothstep(0.0, 0.2, sunDirection.y), smoothstep(-0.3, -0.2, sunDirection.y));
+          horizonGlow *= mix(1.0, pow(facingSun, 16.0), isSunset);
 
           return mix(skyColor, uSunColor, 0.25 * horizonGlow);
         }
@@ -114,7 +114,6 @@ export default function () {
       const sunColors = [
         { color: new Color('#FFFAFC'), threshold: 0.2 },
         { color: new Color('#FF991A'), threshold: 0.0 },
-        { color: new Color('#CC4D4D'), threshold: -0.2 },
         { color: new Color('#173480'), threshold: -0.3 },
       ]
       const nightRotationAxis = new Vector3(0.2, 0.4, 0.3).normalize()
