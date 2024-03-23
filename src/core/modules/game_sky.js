@@ -23,8 +23,6 @@ import night_pz from '../../assets/skybox/night_pz.png'
 
 /** @type {Type.Module} */
 export default function () {
-  let daytime = 0
-
   return {
     name: 'game_sky',
     observe({ scene, events, signal, dispatch }) {

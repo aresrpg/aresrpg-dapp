@@ -38,7 +38,7 @@ export default function () {
     fog: true,
   })
 
-  let daytimePaused = false
+  const daytimePaused = false
 
   return {
     name: 'game_nature',
