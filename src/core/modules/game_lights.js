@@ -149,6 +149,12 @@ export default function () {
         }
       })
 
+      events.on('SKY_SUNCOLOR_CHANGED', color => {
+        sunlight.color = color
+        scene.fog.color = color.clone().lerp(new Color('#000000'), 0.4)
+      })
+
+      
       function get_player_chunk_position() {
         try {
           const player = get_state()?.player
@@ -239,11 +245,6 @@ export default function () {
             scene.remove(suncamera_helper)
           }
         }
-
-        events.on('SKY_SUNCOLOR_CHANGED', color => {
-          sunlight.color = color
-          scene.fog.color = color.clone().lerp(new Color('#000000'), 0.4)
-        })
 
         // Update environment map
         if (render_target) render_target.dispose()
