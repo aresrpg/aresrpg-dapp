@@ -52,7 +52,7 @@ export default function () {
           vRayDirection = worldPosition.xyz;
         }`,
         fragmentShader: `
-        uniform vec3 uSunDirection;
+        uniform vec3 uSunDirection; // normalized
         uniform float uSunSize;
         uniform vec3 uSunColor;
         uniform float uSunGlowSize;
@@ -91,7 +91,7 @@ export default function () {
 
         void main() {
           vec3 rayDirection = normalize(vRayDirection);
-          vec3 sunDirection = normalize(uSunDirection);
+          vec3 sunDirection = uSunDirection;
           
           vec3 color = getSky(rayDirection, sunDirection) + getSun(rayDirection, sunDirection);
           gl_FragColor = vec4(color, 1);
@@ -125,7 +125,7 @@ export default function () {
           2 * Math.PI * daytimeCycleValue,
           0.1,
         )
-        material.uniforms.uSunDirection.value = sunDirection
+        material.uniforms.uSunDirection.value = sunDirection.normalize()
 
         let sunColor = sunColors[sunColors.length - 1].color
         for (let iC = 1; iC < sunColors.length; iC++) {
