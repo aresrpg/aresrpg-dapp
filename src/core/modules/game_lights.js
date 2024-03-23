@@ -213,9 +213,6 @@ export default function () {
         moonlight.intensity = is_night ? 0.5 : 0 // Adjust intensity based on night/day
 
         if (!is_night) {
-          const color = Colors.sunrise.lerp(Colors.noon, sky_elevation / 90)
-          sunlight.color = color
-          scene.fog.color = color
           if (moonlight.parent) {
             scene.remove(moonlight)
             scene.remove(moonlight.target)
@@ -241,10 +238,12 @@ export default function () {
             scene.remove(sunlight_helper)
             scene.remove(suncamera_helper)
           }
-          const color = Colors.sunset.lerp(Colors.night, -sky_elevation / 90)
-          sunlight.color = color
-          scene.fog.color = color
         }
+
+        events.on('SKY_SUNCOLOR_CHANGED', color => {
+          sunlight.color = color
+          scene.fog.color = color.clone().lerp(new Color('#000000'), 0.4)
+        })
 
         // Update environment map
         if (render_target) render_target.dispose()

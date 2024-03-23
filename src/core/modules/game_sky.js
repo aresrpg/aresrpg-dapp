@@ -148,6 +148,9 @@ export default function () {
             break
           }
         }
+
+        events.emit('SKY_SUNCOLOR_CHANGED', sunColor.clone())
+
         sunColor.lerp(sunColor, smoothstep(-0.3, 0.0, sunDirection.y))
         material.uniforms.uSunColor.value = sunColor
       }
