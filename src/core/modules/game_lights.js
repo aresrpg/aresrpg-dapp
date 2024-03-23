@@ -62,12 +62,8 @@ export default function () {
       const ambiant_light = new AmbientLight(0xffffff, 1.5)
 
       const sunlight = new DirectionalLight(0xffffff, 1)
-      const moonlight = new DirectionalLight(0x6666ff, 0) // Initially off
       const sunlight_helper = new DirectionalLightHelper(sunlight, 10)
       const suncamera_helper = new CameraHelper(sunlight.shadow.camera)
-
-      const moonlight_helper = new DirectionalLightHelper(moonlight, 10)
-      const mooncamera_helper = new CameraHelper(moonlight.shadow.camera)
 
       sunlight.castShadow = true
       sunlight.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
@@ -84,32 +80,11 @@ export default function () {
       sunlight.shadow.camera.updateProjectionMatrix()
       suncamera_helper.update()
 
-      moonlight.castShadow = true
-      moonlight.shadow.mapSize.width = 2048 // Adjust as needed for performance/quality
-      moonlight.shadow.mapSize.height = 2048
-
-      moonlight.shadow.camera.near = CAMERA_SHADOW_NEAR
-      moonlight.shadow.camera.far = CAMERA_SHADOW_FAR
-      moonlight.shadow.camera.left = -CAMERA_SHADOW_SIZE
-      moonlight.shadow.camera.right = CAMERA_SHADOW_SIZE
-      moonlight.shadow.camera.top = CAMERA_SHADOW_SIZE
-      moonlight.shadow.camera.bottom = -CAMERA_SHADOW_SIZE
-      // moonlight.shadow.bias = 0.2 // This value may need tweaking
-      moonlight.shadow.bias = -0.000005 // This value may need tweaking
-
-      moonlight.shadow.camera.updateProjectionMatrix()
-      mooncamera_helper.update()
-
       scene.add(ambiant_light)
       scene.add(sunlight)
       scene.add(sunlight.target)
       scene.add(sunlight_helper)
       scene.add(suncamera_helper)
-
-      scene.add(moonlight)
-      scene.add(moonlight.target)
-      scene.add(moonlight_helper)
-      scene.add(mooncamera_helper)
 
       // water
       water.position.y = 9.5
@@ -117,27 +92,9 @@ export default function () {
 
       scene.add(water)
 
-      // sky
-      const sky = new Sky()
-
-      sky.scale.setScalar(10000)
-
-      const { uniforms } = sky.material
-
-      uniforms.turbidity.value = 10
-      uniforms.rayleigh.value = 2
-      uniforms.mieCoefficient.value = 0.005
-      uniforms.mieDirectionalG.value = 0.8
-
-      scene.add(sky)
-
       // sun
       const sun = new Vector3()
-      const pmrem_generator = new PMREMGenerator(renderer)
 
-      let render_target = null
-      let sky_elevation = 0
-      let sky_azimuth = 0
       let day_time = DAY_DURATION * 0.7 // Track the time of day as a value between 0 and DAY_DURATION
       const day_time_step = 3000 // How much ms between updates
 
@@ -154,7 +111,6 @@ export default function () {
         scene.fog.color = color.clone().lerp(new Color('#000000'), 0.4)
       })
 
-      
       function get_player_chunk_position() {
         try {
           const player = get_state()?.player
@@ -187,28 +143,17 @@ export default function () {
 
         // Calculate sun's position
         const angle = day_ratio * Math.PI * 2
-        sky_elevation = 90 - (Math.sin(angle) * 0.5 + 0.5) * 180
-        sky_azimuth = ((day_ratio * 360) % 360) - 180
-
-        const is_night = sky_elevation <= 0
+        const sky_elevation = 90 - (Math.sin(angle) * 0.5 + 0.5) * 180
+        const sky_azimuth = ((day_ratio * 360) % 360) - 180
 
         const phi = MathUtils.degToRad(90 - sky_elevation)
         const theta = MathUtils.degToRad(sky_azimuth)
         sun.setFromSphericalCoords(1, phi, theta)
 
-        // Update sky and water materials
-        sky.material.uniforms.sunPosition.value.copy(sun)
-        water.material.uniforms.sunDirection.value.copy(sun).normalize()
-
         // Calculate the sun and moon position relative to the base position
         const sun_position_offset = sun.clone().multiplyScalar(200)
-        const moon_position_offset = sun.clone().negate().multiplyScalar(200)
-
         sunlight.position.copy(light_base_position).add(sun_position_offset)
         sunlight.target.position.copy(light_target_position)
-
-        moonlight.position.copy(light_base_position).add(moon_position_offset)
-        moonlight.target.position.copy(light_target_position)
 
         const normalized_phi = phi / Math.PI
         const intensity =
@@ -216,43 +161,6 @@ export default function () {
 
         sunlight.intensity = Math.max(0, intensity)
         ambiant_light.intensity = Math.max(0.5, intensity)
-        moonlight.intensity = is_night ? 0.5 : 0 // Adjust intensity based on night/day
-
-        if (!is_night) {
-          if (moonlight.parent) {
-            scene.remove(moonlight)
-            scene.remove(moonlight.target)
-            scene.remove(moonlight_helper)
-            scene.remove(mooncamera_helper)
-          }
-          if (!sunlight.parent) {
-            scene.add(sunlight)
-            scene.add(sunlight.target)
-            scene.add(sunlight_helper)
-            scene.add(suncamera_helper)
-          }
-        } else {
-          if (!moonlight.parent) {
-            scene.add(moonlight)
-            scene.add(moonlight.target)
-            scene.add(moonlight_helper)
-            scene.add(mooncamera_helper)
-          }
-          if (sunlight.parent) {
-            scene.remove(sunlight)
-            scene.remove(sunlight.target)
-            scene.remove(sunlight_helper)
-            scene.remove(suncamera_helper)
-          }
-        }
-
-        // Update environment map
-        if (render_target) render_target.dispose()
-
-        const scene_env = new Scene()
-        scene_env.add(sky)
-        render_target = pmrem_generator.fromScene(scene_env)
-        scene.environment = render_target.texture
       }
 
       update_cycle()
