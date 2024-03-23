@@ -3,20 +3,13 @@ import {
   BoxGeometry,
   Color,
   CubeTextureLoader,
+  Matrix4,
   Mesh,
-  SRGBColorSpace,
   ShaderMaterial,
-  Spherical,
   Vector3,
 } from 'three'
 import { smoothstep } from 'three/src/math/MathUtils'
 
-import day_nx from '../../assets/skybox/day_nx.jpg'
-import day_ny from '../../assets/skybox/day_ny.jpg'
-import day_nz from '../../assets/skybox/day_nz.jpg'
-import day_px from '../../assets/skybox/day_px.jpg'
-import day_py from '../../assets/skybox/day_py.jpg'
-import day_pz from '../../assets/skybox/day_pz.jpg'
 import night_nx from '../../assets/skybox/night_nx.png'
 import night_ny from '../../assets/skybox/night_ny.png'
 import night_nz from '../../assets/skybox/night_nz.png'
@@ -46,6 +39,7 @@ export default function () {
           uSunGlowSize: { value: 0.001 },
           uSunColor: { value: new Color() },
           uNightTexture: { value: nightTexture },
+          uNightRotation: { value: new Matrix4() },
         },
         vertexShader: `
         varying vec3 vRayDirection;
@@ -62,6 +56,7 @@ export default function () {
         uniform float uSunSize;
         uniform vec3 uSunColor;
         uniform float uSunGlowSize;
+        uniform mat4 uNightRotation;
         uniform samplerCube uNightTexture;
 
         varying vec3 vRayDirection;
@@ -72,7 +67,8 @@ export default function () {
           const vec3 baseSkyColor = vec3(0.2,0.4,0.8);
           float skyIllumination = smoothstep(-0.2, 0.2, sunDirection.y);
           vec3 skyColor = baseSkyColor * skyIllumination;
-          vec3 nightSkyColor = textureCube(uNightTexture, rayDirection).rgb;
+          vec3 nightRayDirection = (uNightRotation * vec4(rayDirection, 0)).xyz;
+          vec3 nightSkyColor = textureCube(uNightTexture, nightRayDirection).rgb;
           skyColor = mix(nightSkyColor, skyColor, skyIllumination);
 
           float horizonGlow = 1.0 - smoothstep(0.0, 0.2, rayDirection.y);
@@ -121,6 +117,7 @@ export default function () {
         { color: new Color('#CC4D4D'), threshold: -0.2 },
         { color: new Color('#173480'), threshold: -0.3 },
       ]
+      const nightRotationAxis = new Vector3(0.2, 0.4, 0.3).normalize()
 
       const updateSunDirection = daytimeCycleValue => {
         const sunDirection = new Vector3().setFromSphericalCoords(
@@ -153,6 +150,11 @@ export default function () {
 
         sunColor.lerp(sunColor, smoothstep(-0.3, 0.0, sunDirection.y))
         material.uniforms.uSunColor.value = sunColor
+
+        material.uniforms.uNightRotation.value = new Matrix4().makeRotationAxis(
+          nightRotationAxis,
+          Math.PI * daytimeCycleValue,
+        )
       }
 
       events.on('SKY_CYCLE_CHANGED', ({ value }) => updateSunDirection(value))
