@@ -23,6 +23,8 @@ import night_pz from '../../assets/skybox/night_pz.png'
 
 /** @type {Type.Module} */
 export default function () {
+  let daytime = 0
+
   return {
     name: 'game_sky',
     observe({ scene, events, signal, dispatch }) {
@@ -55,7 +57,7 @@ export default function () {
         },
         vertexShader: `
         varying vec3 vRayDirection;
-  
+
         void main() {
           gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
           gl_Position.z = gl_Position.w; // set z to camera.far
@@ -72,7 +74,7 @@ export default function () {
         uniform samplerCube uNightTexture;
 
         varying vec3 vRayDirection;
-              
+
         vec3 getSky(const vec3 rayDirection, const vec3 sunDirection) {
           float horizon = (1.0 - smoothstep(0.0, 0.75, rayDirection.y));
 
@@ -104,7 +106,7 @@ export default function () {
         void main() {
           vec3 rayDirection = normalize(vRayDirection);
           vec3 sunDirection = uSunDirection;
-          
+
           vec3 color = getSky(rayDirection, sunDirection) + getSun(rayDirection, sunDirection);
           gl_FragColor = vec4(color, 1);
         }`,

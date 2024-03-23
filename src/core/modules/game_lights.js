@@ -38,6 +38,8 @@ export default function () {
     fog: true,
   })
 
+  let daytimePaused = false
+
   return {
     name: 'game_nature',
     tick() {
