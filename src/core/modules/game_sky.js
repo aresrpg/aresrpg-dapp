@@ -22,7 +22,7 @@ export default function () {
   return {
     name: 'game_sky',
     observe({ scene, events, get_state }) {
-      const nightTexture = new CubeTextureLoader().load([
+      const night_texture = new CubeTextureLoader().load([
         night_px,
         night_nx,
         night_py,
@@ -38,7 +38,7 @@ export default function () {
           uSunSize: { value: 0.0005 },
           uSunGlowSize: { value: 0.001 },
           uSunColor: { value: new Color() },
-          uNightTexture: { value: nightTexture },
+          uNightTexture: { value: night_texture },
           uNightRotation: { value: new Matrix4() },
         },
         vertexShader: `
@@ -100,9 +100,9 @@ export default function () {
         depthWrite: false,
       })
 
-      const skyboxMesh = new Mesh(new BoxGeometry(1, 1, 1), material)
-      skyboxMesh.scale.setScalar(450000)
-      scene.add(skyboxMesh)
+      const skybox_mesh = new Mesh(new BoxGeometry(1, 1, 1), material)
+      skybox_mesh.scale.setScalar(450000)
+      scene.add(skybox_mesh)
 
       const updateSunSize = (/** @type {number} */ value) => {
         material.uniforms.uSunSize.value = value
@@ -111,82 +111,82 @@ export default function () {
       events.on('SKY_SUNSIZE_CHANGED', updateSunSize)
       updateSunSize(get_state().settings.sky.sunSize)
 
-      const sunColors = [
+      const sun_colors = [
         { color: new Color('#FFFAFC'), threshold: 0.2 },
         { color: new Color('#FF991A'), threshold: 0.0 },
         { color: new Color('#173480'), threshold: -0.3 },
       ]
-      const nightRotationAxis = new Vector3(0.2, 0.4, 0.3).normalize()
-      const moonColor = new Color(0x777777)
+      const night_rotation_axis = new Vector3(0.2, 0.4, 0.3).normalize()
 
-      const ambientColorDay = new Color(0xffffff)
-      const ambientColorNight = new Color(0xccccff)
+      const moon_color = new Color(0x777777)
+      const ambient_color_day = new Color(0xffffff)
+      const ambient_color_night = new Color(0xccccff)
 
-      const updateSunDirection = daytimeCycleValue => {
-        const sunDirection = new Vector3().setFromSphericalCoords(
+      const updateSunDirection = daytime_cycle_value => {
+        const sun_direction = new Vector3().setFromSphericalCoords(
           1,
-          0.00001 + 1.99999 * Math.PI * daytimeCycleValue,
+          0.00001 + 1.99999 * Math.PI * daytime_cycle_value,
           0.1,
         )
-        material.uniforms.uSunDirection.value = sunDirection
+        material.uniforms.uSunDirection.value = sun_direction
 
-        let sunColor = sunColors[sunColors.length - 1].color
-        for (let iC = 1; iC < sunColors.length; iC++) {
-          const currColor = sunColors[iC]
-          const prevColor = sunColors[iC - 1]
+        let sun_color = sun_colors[sun_colors.length - 1].color
+        for (let i = 1; i < sun_colors.length; i++) {
+          const curr_color = sun_colors[i]
+          const prev_color = sun_colors[i - 1]
 
-          if (sunDirection.y >= currColor.threshold) {
-            sunColor = new Color().lerpColors(
-              currColor.color,
-              prevColor.color,
+          if (sun_direction.y >= curr_color.threshold) {
+            sun_color = new Color().lerpColors(
+              curr_color.color,
+              prev_color.color,
               smoothstep(
-                sunDirection.y,
-                currColor.threshold,
-                prevColor.threshold,
+                sun_direction.y,
+                curr_color.threshold,
+                prev_color.threshold,
               ),
             )
             break
           }
         }
 
-        events.emit('SKY_FOGCOLOR_CHANGED', sunColor.clone())
+        events.emit('SKY_FOGCOLOR_CHANGED', sun_color.clone())
 
-        const lightDirection =
-          sunDirection.y >= 0
-            ? sunDirection.clone()
-            : sunDirection.clone().multiplyScalar(-1)
-        events.emit('SKY_LIGHT_MOVED', lightDirection)
-        const lightIntensity =
+        const light_direction =
+          sun_direction.y >= 0
+            ? sun_direction.clone()
+            : sun_direction.clone().multiplyScalar(-1)
+        events.emit('SKY_LIGHT_MOVED', light_direction)
+        const light_intensity =
           1 -
           Math.min(
-            smoothstep(sunDirection.y, -0.3, -0.2),
-            1 - smoothstep(sunDirection.y, 0, 0.05),
+            smoothstep(sun_direction.y, -0.3, -0.2),
+            1 - smoothstep(sun_direction.y, 0, 0.05),
           )
 
-        events.emit('SKY_LIGHT_INTENSITY_CHANGED', lightIntensity)
-        const lightColor = new Color().lerpColors(
-          moonColor,
-          sunColor,
-          smoothstep(sunDirection.y, -0.1, 1.0),
+        events.emit('SKY_LIGHT_INTENSITY_CHANGED', light_intensity)
+        const light_color = new Color().lerpColors(
+          moon_color,
+          sun_color,
+          smoothstep(sun_direction.y, -0.1, 1.0),
         )
-        events.emit('SKY_LIGHT_COLOR_CHANGED', lightColor)
+        events.emit('SKY_LIGHT_COLOR_CHANGED', light_color)
 
-        const isDay = smoothstep(sunDirection.y, -0.3, 0.0)
+        const is_day = smoothstep(sun_direction.y, -0.3, 0.0)
         events.emit('SKY_AMBIENTLIGHT_CHANGED', {
           color: new Color().lerpColors(
-            ambientColorNight,
-            ambientColorDay,
-            isDay,
+            ambient_color_night,
+            ambient_color_day,
+            is_day,
           ),
-          intensity: 0.5 + isDay,
+          intensity: 0.5 + is_day,
         })
 
-        sunColor.lerp(sunColor, isDay)
-        material.uniforms.uSunColor.value = sunColor
+        sun_color.lerp(sun_color, is_day)
+        material.uniforms.uSunColor.value = sun_color
 
         material.uniforms.uNightRotation.value = new Matrix4().makeRotationAxis(
-          nightRotationAxis,
-          Math.PI * daytimeCycleValue,
+          night_rotation_axis,
+          Math.PI * daytime_cycle_value,
         )
       }
 

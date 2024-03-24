@@ -39,7 +39,7 @@ export default function () {
     fog: true,
   })
 
-  let daytimePaused = false
+  let daytime_paused = false
 
   return {
     name: 'game_nature',
@@ -50,28 +50,28 @@ export default function () {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
 
-      const directionalLight = new DirectionalLight(0xffffff, 1)
-      const dirlight_helper = new DirectionalLightHelper(directionalLight, 10)
-      const dircamera_helper = new CameraHelper(directionalLight.shadow.camera)
+      const directional_light = new DirectionalLight(0xffffff, 1)
+      const dirlight_helper = new DirectionalLightHelper(directional_light, 10)
+      const dircamera_helper = new CameraHelper(directional_light.shadow.camera)
 
-      directionalLight.castShadow = true
-      directionalLight.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
-      directionalLight.shadow.mapSize.height = 4096
+      directional_light.castShadow = true
+      directional_light.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
+      directional_light.shadow.mapSize.height = 4096
 
-      directionalLight.shadow.camera.near = CAMERA_SHADOW_NEAR
-      directionalLight.shadow.camera.far = CAMERA_SHADOW_FAR
-      directionalLight.shadow.camera.left = -CAMERA_SHADOW_SIZE
-      directionalLight.shadow.camera.right = CAMERA_SHADOW_SIZE
-      directionalLight.shadow.camera.top = CAMERA_SHADOW_SIZE
-      directionalLight.shadow.camera.bottom = -CAMERA_SHADOW_SIZE
-      directionalLight.shadow.bias = -0.000005 // This value may need tweaking
+      directional_light.shadow.camera.near = CAMERA_SHADOW_NEAR
+      directional_light.shadow.camera.far = CAMERA_SHADOW_FAR
+      directional_light.shadow.camera.left = -CAMERA_SHADOW_SIZE
+      directional_light.shadow.camera.right = CAMERA_SHADOW_SIZE
+      directional_light.shadow.camera.top = CAMERA_SHADOW_SIZE
+      directional_light.shadow.camera.bottom = -CAMERA_SHADOW_SIZE
+      directional_light.shadow.bias = -0.000005 // This value may need tweaking
 
-      directionalLight.shadow.camera.updateProjectionMatrix()
+      directional_light.shadow.camera.updateProjectionMatrix()
       dircamera_helper.update()
 
       scene.add(ambient_light)
-      scene.add(directionalLight)
-      scene.add(directionalLight.target)
+      scene.add(directional_light)
+      scene.add(directional_light.target)
       scene.add(dirlight_helper)
       scene.add(dircamera_helper)
 
@@ -84,8 +84,8 @@ export default function () {
       let day_time = DAY_DURATION * get_state().settings.sky.value // Track the time of day as a value between 0 and DAY_DURATION
       const day_time_step = 100 // How much ms between updates
 
-      daytimePaused = get_state().settings.sky.paused
-      events.on('SKY_CYCLE_PAUSED', paused => (daytimePaused = paused))
+      daytime_paused = get_state().settings.sky.paused
+      events.on('SKY_CYCLE_PAUSED', paused => (daytime_paused = paused))
       events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
         if (fromUi) {
           day_time = value * DAY_DURATION
@@ -98,16 +98,16 @@ export default function () {
 
       events.on(
         'SKY_LIGHT_COLOR_CHANGED',
-        color => (directionalLight.color = color),
+        color => (directional_light.color = color),
       )
-      let sunRelativePosition = new Vector3(0, 1, 0)
+      let sun_relative_position = new Vector3(0, 1, 0)
       events.on('SKY_LIGHT_MOVED', position => {
-        sunRelativePosition = position.clone()
+        sun_relative_position = position.clone()
         recomputeSunPosition()
       })
 
       events.on('SKY_LIGHT_INTENSITY_CHANGED', intensity => {
-        directionalLight.intensity = intensity
+        directional_light.intensity = intensity
       })
 
       events.on('SKY_AMBIENTLIGHT_CHANGED', ({ color, intensity }) => {
@@ -126,13 +126,13 @@ export default function () {
         const light_target_position = light_base_position.clone().setY(0)
 
         // Calculate the sun and moon position relative to the base position
-        const sun_position_offset = sunRelativePosition
+        const sun_position_offset = sun_relative_position
           .clone()
           .multiplyScalar(200)
-        directionalLight.position
+        directional_light.position
           .copy(light_base_position)
           .add(sun_position_offset)
-        directionalLight.target.position.copy(light_target_position)
+        directional_light.target.position.copy(light_target_position)
       }
       recomputeSunPosition()
 
@@ -155,7 +155,7 @@ export default function () {
       }
 
       function update_cycle() {
-        if (!daytimePaused) {
+        if (!daytime_paused) {
           // Update day_time and calculate day_ratio
           day_time = (day_time + day_time_step) % DAY_DURATION
           triggerSkyCycleChange()
