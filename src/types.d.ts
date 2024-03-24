@@ -73,6 +73,7 @@ declare namespace Type {
       SKY_LIGHT_COLOR_CHANGED: Color
       SKY_LIGHT_MOVED: Vector3
       SKY_LIGHT_INTENSITY_CHANGED: number
+      SKY_AMBIENTLIGHT_CHANGED: { color: Color; intensity: number }
     } & Packets
   >
 

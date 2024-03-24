@@ -119,6 +119,9 @@ export default function () {
       const nightRotationAxis = new Vector3(0.2, 0.4, 0.3).normalize()
       const moonColor = new Color(0x777777)
 
+      const ambientColorDay = new Color(0xffffff)
+      const ambientColorNight = new Color(0xccccff)
+
       const updateSunDirection = daytimeCycleValue => {
         const sunDirection = new Vector3().setFromSphericalCoords(
           1,
@@ -168,7 +171,17 @@ export default function () {
         )
         events.emit('SKY_LIGHT_COLOR_CHANGED', lightColor)
 
-        sunColor.lerp(sunColor, smoothstep(-0.3, 0.0, sunDirection.y))
+        const isDay = smoothstep(sunDirection.y, -0.3, 0.0)
+        events.emit('SKY_AMBIENTLIGHT_CHANGED', {
+          color: new Color().lerpColors(
+            ambientColorNight,
+            ambientColorDay,
+            isDay,
+          ),
+          intensity: 0.5 + isDay,
+        })
+
+        sunColor.lerp(sunColor, isDay)
         material.uniforms.uSunColor.value = sunColor
 
         material.uniforms.uNightRotation.value = new Matrix4().makeRotationAxis(

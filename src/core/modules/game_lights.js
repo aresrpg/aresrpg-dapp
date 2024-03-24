@@ -110,6 +110,11 @@ export default function () {
         directionalLight.intensity = intensity
       })
 
+      events.on('SKY_AMBIENTLIGHT_CHANGED', ({ color, intensity }) => {
+        ambiant_light.color = color
+        ambiant_light.intensity = intensity
+      })
+
       function recomputeSunPosition() {
         const chunk_position = get_player_chunk_position()
 
