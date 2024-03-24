@@ -20,8 +20,10 @@ const selected_wallet = ref(null);
 const selected_account = ref(null);
 const sidebar_reduced = ref(false);
 const resync = ref(0);
+const game_visible = ref(false);
 
 const selected_character = ref(null);
+const known_storages = ref([]);
 const user = reactive({
   character_lock_receipts: null,
   locked_characters: null,
@@ -45,6 +47,8 @@ provide('loading', loading);
 provide('sidebar_reduced', sidebar_reduced);
 provide('user', user);
 provide('selected_character', selected_character);
+provide('known_storages', known_storages);
+provide('game_visible', game_visible);
 
 const client = use_client(selected_wallet, selected_account);
 
@@ -69,11 +73,21 @@ async function update_sui_balance() {
   }
 }
 
+async function update_known_storages() {
+  try {
+    known_storages.value = await client.get_available_storages();
+  } catch (error) {
+    console.error('Error while getting the known storages', error);
+  }
+}
+
 async function update_user_data() {
   try {
     user.unlocked_characters = await client.get_unlocked_user_characters();
     user.character_lock_receipts = await client.get_receipts();
-    user.locked_characters = await client.get_locked_characters();
+    user.locked_characters = await client.get_locked_characters(
+      user.character_lock_receipts,
+    );
 
     if (
       selected_character.value &&
@@ -103,7 +117,7 @@ watch(
     // we want a non blocking subscription call
     // it's currently unstable on Sui
     client
-      .on_update()
+      .subscribe()
       .then(emitter => {
         emitter.on('update', async event => {
           await update_sui_balance();
@@ -114,7 +128,11 @@ watch(
         console.error('Unable to subscribe to the Sui node', error);
       });
 
-    await Promise.all([update_sui_balance(), update_user_data()]);
+    await Promise.all([
+      update_sui_balance(),
+      update_user_data(),
+      update_known_storages(),
+    ]);
     loading.value--;
   },
   { immediate: true },

@@ -6,7 +6,7 @@ import { Object3D, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
 
 import { GRAVITY } from '../game/game.js'
-import { abortable } from '../core-utils/iterator.js'
+import { abortable } from '../utils/iterator.js'
 import { compute_animation_state } from '../animations/animation.js'
 
 import { play_step_sound } from './game_audio.js'

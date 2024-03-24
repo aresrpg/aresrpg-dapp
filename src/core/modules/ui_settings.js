@@ -153,11 +153,11 @@ export default function () {
         .name('Free Camera')
         .onFinishChange(handle_change('action/free_camera'))
 
-      gui.show()
       game_folder.open()
       terrain_folder.open()
       // world_gen_folder.open()
       camera_folder.open()
+      gui.hide()
     },
   }
 }

@@ -1,6 +1,5 @@
 <i18n>
   en:
-    edit: Edit
     lock: Lock
     unlock: Unlock
     delete: Delete
@@ -12,7 +11,6 @@
     lock_desc: You're about to lock this character to access it in game, you can unlock it at anytime when you're done playing
     unlock_desc: You're about to unlock this character and retrieve it in your wallet
   fr:
-    edit: Modifier
     lock: Verrouiller
     unlock: Déverrouiller
     delete: Supprimer
@@ -26,16 +24,16 @@
 </i18n>
 
 <template lang="pug">
-.character(:class="{ locked: props.locked }")
-  span.name {{ props.character.name }}
+.character(:class="{ locked: props.locked, [props.character.type]: true, male: props.character.male }")
+  span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
   .field
-    .title Xp
-    .value.mastery {{ props.character.experience }}
+    .title classe:
+    .value {{ props.character.type }}
+    i.bx(:class="genrer_icon")
   .field
-    .title id
+    .title id:
     a.value.id(:href="character_explorer_link" target="_blank") {{ props.character.id.slice(0, 24) }}...
   .actions
-    vs-button(v-if="!props.locked" type="transparent" size="small" disabled color="#FFCA28") {{ t('edit') }}
     vs-button(
       v-if="!props.locked"
       type="transparent"
@@ -92,6 +90,7 @@ import { computed, ref, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isValidSuiAddress } from '@mysten/sui.js/utils';
 
+import { experience_to_level } from '../../core/utils/game/experience.js';
 import { use_client } from '../../core/sui/client';
 
 const { t } = useI18n();
@@ -109,6 +108,10 @@ const network = computed(() => {
 
   return chain;
 });
+
+const genrer_icon = computed(() =>
+  props.character.male ? 'bx-male-sign' : 'bx-female-sign',
+);
 
 const character_explorer_link = computed(
   () => `https://suiscan.xyz/${network.value}/object/${props.character.id}`,
@@ -134,10 +137,10 @@ const send_loading = ref(false);
 const unlock_dialog = ref(false);
 const unlock_loading = ref(false);
 
-const receipt_id = computed(() => {
+const receipt = computed(() => {
   return user.character_lock_receipts?.find(
     ({ character_id }) => character_id === props.character.id,
-  )?.id;
+  );
 });
 
 async function delete_character() {
@@ -169,11 +172,9 @@ async function unlock_character() {
   try {
     unlock_loading.value = true;
 
-    console.log('unlocking', props.character.id, receipt_id.value);
+    if (!receipt.value) throw new Error('No receipt id found');
 
-    if (!receipt_id.value) throw new Error('No receipt id found');
-
-    await client.unlock_character(receipt_id.value);
+    await client.unlock_character(receipt.value);
   } catch (error) {
     console.error(error);
   } finally {
@@ -207,7 +208,33 @@ async function send_character() {
   flex-flow column nowrap
   padding .6em 1em 0
   justify-content center
-  overflow hidden
+  position: relative
+  overflow: hidden
+
+  &::before
+    content: ''
+    position: absolute
+    top: 0
+    right: 0
+    bottom: 0
+    left: 0
+    background: rgba(0, 0, 0, 0.8) // Adjust the 0.5 value to increase or decrease the darkening effect
+    z-index: 1
+
+  >*
+    position: relative
+    z-index: 20
+
+  &.IOP
+    background: url('../../assets/class/iop_f.jpg') center / cover
+    &.male
+      background: url('../../assets/class/iop.jpg') center / cover
+  &.SRAM
+    background: url('../../assets/class/sram_f.jpg') center / cover
+    &.male
+      background: url('../../assets/class/sram.jpg') center / cover
+
+
   &.locked
     border 1px solid #FFCA28
 
@@ -220,6 +247,19 @@ async function send_character() {
     text-transform capitalize
     font-size 1.2em
     color #ddd
+    padding-bottom .5em
+
+    b.xp
+      position absolute
+      right -1em
+      font-weight 900
+      font-size .65em
+      // text-transform uppercase
+      opacity .8
+      color #FFCA28
+      background rgba(0, 0, 0, .3)
+      border-radius 5px
+      padding .25em .5em
 
   .field
     display flex
@@ -233,7 +273,15 @@ async function send_character() {
     .value
       font-size .8em
       margin-left .5em
+      text-transform capitalize
 
+    i.bx
+      font-size .875em
+      margin-left .5em
+      &.bx-male-sign
+        color #26C6DA
+      &.bx-female-sign
+        color #EC407A
     a
       text-decoration underline
       opacity .7

@@ -17,12 +17,6 @@
     unlocked_characters: personnages déverrouillés
     unlocked_characters_desc: Ceux-ci sont uniquement dans votre portefeuille, vous pouvez librement les transférer ou les vendre
     new: Nouveau personnage
-    character_name: Nom du personnage
-    create_new: Créer un nouveau personnage
-    create_new_desc: Vous êtes sur le point de créer un nouveau personnage, cela créera un nouvel objet Sui qui sera envoyé à votre portefeuille !
-    character_name_valid: Le nom du personnage doit être compris entre 3 et 20 caractères
-    create_button: Créer
-    cancel_button: Annuler
   en:
     welcome: Welcome Adventurer!
     explanation: |
@@ -41,53 +35,24 @@
     unlocked_characters: Unlocked characters
     unlocked_characters_desc: These one are only in your wallet, you can freely transfer or sell them
     new: New character
-    character_name: character name
-    create_new: Create a new character
-    create_new_desc: You're about to create a new character, this will create a new Sui object which will be sent to your wallet !
-    character_name_valid: The character name must be between 3 and 20 chars
-    create_button: Create
-    cancel_button: Cancel
 </i18n>
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { ref, inject, computed, watch, onUnmounted } from 'vue';
+import { ref, inject, computed, provide } from 'vue';
 
 import sectionHeader from '../components/misc/section-header.vue';
 import usercharacter from '../components/cards/user-character.vue';
 import sectionContainer from '../components/misc/section-container.vue';
-import { use_client } from '../core/sui/client';
+import characterCreateVue from '../components/game-ui/character-create.vue';
 
 const { t } = useI18n();
 
-const new_character_dialog = ref(false);
-const new_character_name = ref('');
-const character_creation_loading = ref(false);
-
-const client = use_client();
-
 const loading = inject('loading');
-const selected_account = inject('selected_account');
 const user = inject('user');
+const new_character_dialog = ref(false);
 
-async function create_character() {
-  character_creation_loading.value = true;
-  try {
-    await client.create_character(new_character_name.value);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    character_creation_loading.value = false;
-    new_character_dialog.value = false;
-    new_character_name.value = '';
-  }
-}
-
-const is_character_name_valid = computed(
-  () =>
-    new_character_name.value.length > 3 &&
-    new_character_name.value.length <= 20,
-);
+provide('new_character_dialog', new_character_dialog);
 </script>
 
 <template lang="pug">
@@ -112,29 +77,7 @@ sectionContainer
       .new(@click="new_character_dialog = true") {{ t('new') }}
 
   // Create a new character
-  vs-dialog(v-model="new_character_dialog" :loading="character_creation_loading")
-    template(#header) {{ t('create_new') }}
-    .dialog-content
-      span {{ t('create_new_desc') }}
-      vs-input(
-        v-model="new_character_name"
-        :label="t('character_name')"
-        label-float
-        color="#448AFF"
-        icon-after
-      )
-        template(#icon)
-          i.bx.bx-user
-      .note {{ t('character_name_valid') }}
-    template(#footer)
-      .dialog-footer
-        vs-button(type="transparent" color="#E74C3C" @click="new_character_dialog = false") {{ t('cancel_button') }}
-        vs-button(
-          type="transparent"
-          color="#2ECC71"
-          @click="create_character"
-          :disabled="!is_character_name_valid"
-        ) {{ t('create_button') }}
+  characterCreateVue(@cancel="new_character_dialog = false")
 </template>
 
 <style lang="stylus" scoped>
@@ -198,3 +141,4 @@ b.sui
     &:hover
       box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
 </style>
+../components/game-ui/character-canvas-display.vue

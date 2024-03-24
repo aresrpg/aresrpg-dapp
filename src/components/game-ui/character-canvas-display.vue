@@ -12,7 +12,7 @@ import {
 import { nanoid } from 'nanoid';
 
 import create_pools from '../../core/game/pool.js';
-import dispose from '../../core/three-utils/dispose.js';
+import dispose from '../../core/utils/three/dispose.js';
 
 const scene_div = ref(null);
 const canvas = ref(null);
@@ -173,3 +173,4 @@ onUnmounted(() => {
     left 0
     z-index 0
 </style>
+../../core/utils/three/dispose.js

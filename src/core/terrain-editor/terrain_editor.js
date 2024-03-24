@@ -10,7 +10,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { VoxelMap } from '@aresrpg/aresrpg-world'
 
-import dispose from '../three-utils/dispose'
+import dispose from '../utils/three/dispose'
 
 function on_resize({ renderer, camera }) {
   return () => {
