@@ -81,7 +81,7 @@ export default function () {
 
       scene.add(water)
 
-      let day_time = DAY_DURATION * 0.7 // Track the time of day as a value between 0 and DAY_DURATION
+      let day_time = DAY_DURATION * get_state().settings.sky.value // Track the time of day as a value between 0 and DAY_DURATION
       const day_time_step = 100 // How much ms between updates
 
       daytimePaused = get_state().settings.sky.paused

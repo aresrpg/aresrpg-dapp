@@ -96,8 +96,8 @@ export const INITIAL_STATE = {
     show_entities_collider: false,
 
     sky: {
-      paused: true,
-      value: 0.76,
+      paused: false,
+      value: 0.78,
       sunSize: 0.0004,
     },
 
