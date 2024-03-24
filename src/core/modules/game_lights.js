@@ -18,7 +18,7 @@ import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import water_normal from '../../assets/waternormals.jpg'
 import { abortable } from '../core-utils/iterator.js'
 
-export const DAY_DURATION = 600000 // 10 minutes in milliseconds
+const DAY_DURATION = 600000 // 10 minutes in milliseconds
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
 const CAMERA_SHADOW_SIZE = 100

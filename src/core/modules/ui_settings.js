@@ -1,12 +1,6 @@
-import { on } from 'events'
-
 import { GUI } from 'dat.gui'
-import { aiter } from 'iterator-helper'
-import { Vector3 } from 'three'
 
 import { INITIAL_STATE } from '../game/game.js'
-
-import { DAY_DURATION } from './game_lights.js'
 
 /** @type {Type.Module} */
 export default function () {
