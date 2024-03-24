@@ -48,7 +48,7 @@ export default function () {
     },
     observe({ scene, signal, get_state, events }) {
       // lights
-      const ambiant_light = new AmbientLight(0xffffff, 1.5)
+      const ambient_light = new AmbientLight(0xffffff, 1.5)
 
       const directionalLight = new DirectionalLight(0xffffff, 1)
       const dirlight_helper = new DirectionalLightHelper(directionalLight, 10)
@@ -69,7 +69,7 @@ export default function () {
       directionalLight.shadow.camera.updateProjectionMatrix()
       dircamera_helper.update()
 
-      scene.add(ambiant_light)
+      scene.add(ambient_light)
       scene.add(directionalLight)
       scene.add(directionalLight.target)
       scene.add(dirlight_helper)
@@ -111,8 +111,8 @@ export default function () {
       })
 
       events.on('SKY_AMBIENTLIGHT_CHANGED', ({ color, intensity }) => {
-        ambiant_light.color = color
-        ambiant_light.intensity = intensity
+        ambient_light.color = color
+        ambient_light.intensity = intensity
       })
 
       function recomputeSunPosition() {
