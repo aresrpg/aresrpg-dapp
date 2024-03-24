@@ -16,7 +16,7 @@ import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 
 import water_normal from '../../assets/waternormals.jpg'
-import { abortable } from '../core-utils/iterator.js'
+import { abortable } from '../utils/iterator.js'
 
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1

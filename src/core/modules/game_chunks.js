@@ -5,7 +5,7 @@ import { to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 import { FrontSide, Mesh, MeshPhongMaterial, PlaneGeometry } from 'three'
 
-import { abortable } from '../core-utils/iterator.js'
+import { abortable } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -80,7 +80,8 @@ export default function () {
             (last_chunk?.x !== current_chunk.x ||
               last_chunk?.z !== current_chunk.z)
           ) {
-            // await rebuild_chunks()
+            // here you know that the player has moved to a new chunk
+            // a chunk is a 32x32 area
           }
 
           return current_chunk

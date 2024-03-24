@@ -5,7 +5,7 @@ import { CHUNK_SIZE } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 
 import { compute_animation_state } from '../animations/animation.js'
-import { abortable } from '../core-utils/iterator.js'
+import { abortable } from '../utils/iterator.js'
 
 const MOVE_UPDATE_INTERVAL = 0.1
 const MAX_TITLE_VIEW_DISTANCE = CHUNK_SIZE * 1.3

@@ -3,7 +3,7 @@ import { on } from 'events'
 import Stats from 'stats.js'
 import { aiter } from 'iterator-helper'
 
-import { abortable } from '../core-utils/iterator.js'
+import { abortable } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -82,7 +82,6 @@ export default function () {
     },
     observe({ events, signal, get_state, on_game_show, on_game_hide }) {
       const { show_fps } = get_state().settings
-      show_stats(show_fps)
 
       aiter(abortable(on(events, 'STATE_UPDATED', { signal })))
         .map(
@@ -99,7 +98,7 @@ export default function () {
         })
 
       on_game_show(() => {
-        show_stats(true)
+        show_stats(show_fps)
       })
 
       on_game_hide(() => {

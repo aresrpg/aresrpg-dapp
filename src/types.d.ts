@@ -42,6 +42,15 @@ declare namespace Type {
     mixer?: import('three').AnimationMixer
   }
 
+  type Character = {
+    id: string
+    name: string
+    position: Position
+    level: number
+    classe: string
+    female: boolean
+  }
+
   // Distributed actions which can be dispatched and then reduced
   type Actions = {
     'action/show_fps': boolean
@@ -56,6 +65,7 @@ declare namespace Type {
     'action/far_view_distance': number
     'action/free_camera': boolean
     'action/sky_lights_change': SkyLights
+    'action/set_characters': Character[]
   } & Packets
 
   type Events = import('@aresrpg/aresrpg-protocol/src/types').TypedEmitter<

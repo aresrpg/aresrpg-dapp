@@ -12,14 +12,14 @@ import { LRUCache } from 'lru-cache'
 import { inject } from 'vue'
 
 import {
+  VITE_ARESRPG_ADMIN_CAP_MAINNET,
+  VITE_ARESRPG_ADMIN_CAP_TESTNET,
   VITE_ARESRPG_NAME_REGISTRY_MAINNET,
   VITE_ARESRPG_NAME_REGISTRY_TESTNET,
   VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
   VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
   VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
   VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
-  VITE_ARESRPG_SERVER_STORAGE_MAINNET,
-  VITE_ARESRPG_SERVER_STORAGE_TESTNET,
   VITE_USE_ANKR,
 } from '../../env.js'
 
@@ -28,13 +28,13 @@ const PACKAGES = {
     original: VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
     upgraded: VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
     name_registry: VITE_ARESRPG_NAME_REGISTRY_TESTNET,
-    server_storage: VITE_ARESRPG_SERVER_STORAGE_TESTNET,
+    admin_cap: VITE_ARESRPG_ADMIN_CAP_TESTNET,
   },
   'sui:mainnet': {
     original: VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
     upgraded: VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
     name_registry: VITE_ARESRPG_NAME_REGISTRY_MAINNET,
-    server_storage: VITE_ARESRPG_SERVER_STORAGE_MAINNET,
+    admin_cap: VITE_ARESRPG_ADMIN_CAP_MAINNET,
   },
 }
 
@@ -75,7 +75,7 @@ let last_used_network = 'sui:mainnet'
 let package_original = VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL
 let package_upgraded = VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED
 let name_registry = VITE_ARESRPG_NAME_REGISTRY_MAINNET
-let server_storage = VITE_ARESRPG_SERVER_STORAGE_MAINNET
+let admin_cap = VITE_ARESRPG_ADMIN_CAP_MAINNET
 
 export const set_network = network => {
   if (network === 'sui:mainnet' || network === 'sui:testnet') {
@@ -89,18 +89,19 @@ export const set_network = network => {
       original,
       upgraded,
       name_registry: name_reg,
-      server_storage: srv_storage,
+      admin_cap: adm_cap,
     } = PACKAGES[network]
     package_original = original
     package_upgraded = upgraded
     name_registry = name_reg
-    server_storage = srv_storage
+    admin_cap = adm_cap
   }
 }
 
 export function use_client(
   wallet = inject('selected_wallet'),
   account = inject('selected_account'),
+  known_storages = inject('known_storages'),
 ) {
   const execute = transaction_block =>
     wallet.value.signAndExecuteTransactionBlock({
@@ -112,6 +113,16 @@ export function use_client(
   const active_subscription = {
     unsubscribe: null,
     emitter: null,
+  }
+
+  function random_storage() {
+    const storage =
+      known_storages.value[
+        Math.floor(Math.random() * known_storages.value.length)
+      ]
+
+    if (!storage) throw new Error('No available storage')
+    return storage
   }
 
   const calls = {
@@ -132,18 +143,43 @@ export function use_client(
       await execute(tx)
     },
 
-    // @ts-ignore
-    async create_character(name) {
+    async create_character({ name, type, male = true }) {
       const tx = new TransactionBlock()
 
       const [character] = tx.moveCall({
         target: `${package_upgraded}::character::create_character`,
-        arguments: [tx.pure(name), tx.pure(name_registry)],
+        arguments: [
+          tx.object(name_registry),
+          tx.pure(name),
+          tx.pure(type),
+          tx.pure(male),
+        ],
       })
 
       tx.transferObjects([character], account.value.address)
 
       await execute(tx)
+    },
+
+    async is_character_name_taken(name) {
+      const txb = new TransactionBlock()
+      txb.setSender(account.value.address)
+      txb.moveCall({
+        target: `${package_upgraded}::character::is_name_taken`,
+        arguments: [txb.object(name_registry), txb.pure(name)],
+      })
+
+      txb.setGasBudget(100000000)
+
+      const {
+        effects: {
+          status: { status },
+        },
+      } = await client.dryRunTransactionBlock({
+        transactionBlock: await txb.build({ client }),
+      })
+
+      return status === 'failure'
     },
 
     async delete_character(id) {
@@ -162,17 +198,17 @@ export function use_client(
 
       tx.moveCall({
         target: `${package_upgraded}::server::lock_character`,
-        arguments: [tx.object(server_storage), tx.object(character_id)],
+        arguments: [tx.object(random_storage()), tx.object(character_id)],
       })
 
       await execute(tx)
     },
 
-    async unlock_character(receipt_id) {
+    async unlock_character(receipt) {
       const tx = new TransactionBlock()
       const [character] = tx.moveCall({
         target: `${package_upgraded}::server::unlock_character`,
-        arguments: [tx.object(server_storage), tx.object(receipt_id)],
+        arguments: [tx.object(receipt.storage_id), tx.object(receipt.id)],
       })
       tx.transferObjects([character], tx.pure(account.value.address))
 
@@ -204,17 +240,14 @@ export function use_client(
 
       const receipts = result.data.map(({ data }) => ({
         // @ts-ignore
-        character_id: data.content.fields.character_id,
+        ...data.content.fields,
         // @ts-ignore
         id: data.content.fields.id.id,
       }))
-
       return receipts
     },
 
-    async get_locked_characters() {
-      const receipts = await this.get_receipts()
-
+    async get_locked_characters(receipts) {
       if (!receipts.length) return []
 
       const characters = await client.multiGetObjects({
@@ -259,9 +292,17 @@ export function use_client(
       )
     },
 
+    async get_available_storages() {
+      const result = await client.getObject({
+        id: admin_cap,
+        options: { showContent: true },
+      })
+      return result.data.content.fields.known_storages.fields.contents
+    },
+
     async get_inventory() {},
 
-    async on_update() {
+    async subscribe() {
       const emitter = new EventEmitter()
 
       if (active_subscription.unsubscribe) {

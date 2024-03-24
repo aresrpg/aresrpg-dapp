@@ -3,7 +3,7 @@ import { on } from 'events'
 import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
 
-import { abortable } from '../core-utils/iterator'
+import { abortable } from '../utils/iterator'
 
 const CAMERA_MIN_ZOOM = 4
 const CAMERA_MAX_ZOOM = 500
