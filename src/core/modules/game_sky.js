@@ -159,7 +159,7 @@ export default function () {
             smoothstep(sunDirection.y, -0.3, -0.2),
             1 - smoothstep(sunDirection.y, 0, 0.05),
           )
-        console.log(lightIntensity)
+
         events.emit('SKY_LIGHT_INTENSITY_CHANGED', lightIntensity)
         const lightColor = new Color().lerpColors(
           moonColor,

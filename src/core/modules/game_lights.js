@@ -44,7 +44,7 @@ export default function () {
   return {
     name: 'game_nature',
     tick() {
-      if (water) water.material.uniforms.time.value += 1.0 / 60.0
+      water.material.uniforms.time.value += 1.0 / 60.0
     },
     observe({ scene, signal, get_state, events }) {
       // lights
