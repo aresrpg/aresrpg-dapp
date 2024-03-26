@@ -1,8 +1,4 @@
-import { on } from 'events'
-
 import { GUI } from 'dat.gui'
-import { aiter } from 'iterator-helper'
-import { Vector3 } from 'three'
 
 import { INITIAL_STATE } from '../game/game.js'
 
@@ -38,13 +34,9 @@ export default function () {
 
       const game_folder = gui.addFolder('Game Settings')
       const terrain_folder = gui.addFolder('Terrain Settings')
-      const world_gen_folder = gui.addFolder('World Gen Settings')
       const camera_folder = gui.addFolder('Camera Settings')
 
       const handle_change = name => value => dispatch(name, value)
-      const handle_biome_change = () => {
-        events.emit('CLEAR_CHUNKS')
-      }
 
       game_folder
         .add(settings, 'show_fps')

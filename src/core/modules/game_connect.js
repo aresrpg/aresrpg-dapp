@@ -4,7 +4,7 @@ import toast from '../../toast'
 export default function () {
   return {
     name: 'game_connect',
-    observe({ events, connect_ws, send_packet, dispatch, get_state }) {
+    observe({ events, connect_ws }) {
       events.on('CONNECT_TO_SERVER', () => {
         connect_ws().catch(error => {
           console.error(error)
@@ -16,8 +16,7 @@ export default function () {
       })
 
       events.on('packet/joinGame', () => {
-        const { game_state } = get_state()
-
+        // const { game_state } = get_state()
         // send_packet('packet/joinGameReady', {})
       })
     },

@@ -9,7 +9,6 @@ import {
   PerspectiveCamera,
   Fog,
   SRGBColorSpace,
-  VSMShadowMap,
   DefaultLoadingManager,
   ACESFilmicToneMapping,
   Vector2,
@@ -37,7 +36,6 @@ import player_movement from '../modules/player_movement.js'
 import ui_settings from '../modules/ui_settings.js'
 import player_settings from '../modules/player_settings.js'
 import game_sky from '../modules/game_sky.js'
-import game_connect from '../modules/game_connect.js'
 import player_characters from '../modules/player_characters.js'
 import game_lights from '../modules/game_lights.js'
 import game_audio from '../modules/game_audio.js'
@@ -61,9 +59,9 @@ export const FILTER_PACKET_IN_LOGS = [
   'packet/entityMove',
 ]
 
-LOADING_MANAGER.onStart = (url, itemsLoaded, itemsTotal) => {
+LOADING_MANAGER.onStart = (url, items_loaded, items_total) => {
   window.dispatchEvent(new Event('assets_loading'))
-  logger.ASSET(`Loading asset ${url}`, { itemsLoaded, itemsTotal })
+  logger.ASSET(`Loading asset ${url}`, { items_loaded, items_total })
 }
 
 LOADING_MANAGER.onLoad = () => {
@@ -194,7 +192,7 @@ async function create_context({
     0.1, // Near clipping plane
     1500, // Far clipping plane
   )
-  const Pool = create_pools(scene)
+  const pool = create_pools(scene)
   const orthographic_camera = new OrthographicCamera()
   /** @type {Type.Events} */
   // @ts-ignore
@@ -223,7 +221,7 @@ async function create_context({
   return {
     events,
     actions,
-    Pool,
+    pool,
     composer,
     camera_controls: new CameraControls(camera, renderer.domElement),
     /** @type {import("@aresrpg/aresrpg-protocol/src/types").create_client['send']} */
@@ -263,16 +261,8 @@ export default async function create_game({
     on_game_hide,
   })
 
-  const {
-    events,
-    renderer,
-    get_state,
-    dispatch,
-    composer,
-    scene,
-    camera,
-    controller,
-  } = context
+  const { events, renderer, get_state, dispatch, composer, controller } =
+    context
 
   const modules = MODULES.map(create => create())
 

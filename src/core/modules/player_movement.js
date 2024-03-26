@@ -4,7 +4,6 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import { to_chunk_position } from '@aresrpg/aresrpg-protocol'
 
 import { GRAVITY } from '../game/game.js'
 import { abortable } from '../core-utils/iterator.js'
@@ -45,7 +44,7 @@ export default function () {
 
   return {
     name: 'player_movements',
-    tick({ inputs, player }, { camera, send_packet }, delta) {
+    tick({ inputs, player }, { camera }, delta) {
       if (!player?.position) return
 
       const origin = player.position.clone()
@@ -74,7 +73,7 @@ export default function () {
       // TODO: tp to nether if falling to hell
       if (origin.y <= -30) {
         velocity.setScalar(0)
-        const { x, z } = origin
+        // const { x, z } = origin
         // player.move(new Vector3(origin.x, HEIGHTFIELD(x, z) + 5, origin.z))
         return
       }
@@ -218,8 +217,8 @@ export default function () {
       if (is_moving_horizontally || !on_ground) player.animate(animation_name)
       else player.animate(inputs.dance ? 'DANCE' : 'IDLE')
 
-      const last_chunk = to_chunk_position(origin)
-      const current_chunk = to_chunk_position(dummy.position)
+      // const last_chunk = to_chunk_position(origin)
+      // const current_chunk = to_chunk_position(dummy.position)
 
       // compute_sensors({
       //   player,
@@ -242,7 +241,7 @@ export default function () {
       }
       return state
     },
-    observe({ events, signal, get_state, send_packet, dispatch }) {
+    observe({ events, signal, get_state, dispatch }) {
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
         last_position => {
           const { player } = get_state()

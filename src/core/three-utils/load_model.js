@@ -20,7 +20,7 @@ GLTF_LOADER.setMeshoptDecoder(MeshoptDecoder)
 
 export async function load(
   path,
-  { envMapIntensity = 1, mesh_name = 'Model', scale = 1 } = {},
+  { env_map_intensity = 1, mesh_name = 'Model', scale = 1 } = {},
 ) {
   const { scene, animations } = await GLTF_LOADER.loadAsync(path)
 
@@ -36,7 +36,7 @@ export async function load(
       child.receiveShadow = true
 
       // @ts-ignore
-      Object.assign(child.material, { envMapIntensity })
+      Object.assign(child.material, { envMapIntensity: env_map_intensity })
     }
   })
 

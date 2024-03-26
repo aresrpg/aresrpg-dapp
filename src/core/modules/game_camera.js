@@ -55,10 +55,10 @@ export default function () {
 
       set_camera_padding(200, 0, 0, 0)
 
-      let is_dragging = false
+      // let is_dragging = false
 
       const on_mouse_down = () => {
-        is_dragging = true
+        // is_dragging = true
         renderer.domElement.requestPointerLock()
       }
 
@@ -101,7 +101,7 @@ export default function () {
       window.addEventListener(
         'mouseup',
         () => {
-          is_dragging = false
+          // is_dragging = false
           if (document.pointerLockElement === renderer.domElement)
             document.exitPointerLock()
         },
