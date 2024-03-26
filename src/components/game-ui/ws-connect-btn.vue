@@ -31,10 +31,11 @@ vs-button.btn(
 import { computed, inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { ws_status } from '../../core/game/game.js';
+
 const { t } = useI18n();
 
 const websocket_loading = ref(false);
-const ws_status = inject('ws_status');
 const user = inject('user');
 
 const ws_color = computed(() => {

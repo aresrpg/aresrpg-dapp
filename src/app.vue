@@ -3,13 +3,25 @@ router-view
 </template>
 
 <script setup>
-import { onMounted, provide, watch, ref, reactive, onUnmounted } from 'vue';
+import {
+  onMounted,
+  provide,
+  watch,
+  ref,
+  reactive,
+  onUnmounted,
+  computed,
+} from 'vue';
 import { VsLoadingFn } from 'vuesax-alpha';
 import { useRouter } from 'vue-router';
 import { aiter, iter } from 'iterator-helper';
 
 import { initialize_wallets, wallet_emitter } from './core/sui/wallet';
 import { get_alias, set_network, use_client } from './core/sui/client';
+import {
+  VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
+  VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
+} from './env.js';
 
 const name = 'app';
 const router = useRouter();
@@ -24,31 +36,34 @@ const game_visible = ref(false);
 
 const selected_character = ref(null);
 const known_storages = ref([]);
-const user = reactive({
-  character_lock_receipts: null,
-  locked_characters: null,
-  unlocked_characters: null,
-  balance_sui: null,
-  // is the user connected to the websocket
-  online: false,
-
-  inventory: [],
-});
 
 const last_selected_address = localStorage.getItem('last_selected_address');
 
 let loading_instance = null;
 let resyncing_interval = null;
 
+const is_chain_supported = computed(() => {
+  switch (selected_wallet.value?.chain) {
+    case 'sui:mainnet':
+      return !!VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL;
+    case 'sui:testnet':
+      return !!VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL;
+    case 'sui:devnet':
+      return false;
+    default:
+      return true;
+  }
+});
+
 provide('wallets', wallets);
 provide('selected_wallet', selected_wallet);
 provide('selected_account', selected_account);
 provide('loading', loading);
 provide('sidebar_reduced', sidebar_reduced);
-provide('user', user);
 provide('selected_character', selected_character);
 provide('known_storages', known_storages);
 provide('game_visible', game_visible);
+provide('is_chain_supported', is_chain_supported);
 
 const client = use_client(selected_wallet, selected_account);
 
@@ -114,6 +129,11 @@ watch(
     user.unlocked_characters = null;
     user.locked_characters = null;
 
+    if (!is_chain_supported.value) {
+      loading.value--;
+      return;
+    }
+
     // we want a non blocking subscription call
     // it's currently unstable on Sui
     client
@@ -141,6 +161,11 @@ watch(
 watch(resync, () => {
   if (!selected_account.value) return;
 
+  if (!is_chain_supported.value) {
+    loading.value--;
+    return;
+  }
+
   console.log('resyncing');
   update_sui_balance();
   update_user_data();
@@ -158,7 +183,7 @@ watch(loading, value => {
       background: '#212121',
     });
   } else if (!value) {
-    loading_instance.close();
+    loading_instance?.close();
   }
 });
 
