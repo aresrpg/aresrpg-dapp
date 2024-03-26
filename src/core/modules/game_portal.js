@@ -18,7 +18,7 @@
 
 // // const loaded_portal = await load(portal_model, {
 // //   scale: 1.3,
-// //   envMapIntensity: 0.1,
+// //   env_map_intensity: 0.1,
 // // })
 // // const tictacworld = await load(tictacworld_model, { scale: 0.5 })
 
@@ -317,7 +317,7 @@
 //               tictacworld.model,
 //               portal1_position.clone().setY(2000),
 //               Math.PI * 0.4,
-//               { metalness: 0, roughness: 1, envMapIntensity: 0.6 },
+//               { metalness: 0, roughness: 1, env_map_intensity: 0.6 },
 //             )
 
 //             scene.add(tictac.model)

@@ -15,7 +15,7 @@ const show_error = message => {
   })
 }
 
-const RECAPTCHA_PUBLIC = '6LfklcMiAAAAAG6KxHTI23ytDJz1Sow5sJvS4vab'
+// const RECAPTCHA_PUBLIC = '6LfklcMiAAAAAG6KxHTI23ytDJz1Sow5sJvS4vab'
 
 export default async function fetch_api(query, variables = {}) {
   if (!t) {

@@ -22,7 +22,7 @@ function dispose_material(material) {
   material.dispose()
 
   // Dispose textures and other resources
-  Object.entries(material).forEach(([key, value]) => {
+  Object.entries(material).forEach(([, value]) => {
     if (value && typeof value === 'object' && 'minFilter' in value)
       value.dispose()
   })

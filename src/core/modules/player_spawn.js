@@ -11,7 +11,7 @@ export default function () {
     tick(_, __, delta) {
       if (player) player.mixer.update(delta)
     },
-    observe({ events, Pool, dispatch, signal, send_packet }) {
+    observe({ events, pool, dispatch, signal }) {
       events.once('STATE_UPDATED', ({ selected_character_id, characters }) => {
         const selected_character = characters.find(
           ({ id }) => id === selected_character_id,
@@ -19,7 +19,7 @@ export default function () {
 
         const { classe, female, name } = selected_character
 
-        player = Pool.character({ classe, female }).get_non_instanced()
+        player = pool.character({ classe, female }).get_non_instanced()
 
         player.title.text = name
 

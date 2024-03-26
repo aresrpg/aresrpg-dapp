@@ -11,8 +11,8 @@ import sram_male from '../../assets/models/sram_male.glb?url'
 import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
 
-function create_billboard_material(baseMaterial, keep_aspect) {
-  return createDerivedMaterial(baseMaterial, {
+function create_billboard_material(base_material, keep_aspect) {
+  return createDerivedMaterial(base_material, {
     // Declaring custom uniforms
     uniforms: {
       uSize: { value: keep_aspect ? 0.1 : 0.15 },
@@ -64,25 +64,25 @@ const MODEL_FORWARD = new Vector3(0, 0, 1)
 //   'WALK',
 // ]
 
-export const Models = {
+export const MODELS = {
   iop_male: await load(iop_male, {
-    envMapIntensity: 0.5,
+    env_map_intensity: 0.5,
     scale: 0.9,
   }),
   iop_female: await load(iop_female, {
-    envMapIntensity: 0.5,
+    env_map_intensity: 0.5,
     // scale: 1.2,
   }),
   sram_male: await load(sram_male, {
-    envMapIntensity: 0.5,
+    env_map_intensity: 0.5,
     // scale: 1.2,
   }),
   sram_female: await load(sram_female, {
-    envMapIntensity: 0.5,
+    env_map_intensity: 0.5,
     scale: 0.043,
   }),
   chafer: await load(chafer, {
-    envMapIntensity: 0.5,
+    env_map_intensity: 0.5,
     scale: 1.2,
   }),
 }
@@ -318,27 +318,27 @@ export default function create_pools(scene) {
   }
 
   const instances = {
-    iop_male: instanciate(Models.iop_male, {
+    iop_male: instanciate(MODELS.iop_male, {
       height: 1.7,
       radius: 0.9,
       name: 'iop_male',
     }),
-    iop_female: instanciate(Models.iop_female, {
+    iop_female: instanciate(MODELS.iop_female, {
       height: 1.7,
       radius: 0.9,
       name: 'iop_female',
     }),
-    sram_male: instanciate(Models.sram_male, {
+    sram_male: instanciate(MODELS.sram_male, {
       height: 1.7,
       radius: 0.9,
       name: 'sram_male',
     }),
-    sram_female: instanciate(Models.sram_female, {
+    sram_female: instanciate(MODELS.sram_female, {
       height: 1.7,
       radius: 0.9,
       name: 'sram_female',
     }),
-    chafer: instanciate(Models.chafer, {
+    chafer: instanciate(MODELS.chafer, {
       height: 2.1,
       radius: 0.9,
       name: 'chafer',

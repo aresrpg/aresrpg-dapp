@@ -22,7 +22,7 @@ import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import water_normal from '../../assets/waternormals.jpg'
 import { abortable } from '../core-utils/iterator.js'
 
-const Colors = {
+const COLORS = {
   sunrise: new Color(0xffa500),
   noon: new Color(0xffffff),
   sunset: new Color(0xff4500),
@@ -202,7 +202,7 @@ export default function () {
         moonlight.intensity = is_night ? 0.5 : 0 // Adjust intensity based on night/day
 
         if (!is_night) {
-          const color = Colors.sunrise.lerp(Colors.noon, sky_elevation / 90)
+          const color = COLORS.sunrise.lerp(COLORS.noon, sky_elevation / 90)
           sunlight.color = color
           scene.fog.color = color
           if (moonlight.parent) {
@@ -230,7 +230,7 @@ export default function () {
             scene.remove(sunlight_helper)
             scene.remove(suncamera_helper)
           }
-          const color = Colors.sunset.lerp(Colors.night, -sky_elevation / 90)
+          const color = COLORS.sunset.lerp(COLORS.night, -sky_elevation / 90)
           sunlight.color = color
           scene.fog.color = color
         }

@@ -30,7 +30,7 @@ const PACKAGES = {
   },
 }
 
-const SuiNS_CACHE = new LRUCache({ max: 50 })
+const SUINS_CACHE = new LRUCache({ max: 50 })
 // This ANKR premium key is whitelisted to only work with the https://aresrpg.world domain
 // so it is fine to publicly expose it here
 const ANKR_KEY =
@@ -85,9 +85,9 @@ export function use_client(
   wallet = inject('selected_wallet'),
   account = inject('selected_account'),
 ) {
-  const execute = transactionBlock =>
+  const execute = transaction_block =>
     wallet.value.signAndExecuteTransactionBlock({
-      transactionBlock,
+      transaction_block,
       account: account.value,
       chain: wallet.value.chain,
     })
@@ -116,7 +116,7 @@ export function use_client(
     },
 
     // @ts-ignore
-    async create_character(name, storage_id) {
+    async create_character(name) {
       const tx = new TransactionBlock()
 
       const [character] = tx.moveCall({
@@ -309,7 +309,7 @@ export function use_client(
 }
 
 export async function get_alias(address) {
-  const cached = SuiNS_CACHE.get(address)
+  const cached = SUINS_CACHE.get(address)
   if (cached) return cached
 
   const {
@@ -317,7 +317,7 @@ export async function get_alias(address) {
   } = await mainnet_client.resolveNameServiceNames({ address, limit: 1 })
 
   if (name) {
-    SuiNS_CACHE.set(address, name)
+    SUINS_CACHE.set(address, name)
     return name
   }
 }
