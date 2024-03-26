@@ -31,8 +31,8 @@ export default function () {
       })
 
       const game_folder = gui.addFolder('Game Settings')
-      const dayTimeFolder = gui.addFolder('Sky')
-      dayTimeFolder.open()
+      const daytime_folder = gui.addFolder('Sky')
+      daytime_folder.open()
       const terrain_folder = gui.addFolder('Terrain Settings')
       const camera_folder = gui.addFolder('Camera Settings')
 
@@ -79,11 +79,11 @@ export default function () {
         )
         .name('Set day')
 
-      const daytimePauseControl = dayTimeFolder
+      const daytime_pause_control = daytime_folder
         .add(settings.sky, 'paused')
         .name('Pause cycle')
         .onChange(paused => events.emit('SKY_CYCLE_PAUSED', paused))
-      const daytimeValueControl = dayTimeFolder
+      const daytime_value_control = daytime_folder
         .add(settings.sky, 'value', 0, 1, 0.001)
         .name('Time')
         .onChange(value =>
@@ -91,13 +91,13 @@ export default function () {
         )
       events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
         if (fromUi) {
-          daytimePauseControl.setValue(true)
+          daytime_pause_control.setValue(true)
         } else {
           settings.sky.value = value
-          daytimeValueControl.updateDisplay()
+          daytime_value_control.updateDisplay()
         }
       })
-      dayTimeFolder
+      daytime_folder
         .add(settings.sky, 'sunSize', 0, 0.002)
         .onChange(value => events.emit('SKY_SUNSIZE_CHANGED', value))
 

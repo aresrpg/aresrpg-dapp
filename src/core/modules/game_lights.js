@@ -1,5 +1,3 @@
-import { setInterval } from 'timers/promises'
-
 import {
   AmbientLight,
   CameraHelper,
@@ -12,13 +10,10 @@ import {
   Vector3,
 } from 'three'
 import { Water } from 'three/examples/jsm/objects/Water.js'
-import { aiter } from 'iterator-helper'
 import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
 
 import water_normal from '../../assets/waternormals.jpg'
-import { abortable } from '../core-utils/iterator.js'
 
-const DAY_DURATION = 600000 // 10 minutes in milliseconds
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
 const CAMERA_SHADOW_SIZE = 100
@@ -39,14 +34,12 @@ export default function () {
     fog: true,
   })
 
-  let daytime_paused = false
-
   return {
     name: 'game_nature',
     tick() {
       water.material.uniforms.time.value += 1.0 / 60.0
     },
-    observe({ scene, signal, get_state, events }) {
+    observe({ scene, get_state, events }) {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
 
@@ -81,17 +74,6 @@ export default function () {
 
       scene.add(water)
 
-      let day_time = DAY_DURATION * get_state().settings.sky.value // Track the time of day as a value between 0 and DAY_DURATION
-      const day_time_step = 100 // How much ms between updates
-
-      daytime_paused = get_state().settings.sky.paused
-      events.on('SKY_CYCLE_PAUSED', paused => (daytime_paused = paused))
-      events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
-        if (fromUi) {
-          day_time = value * DAY_DURATION
-        }
-      })
-
       events.on('SKY_FOGCOLOR_CHANGED', color => {
         scene.fog.color = color.clone().lerp(new Color('#000000'), 0.4)
       })
@@ -103,7 +85,7 @@ export default function () {
       let sun_relative_position = new Vector3(0, 1, 0)
       events.on('SKY_LIGHT_MOVED', position => {
         sun_relative_position = position.clone()
-        recomputeSunPosition()
+        recompute_sun_position()
       })
 
       events.on('SKY_LIGHT_INTENSITY_CHANGED', intensity => {
@@ -115,7 +97,7 @@ export default function () {
         ambient_light.intensity = intensity
       })
 
-      function recomputeSunPosition() {
+      function recompute_sun_position() {
         const chunk_position = get_player_chunk_position()
 
         const light_base_position = new Vector3(
@@ -134,7 +116,7 @@ export default function () {
           .add(sun_position_offset)
         directional_light.target.position.copy(light_target_position)
       }
-      recomputeSunPosition()
+      recompute_sun_position()
 
       function get_player_chunk_position() {
         try {
@@ -146,27 +128,6 @@ export default function () {
           return new Vector3()
         }
       }
-
-      function triggerSkyCycleChange() {
-        events.emit('SKY_CYCLE_CHANGED', {
-          value: day_time / DAY_DURATION,
-          fromUi: false,
-        })
-      }
-
-      function update_cycle() {
-        if (!daytime_paused) {
-          // Update day_time and calculate day_ratio
-          day_time = (day_time + day_time_step) % DAY_DURATION
-          triggerSkyCycleChange()
-        }
-      }
-      triggerSkyCycleChange()
-      update_cycle()
-
-      aiter(abortable(setInterval(day_time_step, null, { signal }))).forEach(
-        update_cycle,
-      )
     },
   }
 }

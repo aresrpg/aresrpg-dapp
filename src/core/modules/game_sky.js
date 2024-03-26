@@ -1,3 +1,5 @@
+import { setInterval } from 'timers/promises'
+
 import {
   BackSide,
   BoxGeometry,
@@ -9,7 +11,9 @@ import {
   Vector3,
 } from 'three'
 import { smoothstep } from 'three/src/math/MathUtils'
+import { aiter } from 'iterator-helper'
 
+import { abortable } from '../core-utils/iterator.js'
 import night_nx from '../../assets/skybox/night_nx.png'
 import night_ny from '../../assets/skybox/night_ny.png'
 import night_nz from '../../assets/skybox/night_nz.png'
@@ -21,7 +25,15 @@ import night_pz from '../../assets/skybox/night_pz.png'
 export default function () {
   return {
     name: 'game_sky',
-    observe({ scene, events, get_state }) {
+    observe({ scene, events, signal }) {
+      const day_duration_in_seconds = 120 // duration of a complete day/night cycle
+      const day_autoupdate_delay_in_milliseconds = 100 // delay between updates
+      const day_autoupdate_step =
+        day_autoupdate_delay_in_milliseconds / (1000 * day_duration_in_seconds)
+
+      let day_autoupdate_paused = false
+      let day_time = 0 // in [0, 1]
+
       const night_texture = new CubeTextureLoader().load([
         night_px,
         night_nx,
@@ -104,12 +116,10 @@ export default function () {
       skybox_mesh.scale.setScalar(450000)
       scene.add(skybox_mesh)
 
-      const updateSunSize = (/** @type {number} */ value) => {
+      const update_sun_size = (/** @type {number} */ value) => {
         material.uniforms.uSunSize.value = value
         material.uniforms.uSunGlowSize.value = 10 * value
       }
-      events.on('SKY_SUNSIZE_CHANGED', updateSunSize)
-      updateSunSize(get_state().settings.sky.sunSize)
 
       const sun_colors = [
         { color: new Color('#FFFAFC'), threshold: 0.2 },
@@ -122,10 +132,10 @@ export default function () {
       const ambient_color_day = new Color(0xffffff)
       const ambient_color_night = new Color(0xccccff)
 
-      const updateSunDirection = daytime_cycle_value => {
+      function update_sky() {
         const sun_direction = new Vector3().setFromSphericalCoords(
           1,
-          0.00001 + 1.99999 * Math.PI * daytime_cycle_value,
+          0.00001 + 1.99999 * Math.PI * day_time,
           0.1,
         )
         material.uniforms.uSunDirection.value = sun_direction
@@ -186,12 +196,50 @@ export default function () {
 
         material.uniforms.uNightRotation.value = new Matrix4().makeRotationAxis(
           night_rotation_axis,
-          Math.PI * daytime_cycle_value,
+          Math.PI * day_time,
         )
       }
 
-      events.on('SKY_CYCLE_CHANGED', ({ value }) => updateSunDirection(value))
-      updateSunDirection(get_state().settings.sky.value)
+      /**
+       * @param {number} value
+       */
+      function set_day_time(value) {
+        day_time = value % 1
+        update_sky()
+      }
+
+      function update_day_time() {
+        if (!day_autoupdate_paused) {
+          set_day_time(day_time + day_autoupdate_step)
+          events.emit('SKY_CYCLE_CHANGED', { value: day_time, fromUi: false })
+        }
+      }
+
+      events.once(
+        'STATE_UPDATED',
+        (/** @type import('../../core/game/game').State */ state) => {
+          events.on(
+            'SKY_CYCLE_PAUSED',
+            (/** @type {boolean} */ paused) => (day_autoupdate_paused = paused),
+          )
+          events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
+            if (fromUi) {
+              set_day_time(value)
+            }
+          })
+          events.on('SKY_SUNSIZE_CHANGED', update_sun_size)
+
+          day_autoupdate_paused = state.settings.sky.paused
+          set_day_time(state.settings.sky.value)
+          update_sun_size(state.settings.sky.sunSize)
+        },
+      )
+
+      aiter(
+        abortable(
+          setInterval(day_autoupdate_delay_in_milliseconds, null, { signal }),
+        ),
+      ).forEach(update_day_time)
     },
   }
 }
