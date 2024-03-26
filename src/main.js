@@ -63,7 +63,7 @@ export const i18n = createI18n({
 
 vue_app.use(router).use(Vuesax, {}).use(i18n).mount('#app')
 
-const updateSW = registerSW({
+registerSW({
   onOfflineReady() {
     toast.info('ready to work offline!', 'Browser')
   },

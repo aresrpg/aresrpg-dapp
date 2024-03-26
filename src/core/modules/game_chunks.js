@@ -1,16 +1,9 @@
 import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
-import { to_chunk_position, spiral_array } from '@aresrpg/aresrpg-protocol'
+import { to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
-import {
-  BoxGeometry,
-  FrontSide,
-  Mesh,
-  MeshPhongMaterial,
-  PlaneGeometry,
-} from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { FrontSide, Mesh, MeshPhongMaterial, PlaneGeometry } from 'three'
 
 import { abortable } from '../core-utils/iterator.js'
 
@@ -18,7 +11,7 @@ import { abortable } from '../core-utils/iterator.js'
 export default function () {
   return {
     name: 'game_chunks',
-    observe({ events, signal, scene, get_state, camera_controls }) {
+    observe({ events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
 
       function display_chunk() {
@@ -46,7 +39,7 @@ export default function () {
       })
 
       // allow first loading of chunks
-      events.once('packet/playerPosition', ({ position }) => {
+      events.once('packet/playerPosition', () => {
         // rebuild_chunks(to_chunk_position(position))
       })
 

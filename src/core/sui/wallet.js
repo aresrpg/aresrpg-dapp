@@ -70,7 +70,7 @@ export async function initialize_wallets(last_selected_wallet_name) {
         wallet_emitter.emit('switch_wallet', null)
       },
       signAndExecuteTransactionBlock({
-        transactionBlock,
+        transaction_block,
         account: { address },
       }) {
         return features[
@@ -78,7 +78,7 @@ export async function initialize_wallets(last_selected_wallet_name) {
           // @ts-ignore
         ].signAndExecuteTransactionBlock({
           account: { address },
-          transactionBlock,
+          transactionBlock: transaction_block,
         })
       },
       signPersonalMessage(msg) {

@@ -1,8 +1,8 @@
-import { N8AOPass } from 'n8ao'
+// import { N8AOPass } from 'n8ao'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+// import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { CustomBlending, Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
@@ -13,14 +13,14 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 export default function () {
   return {
     name: 'game_render',
-    observe({ scene, signal, composer, camera, Pool }) {
+    observe({ scene, signal, composer, camera, pool }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
-      const n8aopass = new N8AOPass(
-        scene,
-        camera,
-        window.innerWidth,
-        window.innerHeight,
-      )
+      // const n8aopass = new N8AOPass(
+      //   scene,
+      //   camera,
+      //   window.innerWidth,
+      //   window.innerHeight,
+      // )
 
       const gtaopass = new GTAOPass(
         scene,
@@ -29,8 +29,8 @@ export default function () {
         window.innerHeight,
       )
       const renderpass = new RenderPass(scene, camera)
-      const outputpass = new OutputPass()
-      const gammaCorrection = new ShaderPass(GammaCorrectionShader)
+      // const outputpass = new OutputPass()
+      const gamma_correction = new ShaderPass(GammaCorrectionShader)
       const outline = new OutlinePass(
         new Vector2(window.innerWidth, window.innerHeight),
         scene,
@@ -72,13 +72,13 @@ export default function () {
       outline.overlayMaterial.blending = CustomBlending
       // shared.outline.selectedObjects.push(instanced_volume)
 
-      Pool.register_outline(outline)
+      pool.register_outline(outline)
 
       const character_entities = [
-        Pool.iop_female,
-        Pool.iop_male,
-        Pool.sram_female,
-        Pool.sram_male,
+        pool.iop_female,
+        pool.iop_male,
+        pool.sram_female,
+        pool.sram_male,
       ]
 
       // add all the characters to the outline pass
@@ -101,7 +101,7 @@ export default function () {
       composer.addPass(bloompass)
       composer.addPass(gtaopass)
       // composer.addPass(n8aopass)
-      composer.addPass(gammaCorrection)
+      composer.addPass(gamma_correction)
       composer.addPass(outline)
       composer.addPass(smaapass)
       // composer.addPass(outputpass)
@@ -113,7 +113,7 @@ export default function () {
           composer.removePass(bloompass)
           composer.removePass(gtaopass)
           // composer.removePass(n8aopass)
-          composer.removePass(gammaCorrection)
+          composer.removePass(gamma_correction)
           composer.removePass(outline)
           composer.removePass(smaapass)
           // composer.removePass(outputpass)

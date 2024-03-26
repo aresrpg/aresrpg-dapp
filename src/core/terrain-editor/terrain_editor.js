@@ -8,7 +8,7 @@ import {
   AxesHelper,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { VoxelMap, WorldGenerator } from '@aresrpg/aresrpg-world'
+import { VoxelMap } from '@aresrpg/aresrpg-world'
 
 import dispose from '../three-utils/dispose'
 
@@ -30,23 +30,23 @@ export function create_terrain_editor(canvas) {
     0.1,
     1000,
   )
-  const cameraControl = new OrbitControls(camera, renderer.domElement)
+  const camera_control = new OrbitControls(camera, renderer.domElement)
 
   const scene = new Scene()
-  const noiseScale = 1 / 8 // 1 unit of noise per N voxels
+  // const noise_scale = 1 / 8 // 1 unit of noise per N voxels
   const bmin = new Vector3(0, 0, 0)
   const bmax = new Vector3(256, 130, 256)
   const bbox = new Box3(bmin, bmax)
-  const voxelMap = new VoxelMap(bbox)
-  const worldGen = new WorldGenerator(noiseScale)
-  const axisHelper = new AxesHelper(500)
+  const voxel_map = new VoxelMap(bbox)
+  // const world_gen = new WorldGenerator(noise_scale)
+  const axis_helper = new AxesHelper(500)
 
-  const terrain = new AresRpgEngine.Terrain(voxelMap)
+  const terrain = new AresRpgEngine.Terrain(voxel_map)
 
-  // worldGen.fill(voxelMap.voxelsOctree, bbox);
+  // world_gen.fill(voxel_map.voxelsOctree, bbox);
 
   camera.position.set(-50, 100, -50)
-  cameraControl.target.set(voxelMap.size.x / 2, 0, voxelMap.size.z / 2)
+  camera_control.target.set(voxel_map.size.x / 2, 0, voxel_map.size.z / 2)
 
   canvas.appendChild(renderer.domElement)
   renderer.setClearColor(0xbdbdbd)
@@ -58,12 +58,12 @@ export function create_terrain_editor(canvas) {
   window.addEventListener('resize', resize_handler)
 
   scene.add(terrain.container)
-  scene.add(axisHelper)
+  scene.add(axis_helper)
 
   terrain.showEntireMap()
 
   function render() {
-    cameraControl.update()
+    camera_control.update()
     terrain.updateUniforms()
     renderer.render(scene, camera)
     requestAnimationFrame(render)
@@ -76,10 +76,10 @@ export function create_terrain_editor(canvas) {
       window.removeEventListener('resize', resize_handler)
 
       scene.remove(terrain.container)
-      scene.remove(axisHelper)
+      scene.remove(axis_helper)
 
       renderer.dispose()
-      cameraControl.dispose()
+      camera_control.dispose()
 
       dispose(scene)
 

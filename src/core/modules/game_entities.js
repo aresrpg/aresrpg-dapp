@@ -73,7 +73,7 @@ export default function () {
         }
       }
     },
-    observe({ events, Pool, get_state, signal }) {
+    observe({ events, pool, get_state, signal }) {
       events.on('packet/entitySpawn', packet => {
         const { entities } = get_state()
 
@@ -83,8 +83,8 @@ export default function () {
 
             const entity =
               type === 'PLAYER'
-                ? Pool.character({ classe, female }).get(id)
-                : Pool.chafer.get(id)
+                ? pool.character({ classe, female }).get(id)
+                : pool.chafer.get(id)
 
             entity.title.text = `${name} (${level})`
 

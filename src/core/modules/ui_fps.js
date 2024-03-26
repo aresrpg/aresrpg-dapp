@@ -62,7 +62,7 @@ export default function () {
 
   return {
     name: 'ui_fps_memory_mesh',
-    tick(_, { scene, renderer }) {
+    tick(state, { scene, renderer }) {
       stats_fps.update()
       stats_memory.update()
       mesh_panel.update(count_meshes(scene), 1000) // 1000 is an arbitrary max value

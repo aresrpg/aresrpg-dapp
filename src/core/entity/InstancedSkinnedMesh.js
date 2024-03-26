@@ -9,17 +9,21 @@ import {
   SkinnedMesh,
 } from 'three'
 
-const _instanceLocalMatrix = new Matrix4()
-const _instanceWorldMatrix = new Matrix4()
+const instance_local_matrix = new Matrix4()
+const instance_world_matrix = new Matrix4()
 
-const _offsetMatrix = new Matrix4()
-const _identityMatrix = new Matrix4()
+const offset_matrix = new Matrix4()
+const identity_matrix = new Matrix4()
 
-const _instanceIntersects = []
+const instance_intersects = []
 
+// @ts-ignore
 ShaderChunk.morphinstance_vertex = /* glsl */ `
         #ifdef MORPHTARGETS_COUNT
-          ${ShaderChunk.morphinstance_vertex}
+          ${
+            // @ts-ignore
+            ShaderChunk.morphinstance_vertex
+          }
         #endif
 `
 ShaderChunk.skinning_pars_vertex = /* glsl */ `
@@ -100,28 +104,28 @@ export class InstancedSkinnedMesh extends SkinnedMesh {
 
     update_bones_texture()
 
-    this.skeleton.update = (instanceBones, id) => {
+    this.skeleton.update = (instance_bones, id) => {
       const { bones } = this.skeleton
       const { boneInverses } = this.skeleton
-      const boneMatrices = instanceBones || this.skeleton.boneMatrices
+      const bone_matrices = instance_bones || this.skeleton.boneMatrices
       const { boneTexture } = this.skeleton
 
-      const instanceId = id || 0
+      const instance_id = id || 0
 
       // flatten bone matrices to array
       for (let i = 0, il = bones.length; i < il; i++) {
         // compute the offset between the current and the original transform
-        const matrix = bones[i] ? bones[i].matrixWorld : _identityMatrix
+        const matrix = bones[i] ? bones[i].matrixWorld : identity_matrix
 
-        _offsetMatrix.multiplyMatrices(matrix, boneInverses[i])
-        _offsetMatrix.toArray(
-          boneMatrices,
-          16 * (i + instanceId * bones.length),
+        offset_matrix.multiplyMatrices(matrix, boneInverses[i])
+        offset_matrix.toArray(
+          bone_matrices,
+          16 * (i + instance_id * bones.length),
         )
       }
 
-      const expectedSize = bones.length * 4 * this.count * 16
-      if (instanceBones && instanceBones.length === expectedSize) {
+      const expected_size = bones.length * 4 * this.count * 16
+      if (instance_bones && instance_bones.length === expected_size) {
         // Update the boneTexture only if instanceBones has the correct size
         if (boneTexture) boneTexture.needsUpdate = true
       }
@@ -160,7 +164,7 @@ export class InstancedSkinnedMesh extends SkinnedMesh {
 
   raycast(raycaster, intersects) {
     const { matrixWorld } = this
-    const raycastTimes = this.count
+    const raycast_times = this.count
 
     if (this._mesh === null) {
       this._mesh = new SkinnedMesh(this.geometry, this.material)
@@ -171,29 +175,29 @@ export class InstancedSkinnedMesh extends SkinnedMesh {
 
     if (_mesh.material === undefined) return
 
-    for (let instanceId = 0; instanceId < raycastTimes; instanceId++) {
+    for (let instance_id = 0; instance_id < raycast_times; instance_id++) {
       // calculate the world matrix for each instance
 
-      this.getMatrixAt(instanceId, _instanceLocalMatrix)
+      this.getMatrixAt(instance_id, instance_local_matrix)
 
-      _instanceWorldMatrix.multiplyMatrices(matrixWorld, _instanceLocalMatrix)
+      instance_world_matrix.multiplyMatrices(matrixWorld, instance_local_matrix)
 
       // the mesh represents this single instance
 
-      _mesh.matrixWorld = _instanceWorldMatrix
+      _mesh.matrixWorld = instance_world_matrix
 
-      _mesh.raycast(raycaster, _instanceIntersects)
+      _mesh.raycast(raycaster, instance_intersects)
 
       // process the result of raycast
 
-      for (let i = 0, l = _instanceIntersects.length; i < l; i++) {
-        const intersect = _instanceIntersects[i]
-        intersect.instanceId = instanceId
+      for (let i = 0, l = instance_intersects.length; i < l; i++) {
+        const intersect = instance_intersects[i]
+        intersect.instanceId = instance_id
         intersect.object = this
         intersects.push(intersect)
       }
 
-      _instanceIntersects.length = 0
+      instance_intersects.length = 0
     }
   }
 
