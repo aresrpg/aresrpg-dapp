@@ -2,28 +2,41 @@
 .zone__container
   .zone Plaine des Caffres
   .position {{ position }}
-  .chunk_position {{ chunk_position }}
   .version version {{ pkg.version }}
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { on } from 'events';
+
+import { computed, inject, onMounted, onUnmounted, reactive } from 'vue';
 import { to_chunk_position } from '@aresrpg/aresrpg-protocol';
+import { aiter } from 'iterator-helper';
 
 import pkg from '../../../package.json';
+import { abortable } from '../../core/utils/iterator.js';
+import { events } from '../../core/game/game.js';
 
-const state = inject('state');
+const position = reactive({ x: 0, y: 0, z: 0 });
+const controller = new AbortController();
 
-const position = computed(() => {
-  if (!state.value.player?.position) return [0, 0, 0];
-  const { x, y, z } = state.value.player.position;
-  return [Math.round(x), Math.round(y), Math.round(z)];
+onMounted(() => {
+  aiter(
+    abortable(on(events, 'STATE_UPDATED', { signal: controller.signal })),
+  ).forEach(([state]) => {
+    if (state.player) {
+      const { player } = state;
+      const x = Math.round(player.position.x);
+      const y = Math.round(player.position.y);
+      const z = Math.round(player.position.z);
+      if (position.x !== x) position.x = x;
+      if (position.y !== y) position.y = y;
+      if (position.z !== z) position.z = z;
+    }
+  });
 });
 
-const chunk_position = computed(() => {
-  const [x, , z] = position.value;
-  const { x: cx, z: cz } = to_chunk_position({ x, z });
-  return [cx, cz];
+onUnmounted(() => {
+  controller.abort();
 });
 </script>
 
@@ -36,11 +49,11 @@ const chunk_position = computed(() => {
   .zone
     font-size 1.5em
     color #EEEEEE
-  .position, .chunk_position
+  .position
     font-size 1em
     color #EEEEEE
   .version
-    margin-top 1em
+    margin-top .5em
     font-size .8em
     color #EEEEEE
 </style>

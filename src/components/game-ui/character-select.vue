@@ -20,9 +20,10 @@ import Dropdown from 'v-dropdown';
 import { computed, inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { dispatch } from '../../core/game/game.js';
+
 const user = inject('user');
 const selected_character = inject('selected_character');
-const game = inject('game');
 
 const dropdown = ref(null);
 
@@ -32,7 +33,7 @@ const characters = computed(() =>
 
 function select_character(character) {
   selected_character.value = character;
-  game.value.dispatch('action/select_character', character.id);
+  dispatch('action/select_character', character.id);
   dropdown.value.close();
 }
 

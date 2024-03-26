@@ -31,6 +31,10 @@ export default function () {
             const selected_character = characters.find(
               ({ id }) => id === selected_character_id,
             )
+            console.dir({
+              selected_character,
+              characters,
+            })
             const { classe, female, name } = selected_character
 
             player = pool.character({ classe, female }).get_non_instanced()

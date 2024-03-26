@@ -159,6 +159,15 @@ export const INITIAL_STATE = {
     },
   ],
 
+  character_lock_receipts: null,
+  locked_characters: null,
+  unlocked_characters: null,
+  balance_sui: null,
+  // is the user connected to the websocket
+  online: false,
+
+  inventory: [],
+
   /** @type {Map<string, Type.Entity & { jump_time: number, target_position: import("three").Vector3, action: string, audio: import("three").PositionalAudio }>} */
   entities: new Map(),
 }

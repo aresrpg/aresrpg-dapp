@@ -20,12 +20,17 @@
 import { onMounted, onUnmounted, inject, ref, reactive } from 'vue';
 import { Vector3 } from 'three';
 
+import {
+  ws_status,
+  send_packet,
+  dispatch,
+  events,
+} from '../../core/game/game.js';
+
 import characterSelectVue from './character-select.vue';
 import wsConnectBtnVue from './ws-connect-btn.vue';
 import zoneVue from './zone.vue';
 
-const ws_status = inject('ws_status');
-const game = inject('game');
 const escape_menu_open = ref(false);
 const server_info = reactive({
   online: 0,
@@ -39,8 +44,8 @@ function on_escape({ key }) {
 }
 
 function on_menu_quit_btn() {
-  game.value.send_packet('packet/leaveGame', {});
-  game.value.dispatch('action/load_game_state', 'MENU');
+  send_packet('packet/leaveGame', {});
+  dispatch('action/load_game_state', 'MENU');
 }
 
 function update_server_info({ online, max }) {
@@ -52,12 +57,12 @@ function on_menu_controls_btn() {}
 
 onMounted(() => {
   window.addEventListener('keydown', on_escape);
-  game.value.events.on('packet/serverInfo', update_server_info);
+  events.on('packet/serverInfo', update_server_info);
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', on_escape);
-  game.value.events.off('packet/serverInfo', update_server_info);
+  events.off('packet/serverInfo', update_server_info);
 });
 </script>
 

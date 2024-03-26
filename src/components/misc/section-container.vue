@@ -20,11 +20,6 @@
 import { computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import {
-  VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
-  VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
-} from '../../env';
-
 const { t } = useI18n();
 const selected_wallet = inject('selected_wallet');
 const props = defineProps(['allow_offline']);
@@ -35,18 +30,7 @@ const network = computed(() => {
   return current_chain.split(':')[1];
 });
 
-const is_chain_supported = computed(() => {
-  switch (selected_wallet.value?.chain) {
-    case 'sui:mainnet':
-      return !!VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL;
-    case 'sui:testnet':
-      return !!VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL;
-    case 'sui:devnet':
-      return false;
-    default:
-      return true;
-  }
-});
+const is_chain_supported = inject('is_chain_supported');
 </script>
 
 <style lang="stylus" scoped>

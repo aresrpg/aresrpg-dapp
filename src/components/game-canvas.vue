@@ -64,4 +64,3 @@ onDeactivated(() => {
   width 100vw
   height 100vh
 </style>
-./game-ui/game-interface.vue/index.js
