@@ -25,7 +25,7 @@ import night_pz from '../../assets/skybox/night_pz.png'
 export default function () {
   return {
     name: 'game_sky',
-    observe({ scene, events, signal }) {
+    observe({ scene, events, signal, dispatch }) {
       const day_duration_in_seconds = 120 // duration of a complete day/night cycle
       const day_autoupdate_delay_in_milliseconds = 100 // delay between updates
       const day_autoupdate_step =
@@ -132,25 +132,18 @@ export default function () {
       const ambient_color_day = new Color(0xffffff)
       const ambient_color_night = new Color(0xccccff)
 
-      function update_sky() {
-        const sun_direction = new Vector3().setFromSphericalCoords(
-          1,
-          0.00001 + 1.99999 * Math.PI * day_time,
-          0.1,
-        )
-        material.uniforms.uSunDirection.value = sun_direction
-
+      function compute_sun_color(sun_position) {
         let sun_color = sun_colors[sun_colors.length - 1].color
         for (let i = 1; i < sun_colors.length; i++) {
           const curr_color = sun_colors[i]
           const prev_color = sun_colors[i - 1]
 
-          if (sun_direction.y >= curr_color.threshold) {
+          if (sun_position.y >= curr_color.threshold) {
             sun_color = new Color().lerpColors(
               curr_color.color,
               prev_color.color,
               smoothstep(
-                sun_direction.y,
+                sun_position.y,
                 curr_color.threshold,
                 prev_color.threshold,
               ),
@@ -158,46 +151,60 @@ export default function () {
             break
           }
         }
+        return sun_color
+      }
 
-        events.emit('SKY_FOGCOLOR_CHANGED', sun_color.clone())
-
-        const light_direction =
-          sun_direction.y >= 0
-            ? sun_direction.clone()
-            : sun_direction.clone().multiplyScalar(-1)
-        events.emit('SKY_LIGHT_MOVED', light_direction)
-        const light_intensity =
-          1 -
-          Math.min(
-            smoothstep(sun_direction.y, -0.3, -0.2),
-            1 - smoothstep(sun_direction.y, 0, 0.05),
-          )
-
-        events.emit('SKY_LIGHT_INTENSITY_CHANGED', light_intensity)
-        const light_color = new Color().lerpColors(
-          moon_color,
-          sun_color,
-          smoothstep(sun_direction.y, -0.1, 1.0),
+      function update_sky() {
+        const sun_position = new Vector3().setFromSphericalCoords(
+          1,
+          0.00001 + 1.99999 * Math.PI * day_time,
+          0.1,
         )
-        events.emit('SKY_LIGHT_COLOR_CHANGED', light_color)
+        material.uniforms.uSunDirection.value = sun_position
 
-        const is_day = smoothstep(sun_direction.y, -0.3, 0.0)
-        events.emit('SKY_AMBIENTLIGHT_CHANGED', {
-          color: new Color().lerpColors(
-            ambient_color_night,
-            ambient_color_day,
-            is_day,
-          ),
-          intensity: 0.5 + is_day,
-        })
-
-        sun_color.lerp(sun_color, is_day)
+        const sun_color = compute_sun_color(sun_position)
+        const is_day = smoothstep(sun_position.y, -0.3, 0.0)
+        // const sun_color = sun_color_raw.lerp(sun_color_raw, is_day)
         material.uniforms.uSunColor.value = sun_color
 
         material.uniforms.uNightRotation.value = new Matrix4().makeRotationAxis(
           night_rotation_axis,
           Math.PI * day_time,
         )
+
+        const /** @type import("../../core/game/game").SkyLights */ skyLights =
+            {
+              fog: {
+                color: sun_color.clone(),
+              },
+              directional: {
+                position:
+                  sun_position.y >= 0
+                    ? sun_position.clone()
+                    : sun_position.clone().multiplyScalar(-1),
+                color: new Color().lerpColors(
+                  moon_color,
+                  sun_color,
+                  smoothstep(sun_position.y, -0.1, 1.0),
+                ),
+                intensity:
+                  1 -
+                  Math.min(
+                    smoothstep(sun_position.y, -0.3, -0.2),
+                    1 - smoothstep(sun_position.y, 0, 0.05),
+                  ),
+              },
+              ambient: {
+                color: new Color().lerpColors(
+                  ambient_color_night,
+                  ambient_color_day,
+                  is_day,
+                ),
+                intensity: 0.5 + is_day,
+              },
+            }
+
+        dispatch('action/sky_lights_change', skyLights)
       }
 
       /**
@@ -220,7 +227,9 @@ export default function () {
         (/** @type import('../../core/game/game').State */ state) => {
           events.on(
             'SKY_CYCLE_PAUSED',
-            (/** @type {boolean} */ paused) => (day_autoupdate_paused = paused),
+            (/** @type {boolean} */ paused) => {
+              day_autoupdate_paused = paused;
+            },
           )
           events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
             if (fromUi) {
@@ -240,6 +249,25 @@ export default function () {
           setInterval(day_autoupdate_delay_in_milliseconds, null, { signal }),
         ),
       ).forEach(update_day_time)
+    },
+    reduce(
+      /** @type import('../../core/game/game').State */ state,
+      { type, payload },
+    ) {
+      state.set
+      if (type === 'action/sky_lights_change') {
+        return {
+          ...state,
+          settings: {
+            ...state.settings,
+            sky: {
+              ...state.sky,
+              lights: payload,
+            },
+          },
+        }
+      }
+      return state
     },
   }
 }

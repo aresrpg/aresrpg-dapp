@@ -76,6 +76,7 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {(state: State, context: Context, delta: number) => void} Ticker */
 /** @typedef {() => { name: string, reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
+/** @typedef {typeof INITIAL_STATE.settings.sky.lights} SkyLights */
 
 export const INITIAL_STATE = {
   settings: {
@@ -97,6 +98,23 @@ export const INITIAL_STATE = {
       paused: false,
       value: 0.78,
       sunSize: 0.0004,
+
+      lights: {
+        fog: {
+          color: new Color(0xffffff),
+        },
+
+        directional: {
+          position: new Vector3(0, 1, 0),
+          color: new Color(0xffffff),
+          intensity: 1,
+        },
+
+        ambient: {
+          color: new Color(0xffffff),
+          intensity: 1.5,
+        },
+      },
     },
 
     view_distance: 3,

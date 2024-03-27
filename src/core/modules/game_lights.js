@@ -14,6 +14,10 @@ import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
 
 import water_normal from '../../assets/waternormals.jpg'
 
+import { aiter } from 'iterator-helper'
+import { abortable } from '../core-utils/iterator.js'
+import { on } from 'events'
+
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
 const CAMERA_SHADOW_SIZE = 100
@@ -39,7 +43,7 @@ export default function () {
     tick() {
       water.material.uniforms.time.value += 1.0 / 60.0
     },
-    observe({ scene, get_state, events }) {
+    observe({ scene, get_state, events, signal }) {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
 
@@ -74,50 +78,6 @@ export default function () {
 
       scene.add(water)
 
-      events.on('SKY_FOGCOLOR_CHANGED', color => {
-        scene.fog.color = color.clone().lerp(new Color('#000000'), 0.4)
-      })
-
-      events.on(
-        'SKY_LIGHT_COLOR_CHANGED',
-        color => (directional_light.color = color),
-      )
-      let sun_relative_position = new Vector3(0, 1, 0)
-      events.on('SKY_LIGHT_MOVED', position => {
-        sun_relative_position = position.clone()
-        recompute_sun_position()
-      })
-
-      events.on('SKY_LIGHT_INTENSITY_CHANGED', intensity => {
-        directional_light.intensity = intensity
-      })
-
-      events.on('SKY_AMBIENTLIGHT_CHANGED', ({ color, intensity }) => {
-        ambient_light.color = color
-        ambient_light.intensity = intensity
-      })
-
-      function recompute_sun_position() {
-        const chunk_position = get_player_chunk_position()
-
-        const light_base_position = new Vector3(
-          chunk_position.x * CHUNK_SIZE,
-          300,
-          chunk_position.z * CHUNK_SIZE,
-        )
-        const light_target_position = light_base_position.clone().setY(0)
-
-        // Calculate the sun and moon position relative to the base position
-        const sun_position_offset = sun_relative_position
-          .clone()
-          .multiplyScalar(200)
-        directional_light.position
-          .copy(light_base_position)
-          .add(sun_position_offset)
-        directional_light.target.position.copy(light_target_position)
-      }
-      recompute_sun_position()
-
       function get_player_chunk_position() {
         try {
           const player = get_state()?.player
@@ -128,6 +88,48 @@ export default function () {
           return new Vector3()
         }
       }
+
+      function update_directional_light_position(
+        /** @type Vector3 */ light_position,
+      ) {
+        const chunk_position = get_player_chunk_position()
+
+        const light_base_position = new Vector3(
+          chunk_position.x * CHUNK_SIZE,
+          300,
+          chunk_position.z * CHUNK_SIZE,
+        )
+        const light_target_position = light_base_position.clone().setY(0)
+
+        // Calculate the sun and moon position relative to the base position
+        const sun_position_offset = light_position.clone().multiplyScalar(200)
+        directional_light.position
+          .copy(light_base_position)
+          .add(sun_position_offset)
+        directional_light.target.position.copy(light_target_position)
+      }
+
+      function apply_sky_lights(
+        /** @type import('../../core/game/game').SkyLights */ sky_lights,
+      ) {
+        scene.fog.color = sky_lights.fog.color
+          .clone()
+          .lerp(new Color('#000000'), 0.4)
+
+        update_directional_light_position(sky_lights.directional.position)
+        directional_light.color = sky_lights.directional.color
+        directional_light.intensity = sky_lights.directional.intensity
+
+        ambient_light.color = sky_lights.ambient.color
+        ambient_light.intensity = sky_lights.ambient.intensity
+      }
+
+      events.on(
+        'STATE_UPDATED',
+        (/** @type import('../../core/game/game').State */ state) => {
+          apply_sky_lights(state.settings.sky.lights)
+        },
+      )
     },
   }
 }

@@ -25,6 +25,7 @@ declare namespace Type {
   type GameState = 'MENU' | 'GAME' | 'EDITOR'
   type Await<T> = T extends Promise<infer U> ? U : T
   type Position = { x: number; y: number; z: number }
+  type SkyLights = import('./core/game/game').SkyLights
 
   type Entity = {
     id: string
@@ -56,6 +57,7 @@ declare namespace Type {
     'action/view_distance': number
     'action/far_view_distance': number
     'action/free_camera': boolean
+    'action/sky_lights_change': SkyLights
   } & Packets
 
   type Events = import('@aresrpg/aresrpg-protocol/src/types').TypedEmitter<
@@ -69,11 +71,6 @@ declare namespace Type {
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
       SKY_SUNSIZE_CHANGED: number
-      SKY_FOGCOLOR_CHANGED: Color
-      SKY_LIGHT_COLOR_CHANGED: Color
-      SKY_LIGHT_MOVED: Vector3
-      SKY_LIGHT_INTENSITY_CHANGED: number
-      SKY_AMBIENTLIGHT_CHANGED: { color: Color; intensity: number }
     } & Packets
   >
 
