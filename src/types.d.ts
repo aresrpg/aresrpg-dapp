@@ -1,5 +1,3 @@
-import { Color, Vector3 } from 'three'
-
 declare module '*.ogg'
 declare module '*.png'
 declare module '*.jpg'

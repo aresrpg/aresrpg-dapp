@@ -53,6 +53,7 @@ const FILTER_ACTION_IN_LOGS = [
   'action/keydown',
   'action/keyup',
   'action/set_state_player_position',
+  'action/sky_lights_change',
 ]
 export const FILTER_PACKET_IN_LOGS = [
   'packet/playerPosition',
@@ -97,7 +98,7 @@ export const INITIAL_STATE = {
     sky: {
       paused: false,
       value: 0.78,
-      sunSize: 0.0004,
+      sun_size: 0.0004,
 
       lights: {
         version: -1,

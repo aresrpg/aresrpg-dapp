@@ -111,9 +111,7 @@ export default function () {
         directional_light.target.position.copy(light_target_position)
       }
 
-      function apply_sky_lights(
-        /** @type import('../../core/game/game').SkyLights */ sky_lights,
-      ) {
+      function apply_sky_lights(sky_lights) {
         scene.fog.color = sky_lights.fog.color
           .clone()
           .lerp(new Color('#000000'), 0.4)
@@ -127,10 +125,7 @@ export default function () {
       }
 
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
-        (
-          sky_lights_version,
-          /** @type import('../../core/game/game').State[] */ [state],
-        ) => {
+        (sky_lights_version, [state]) => {
           if (state.settings.sky.lights.version !== sky_lights_version) {
             sky_lights_version = state.settings.sky.lights.version
             apply_sky_lights(state.settings.sky.lights)

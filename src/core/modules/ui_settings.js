@@ -98,7 +98,7 @@ export default function () {
         }
       })
       daytime_folder
-        .add(settings.sky, 'sunSize', 0, 0.002)
+        .add(settings.sky, 'sun_size', 0, 0.002)
         .onChange(value => events.emit('SKY_SUNSIZE_CHANGED', value))
 
       terrain_folder

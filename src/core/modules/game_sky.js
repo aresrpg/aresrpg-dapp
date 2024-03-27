@@ -175,38 +175,37 @@ export default function () {
 
         sky_lights_version = (sky_lights_version + 1) % 1000
 
-        const /** @type import("../../core/game/game").SkyLights */ sky_lights =
-            {
-              version: sky_lights_version,
-              fog: {
-                color: sun_color.clone(),
-              },
-              directional: {
-                position:
-                  sun_position.y >= 0
-                    ? sun_position.clone()
-                    : sun_position.clone().multiplyScalar(-1),
-                color: new Color().lerpColors(
-                  moon_color,
-                  sun_color,
-                  smoothstep(sun_position.y, -0.1, 1.0),
-                ),
-                intensity:
-                  1 -
-                  Math.min(
-                    smoothstep(sun_position.y, -0.3, -0.2),
-                    1 - smoothstep(sun_position.y, 0, 0.05),
-                  ),
-              },
-              ambient: {
-                color: new Color().lerpColors(
-                  ambient_color_night,
-                  ambient_color_day,
-                  is_day,
-                ),
-                intensity: 0.5 + is_day,
-              },
-            }
+        const sky_lights = {
+          version: sky_lights_version,
+          fog: {
+            color: sun_color.clone(),
+          },
+          directional: {
+            position:
+              sun_position.y >= 0
+                ? sun_position.clone()
+                : sun_position.clone().multiplyScalar(-1),
+            color: new Color().lerpColors(
+              moon_color,
+              sun_color,
+              smoothstep(sun_position.y, -0.1, 1.0),
+            ),
+            intensity:
+              1 -
+              Math.min(
+                smoothstep(sun_position.y, -0.3, -0.2),
+                1 - smoothstep(sun_position.y, 0, 0.05),
+              ),
+          },
+          ambient: {
+            color: new Color().lerpColors(
+              ambient_color_night,
+              ambient_color_day,
+              is_day,
+            ),
+            intensity: 0.5 + is_day,
+          },
+        }
 
         dispatch('action/sky_lights_change', sky_lights)
       }
@@ -226,24 +225,23 @@ export default function () {
         }
       }
 
-      events.once(
-        'STATE_UPDATED',
-        (/** @type import('../../core/game/game').State */ state) => {
-          events.on('SKY_CYCLE_PAUSED', (/** @type {boolean} */ paused) => {
-            day_autoupdate_paused = paused
-          })
-          events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
-            if (fromUi) {
-              set_day_time(value)
-            }
-          })
-          events.on('SKY_SUNSIZE_CHANGED', update_sun_size)
+      events.on('SKY_CYCLE_PAUSED', (/** @type {boolean} */ paused) => {
+        day_autoupdate_paused = paused
+      })
 
-          day_autoupdate_paused = state.settings.sky.paused
-          set_day_time(state.settings.sky.value)
-          update_sun_size(state.settings.sky.sunSize)
-        },
-      )
+      // events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
+      //   if (fromUi) {
+      //     set_day_time(value)
+      //   }
+      // })
+
+      events.on('SKY_SUNSIZE_CHANGED', update_sun_size)
+
+      events.once('STATE_UPDATED', state => {
+        day_autoupdate_paused = state.settings.sky.paused
+        set_day_time(state.settings.sky.value)
+        update_sun_size(state.settings.sky.sun_size)
+      })
 
       aiter(
         abortable(
@@ -251,10 +249,7 @@ export default function () {
         ),
       ).forEach(update_day_time)
     },
-    reduce(
-      /** @type import('../../core/game/game').State */ state,
-      { type, payload },
-    ) {
+    reduce(state, { type, payload }) {
       if (type === 'action/sky_lights_change') {
         return {
           ...state,
