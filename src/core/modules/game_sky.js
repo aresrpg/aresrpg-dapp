@@ -26,8 +26,8 @@ export default function () {
   return {
     name: 'game_sky',
     observe({ scene, events, signal, dispatch }) {
-      const day_duration_in_seconds = 120 // duration of a complete day/night cycle
-      const day_autoupdate_delay_in_milliseconds = 100 // delay between updates
+      const day_duration_in_seconds = 2000 // duration of a complete day/night cycle
+      const day_autoupdate_delay_in_milliseconds = 500 // delay between updates
       const day_autoupdate_step =
         day_autoupdate_delay_in_milliseconds / (1000 * day_duration_in_seconds)
 
