@@ -100,6 +100,8 @@ export const INITIAL_STATE = {
       sunSize: 0.0004,
 
       lights: {
+        version: -1,
+
         fog: {
           color: new Color(0xffffff),
         },

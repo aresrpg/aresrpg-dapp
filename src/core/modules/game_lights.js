@@ -1,3 +1,5 @@
+import { on } from 'events'
+
 import {
   AmbientLight,
   CameraHelper,
@@ -11,12 +13,10 @@ import {
 } from 'three'
 import { Water } from 'three/examples/jsm/objects/Water.js'
 import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
+import { aiter } from 'iterator-helper'
 
 import water_normal from '../../assets/waternormals.jpg'
-
-import { aiter } from 'iterator-helper'
 import { abortable } from '../core-utils/iterator.js'
-import { on } from 'events'
 
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
@@ -124,10 +124,16 @@ export default function () {
         ambient_light.intensity = sky_lights.ambient.intensity
       }
 
-      events.on(
-        'STATE_UPDATED',
-        (/** @type import('../../core/game/game').State */ state) => {
-          apply_sky_lights(state.settings.sky.lights)
+      aiter(on(events, 'STATE_UPDATED')).reduce(
+        (
+          sky_lights_version,
+          /** @type import('../../core/game/game').State[] */ [state],
+        ) => {
+          if (state.settings.sky.lights.version !== sky_lights_version) {
+            sky_lights_version = state.settings.sky.lights.version
+            apply_sky_lights(state.settings.sky.lights)
+          }
+          return state.settings.sky.lights.version
         },
       )
     },

@@ -154,6 +154,7 @@ export default function () {
         return sun_color
       }
 
+      let sky_lights_version = 0
       function update_sky() {
         const sun_position = new Vector3().setFromSphericalCoords(
           1,
@@ -172,8 +173,11 @@ export default function () {
           Math.PI * day_time,
         )
 
+        sky_lights_version = (sky_lights_version + 1) % 1000
+
         const /** @type import("../../core/game/game").SkyLights */ skyLights =
             {
+              version: sky_lights_version,
               fog: {
                 color: sun_color.clone(),
               },
