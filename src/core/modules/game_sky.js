@@ -175,7 +175,7 @@ export default function () {
 
         sky_lights_version = (sky_lights_version + 1) % 1000
 
-        const /** @type import("../../core/game/game").SkyLights */ skyLights =
+        const /** @type import("../../core/game/game").SkyLights */ sky_lights =
             {
               version: sky_lights_version,
               fog: {
@@ -208,7 +208,7 @@ export default function () {
               },
             }
 
-        dispatch('action/sky_lights_change', skyLights)
+        dispatch('action/sky_lights_change', sky_lights)
       }
 
       /**
@@ -229,12 +229,9 @@ export default function () {
       events.once(
         'STATE_UPDATED',
         (/** @type import('../../core/game/game').State */ state) => {
-          events.on(
-            'SKY_CYCLE_PAUSED',
-            (/** @type {boolean} */ paused) => {
-              day_autoupdate_paused = paused;
-            },
-          )
+          events.on('SKY_CYCLE_PAUSED', (/** @type {boolean} */ paused) => {
+            day_autoupdate_paused = paused
+          })
           events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
             if (fromUi) {
               set_day_time(value)
@@ -258,7 +255,6 @@ export default function () {
       /** @type import('../../core/game/game').State */ state,
       { type, payload },
     ) {
-      state.set
       if (type === 'action/sky_lights_change') {
         return {
           ...state,
