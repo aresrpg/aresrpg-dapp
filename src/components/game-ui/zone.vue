@@ -6,37 +6,31 @@
 </template>
 
 <script setup>
-import { on } from 'events';
-
-import { computed, inject, onMounted, onUnmounted, reactive } from 'vue';
-import { to_chunk_position } from '@aresrpg/aresrpg-protocol';
-import { aiter } from 'iterator-helper';
+import { onMounted, onUnmounted, reactive } from 'vue';
 
 import pkg from '../../../package.json';
-import { abortable } from '../../core/utils/iterator.js';
-import { events } from '../../core/game/game.js';
+import { context } from '../../core/game/game.js';
 
 const position = reactive({ x: 0, y: 0, z: 0 });
-const controller = new AbortController();
+
+function update_position({ player }) {
+  if (player) {
+    const x = Math.round(player.position.x);
+    const y = Math.round(player.position.y);
+    const z = Math.round(player.position.z);
+    if (position.x !== x) position.x = x;
+    if (position.y !== y) position.y = y;
+    if (position.z !== z) position.z = z;
+  }
+}
 
 onMounted(() => {
-  aiter(
-    abortable(on(events, 'STATE_UPDATED', { signal: controller.signal })),
-  ).forEach(([state]) => {
-    if (state.player) {
-      const { player } = state;
-      const x = Math.round(player.position.x);
-      const y = Math.round(player.position.y);
-      const z = Math.round(player.position.z);
-      if (position.x !== x) position.x = x;
-      if (position.y !== y) position.y = y;
-      if (position.z !== z) position.z = z;
-    }
-  });
+  context.events.on('STATE_UPDATED', update_position);
+  update_position(context.get_state());
 });
 
 onUnmounted(() => {
-  controller.abort();
+  context.events.off('STATE_UPDATED', update_position);
 });
 </script>
 

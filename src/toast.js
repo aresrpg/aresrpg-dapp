@@ -9,7 +9,7 @@ export default {
       content,
     })
   },
-  error(content, title = 'Oh no!', icon = `<i class='bx bxs-bug'></i>`) {
+  error(content, title = 'Oh no!', icon = "<i class='bx bxs-bug'></i>") {
     VsNotification({
       flat: true,
       color: 'danger',

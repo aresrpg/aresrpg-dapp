@@ -28,15 +28,14 @@ vs-button.btn(
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { ws_status } from '../../core/game/game.js';
+import { context, ws_status } from '../../core/game/game.js';
 
 const { t } = useI18n();
 
 const websocket_loading = ref(false);
-const user = inject('user');
 
 const ws_color = computed(() => {
   switch (ws_status.value) {
@@ -51,24 +50,39 @@ const ws_color = computed(() => {
   }
 });
 
+const online = ref(false);
+
+function update_online(state) {
+  if (state.online !== online.value) online.value = state.online;
+}
+
+onMounted(() => {
+  context.events.on('STATE_UPDATED', update_online);
+  update_online(context.get_state());
+});
+
+onUnmounted(() => {
+  context.events.off('STATE_UPDATED', update_online);
+});
+
 function toggle_ws() {
   if (websocket_loading.value) return;
 
   websocket_loading.value = true;
-  if (user.online) disconnect_from_server();
+  if (online) disconnect_from_server();
   else connect_to_server();
 }
 
 function connect_to_server() {
   setTimeout(() => {
-    user.online = true;
+    context.dispatch('action/set_online', true);
     websocket_loading.value = false;
   }, 1000);
 }
 
 function disconnect_from_server() {
   setTimeout(() => {
-    user.online = false;
+    context.dispatch('action/set_online', false);
     websocket_loading.value = false;
   }, 1000);
 }

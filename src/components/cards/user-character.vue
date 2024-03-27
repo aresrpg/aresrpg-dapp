@@ -86,36 +86,48 @@
 </template>
 
 <script setup>
-import { computed, ref, inject } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isValidSuiAddress } from '@mysten/sui.js/utils';
 
 import { experience_to_level } from '../../core/utils/game/experience.js';
-import { use_client } from '../../core/sui/client';
+import { context } from '../../core/game/game.js';
+import {
+  sui_delete_character,
+  sui_lock_character,
+  sui_send_object,
+  sui_unlock_character,
+} from '../../core/sui/client.js';
 
 const { t } = useI18n();
 const props = defineProps(['character', 'locked']);
-const client = use_client();
-
-const selected_wallet = inject('selected_wallet');
-const user = inject('user');
-
-const network = computed(() => {
-  const current_chain = selected_wallet.value?.chain;
-  if (!current_chain) return 'mainnet';
-
-  const [, chain] = current_chain.split(':');
-
-  return chain;
-});
 
 const genrer_icon = computed(() =>
   props.character.male ? 'bx-male-sign' : 'bx-female-sign',
 );
 
+const network = ref('mainnet');
+
 const character_explorer_link = computed(
   () => `https://suiscan.xyz/${network.value}/object/${props.character.id}`,
 );
+
+function update_network({ sui: { selected_wallet_name, wallets } }) {
+  const selected_wallet = wallets[selected_wallet_name];
+  if (selected_wallet) {
+    const [, chain] = selected_wallet.chain.split(':');
+    if (chain !== network.value) network.value = chain;
+  }
+}
+
+onMounted(() => {
+  context.events.on('STATE_UPDATED', update_network);
+  update_network(context.get_state());
+});
+
+onUnmounted(() => {
+  context.events.off('STATE_UPDATED', update_network);
+});
 
 const is_valid_sui_address = computed(() => {
   const is_alias = send_to.value.endsWith('.sui');
@@ -137,16 +149,10 @@ const send_loading = ref(false);
 const unlock_dialog = ref(false);
 const unlock_loading = ref(false);
 
-const receipt = computed(() => {
-  return user.character_lock_receipts?.find(
-    ({ character_id }) => character_id === props.character.id,
-  );
-});
-
 async function delete_character() {
   try {
     delete_loading.value = true;
-    await client.delete_character(props.character.id);
+    await sui_delete_character(props.character.id);
   } catch (error) {
     console.error(error);
   } finally {
@@ -159,7 +165,7 @@ async function lock_character() {
   try {
     lock_loading.value = true;
     console.log('locking', props.character.id);
-    await client.lock_character(props.character.id);
+    await sui_lock_character(props.character.id);
   } catch (error) {
     console.error(error);
   } finally {
@@ -172,9 +178,15 @@ async function unlock_character() {
   try {
     unlock_loading.value = true;
 
-    if (!receipt.value) throw new Error('No receipt id found');
+    const receipt = context
+      .get_state()
+      .sui.character_lock_receipts?.find(
+        ({ character_id }) => character_id === props.character.id,
+      );
 
-    await client.unlock_character(receipt.value);
+    if (!receipt) throw new Error('No receipt id found');
+
+    await sui_unlock_character(receipt);
   } catch (error) {
     console.error(error);
   } finally {
@@ -187,7 +199,7 @@ async function send_character() {
   try {
     send_loading.value = true;
     if (!is_valid_sui_address.value) throw new Error('Invalid Sui address');
-    await client.send_object(props.character.id, send_to.value);
+    await sui_send_object(props.character.id, send_to.value);
   } catch (error) {
     console.error(error);
   } finally {
@@ -233,7 +245,6 @@ async function send_character() {
     background: url('../../assets/class/sram_f.jpg') center / cover
     &.male
       background: url('../../assets/class/sram.jpg') center / cover
-
 
   &.locked
     border 1px solid #FFCA28

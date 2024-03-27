@@ -10,7 +10,6 @@ import { abortable } from '../utils/iterator.js'
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_chunks',
     observe({ events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
 
@@ -52,13 +51,14 @@ export default function () {
             },
           ],
         ) => {
-          if (last_view_distance)
+          if (last_view_distance) {
             if (
               last_view_distance !== view_distance ||
               last_far_view_distance !== far_view_distance
             ) {
               // await reset_chunks(true)
             }
+          }
 
           return {
             last_view_distance: view_distance,

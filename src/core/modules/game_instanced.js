@@ -1,7 +1,6 @@
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_instanced',
     tick(_, { pool }, delta) {
       Object.values(pool).forEach(value => {
         if (typeof value === 'function') return

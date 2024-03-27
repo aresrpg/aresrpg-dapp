@@ -24,28 +24,20 @@ en:
 </i18n>
 
 <script setup>
-import { inject, ref, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
 import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
-import { useRoute } from 'vue-router';
 
 import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
-import { use_client } from '../../core/sui/client';
+import { context } from '../../core/game/game.js';
 
 const { t } = useI18n();
-const route = useRoute();
-
-const selected_wallet = inject('selected_wallet');
-const selected_account = inject('selected_account');
-const user = inject('user');
 
 const update_selected_account = account => {
-  selected_account.value = account;
+  context.dispatch('action/select_address', account.address);
   localStorage.setItem('last_selected_address', account.address);
 };
-
-const is_world_tab = computed(() => route.name === 'world');
 
 const breakpoints = useBreakpoints({
   mobile: 1000,
@@ -55,26 +47,33 @@ const breakpoints = useBreakpoints({
 const login_dialog = ref(false);
 // dialog to choose the Sui Wallet
 const sui_wallet_dialog = ref(false);
-const account_select_dropdown = ref(false);
 const dropdown = ref(null);
 
-const client = use_client();
+const available_accounts = ref([]);
+const network = ref('mainnet');
+const sui_balance = ref(null);
 
-const available_accounts = computed(() => {
-  if (!selected_wallet.value) return [];
-  // return accounts without the selected index
-  return selected_wallet.value.accounts.filter(
-    ({ address }) => address !== selected_account.value.address,
-  );
+function update_accounts({ sui: { selected_wallet_name, wallets, balance } }) {
+  const selected_wallet = wallets[selected_wallet_name];
+  const accounts = selected_wallet?.accounts ?? [];
+  const network = selected_wallet?.chain.split(':')[1];
+
+  if (accounts.join() !== available_accounts.value.join())
+    available_accounts.value = accounts;
+  else available_accounts.value = [];
+
+  if (network !== network.value) network.value = network;
+
+  if (balance !== sui_balance.value) sui_balance.value = balance;
+}
+
+onMounted(() => {
+  context.events.on('STATE_UPDATED', update_accounts);
+  update_accounts(context.get_state());
 });
 
-const network = computed(() => {
-  const current_chain = selected_wallet.value?.chain;
-  if (!current_chain) return 'mainnet';
-
-  const [, chain] = current_chain.split(':');
-
-  return chain;
+onUnmounted(() => {
+  context.events.off('STATE_UPDATED', update_accounts);
 });
 
 function address_display(account) {
@@ -92,8 +91,8 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       i.bx.bx-droplet
       span {{ t('connect') }}
     vs-row.row(v-else justify="end")
-      .sui-balance(v-if="user.balance_sui != null")
-        span {{ user.balance_sui }}
+      .sui-balance(v-if="sui_balance != null")
+        span {{ mist_to_sui(sui_balance) }}
         img.icon(src="../../assets/sui/sui-logo.png")
       .badge(:class="{ mainnet: network === 'mainnet' }") Sui {{ network }} #[img.icon(:src="selected_wallet.icon")]
       // Address container with dropdown

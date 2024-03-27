@@ -209,8 +209,9 @@ export default class InstancedEntity extends InstancedSkinnedMesh {
       this.setBonesAt(index, this.skinned_mesh.skeleton)
 
       if (animations.size) {
-        if (this.skeleton?.boneTexture)
+        if (this.skeleton?.boneTexture) {
           this.skeleton.boneTexture.needsUpdate = true
+        }
         // reset the mixer to avoid impacting other entities
         this.mixer.stopAllAction()
       }

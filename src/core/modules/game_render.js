@@ -12,7 +12,6 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_render',
     observe({ scene, signal, composer, camera, pool }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
       // const n8aopass = new N8AOPass(

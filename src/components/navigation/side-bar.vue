@@ -52,11 +52,10 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from 'vue';
+import { inject, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
-import { VITE_ENABLE_TERRAIN_EDITOR } from '../../env';
 import serverInfo from '../cards/server-info.vue';
 
 const lang_dialog = inject('lang_dialog');

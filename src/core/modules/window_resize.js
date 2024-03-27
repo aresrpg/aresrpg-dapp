@@ -1,7 +1,6 @@
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'window_resize',
     observe({ renderer, camera, signal, composer }) {
       window.addEventListener(
         'resize',

@@ -39,7 +39,6 @@ export default function () {
   })
 
   return {
-    name: 'game_nature',
     tick() {
       water.material.uniforms.time.value += 1.0 / 60.0
     },

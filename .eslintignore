@@ -1,2 +1,4 @@
 .vercel
 dev-dist
+types/
+node_modules/

@@ -9,7 +9,6 @@ import { TransactionBlock } from '@mysten/sui.js/transactions'
 import BN from 'bignumber.js'
 import { MIST_PER_SUI } from '@mysten/sui.js/utils'
 import { LRUCache } from 'lru-cache'
-import { inject } from 'vue'
 
 import {
   VITE_ARESRPG_ADMIN_CAP_MAINNET,
@@ -22,6 +21,8 @@ import {
   VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
   VITE_USE_ANKR,
 } from '../../env.js'
+import { context } from '../game/game.js'
+import logger from '../../logger.js'
 
 const PACKAGES = {
   'sui:testnet': {
@@ -76,13 +77,14 @@ let package_original = VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL
 let package_upgraded = VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED
 let name_registry = VITE_ARESRPG_NAME_REGISTRY_MAINNET
 let admin_cap = VITE_ARESRPG_ADMIN_CAP_MAINNET
+let known_storages = []
 
-export const set_network = network => {
+export const set_network = async network => {
   if (network === 'sui:mainnet' || network === 'sui:testnet') {
     if (last_used_network === network) return
     last_used_network = network
 
-    console.log('switch network to', network)
+    logger.SUI('switch network to', network)
 
     client = get_client(network.split(':')[1])
     const {
@@ -91,250 +93,293 @@ export const set_network = network => {
       name_registry: name_reg,
       admin_cap: adm_cap,
     } = PACKAGES[network]
+
     package_original = original
     package_upgraded = upgraded
     name_registry = name_reg
     admin_cap = adm_cap
-  }
-}
 
-export function use_client(
-  wallet = inject('selected_wallet'),
-  account = inject('selected_account'),
-  known_storages = inject('known_storages'),
-) {
-  const execute = transaction_block =>
-    wallet.value.signAndExecuteTransactionBlock({
-      transaction_block,
-      account: account.value,
-      chain: wallet.value.chain,
+    const known_storages_result = await client.getObject({
+      id: admin_cap,
+      options: { showContent: true },
     })
 
-  const active_subscription = {
-    unsubscribe: null,
-    emitter: null,
+    known_storages =
+      // @ts-ignore
+      known_storages_result.data.content.fields.known_storages.fields.contents
   }
-
-  function random_storage() {
-    const storage =
-      known_storages.value[
-        Math.floor(Math.random() * known_storages.value.length)
-      ]
-
-    if (!storage) throw new Error('No available storage')
-    return storage
-  }
-
-  const calls = {
-    async get_sui_balance() {
-      const { totalBalance } = await client.getBalance({
-        owner: account.value.address,
-      })
-      return BN(totalBalance).dividedBy(MIST_PER_SUI.toString())
-    },
-
-    async request_storage() {
-      const tx = new TransactionBlock()
-
-      tx.moveCall({
-        target: `${package_upgraded}::storage::create`,
-      })
-
-      await execute(tx)
-    },
-
-    async create_character({ name, type, male = true }) {
-      const tx = new TransactionBlock()
-
-      const [character] = tx.moveCall({
-        target: `${package_upgraded}::character::create_character`,
-        arguments: [
-          tx.object(name_registry),
-          tx.pure(name),
-          tx.pure(type),
-          tx.pure(male),
-        ],
-      })
-
-      tx.transferObjects([character], account.value.address)
-
-      await execute(tx)
-    },
-
-    async is_character_name_taken(name) {
-      const txb = new TransactionBlock()
-      txb.setSender(account.value.address)
-      txb.moveCall({
-        target: `${package_upgraded}::character::is_name_taken`,
-        arguments: [txb.object(name_registry), txb.pure(name)],
-      })
-
-      txb.setGasBudget(100000000)
-
-      const {
-        effects: {
-          status: { status },
-        },
-      } = await client.dryRunTransactionBlock({
-        transactionBlock: await txb.build({ client }),
-      })
-
-      return status === 'failure'
-    },
-
-    async delete_character(id) {
-      const tx = new TransactionBlock()
-
-      tx.moveCall({
-        target: `${package_upgraded}::character::delete_character`,
-        arguments: [tx.object(id), tx.object(name_registry)],
-      })
-
-      await execute(tx)
-    },
-
-    async lock_character(character_id) {
-      const tx = new TransactionBlock()
-
-      tx.moveCall({
-        target: `${package_upgraded}::server::lock_character`,
-        arguments: [tx.object(random_storage()), tx.object(character_id)],
-      })
-
-      await execute(tx)
-    },
-
-    async unlock_character(receipt) {
-      const tx = new TransactionBlock()
-      const [character] = tx.moveCall({
-        target: `${package_upgraded}::server::unlock_character`,
-        arguments: [tx.object(receipt.storage_id), tx.object(receipt.id)],
-      })
-      tx.transferObjects([character], tx.pure(account.value.address))
-
-      await execute(tx)
-    },
-
-    async send_object(id, to) {
-      const is_alias = to.endsWith('.sui')
-      const address = is_alias
-        ? await mainnet_client.resolveNameServiceAddress({ name: to })
-        : to
-
-      const tx = new TransactionBlock()
-      tx.transferObjects([tx.object(id)], tx.pure(address))
-
-      await execute(tx)
-    },
-
-    async get_receipts() {
-      const result = await client.getOwnedObjects({
-        owner: account.value.address,
-        filter: {
-          StructType: `${package_original}::server::CharacterLockReceipt`,
-        },
-        options: {
-          showContent: true,
-        },
-      })
-
-      const receipts = result.data.map(({ data }) => ({
-        // @ts-ignore
-        ...data.content.fields,
-        // @ts-ignore
-        id: data.content.fields.id.id,
-      }))
-      return receipts
-    },
-
-    async get_locked_characters(receipts) {
-      if (!receipts.length) return []
-
-      const characters = await client.multiGetObjects({
-        ids: receipts.map(({ character_id }) => character_id),
-        options: { showContent: true },
-      })
-
-      return characters.map(
-        ({
-          data: {
-            // @ts-ignore
-            content: { fields },
-          },
-        }) => ({
-          ...fields,
-          id: fields.id.id,
-        }),
-      )
-    },
-
-    async get_unlocked_user_characters() {
-      const result = await client.getOwnedObjects({
-        owner: account.value.address,
-        filter: {
-          StructType: `${package_original}::character::Character`,
-        },
-        options: {
-          showContent: true,
-        },
-      })
-
-      return result.data.map(
-        ({
-          data: {
-            // @ts-ignore
-            content: { fields },
-          },
-        }) => ({
-          ...fields,
-          id: fields.id.id,
-        }),
-      )
-    },
-
-    async get_available_storages() {
-      const result = await client.getObject({
-        id: admin_cap,
-        options: { showContent: true },
-      })
-      return result.data.content.fields.known_storages.fields.contents
-    },
-
-    async get_inventory() {},
-
-    async subscribe() {
-      const emitter = new EventEmitter()
-
-      if (active_subscription.unsubscribe) {
-        active_subscription.emitter.removeAllListeners()
-        await active_subscription.unsubscribe()
-      }
-
-      active_subscription.emitter = emitter
-      active_subscription.unsubscribe = await client.subscribeEvent({
-        onMessage: event => emitter.emit('update', event),
-        filter: {
-          All: [
-            { Package: package_original },
-            { MoveEventField: { path: '/for', value: account.value.address } },
-          ],
-        },
-      })
-
-      return emitter
-    },
-  }
-
-  return calls
 }
 
+function get_wallet() {
+  const {
+    sui: { wallets, selected_wallet_name },
+  } = context.get_state()
+
+  return wallets[selected_wallet_name]
+}
+
+function get_address() {
+  return context.get_state().selected_address
+}
+
+const execute = transaction_block => {
+  const signed = get_wallet().signTransactionBlock({
+    transaction_block,
+    sender: get_address(),
+  })
+
+  console.log('signed', signed)
+
+  return client.executeTransactionBlock({
+    transactionBlock: signed,
+    signature: null,
+  })
+}
+
+const active_subscription = {
+  unsubscribe: null,
+  emitter: null,
+  interval: null,
+}
+
+function random_storage() {
+  const storage =
+    known_storages[Math.floor(Math.random() * known_storages.length)]
+
+  if (!storage) throw new Error('No available storage')
+  return storage
+}
+
+export function mists_to_sui(balance) {
+  return BN(balance).dividedBy(MIST_PER_SUI.toString()).toString()
+}
+
+export async function sui_get_sui_balance() {
+  const { totalBalance } = await client.getBalance({
+    owner: get_address(),
+  })
+
+  logger.SUI('get balance', mists_to_sui(totalBalance))
+  return BigInt(totalBalance)
+}
+
+export async function sui_create_character({ name, type, male = true }) {
+  const tx = new TransactionBlock()
+
+  const [character] = tx.moveCall({
+    target: `${package_upgraded}::character::create_character`,
+    arguments: [
+      tx.object(name_registry),
+      tx.pure(name),
+      tx.pure(type),
+      tx.pure(male),
+    ],
+  })
+
+  tx.transferObjects([character], get_address())
+
+  logger.SUI('create character', { name, type, male })
+
+  await execute(tx)
+}
+
+export async function sui_is_character_name_taken(name) {
+  const txb = new TransactionBlock()
+  txb.setSender(get_address())
+  txb.moveCall({
+    target: `${package_upgraded}::character::is_name_taken`,
+    arguments: [txb.object(name_registry), txb.pure(name)],
+  })
+
+  txb.setGasBudget(100000000)
+
+  const {
+    effects: {
+      status: { status },
+    },
+  } = await client.dryRunTransactionBlock({
+    transactionBlock: await txb.build({ client }),
+  })
+
+  logger.SUI('is character name taken', { name, status })
+
+  return status === 'failure'
+}
+
+export async function sui_delete_character(id) {
+  const tx = new TransactionBlock()
+
+  tx.moveCall({
+    target: `${package_upgraded}::character::delete_character`,
+    arguments: [tx.object(id), tx.object(name_registry)],
+  })
+
+  logger.SUI('delete character', id)
+
+  await execute(tx)
+}
+
+export async function sui_lock_character(character_id) {
+  const tx = new TransactionBlock()
+
+  tx.moveCall({
+    target: `${package_upgraded}::server::lock_character`,
+    arguments: [tx.object(random_storage()), tx.object(character_id)],
+  })
+
+  logger.SUI('lock character', character_id)
+
+  await execute(tx)
+}
+
+export async function sui_unlock_character(receipt) {
+  const tx = new TransactionBlock()
+  const [character] = tx.moveCall({
+    target: `${package_upgraded}::server::unlock_character`,
+    arguments: [tx.object(receipt.storage_id), tx.object(receipt.id)],
+  })
+  tx.transferObjects([character], tx.pure(get_address()))
+
+  logger.SUI('unlock character', receipt.id)
+
+  await execute(tx)
+}
+
+export async function sui_send_object(id, to) {
+  const is_alias = to.endsWith('.sui')
+  const address = is_alias
+    ? await mainnet_client.resolveNameServiceAddress({ name: to })
+    : to
+
+  const tx = new TransactionBlock()
+  tx.transferObjects([tx.object(id)], tx.pure(address))
+
+  logger.SUI('send object', { id, to })
+
+  await execute(tx)
+}
+
+export async function sui_get_receipts() {
+  const result = await client.getOwnedObjects({
+    owner: get_address(),
+    filter: {
+      StructType: `${package_original}::server::CharacterLockReceipt`,
+    },
+    options: {
+      showContent: true,
+    },
+  })
+
+  const receipts = result.data.map(({ data }) => ({
+    // @ts-ignore
+    ...data.content.fields,
+    // @ts-ignore
+    id: data.content.fields.id.id,
+  }))
+
+  logger.SUI('get receipts', receipts)
+
+  return receipts
+}
+
+export async function sui_get_locked_characters(receipts) {
+  if (!receipts.length) return []
+
+  const characters = await client.multiGetObjects({
+    ids: receipts.map(({ character_id }) => character_id),
+    options: { showContent: true },
+  })
+
+  const mapped = characters.map(
+    ({
+      data: {
+        // @ts-ignore
+        content: { fields },
+      },
+    }) => ({
+      ...fields,
+      id: fields.id.id,
+    }),
+  )
+
+  logger.SUI('get locked characters', mapped)
+
+  return mapped
+}
+
+export async function sui_get_unlocked_characters() {
+  const result = await client.getOwnedObjects({
+    owner: get_address(),
+    filter: {
+      StructType: `${package_original}::character::Character`,
+    },
+    options: {
+      showContent: true,
+    },
+  })
+
+  const mapped = result.data.map(
+    ({
+      data: {
+        // @ts-ignore
+        content: { fields },
+      },
+    }) => ({
+      ...fields,
+      id: fields.id.id,
+    }),
+  )
+
+  logger.SUI('get unlocked characters', mapped)
+
+  return mapped
+}
+
+export async function sui_get_inventory() {}
+
+export async function sui_subscribe() {
+  const emitter = new EventEmitter()
+
+  logger.SUI('subscribing to events')
+
+  try {
+    if (active_subscription.unsubscribe) {
+      active_subscription.emitter.removeAllListeners()
+      clearInterval(active_subscription.interval)
+      await active_subscription.unsubscribe()
+    }
+
+    active_subscription.emitter = emitter
+    active_subscription.interval = setInterval(() => {
+      emitter.emit('update', { type: 'interval' })
+    }, 10000)
+    active_subscription.unsubscribe = await client.subscribeEvent({
+      onMessage: event => emitter.emit('update', event),
+      filter: {
+        All: [
+          { Package: package_original },
+          { MoveEventField: { path: '/for', value: get_address() } },
+        ],
+      },
+    })
+  } catch (error) {
+    console.error('Unable to subscribe to the Sui node', error)
+  }
+
+  return emitter
+}
+
+/** @type {(address: string) => Promise<string>} */
 export async function get_alias(address) {
   const cached = SUINS_CACHE.get(address)
+  // @ts-ignore
   if (cached) return cached
 
   const {
     data: [name],
   } = await mainnet_client.resolveNameServiceNames({ address, limit: 1 })
+
+  logger.SUI('get alias', { address, name })
 
   if (name) {
     SUINS_CACHE.set(address, name)

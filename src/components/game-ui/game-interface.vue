@@ -17,15 +17,9 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, inject, ref, reactive } from 'vue';
-import { Vector3 } from 'three';
+import { onMounted, onUnmounted, ref, reactive } from 'vue';
 
-import {
-  ws_status,
-  send_packet,
-  dispatch,
-  events,
-} from '../../core/game/game.js';
+import { context } from '../../core/game/game.js';
 
 import characterSelectVue from './character-select.vue';
 import wsConnectBtnVue from './ws-connect-btn.vue';
@@ -44,8 +38,8 @@ function on_escape({ key }) {
 }
 
 function on_menu_quit_btn() {
-  send_packet('packet/leaveGame', {});
-  dispatch('action/load_game_state', 'MENU');
+  context.send_packet('packet/leaveGame', {});
+  context.dispatch('action/load_game_state', 'MENU');
 }
 
 function update_server_info({ online, max }) {
@@ -57,12 +51,12 @@ function on_menu_controls_btn() {}
 
 onMounted(() => {
   window.addEventListener('keydown', on_escape);
-  events.on('packet/serverInfo', update_server_info);
+  context.events.on('packet/serverInfo', update_server_info);
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', on_escape);
-  events.off('packet/serverInfo', update_server_info);
+  context.events.off('packet/serverInfo', update_server_info);
 });
 </script>
 
