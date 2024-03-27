@@ -8,6 +8,7 @@
     "ecmaVersion": "latest",
     "parser": "@typescript-eslint/parser"
   },
+  "ignorePatterns": ["dist/*"],
   "rules": {
     "camelcase": "off",
     "no-var": "error",

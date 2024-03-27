@@ -53,6 +53,7 @@ const FILTER_ACTION_IN_LOGS = [
   'action/keydown',
   'action/keyup',
   'action/set_state_player_position',
+  'action/sky_lights_change',
 ]
 export const FILTER_PACKET_IN_LOGS = [
   'packet/playerPosition',
@@ -76,6 +77,7 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {(state: State, context: Context, delta: number) => void} Ticker */
 /** @typedef {() => { name: string, reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
+/** @typedef {typeof INITIAL_STATE.settings.sky.lights} SkyLights */
 
 export const INITIAL_STATE = {
   settings: {
@@ -92,6 +94,31 @@ export const INITIAL_STATE = {
       ['ShiftLeft', 'walk'],
     ]),
     show_entities_collider: false,
+
+    sky: {
+      paused: false,
+      value: 0.78,
+      sun_size: 0.0004,
+
+      lights: {
+        version: -1,
+
+        fog: {
+          color: new Color(0xffffff),
+        },
+
+        directional: {
+          position: new Vector3(0, 1, 0),
+          color: new Color(0xffffff),
+          intensity: 1,
+        },
+
+        ambient: {
+          color: new Color(0xffffff),
+          intensity: 1.5,
+        },
+      },
+    },
 
     view_distance: 3,
     far_view_distance: 20,

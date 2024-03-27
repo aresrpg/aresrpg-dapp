@@ -2,8 +2,6 @@ import { GUI } from 'dat.gui'
 
 import { INITIAL_STATE } from '../game/game.js'
 
-import { DAY_DURATION } from './game_lights.js'
-
 /** @type {Type.Module} */
 export default function () {
   const settings = { ...INITIAL_STATE.settings }
@@ -33,6 +31,8 @@ export default function () {
       })
 
       const game_folder = gui.addFolder('Game Settings')
+      const daytime_folder = gui.addFolder('Sky')
+      daytime_folder.open()
       const terrain_folder = gui.addFolder('Terrain Settings')
       const camera_folder = gui.addFolder('Camera Settings')
 
@@ -72,11 +72,34 @@ export default function () {
       game_folder
         .add(
           {
-            set_time: () => events.emit('SET_TIME', DAY_DURATION * 0.7),
+            set_time: () =>
+              events.emit('SKY_CYCLE_CHANGED', { value: 0.7, fromUi: true }),
           },
           'set_time',
         )
         .name('Set day')
+
+      const daytime_pause_control = daytime_folder
+        .add(settings.sky, 'paused')
+        .name('Pause cycle')
+        .onChange(paused => events.emit('SKY_CYCLE_PAUSED', paused))
+      const daytime_value_control = daytime_folder
+        .add(settings.sky, 'value', 0, 1, 0.001)
+        .name('Time')
+        .onChange(value =>
+          events.emit('SKY_CYCLE_CHANGED', { value, fromUi: true }),
+        )
+      events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
+        if (fromUi) {
+          daytime_pause_control.setValue(true)
+        } else {
+          settings.sky.value = value
+          daytime_value_control.updateDisplay()
+        }
+      })
+      daytime_folder
+        .add(settings.sky, 'sun_size', 0, 0.002)
+        .onChange(value => events.emit('SKY_SUNSIZE_CHANGED', value))
 
       terrain_folder
         .add(settings, 'view_distance', 1, 10, 1)

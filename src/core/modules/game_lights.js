@@ -1,4 +1,4 @@
-import { setInterval } from 'timers/promises'
+import { on } from 'events'
 
 import {
   AmbientLight,
@@ -6,30 +6,18 @@ import {
   Color,
   DirectionalLight,
   DirectionalLightHelper,
-  MathUtils,
-  PMREMGenerator,
   PlaneGeometry,
   RepeatWrapping,
-  Scene,
   TextureLoader,
   Vector3,
 } from 'three'
 import { Water } from 'three/examples/jsm/objects/Water.js'
-import { Sky } from 'three/examples/jsm/objects/Sky.js'
-import { aiter } from 'iterator-helper'
 import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
+import { aiter } from 'iterator-helper'
 
 import water_normal from '../../assets/waternormals.jpg'
 import { abortable } from '../core-utils/iterator.js'
 
-const COLORS = {
-  sunrise: new Color(0xffa500),
-  noon: new Color(0xffffff),
-  sunset: new Color(0xff4500),
-  night: new Color(0x0000ff),
-}
-
-export const DAY_DURATION = 600000 // 10 minutes in milliseconds
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
 const CAMERA_SHADOW_SIZE = 100
@@ -53,95 +41,42 @@ export default function () {
   return {
     name: 'game_nature',
     tick() {
-      if (water) water.material.uniforms.time.value += 1.0 / 60.0
+      water.material.uniforms.time.value += 1.0 / 60.0
     },
-    observe({ scene, renderer, signal, get_state, events }) {
+    observe({ scene, get_state, events, signal }) {
       // lights
-      const ambiant_light = new AmbientLight(0xffffff, 1.5)
+      const ambient_light = new AmbientLight(0xffffff, 1.5)
 
-      const sunlight = new DirectionalLight(0xffffff, 1)
-      const moonlight = new DirectionalLight(0x6666ff, 0) // Initially off
-      const sunlight_helper = new DirectionalLightHelper(sunlight, 10)
-      const suncamera_helper = new CameraHelper(sunlight.shadow.camera)
+      const directional_light = new DirectionalLight(0xffffff, 1)
+      const dirlight_helper = new DirectionalLightHelper(directional_light, 10)
+      const dircamera_helper = new CameraHelper(directional_light.shadow.camera)
 
-      const moonlight_helper = new DirectionalLightHelper(moonlight, 10)
-      const mooncamera_helper = new CameraHelper(moonlight.shadow.camera)
+      directional_light.castShadow = true
+      directional_light.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
+      directional_light.shadow.mapSize.height = 4096
 
-      sunlight.castShadow = true
-      sunlight.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
-      sunlight.shadow.mapSize.height = 4096
+      directional_light.shadow.camera.near = CAMERA_SHADOW_NEAR
+      directional_light.shadow.camera.far = CAMERA_SHADOW_FAR
+      directional_light.shadow.camera.left = -CAMERA_SHADOW_SIZE
+      directional_light.shadow.camera.right = CAMERA_SHADOW_SIZE
+      directional_light.shadow.camera.top = CAMERA_SHADOW_SIZE
+      directional_light.shadow.camera.bottom = -CAMERA_SHADOW_SIZE
+      directional_light.shadow.bias = -0.000005 // This value may need tweaking
 
-      sunlight.shadow.camera.near = CAMERA_SHADOW_NEAR
-      sunlight.shadow.camera.far = CAMERA_SHADOW_FAR
-      sunlight.shadow.camera.left = -CAMERA_SHADOW_SIZE
-      sunlight.shadow.camera.right = CAMERA_SHADOW_SIZE
-      sunlight.shadow.camera.top = CAMERA_SHADOW_SIZE
-      sunlight.shadow.camera.bottom = -CAMERA_SHADOW_SIZE
-      sunlight.shadow.bias = -0.000005 // This value may need tweaking
+      directional_light.shadow.camera.updateProjectionMatrix()
+      dircamera_helper.update()
 
-      sunlight.shadow.camera.updateProjectionMatrix()
-      suncamera_helper.update()
-
-      moonlight.castShadow = true
-      moonlight.shadow.mapSize.width = 2048 // Adjust as needed for performance/quality
-      moonlight.shadow.mapSize.height = 2048
-
-      moonlight.shadow.camera.near = CAMERA_SHADOW_NEAR
-      moonlight.shadow.camera.far = CAMERA_SHADOW_FAR
-      moonlight.shadow.camera.left = -CAMERA_SHADOW_SIZE
-      moonlight.shadow.camera.right = CAMERA_SHADOW_SIZE
-      moonlight.shadow.camera.top = CAMERA_SHADOW_SIZE
-      moonlight.shadow.camera.bottom = -CAMERA_SHADOW_SIZE
-      // moonlight.shadow.bias = 0.2 // This value may need tweaking
-      moonlight.shadow.bias = -0.000005 // This value may need tweaking
-
-      moonlight.shadow.camera.updateProjectionMatrix()
-      mooncamera_helper.update()
-
-      scene.add(ambiant_light)
-      scene.add(sunlight)
-      scene.add(sunlight.target)
-      scene.add(sunlight_helper)
-      scene.add(suncamera_helper)
-
-      scene.add(moonlight)
-      scene.add(moonlight.target)
-      scene.add(moonlight_helper)
-      scene.add(mooncamera_helper)
+      scene.add(ambient_light)
+      scene.add(directional_light)
+      scene.add(directional_light.target)
+      scene.add(dirlight_helper)
+      scene.add(dircamera_helper)
 
       // water
       water.position.y = 9.5
       water.rotation.x = -Math.PI / 2
 
       scene.add(water)
-
-      // sky
-      const sky = new Sky()
-
-      sky.scale.setScalar(10000)
-
-      const { uniforms } = sky.material
-
-      uniforms.turbidity.value = 10
-      uniforms.rayleigh.value = 2
-      uniforms.mieCoefficient.value = 0.005
-      uniforms.mieDirectionalG.value = 0.8
-
-      scene.add(sky)
-
-      // sun
-      const sun = new Vector3()
-      const pmrem_generator = new PMREMGenerator(renderer)
-
-      let render_target = null
-      let sky_elevation = 0
-      let sky_azimuth = 0
-      let day_time = DAY_DURATION * 0.7 // Track the time of day as a value between 0 and DAY_DURATION
-      const day_time_step = 3000 // How much ms between updates
-
-      events.on('SET_TIME', time => {
-        day_time = time
-      })
 
       function get_player_chunk_position() {
         try {
@@ -154,11 +89,9 @@ export default function () {
         }
       }
 
-      function update_cycle() {
-        // Update day_time and calculate day_ratio
-        day_time = (day_time + day_time_step) % DAY_DURATION
-        const day_ratio = day_time / DAY_DURATION
-
+      function update_directional_light_position(
+        /** @type Vector3 */ light_position,
+      ) {
         const chunk_position = get_player_chunk_position()
 
         const light_base_position = new Vector3(
@@ -168,88 +101,35 @@ export default function () {
         )
         const light_target_position = light_base_position.clone().setY(0)
 
-        // Calculate sun's position
-        const angle = day_ratio * Math.PI * 2
-        sky_elevation = 90 - (Math.sin(angle) * 0.5 + 0.5) * 180
-        sky_azimuth = ((day_ratio * 360) % 360) - 180
-
-        const is_night = sky_elevation <= 0
-
-        const phi = MathUtils.degToRad(90 - sky_elevation)
-        const theta = MathUtils.degToRad(sky_azimuth)
-        sun.setFromSphericalCoords(1, phi, theta)
-
-        // Update sky and water materials
-        sky.material.uniforms.sunPosition.value.copy(sun)
-        water.material.uniforms.sunDirection.value.copy(sun).normalize()
-
         // Calculate the sun and moon position relative to the base position
-        const sun_position_offset = sun.clone().multiplyScalar(200)
-        const moon_position_offset = sun.clone().negate().multiplyScalar(200)
-
-        sunlight.position.copy(light_base_position).add(sun_position_offset)
-        sunlight.target.position.copy(light_target_position)
-
-        moonlight.position.copy(light_base_position).add(moon_position_offset)
-        moonlight.target.position.copy(light_target_position)
-
-        const normalized_phi = phi / Math.PI
-        const intensity =
-          Math.min(0.2, Math.cos(normalized_phi * Math.PI) * 0.4) + 0.5
-
-        sunlight.intensity = Math.max(0, intensity)
-        ambiant_light.intensity = Math.max(0.5, intensity)
-        moonlight.intensity = is_night ? 0.5 : 0 // Adjust intensity based on night/day
-
-        if (!is_night) {
-          const color = COLORS.sunrise.lerp(COLORS.noon, sky_elevation / 90)
-          sunlight.color = color
-          scene.fog.color = color
-          if (moonlight.parent) {
-            scene.remove(moonlight)
-            scene.remove(moonlight.target)
-            scene.remove(moonlight_helper)
-            scene.remove(mooncamera_helper)
-          }
-          if (!sunlight.parent) {
-            scene.add(sunlight)
-            scene.add(sunlight.target)
-            scene.add(sunlight_helper)
-            scene.add(suncamera_helper)
-          }
-        } else {
-          if (!moonlight.parent) {
-            scene.add(moonlight)
-            scene.add(moonlight.target)
-            scene.add(moonlight_helper)
-            scene.add(mooncamera_helper)
-          }
-          if (sunlight.parent) {
-            scene.remove(sunlight)
-            scene.remove(sunlight.target)
-            scene.remove(sunlight_helper)
-            scene.remove(suncamera_helper)
-          }
-          const color = COLORS.sunset.lerp(COLORS.night, -sky_elevation / 90)
-          sunlight.color = color
-          scene.fog.color = color
-        }
-
-        // Update environment map
-        if (render_target) render_target.dispose()
-
-        const scene_env = new Scene()
-        scene_env.add(sky)
-        render_target = pmrem_generator.fromScene(scene_env)
-        scene.environment = render_target.texture
-
-        events.emit('TIME_CHANGE', day_time)
+        const sun_position_offset = light_position.clone().multiplyScalar(200)
+        directional_light.position
+          .copy(light_base_position)
+          .add(sun_position_offset)
+        directional_light.target.position.copy(light_target_position)
       }
 
-      update_cycle()
+      function apply_sky_lights(sky_lights) {
+        scene.fog.color = sky_lights.fog.color
+          .clone()
+          .lerp(new Color('#000000'), 0.4)
 
-      aiter(abortable(setInterval(day_time_step, null, { signal }))).forEach(
-        update_cycle,
+        update_directional_light_position(sky_lights.directional.position)
+        directional_light.color = sky_lights.directional.color
+        directional_light.intensity = sky_lights.directional.intensity
+
+        ambient_light.color = sky_lights.ambient.color
+        ambient_light.intensity = sky_lights.ambient.intensity
+      }
+
+      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
+        (sky_lights_version, [state]) => {
+          if (state.settings.sky.lights.version !== sky_lights_version) {
+            sky_lights_version = state.settings.sky.lights.version
+            apply_sky_lights(state.settings.sky.lights)
+          }
+          return state.settings.sky.lights.version
+        },
       )
     },
   }
