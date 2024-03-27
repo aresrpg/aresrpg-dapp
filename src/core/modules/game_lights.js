@@ -124,7 +124,7 @@ export default function () {
         ambient_light.intensity = sky_lights.ambient.intensity
       }
 
-      aiter(on(events, 'STATE_UPDATED')).reduce(
+      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
         (
           sky_lights_version,
           /** @type import('../../core/game/game').State[] */ [state],
