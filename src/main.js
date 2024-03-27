@@ -13,7 +13,7 @@ import toast from './toast.js'
 inject()
 
 console.log(
-  `%c You're curious, I like you 🤭🍑`,
+  "%c You're curious, I like you 🤭🍑",
   'color: #1565C0;font-weight:bold;font-size:22px;',
 )
 console.log(
@@ -40,7 +40,7 @@ export const i18n = createI18n({
         'Tu ne possèdes pas Minecraft sur ce compte Microsoft',
       minecraft_not_linked: "Tu dois d'abord lier ton compte Microsoft",
       captcha_failed: 'Captcha invalide, réessayez',
-      not_la: `Tu n'etait pas sur la v1`,
+      not_la: "Tu n'etait pas sur la v1",
       refresh_too_soon: 'Attend un peu avant de rafraichir',
       unlink_last_provider: 'Tu ne peux pas retirer ton dernier compte',
     },
@@ -54,7 +54,7 @@ export const i18n = createI18n({
       minecraft_not_owned: 'You do not own Minecraft on this Microsoft account',
       minecraft_not_linked: 'You must connect your Microsoft account first',
       captcha_failed: 'Invalid captcha, please retry',
-      not_la: `You weren't on v1`,
+      not_la: "You weren't on v1",
       refresh_too_soon: 'Wait a bit before refreshing',
       unlink_last_provider: "You can't unlink your last account",
     },

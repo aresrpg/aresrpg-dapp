@@ -10,27 +10,46 @@
 <template lang="pug">
 .container
   span(v-if="!selected_wallet && !props.allow_offline") {{ t('please_connect') }}
-  span(v-else-if="!is_chain_supported && !props.allow_offline")
+  span(v-else-if="!network_supported && !props.allow_offline")
     .content
         i18n-t(keypath="chain_not_supported") #[b.sui-network {{ network }}]
   slot(v-else)
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { onUnmounted, computed, inject, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { context } from '../../core/game/game.js';
+import { is_chain_supported } from '../../core/utils/sui/is_chain_supported.js';
+
 const { t } = useI18n();
-const selected_wallet = inject('selected_wallet');
 const props = defineProps(['allow_offline']);
 
-const network = computed(() => {
-  const current_chain = selected_wallet.value?.chain;
-  if (!current_chain) return 'mainnet';
-  return current_chain.split(':')[1];
+const network = ref('mainnet');
+const network_supported = ref(false);
+
+function update_network({ sui, sui: { selected_wallet_name, wallets } }) {
+  const selected_wallet = wallets[selected_wallet_name];
+  const is_network_supported = is_chain_supported(sui);
+
+  if (network_supported.value !== is_network_supported)
+    network_supported.value = is_network_supported;
+
+  if (selected_wallet) {
+    const [, chain] = selected_wallet.chain.split(':');
+    if (chain !== network.value) network.value = chain;
+  }
+}
+
+onMounted(() => {
+  context.events.on('STATE_UPDATED', update_network);
+  update_network(context.get_state());
 });
 
-const is_chain_supported = inject('is_chain_supported');
+onUnmounted(() => {
+  context.events.off('STATE_UPDATED', update_network);
+});
 </script>
 
 <style lang="stylus" scoped>

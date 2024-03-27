@@ -11,7 +11,6 @@ const CAMERA_MAX_ZOOM = 500
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_camera',
     tick({ player, settings: { free_camera } }, { camera_controls }, delta) {
       if (!player?.position) return
 
@@ -102,8 +101,9 @@ export default function () {
         'mouseup',
         () => {
           // is_dragging = false
-          if (document.pointerLockElement === renderer.domElement)
+          if (document.pointerLockElement === renderer.domElement) {
             document.exitPointerLock()
+          }
         },
         { signal },
       )

@@ -6,7 +6,7 @@ let t
 
 const show_error = message => {
   VsNotification({
-    icon: `<i class='bx bxs-bug'></i>`,
+    icon: "<i class='bx bxs-bug'></i>",
     flat: true,
     color: 'danger',
     position: 'top-center',

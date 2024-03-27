@@ -3,7 +3,6 @@ import toast from '../../toast'
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_connect',
     observe({ events, connect_ws }) {
       events.on('CONNECT_TO_SERVER', () => {
         connect_ws().catch(error => {

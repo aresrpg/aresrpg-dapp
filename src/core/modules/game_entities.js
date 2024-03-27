@@ -17,7 +17,6 @@ const CANCELED_BY_NOT_MOVING = ['JUMP', 'WALK', 'RUN']
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_entities',
     tick({ entities }, __, delta) {
       // handle entities movement
       for (const entity of entities.values()) {
@@ -44,15 +43,17 @@ export default function () {
           entity.rotate(movement)
 
           // if is moving
-          if (old_position.distanceTo(entity.target_position) > 0.5)
+          if (old_position.distanceTo(entity.target_position) > 0.5) {
             if (CANCELED_BY_MOVING.includes(entity.action)) entity.action = null
+          }
 
           const is_moving_horizontally = movement.setY(0).lengthSq() > 0.001
 
           if (new_position.distanceTo(entity.target_position) < 0.01) {
             entity.target_position = null
-            if (CANCELED_BY_NOT_MOVING.includes(entity.action))
+            if (CANCELED_BY_NOT_MOVING.includes(entity.action)) {
               entity.action = null
+            }
           }
 
           entity.animate(
@@ -88,9 +89,10 @@ export default function () {
 
             entity.title.text = `${name} (${level})`
 
-            if (type === 'MOB')
+            if (type === 'MOB') {
               // position.y = HEIGHTFIELD(position.x, position.z) + entity.height
               position.y = 100
+            }
 
             entity.move(position)
             entities.set(id, {
@@ -132,13 +134,14 @@ export default function () {
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 
-            if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible)
+            if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
               entity.title.visible = false
-            else if (
+            } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
               !entity.title.visible
-            )
+            ) {
               entity.title.visible = true
+            }
           }
         }
       })
@@ -155,13 +158,14 @@ export default function () {
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 
-            if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible)
+            if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
               entity.title.visible = false
-            else if (
+            } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
               !entity.title.visible
-            )
+            ) {
               entity.title.visible = true
+            }
           }
         })
       })

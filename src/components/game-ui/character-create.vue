@@ -12,19 +12,19 @@ en:
 </i18n>
 
 <script setup>
-import { inject, onUnmounted, onMounted, ref, watch, computed } from 'vue';
+import { inject, ref, watch, computed } from 'vue';
 import Spells from '@aresrpg/aresrpg-protocol/src/spells.json';
 import { useI18n } from 'vue-i18n';
 
-import logo from '../../assets/logo.png';
-import text_logo from '../../assets/text_logo.png';
-import pkg from '../../../package.json';
 import iop from '../../assets/class/iop.jpg';
 import iop_f from '../../assets/class/iop_f.jpg';
 import sram from '../../assets/class/sram.jpg';
 import sram_f from '../../assets/class/sram_f.jpg';
 import xelor from '../../assets/class/xelor.jpg';
-import { use_client } from '../../core/sui/client.js';
+import {
+  sui_create_character,
+  sui_is_character_name_taken,
+} from '../../core/sui/client.js';
 
 import characterCanvasDisplay from './character-canvas-display.vue';
 import SpellDisplay from './menu_spell_display.vue';
@@ -39,7 +39,6 @@ const new_character_dialog = inject('new_character_dialog');
 
 const emits = defineEmits(['cancel']);
 const { t } = useI18n();
-const client = use_client();
 
 const characters = [
   {
@@ -92,6 +91,8 @@ const selected_class_data = computed(() => {
     character => character.type === selected_class_type.value,
   );
 
+  if (!character?.class) throw new Error('Invalid character type');
+
   return {
     ...character,
     spells: Spells[character.class],
@@ -126,24 +127,24 @@ watch(new_character_dialog, value => {
 });
 
 watch(new_character_name, value => {
-  if (value.length > 2 && name_too_long.value)
+  if (value.length > 2 && name_too_long.value) {
     name_error.value = 'Name is too long';
-  else if (value.length > 2 && name_invalid.value)
+  } else if (value.length > 2 && name_invalid.value) {
     name_error.value = 'Name is invalid';
-  else if (value) name_error.value = '';
+  } else if (value) name_error.value = '';
 });
 
 async function create_character() {
   character_creation_loading.value = true;
   const male = !selected_class_type.value.includes('FEMALE');
   const classe = selected_class_type.value.includes('IOP') ? 'IOP' : 'SRAM';
-  if (await client.is_character_name_taken(new_character_name.value)) {
+  if (await sui_is_character_name_taken(new_character_name.value)) {
     name_error.value = 'This name is already taken';
     character_creation_loading.value = false;
     return;
   }
   try {
-    await client.create_character({
+    await sui_create_character({
       name: new_character_name.value,
       type: classe,
       male,

@@ -10,11 +10,9 @@ const {
   VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL = '',
   VITE_ARESRPG_NAME_REGISTRY_MAINNET = '',
   VITE_ARESRPG_ADMIN_CAP_MAINNET = '',
-  VITE_ENABLE_TERRAIN_EDITOR: enable_terrain_editor = 'false',
   VITE_USE_ANKR: vite_use_ankr = 'false',
 } = import.meta.env
 
-export const VITE_ENABLE_TERRAIN_EDITOR = enable_terrain_editor === 'true'
 export const VITE_USE_ANKR = vite_use_ankr === 'true'
 
 export {

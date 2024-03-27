@@ -129,12 +129,13 @@ export function level_progression(total_experience) {
       ([level, level_experience]) => level_experience <= total_experience,
     ) ?? []
 
-  if (current_level + 1 >= levels.length)
+  if (current_level + 1 >= levels.length) {
     return {
       experience_of_level: 0,
       experience_of_next_level: -1,
       experience_percent: 100,
     }
+  }
 
   // total experience of next level
   const next_level_experience = levels[current_level + 1]

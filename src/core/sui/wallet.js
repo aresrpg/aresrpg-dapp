@@ -30,11 +30,13 @@ export async function initialize_wallets(last_selected_wallet_name) {
       const { accounts, chain } = wallet
 
       // if accounts are differents
-      if (accounts && accounts !== last_wallet.accounts)
+      if (accounts && accounts !== last_wallet.accounts) {
         Object.assign(last_wallet, { accounts })
+      }
 
-      if (chain && chain !== last_wallet.chain)
+      if (chain && chain !== last_wallet.chain) {
         Object.assign(last_wallet, { chain })
+      }
 
       wallet_emitter.emit('wallet', last_wallet)
 
@@ -69,15 +71,12 @@ export async function initialize_wallets(last_selected_wallet_name) {
         await features['standard:disconnect']?.disconnect()
         wallet_emitter.emit('switch_wallet', null)
       },
-      signAndExecuteTransactionBlock({
-        transaction_block,
-        account: { address },
-      }) {
+      signAndExecuteTransactionBlock({ transaction_block, sender }) {
         return features[
           'sui:signAndExecuteTransactionBlock'
           // @ts-ignore
         ].signAndExecuteTransactionBlock({
-          account: { address },
+          account: { address: sender },
           transactionBlock: transaction_block,
         })
       },
@@ -89,11 +88,12 @@ export async function initialize_wallets(last_selected_wallet_name) {
           message: new TextEncoder().encode(msg),
         })
       },
-      signTransactionBlock(...args) {
+      signTransactionBlock({ transaction_block, sender }) {
         // @ts-ignore
-        return features['sui:signTransactionBlock'].signTransactionBlock(
-          ...args,
-        )
+        return features['sui:signTransactionBlock'].signTransactionBlock({
+          account: { address: sender },
+          transactionBlock: transaction_block,
+        })
       },
     }))
 
@@ -126,18 +126,20 @@ export async function initialize_wallets(last_selected_wallet_name) {
 
       // @ts-ignore
       features['standard:events'].on('change', ({ accounts, chains }) => {
-        if (accounts)
+        if (accounts) {
           internal_emitter.emit('update', {
             accounts: accounts.map(({ address }) => ({ address })),
             // if present it will be the same for all accounts
             chain: accounts[0].chains?.[0],
             name,
           })
-        if (chains)
+        }
+        if (chains) {
           internal_emitter.emit('update', {
             name,
             chain: chains[0],
           })
+        }
       })
     },
   )

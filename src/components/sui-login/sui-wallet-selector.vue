@@ -21,7 +21,7 @@ fr:
 .container
   .left-pane
     .head {{ t('connect') }}
-    .wallet(v-for="wallet in wallets" :key="wallet.name" @click="() => connect_to_wallet(wallet)")
+    .wallet(v-for="wallet in registered_wallets" :key="wallet.name" @click="() => connect_to_wallet(wallet)")
       img(:src="wallet.icon" :alt="wallet.name")
       span {{ wallet.name }}
   .right-pane
@@ -37,13 +37,31 @@ fr:
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { inject } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 import toast from '../../toast';
+import { context } from '../../core/game/game.js';
 
 const { t } = useI18n();
-const wallets = inject('wallets');
 const emits = defineEmits(['connection_done']);
+
+const registered_wallets = ref([]);
+
+function update_wallets({ sui: { wallets } }) {
+  const wallets_names = wallets.map(wallet => wallet.name);
+
+  if (wallets_names.join() !== registered_wallets.value.join())
+    registered_wallets.value = wallets;
+}
+
+onMounted(async () => {
+  context.events.on('STATE_UPDATED', update_wallets);
+  update_wallets(context.get_state());
+});
+
+onUnmounted(() => {
+  context.events.off('STATE_UPDATED', update_wallets);
+});
 
 async function connect_to_wallet(wallet) {
   try {

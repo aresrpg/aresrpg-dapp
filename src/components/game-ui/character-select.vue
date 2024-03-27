@@ -17,23 +17,42 @@ Dropdown(:border="false" ref="dropdown" v-if="selected_character")
 
 <script setup>
 import Dropdown from 'v-dropdown';
-import { computed, inject, ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { dispatch } from '../../core/game/game.js';
-
-const user = inject('user');
-const selected_character = inject('selected_character');
+import { context } from '../../core/game/game.js';
 
 const dropdown = ref(null);
 
-const characters = computed(() =>
-  user.locked_characters.filter(c => c.name !== selected_character.value.name),
-);
+const characters = ref([]);
+
+function update_characters({
+  selected_character_id,
+  sui: { locked_characters },
+}) {
+  const characters_ids = locked_characters
+    .map(character => character.id)
+    .filter(id => id !== selected_character_id);
+  const last_characters_ids = characters.value.map(character => character.id);
+
+  if (characters_ids.join() !== last_characters_ids.join())
+    characters.value = locked_characters.filter(
+      character => character.id !== selected_character_id,
+    );
+}
+
+onMounted(() => {
+  context.events.on('STATE_UPDATED', update_characters);
+  update_characters(context.get_state());
+});
+
+onUnmounted(() => {
+  context.events.off('STATE_UPDATED', update_characters);
+});
 
 function select_character(character) {
-  selected_character.value = character;
-  dispatch('action/select_character', character.id);
+  context.dispatch('action/select_character', character.id);
+  // @ts-ignore
   dropdown.value.close();
 }
 

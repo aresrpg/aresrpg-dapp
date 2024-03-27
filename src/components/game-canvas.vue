@@ -24,7 +24,6 @@ const renderer_container = ref(null);
 
 const sidebar_reduced = inject('sidebar_reduced');
 const game_visible = inject('game_visible');
-const user = inject('user');
 
 const webgl_available = ref(true);
 

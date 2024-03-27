@@ -51,6 +51,36 @@ declare namespace Type {
     female: boolean
   }
 
+  type Receipt = {
+    id: string
+    storage_id: string
+    character_id: string
+  }
+
+  type sigTransactionBlockParams = {
+    transaction_block: import('@mysten/sui.js/transactions').TransactionBlock
+    sender: string
+  }
+
+  type WalletAccount = import('@mysten/wallet-standard').WalletAccount & {
+    alias: string
+  }
+
+  type Wallet = {
+    accounts: WalletAccount[]
+    chain: string
+    icon: string
+    name: string
+    version: string
+    connect: () => Promise
+    disconnect: () => Promise
+    signAndExecuteTransactionBlock: (
+      param: sigTransactionBlockParams,
+    ) => Promise
+    signPersonalMessage: (message: string) => Promise
+    signTransactionBlock: (param: sigTransactionBlockParams) => Promise
+  }
+
   // Distributed actions which can be dispatched and then reduced
   type Actions = {
     'action/show_fps': boolean
@@ -66,6 +96,16 @@ declare namespace Type {
     'action/free_camera': boolean
     'action/sky_lights_change': SkyLights
     'action/set_characters': Character[]
+    'action/register_wallet': Wallet
+    'action/select_wallet': string
+    'action/select_address': string
+    'action/sui_data_update': {
+      balance?: bigint
+      locked_characters?: Character[]
+      unlocked_characters?: Character[]
+      character_lock_receipts?: Receipt[]
+    }
+    'action/set_online': boolean
   } & Packets
 
   type Events = import('@aresrpg/aresrpg-protocol/src/types').TypedEmitter<

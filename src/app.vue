@@ -3,248 +3,16 @@ router-view
 </template>
 
 <script setup>
-import {
-  onMounted,
-  provide,
-  watch,
-  ref,
-  reactive,
-  onUnmounted,
-  computed,
-} from 'vue';
-import { VsLoadingFn } from 'vuesax-alpha';
-import { useRouter } from 'vue-router';
-import { aiter, iter } from 'iterator-helper';
-
-import { initialize_wallets, wallet_emitter } from './core/sui/wallet';
-import { get_alias, set_network, use_client } from './core/sui/client';
-import {
-  VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
-  VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
-} from './env.js';
-
+import { provide, ref } from 'vue';
+// internal vuejs
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const name = 'app';
-const router = useRouter();
 
-const loading = ref(0);
-const wallets = ref([]);
-const selected_wallet = ref(null);
-const selected_account = ref(null);
 const sidebar_reduced = ref(false);
-const resync = ref(0);
 const game_visible = ref(false);
 
-const selected_character = ref(null);
-const known_storages = ref([]);
-
-const last_selected_address = localStorage.getItem('last_selected_address');
-
-let loading_instance = null;
-let resyncing_interval = null;
-
-const is_chain_supported = computed(() => {
-  switch (selected_wallet.value?.chain) {
-    case 'sui:mainnet':
-      return !!VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL;
-    case 'sui:testnet':
-      return !!VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL;
-    case 'sui:devnet':
-      return false;
-    default:
-      return true;
-  }
-});
-
-provide('wallets', wallets);
-provide('selected_wallet', selected_wallet);
-provide('selected_account', selected_account);
-provide('loading', loading);
 provide('sidebar_reduced', sidebar_reduced);
-provide('selected_character', selected_character);
-provide('known_storages', known_storages);
 provide('game_visible', game_visible);
-provide('is_chain_supported', is_chain_supported);
-
-const client = use_client(selected_wallet, selected_account);
-
-// ========================================
-// watch the selected wallet and select the first account if none is selected
-// ========================================
-watch(selected_wallet, () => {
-  const wallet = selected_wallet.value;
-  if (!wallet) return;
-  if (selected_account.value) return;
-  selected_account.value =
-    wallet.accounts.find(({ address }) => address === last_selected_address) ||
-    wallet.accounts[0];
-});
-
-async function update_sui_balance() {
-  try {
-    const balance = await client.get_sui_balance();
-    user.balance_sui = balance.toFixed(3);
-  } catch (error) {
-    console.error('Error while getting the Sui balance', error);
-  }
-}
-
-async function update_known_storages() {
-  try {
-    known_storages.value = await client.get_available_storages();
-  } catch (error) {
-    console.error('Error while getting the known storages', error);
-  }
-}
-
-async function update_user_data() {
-  try {
-    user.unlocked_characters = await client.get_unlocked_user_characters();
-    user.character_lock_receipts = await client.get_receipts();
-    user.locked_characters = await client.get_locked_characters(
-      user.character_lock_receipts,
-    );
-
-    if (
-      selected_character.value &&
-      !user.locked_characters.find(c => c.id === selected_character.value.id)
-    )
-      selected_character.value = null;
-
-    if (!selected_character.value && user.locked_characters.length)
-      [selected_character.value] = user.locked_characters;
-  } catch (error) {
-    console.error('Error while updating the user data', error);
-  }
-}
-
-// ========================================
-// watch the selected account and populate the user object with blockchain data
-// ========================================
-watch(
-  selected_account,
-  async () => {
-    if (!selected_account.value) return;
-    loading.value++; // prevent interraction when switching accounts
-
-    user.unlocked_characters = null;
-    user.locked_characters = null;
-
-    if (!is_chain_supported.value) {
-      loading.value--;
-      return;
-    }
-
-    // we want a non blocking subscription call
-    // it's currently unstable on Sui
-    client
-      .subscribe()
-      .then(emitter => {
-        emitter.on('update', async event => {
-          await update_sui_balance();
-          await update_user_data();
-        });
-      })
-      .catch(error => {
-        console.error('Unable to subscribe to the Sui node', error);
-      });
-
-    await Promise.all([
-      update_sui_balance(),
-      update_user_data(),
-      update_known_storages(),
-    ]);
-    loading.value--;
-  },
-  { immediate: true },
-);
-
-watch(resync, () => {
-  if (!selected_account.value) return;
-
-  if (!is_chain_supported.value) {
-    loading.value--;
-    return;
-  }
-
-  console.log('resyncing');
-  update_sui_balance();
-  update_user_data();
-});
-
-// ========================================
-// show the login animation if the loading ref is bigger than 0
-// ========================================
-watch(loading, value => {
-  if (value === 1) {
-    loading_instance?.close();
-    loading_instance = VsLoadingFn({
-      type: 'square',
-      color: '#42A5F5',
-      background: '#212121',
-    });
-  } else if (!value) {
-    loading_instance?.close();
-  }
-});
-
-onUnmounted(() => {
-  loading_instance?.close();
-  clearInterval(resyncing_interval);
-});
-
-onMounted(async () => {
-  resyncing_interval = setInterval(() => resync.value++, 10000);
-
-  // ======= Handle Wallet Events =======
-  wallet_emitter.on('wallet', async wallet => {
-    try {
-      // find the wallet by its name inside the wallets ref and replace it
-      let index = wallets.value.findIndex(w => w.name === wallet.name);
-      if (index === -1) {
-        wallets.value.push(wallet);
-        index = wallets.value.length - 1;
-      }
-
-      set_network(wallet.chain);
-
-      await iter(wallet.accounts)
-        .toAsyncIterator()
-        .forEach(async account => {
-          account.alias = await get_alias(account.address);
-        });
-
-      wallets.value[index] = wallet;
-
-      if (selected_wallet.value?.name === wallet.name) {
-        selected_wallet.value = { ...wallet };
-        selected_account.value = wallet.accounts.find(
-          ({ address }) =>
-            address === selected_account.value?.address ||
-            address === last_selected_address,
-        );
-      }
-    } catch (error) {
-      console.error('Unable to handle the wallet event', error);
-    }
-  });
-
-  wallet_emitter.on('switch_wallet', name => {
-    if (!name) {
-      selected_wallet.value = null;
-      selected_account.value = null;
-      localStorage.removeItem('last_selected_address');
-      localStorage.removeItem('last_selected_wallet');
-      return;
-    }
-
-    const wallet = wallets.value.find(w => w.name === name);
-    if (!wallet) return;
-    selected_wallet.value = wallet;
-    localStorage.setItem('last_selected_wallet', wallet.name);
-  });
-
-  await initialize_wallets(localStorage.getItem('last_selected_wallet'));
-});
 </script>
 
 <style lang="stylus">
@@ -335,14 +103,11 @@ sc-disableScollBar()
 .material-2
   box-shadow 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
 
-
 .material-3
   box-shadow 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)
 
-
 .material-4
   box-shadow 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)
-
 
 .material-5
   box-shadow 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)

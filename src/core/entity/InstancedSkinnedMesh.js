@@ -145,8 +145,9 @@ export class InstancedSkinnedMesh extends SkinnedMesh {
     if (source.isInstancedMesh) {
       this.instanceMatrix.copy(source.instanceMatrix)
 
-      if (source.instanceColor !== null)
+      if (source.instanceColor !== null) {
         this.instanceColor = source.instanceColor.clone()
+      }
 
       this.count = source.count
     }

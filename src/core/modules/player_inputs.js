@@ -5,7 +5,6 @@ import { aiter } from 'iterator-helper'
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'player_inputs',
     reduce(state, { type, payload }) {
       if (type === 'action/keydown' || type === 'action/keyup') {
         const enabled = type === 'action/keydown'

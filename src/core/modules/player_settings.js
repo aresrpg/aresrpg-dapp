@@ -4,7 +4,6 @@ const MAX_FPS = 240
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'player_settings',
     reduce(state, { type, payload }) {
       switch (type) {
         case 'action/show_fps':

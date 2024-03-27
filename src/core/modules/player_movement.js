@@ -43,7 +43,6 @@ export default function () {
   const dummy = new Object3D()
 
   return {
-    name: 'player_movements',
     tick({ inputs, player }, { camera }, delta) {
       if (!player?.position) return
 
@@ -169,8 +168,9 @@ export default function () {
 
       if (ground_height_distance > 2) dummy.position.copy(origin)
 
-      if (player.position.distanceTo(dummy.position) > 0.01)
+      if (player.position.distanceTo(dummy.position) > 0.01) {
         player.move(dummy.position)
+      }
 
       const is_moving_horizontally =
         inputs.forward || inputs.backward || inputs.right || inputs.left

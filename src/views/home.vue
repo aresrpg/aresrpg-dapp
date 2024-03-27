@@ -52,9 +52,10 @@ const select = lang => {
 
 onMounted(() => {
   // set lang from localstorage
-  if (localStorage.getItem('lang'))
+  if (localStorage.getItem('lang')) {
     // @ts-ignore
     i18n.global.locale.value = localStorage.getItem('lang');
+  }
 
   selected.value = langs[i18n.global.locale.value];
 });

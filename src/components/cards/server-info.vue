@@ -25,12 +25,11 @@ vs-card
 </template>
 
 <script setup>
-import { inject } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-
-const server_info = {};
+const server_info = ref({ registrations: 0, online: 0 });
 </script>
 
 <style lang="stylus" scoped>

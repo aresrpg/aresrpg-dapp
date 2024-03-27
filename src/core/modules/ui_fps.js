@@ -61,7 +61,6 @@ export default function () {
   }
 
   return {
-    name: 'ui_fps_memory_mesh',
     tick(state, { scene, renderer }) {
       stats_fps.update()
       stats_memory.update()
@@ -69,7 +68,7 @@ export default function () {
       draw_calls_panel.update(renderer.info.render.calls, 5000) // 5000 is an arbitrary max value for draw calls
     },
     reduce(state, { type, payload }) {
-      if (type === 'action/show_fps')
+      if (type === 'action/show_fps') {
         return {
           ...state,
           settings: {
@@ -77,6 +76,7 @@ export default function () {
             show_fps: payload,
           },
         }
+      }
 
       return state
     },

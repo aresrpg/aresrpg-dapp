@@ -50,6 +50,10 @@ import create_pools from '../game/pool.js'
 import logger from '../../logger.js'
 import { VITE_SERVER_URL } from '../../env.js'
 import toast from '../../toast.js'
+import sui_data from '../modules/sui_data.js'
+import sui_wallets from '../modules/sui_wallets.js'
+import player_online from '../modules/player_online.js'
+import { decrease_loading } from '../utils/loading.js'
 
 export const GRAVITY = 9.81
 
@@ -80,7 +84,7 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {(state: State, action: Type.Action) => State} Reducer */
 /** @typedef {(context: Context) => void} Observer */
 /** @typedef {(state: State, context: Context, delta: number) => void} Ticker */
-/** @typedef {() => { name: string, reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
+/** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
 /** @typedef {typeof INITIAL_STATE.settings.sky.lights} SkyLights */
 
@@ -144,25 +148,30 @@ export const INITIAL_STATE = {
   /** @type {Type.Entity} */
   player: null,
   selected_character_id: 'default',
-  characters_limit: 3,
-  /** @type {import("@aresrpg/aresrpg-protocol/src/types").Character[]} */
-  characters: [
-    {
-      id: 'default',
-      name: 'Anon',
-      position: { x: 0, y: 100, z: 0 },
-      level: 1,
-      head: 0,
-      cape: 0,
-      classe: 'IOP',
-      female: false,
-    },
-  ],
 
-  character_lock_receipts: null,
-  locked_characters: null,
-  unlocked_characters: null,
-  balance_sui: null,
+  sui: {
+    /** @type {Type.Wallet[]} */
+    wallets: [],
+    /** @type {Type.Character[]} */
+    locked_characters: [
+      {
+        id: 'default',
+        name: 'Anon',
+        position: { x: 0, y: 100, z: 0 },
+        level: 1,
+        classe: 'IOP',
+        female: false,
+      },
+    ],
+    /** @type {Type.Character[]} */
+    unlocked_characters: [],
+    selected_wallet_name: null,
+    selected_address: null,
+    balance: null,
+    /** @type {Type.Receipt[]} */
+    character_lock_receipts: [],
+  },
+
   // is the user connected to the websocket
   online: false,
 
@@ -190,6 +199,9 @@ const MODULES = [
   ui_fps,
   ui_settings,
 
+  sui_data,
+  sui_wallets,
+
   window_resize,
 
   player_inputs,
@@ -197,9 +209,9 @@ const MODULES = [
   player_characters,
   player_movement,
   player_spawn,
+  player_online,
 
   game_sky,
-  // game_connect,
   game_render,
   game_lights,
   game_instanced,
@@ -273,13 +285,11 @@ watch(game_visible, (value, previous) => {
 })
 
 function connect_ws() {
-  const loading = inject('loading')
-
   return new Promise(resolve => {
     const { status } = useWebSocket(VITE_SERVER_URL, {
       autoReconnect: true,
       onDisconnected(ws, event) {
-        loading.value--
+        decrease_loading()
         if (event.reason) {
           logger.SOCKET(`disconnected: ${event.reason}`)
           switch (event.reason) {
@@ -287,14 +297,14 @@ function connect_ws() {
               toast.error(
                 'It seems you are already connected to the server, please wait a few seconds and try again',
                 'Oh no!',
-                `<i class='bx bx-key'/>`,
+                "<i class='bx bx-key'/>",
               )
               break
             case 'EARLY_ACCESS_KEY_REQUIRED':
               toast.error(
                 'You need an early access key to play on AresRPG',
                 'Oh no!',
-                `<i class='bx bx-key'/>`,
+                "<i class='bx bx-key'/>",
               )
               break
             default:
@@ -385,10 +395,12 @@ aiter(combine(actions, packets))
           return result
         }, last_state)
       if (action.type.includes('action/')) {
-        if (!FILTER_ACTION_IN_LOGS.includes(action.type))
+        if (!FILTER_ACTION_IN_LOGS.includes(action.type)) {
           logger.INTERNAL(action.type, action.payload)
-      } else if (!FILTER_PACKET_IN_LOGS.includes(action.type))
+        }
+      } else if (!FILTER_PACKET_IN_LOGS.includes(action.type)) {
         logger.NETWORK_IN(action.type, action.payload)
+      }
       events.emit(action.type, action.payload)
       events.emit('STATE_UPDATED', state)
       return state
@@ -425,15 +437,14 @@ function animate() {
 
     const next_frame_duration = 1000 / state.settings.target_fps
 
-    if (frame_duration !== next_frame_duration)
+    if (frame_duration !== next_frame_duration) {
       frame_duration = next_frame_duration
+    }
 
     time_target += frame_duration
     if (performance.now() >= time_target) time_target = performance.now()
   }
 }
-
-const { dispatch, send_packet } = context
 
 export function set_canvas(canvas) {
   if (canvas_applied) return
@@ -450,4 +461,4 @@ export function pause_game() {
   running = false
 }
 
-export { ws_status, events, dispatch, send_packet }
+export { context, ws_status }

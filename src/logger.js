@@ -24,10 +24,15 @@ export default {
     strong: '#FF9800',
     light: '#FFCC80',
   }),
-  NETWORK_IN: logger({
-    header: 'in ↙️',
+  SUI: logger({
+    header: 'sui',
     strong: '#2196F3',
     light: '#90CAF9',
+  }),
+  NETWORK_IN: logger({
+    header: 'in ↙️',
+    strong: '#795548',
+    light: '#BCAAA4',
   }),
   NETWORK_OUT: logger({
     header: 'out ↗️',

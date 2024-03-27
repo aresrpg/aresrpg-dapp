@@ -13,7 +13,7 @@ import {
 import { smoothstep } from 'three/src/math/MathUtils'
 import { aiter } from 'iterator-helper'
 
-import { abortable } from '../core-utils/iterator.js'
+import { abortable } from '../utils/iterator.js'
 import night_nx from '../../assets/skybox/night_nx.png'
 import night_ny from '../../assets/skybox/night_ny.png'
 import night_nz from '../../assets/skybox/night_nz.png'
@@ -24,7 +24,6 @@ import night_pz from '../../assets/skybox/night_pz.png'
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_sky',
     observe({ scene, events, signal, dispatch }) {
       const day_duration_in_seconds = 2000 // duration of a complete day/night cycle
       const day_autoupdate_delay_in_milliseconds = 500 // delay between updates

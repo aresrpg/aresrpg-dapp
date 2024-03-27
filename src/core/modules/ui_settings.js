@@ -7,7 +7,6 @@ export default function () {
   const settings = { ...INITIAL_STATE.settings }
 
   return {
-    name: 'ui_settings',
     observe({
       events,
       dispatch,

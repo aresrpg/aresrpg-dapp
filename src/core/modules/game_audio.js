@@ -54,7 +54,6 @@ const audio_buffer = audio_loader.loadAsync(main_theme).then(buffer => {
 /** @type {Type.Module} */
 export default function () {
   return {
-    name: 'game_audio',
     observe({ events, signal, get_state, camera, scene }) {
       camera.add(listener)
 
@@ -64,8 +63,9 @@ export default function () {
         })
         const audio_interval = setInterval(() => {
           main_audio.context.resume()
-          if (main_audio.context.state === 'running')
+          if (main_audio.context.state === 'running') {
             clearInterval(audio_interval)
+          }
         }, 500)
       })
 
