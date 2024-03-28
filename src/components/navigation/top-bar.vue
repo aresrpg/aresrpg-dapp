@@ -67,7 +67,7 @@ function address_display(account) {
 
 <template lang="pug">
 nav(:class="{ small: breakpoints.mobile.matches }")
-  .beware-tesnet(v-if="current_network !== 'mainnet'") {{ t('testnet') }}
+  .beware-tesnet(v-if="current_wallet && current_network !== 'mainnet'") {{ t('testnet') }}
   vs-row(justify="end")
     // ======
     vs-button.btn(v-if="!current_wallet" type="border" color="#eee" @click="login_dialog = true")
