@@ -29,4 +29,14 @@ export default {
       content,
     })
   },
+  warn(content, title = 'Beware!', icon = "<i class='bx bx-cog'></i>") {
+    VsNotification({
+      flat: true,
+      color: 'warn',
+      position: 'bottom-right',
+      title,
+      content,
+      icon,
+    })
+  },
 }

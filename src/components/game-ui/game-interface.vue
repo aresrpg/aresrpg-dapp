@@ -1,6 +1,7 @@
 <template lang="pug">
 .ui
   .top
+    .no-characters
     zoneVue
     characterSelectVue
     wsConnectBtnVue
@@ -10,54 +11,14 @@
     .infos
     .inventory
     .map
-
-  .escape_menu(v-if="escape_menu_open")
-    vs-button.keys.disabled(@click="on_menu_controls_btn" type="shadow") Controls
-    vs-button.quit(@click="on_menu_quit_btn" type="shadow") Change Character
 </template>
 
 <script setup>
 import { onMounted, onUnmounted, ref, reactive } from 'vue';
 
-import { context } from '../../core/game/game.js';
-
 import characterSelectVue from './character-select.vue';
 import wsConnectBtnVue from './ws-connect-btn.vue';
 import zoneVue from './zone.vue';
-
-const escape_menu_open = ref(false);
-const server_info = reactive({
-  online: 0,
-  max: 0,
-});
-
-function on_escape({ key }) {
-  if (key === 'Escape') {
-    escape_menu_open.value = !escape_menu_open.value;
-  }
-}
-
-function on_menu_quit_btn() {
-  context.send_packet('packet/leaveGame', {});
-  context.dispatch('action/load_game_state', 'MENU');
-}
-
-function update_server_info({ online, max }) {
-  server_info.online = online;
-  server_info.max = max;
-}
-
-function on_menu_controls_btn() {}
-
-onMounted(() => {
-  window.addEventListener('keydown', on_escape);
-  context.events.on('packet/serverInfo', update_server_info);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', on_escape);
-  context.events.off('packet/serverInfo', update_server_info);
-});
 </script>
 
 <style lang="stylus" scoped>

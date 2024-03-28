@@ -62,7 +62,11 @@ export default function () {
             await iter(wallet.accounts)
               .toAsyncIterator()
               .forEach(async account => {
-                account.alias = await get_alias(account.address)
+                try {
+                  account.alias = await get_alias(account.address)
+                } catch (error) {
+                  console.error('Unable to get the alias for', account.address)
+                }
               })
 
             context.dispatch('action/register_wallet', wallet)

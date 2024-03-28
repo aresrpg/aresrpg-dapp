@@ -22,12 +22,10 @@ export default function () {
       })
 
       on_game_show(() => {
-        console.log('game show')
         gui.show()
       })
 
       on_game_hide(() => {
-        console.log('game hide')
         gui.hide()
       })
 

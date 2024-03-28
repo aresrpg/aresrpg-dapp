@@ -1,9 +1,21 @@
+<i18n>
+en:
+  no_characters: You must lock a character to play
+fr:
+  no_characters: Vous devez verrouiller un personnage pour jouer
+</i18n>
+
 <template lang="pug">
-Dropdown(:border="false" ref="dropdown" v-if="selected_character")
+Dropdown(:border="false" ref="dropdown")
   template(#trigger)
-    vs-button.btn.character-container(type="transparent" color="#212121")
+    vs-button.btn.character-container(type="transparent" color="#212121" v-if="selected_character")
       i.bx.bx-chevron-down
       span.name {{  selected_character.name }}
+    vs-button.btn.character-container.no-characters(
+      v-else
+      type="gradient" color="#FF3D00"
+      @click="go_to_characters"
+    ) {{ t('no_characters') }}
   .dropdown-content
     vs-row(justify="center")
       vs-button.btn(
@@ -19,6 +31,7 @@ Dropdown(:border="false" ref="dropdown" v-if="selected_character")
 import Dropdown from 'v-dropdown';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import { context } from '../../core/game/game.js';
 
@@ -26,6 +39,11 @@ const dropdown = ref(null);
 
 const characters = ref([]);
 const selected_character = ref(null);
+const router = useRouter();
+
+function go_to_characters() {
+  router.push('/characters');
+}
 
 function update_characters({
   selected_character_id,

@@ -10,6 +10,10 @@
     invalid_address: Invalid Sui address
     lock_desc: You're about to lock this character to access it in game, you can unlock it at anytime when you're done playing
     unlock_desc: You're about to unlock this character and retrieve it in your wallet
+    lock_failed: Failed to lock character, please retry shortly
+    delete_failed: Failed to delete character, please retry shortly
+    unlock_failed: Failed to unlock character, please retry shortly
+    send_failed: Failed to send character, please retry shortly
   fr:
     lock: Verrouiller
     unlock: Déverrouiller
@@ -21,6 +25,10 @@
     invalid_address: Adresse Sui invalide
     lock_desc: Vous êtes sur le point de verrouiller ce personnage pour y accéder en jeu, vous pouvez le déverrouiller à tout moment lorsque vous avez fini de jouer
     unlock_desc: Vous êtes sur le point de déverrouiller ce personnage et de le récupérer dans votre portefeuille
+    lock_failed: Échec de verrouillage du personnage, veuillez réessayer ultérieurement
+    delete_failed: Échec de suppression du personnage, veuillez réessayer ultérieurement
+    unlock_failed: Échec de déverrouillage du personnage, veuillez réessayer ultérieurement
+    send_failed: Échec de l'envoi du personnage, veuillez réessayer ultérieurement
 </i18n>
 
 <template lang="pug">
@@ -28,7 +36,7 @@
   span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
   .field
     .title classe:
-    .value {{ props.character.classe }}
+    .value {{ props.character.classe.toUpperCase() }}
     i.bx(:class="genrer_icon")
   .field
     .title id:
@@ -98,6 +106,7 @@ import {
   sui_send_object,
   sui_unlock_character,
 } from '../../core/sui/client.js';
+import toast from '../../toast.js';
 
 const { t } = useI18n();
 const props = defineProps(['character', 'locked']);
@@ -138,6 +147,7 @@ async function delete_character() {
     await sui_delete_character(props.character.id);
   } catch (error) {
     console.error(error);
+    toast.warn(t('delete_failed'));
   } finally {
     delete_loading.value = false;
     delete_dialog.value = false;
@@ -147,10 +157,10 @@ async function delete_character() {
 async function lock_character() {
   try {
     lock_loading.value = true;
-    console.log('locking', props.character.id);
     await sui_lock_character(props.character.id);
   } catch (error) {
     console.error(error);
+    toast.warn(t('lock_failed'));
   } finally {
     lock_loading.value = false;
     lock_dialog.value = false;
@@ -172,6 +182,7 @@ async function unlock_character() {
     await sui_unlock_character(receipt);
   } catch (error) {
     console.error(error);
+    toast.warn(t('unlock_failed'));
   } finally {
     unlock_loading.value = false;
     unlock_dialog.value = false;
@@ -185,6 +196,7 @@ async function send_character() {
     await sui_send_object(props.character.id, send_to.value);
   } catch (error) {
     console.error(error);
+    toast.warn(t('send_failed'));
   } finally {
     send_loading.value = false;
     send_dialog.value = false;

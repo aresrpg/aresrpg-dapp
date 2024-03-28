@@ -358,10 +358,10 @@ export default function create_pools(scene) {
       instances.chafer.instanced_entity.dispose()
     },
     character({ classe, female }) {
-      if (classe === 'IOP') {
+      if (classe.toLowerCase() === 'iop') {
         return female ? instances.iop_female : instances.iop_male
       }
-      if (classe === 'SRAM') {
+      if (classe.toLowerCase() === 'sram') {
         return female ? instances.sram_female : instances.sram_male
       }
     },

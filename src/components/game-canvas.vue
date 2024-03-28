@@ -50,7 +50,6 @@ onActivated(() => {
   sidebar_reduced.value = true;
   game_visible.value = true;
   show_topbar.value = false;
-  console.log('game visible');
   run_game();
 });
 
@@ -58,7 +57,6 @@ onDeactivated(() => {
   sidebar_reduced.value = false;
   game_visible.value = false;
   show_topbar.value = true;
-  console.log('game not visible');
   pause_game();
 });
 </script>

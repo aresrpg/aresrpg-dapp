@@ -19,7 +19,10 @@ import {
   VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
   VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
   VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
-  VITE_USE_ANKR,
+  VITE_SUI_MAINNET_RPC,
+  VITE_SUI_MAINNET_WSS,
+  VITE_SUI_TESTNET_RPC,
+  VITE_SUI_TESTNET_WSS,
 } from '../../env.js'
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
@@ -41,19 +44,13 @@ const PACKAGES = {
 }
 
 const SUINS_CACHE = new LRUCache({ max: 50 })
-// This ANKR premium key is whitelisted to only work with the https://aresrpg.world domain
-// so it is fine to publicly expose it here
-const ANKR_KEY =
-  '02fe1fb555dee5f0f895faf43a27d670f3abeeb11a554b5f0ff07fbd84de9201'
 
 const get_url = (network, ws) => {
-  if (VITE_USE_ANKR) {
-    const prefix = network === 'mainnet' ? 'sui' : 'sui_testnet'
-    const suffix = ws ? '/ws' : ''
-    return `https://rpc.ankr.com/${prefix}${suffix}/${ANKR_KEY}`
-  }
+  const is_mainnet = network === 'mainnet'
+  const rpc = is_mainnet ? VITE_SUI_MAINNET_RPC : VITE_SUI_TESTNET_RPC
+  const wss = is_mainnet ? VITE_SUI_MAINNET_WSS : VITE_SUI_TESTNET_WSS
 
-  return getFullnodeUrl(network)
+  return ws ? wss : rpc
 }
 
 const get_client = network =>
@@ -73,7 +70,7 @@ const mainnet_client = get_client('mainnet')
 // client of which network is determined by user
 let client = get_client('mainnet')
 
-let last_used_network = 'sui:mainnet'
+let last_used_network = 'sui:devnet'
 let package_original = VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL
 let package_upgraded = VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED
 let name_registry = VITE_ARESRPG_NAME_REGISTRY_MAINNET
@@ -125,18 +122,27 @@ function get_address() {
 
 const execute = async transaction_block => {
   const sender = get_address()
-  if (!sender) toast.error('Please login again', 'Wallet not found')
+  if (!sender) {
+    toast.error('Please login again', 'Wallet not found')
+    throw new Error('Wallet not found')
+  }
 
-  const { transactionBlockBytes, signature } =
-    await get_wallet().signTransactionBlock({
-      transaction_block,
-      sender,
+  try {
+    const { transactionBlockBytes, signature } =
+      await get_wallet().signTransactionBlock({
+        transaction_block,
+        sender,
+      })
+    const result = await client.executeTransactionBlock({
+      transactionBlock: transactionBlockBytes,
+      signature,
     })
 
-  return client.executeTransactionBlock({
-    transactionBlock: transactionBlockBytes,
-    signature,
-  })
+    return result
+  } catch (error) {
+    if (error.message === 'Rejected from user') return
+    throw error
+  }
 }
 
 const active_subscription = {
