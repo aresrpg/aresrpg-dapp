@@ -22,10 +22,12 @@ export default function () {
       })
 
       on_game_show(() => {
+        console.log('game show')
         gui.show()
       })
 
       on_game_hide(() => {
+        console.log('game hide')
         gui.hide()
       })
 
@@ -78,24 +80,25 @@ export default function () {
         )
         .name('Set day')
 
-      const daytime_pause_control = daytime_folder
+      daytime_folder
         .add(settings.sky, 'paused')
         .name('Pause cycle')
         .onChange(paused => events.emit('SKY_CYCLE_PAUSED', paused))
+
       const daytime_value_control = daytime_folder
         .add(settings.sky, 'value', 0, 1, 0.001)
         .name('Time')
         .onChange(value =>
           events.emit('SKY_CYCLE_CHANGED', { value, fromUi: true }),
         )
+
       events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
-        if (fromUi) {
-          daytime_pause_control.setValue(true)
-        } else {
+        if (!fromUi) {
           settings.sky.value = value
           daytime_value_control.updateDisplay()
         }
       })
+
       daytime_folder
         .add(settings.sky, 'sun_size', 0, 0.002)
         .onChange(value => events.emit('SKY_SUNSIZE_CHANGED', value))

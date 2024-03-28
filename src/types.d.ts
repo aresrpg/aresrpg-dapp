@@ -48,7 +48,7 @@ declare namespace Type {
     position: Position
     experience: number
     classe: string
-    male: boolean
+    sex: string
   }
 
   type Receipt = {

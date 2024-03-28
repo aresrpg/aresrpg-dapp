@@ -10,6 +10,7 @@ fr:
   quest: Quêtes terminées
   offline_ws: Hors ligne
   online_ws: En ligne
+  testnet: Vous êtes actuellement sur un test network
 en:
   logout: Logout
   disconnect: Disconnect
@@ -21,10 +22,11 @@ en:
   quest: Quests completed
   offline_ws: Offline
   online_ws: Online
+  testnet: You are currently on a test network
 </i18n>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, inject } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
 import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
@@ -49,63 +51,12 @@ const login_dialog = ref(false);
 const sui_wallet_dialog = ref(false);
 const dropdown = ref(null);
 
-const available_accounts = ref([]);
-const current_wallet = ref(null);
-const current_network = ref('mainnet');
-const current_address = ref(null);
-const current_account = ref(null);
-const sui_balance = ref(null);
-
-function update_accounts({
-  sui: { selected_wallet_name, wallets, balance, selected_address },
-}) {
-  const selected_wallet = wallets[selected_wallet_name];
-  const accounts = selected_wallet?.accounts ?? [];
-  const accounts_addresses = accounts.filter(
-    ({ address }) => address !== selected_address,
-  );
-  const available_accounts_addresses = available_accounts.value.map(
-    ({ address }) => address,
-  );
-  const selected_account = accounts.find(
-    ({ address }) => address === selected_address,
-  );
-  const network = selected_wallet?.chain.split(':')[1];
-
-  if (accounts_addresses.join() !== available_accounts_addresses.join())
-    available_accounts.value = accounts.filter(
-      ({ address }) => address !== selected_address,
-    );
-
-  if (network !== current_network.value) current_network.value = network;
-  if (balance !== sui_balance.value) sui_balance.value = balance;
-  // @ts-ignore
-  if (current_wallet.value?.name !== selected_wallet_name)
-    current_wallet.value = selected_wallet;
-
-  if (!selected_wallet) {
-    available_accounts.value = [];
-    current_address.value = null;
-    current_account.value = null;
-  }
-
-  if (selected_address !== current_address.value) {
-    current_address.value = selected_address;
-    current_account.value = { ...selected_account };
-  }
-
-  if (current_account.value?.alias !== selected_account?.alias)
-    current_account.value = selected_account;
-}
-
-onMounted(() => {
-  context.events.on('STATE_UPDATED', update_accounts);
-  update_accounts(context.get_state());
-});
-
-onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_accounts);
-});
+const available_accounts = inject('available_accounts');
+const current_wallet = inject('current_wallet');
+const current_network = inject('current_network');
+const current_address = inject('current_address');
+const current_account = inject('current_account');
+const sui_balance = inject('sui_balance');
 
 function address_display(account) {
   if (!account) return 'not found';
@@ -116,6 +67,7 @@ function address_display(account) {
 
 <template lang="pug">
 nav(:class="{ small: breakpoints.mobile.matches }")
+  .beware-tesnet(v-if="current_network !== 'mainnet'") {{ t('testnet') }}
   vs-row(justify="end")
     // ======
     vs-button.btn(v-if="!current_wallet" type="border" color="#eee" @click="login_dialog = true")
@@ -177,6 +129,19 @@ nav(:class="{ small: breakpoints.mobile.matches }")
 </template>
 
 <style lang="stylus" scoped>
+.beware-tesnet
+  position absolute
+  top 0
+  left 0
+  width 100%
+  height 25px
+  display flex
+  justify-content center
+  align-items center
+  font-size .7em
+  font-weight bold
+  text-transform uppercase
+  background linear-gradient(100deg, crimson, #EE5A24)
 
 .logo
   width 200px

@@ -94,7 +94,7 @@ export const ANON = {
   position: { x: 0, y: 100, z: 0 },
   experience: 1,
   classe: 'IOP',
-  male: true,
+  sex: 'male',
 }
 
 export const INITIAL_STATE = {
@@ -231,9 +231,6 @@ function last_event_value(emitter, event, default_value = null) {
 
 let ares_client = null
 
-const show_topbar = inject('show_topbar')
-const game_visible = inject('game_visible')
-
 const ws_status = ref('')
 const game_visible_emitter = new EventEmitter()
 
@@ -272,17 +269,6 @@ renderer.info.autoReset = false
 // renderer.debug.checkShaderErrors = false
 
 composer.setSize(window.innerWidth, window.innerHeight)
-
-watch(game_visible, (value, previous) => {
-  if (value === previous) return
-  if (value) {
-    show_topbar.value = false
-    game_visible_emitter.emit('show')
-  } else {
-    show_topbar.value = true
-    game_visible_emitter.emit('hide')
-  }
-})
 
 function connect_ws() {
   return new Promise(resolve => {
@@ -455,10 +441,12 @@ export function set_canvas(canvas) {
 
 export function run_game() {
   running = true
+  game_visible_emitter.emit('show')
 }
 
 export function pause_game() {
   running = false
+  game_visible_emitter.emit('hide')
 }
 
 export { context, ws_status }

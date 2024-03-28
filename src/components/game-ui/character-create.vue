@@ -16,11 +16,6 @@ import { inject, ref, watch, computed } from 'vue';
 import Spells from '@aresrpg/aresrpg-protocol/src/spells.json';
 import { useI18n } from 'vue-i18n';
 
-import iop from '../../assets/class/iop.jpg';
-import iop_f from '../../assets/class/iop_f.jpg';
-import sram from '../../assets/class/sram.jpg';
-import sram_f from '../../assets/class/sram_f.jpg';
-import xelor from '../../assets/class/xelor.jpg';
 import {
   sui_create_character,
   sui_is_character_name_taken,
@@ -39,6 +34,12 @@ const new_character_dialog = inject('new_character_dialog');
 
 const emits = defineEmits(['cancel']);
 const { t } = useI18n();
+
+const iop = '/classe/iop_male.jpg';
+const iop_f = '/classe/iop_female.jpg';
+const sram = '/classe/sram_male.jpg';
+const sram_f = '/classe/sram_female.jpg';
+const xelor = '/classe/xelor_male.jpg';
 
 const characters = [
   {
@@ -136,7 +137,7 @@ watch(new_character_name, value => {
 
 async function create_character() {
   character_creation_loading.value = true;
-  const male = !selected_class_type.value.includes('FEMALE');
+  const female = selected_class_type.value.includes('FEMALE');
   const classe = selected_class_type.value.includes('IOP') ? 'IOP' : 'SRAM';
   if (await sui_is_character_name_taken(new_character_name.value)) {
     name_error.value = 'This name is already taken';
@@ -147,7 +148,7 @@ async function create_character() {
     await sui_create_character({
       name: new_character_name.value,
       type: classe,
-      male,
+      sex: female ? 'female' : 'male',
     });
   } catch (error) {
     console.error(error);

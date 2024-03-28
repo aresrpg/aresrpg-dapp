@@ -3,6 +3,7 @@ import { on } from 'events'
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'
+import { context } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -17,8 +18,8 @@ export default function () {
     tick(_, __, delta) {
       if (player) player.mixer.update(delta)
     },
-    observe({ events, pool, dispatch, signal }) {
-      aiter(abortable(on(events, 'STATE_UPDATED')))
+    observe({ pool, dispatch, signal }) {
+      aiter(abortable(on(context.events, 'STATE_UPDATED')))
         .map(
           ([
             {
@@ -41,9 +42,9 @@ export default function () {
               )
 
               if (selected_character) {
-                const { classe, male, name } = selected_character
+                const { classe, sex, name } = selected_character
                 player = pool
-                  .character({ classe, female: !male })
+                  .character({ classe, female: sex === 'female' })
                   .get_non_instanced()
 
                 player.title.text = name
