@@ -220,11 +220,11 @@ async function send_character() {
     position: relative
     z-index: 20
 
-  &.IOP
+  &.iop
     background: url('/classe/iop_female.jpg') center / cover
     &.male
       background: url('/classe/iop_male.jpg') center / cover
-  &.SRAM
+  &.sram
     background: url('/classe/sram_female.jpg') center / cover
     &.male
       background: url('classe/sram_male.jpg') center / cover

@@ -138,7 +138,7 @@ watch(new_character_name, value => {
 async function create_character() {
   character_creation_loading.value = true;
   const female = selected_class_type.value.includes('FEMALE');
-  const classe = selected_class_type.value.includes('IOP') ? 'IOP' : 'SRAM';
+  const classe = selected_class_type.value.includes('IOP') ? 'iop' : 'sram';
   if (await sui_is_character_name_taken(new_character_name.value)) {
     name_error.value = 'This name is already taken';
     character_creation_loading.value = false;
