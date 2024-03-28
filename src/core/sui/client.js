@@ -1,18 +1,14 @@
 import EventEmitter from 'events'
 
-import {
-  getFullnodeUrl,
-  SuiClient,
-  SuiHTTPTransport,
-} from '@mysten/sui.js/client'
+import { SuiClient, SuiHTTPTransport } from '@mysten/sui.js/client'
 import { TransactionBlock } from '@mysten/sui.js/transactions'
 import BN from 'bignumber.js'
 import { MIST_PER_SUI } from '@mysten/sui.js/utils'
 import { LRUCache } from 'lru-cache'
 
 import {
-  VITE_ARESRPG_ADMIN_CAP_MAINNET,
-  VITE_ARESRPG_ADMIN_CAP_TESTNET,
+  VITE_ARESRPG_SERVER_ADMIN_CAP_MAINNET,
+  VITE_ARESRPG_SERVER_ADMIN_CAP_TESTNET,
   VITE_ARESRPG_NAME_REGISTRY_MAINNET,
   VITE_ARESRPG_NAME_REGISTRY_TESTNET,
   VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
@@ -33,13 +29,13 @@ const PACKAGES = {
     original: VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
     upgraded: VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
     name_registry: VITE_ARESRPG_NAME_REGISTRY_TESTNET,
-    admin_cap: VITE_ARESRPG_ADMIN_CAP_TESTNET,
+    admin_cap: VITE_ARESRPG_SERVER_ADMIN_CAP_TESTNET,
   },
   'sui:mainnet': {
     original: VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
     upgraded: VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
     name_registry: VITE_ARESRPG_NAME_REGISTRY_MAINNET,
-    admin_cap: VITE_ARESRPG_ADMIN_CAP_MAINNET,
+    admin_cap: VITE_ARESRPG_SERVER_ADMIN_CAP_MAINNET,
   },
 }
 
@@ -74,7 +70,7 @@ let last_used_network = 'sui:devnet'
 let package_original = VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL
 let package_upgraded = VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED
 let name_registry = VITE_ARESRPG_NAME_REGISTRY_MAINNET
-let admin_cap = VITE_ARESRPG_ADMIN_CAP_MAINNET
+let admin_cap = VITE_ARESRPG_SERVER_ADMIN_CAP_MAINNET
 let known_storages = []
 
 export const set_network = async network => {
@@ -136,6 +132,7 @@ const execute = async transaction_block => {
     const result = await client.executeTransactionBlock({
       transactionBlock: transactionBlockBytes,
       signature,
+      options: { showEffects: true },
     })
 
     return result
@@ -145,6 +142,12 @@ const execute = async transaction_block => {
       error.message.includes('Rejected')
     )
       return
+
+    if (error.message.includes(', 5')) {
+      toast.error(
+        `The app is outdated and can't use this feature. Please update the app.`,
+      )
+    } else toast.error(error.message, 'Transaction failed')
     throw error
   }
 }
@@ -172,7 +175,6 @@ export async function sui_get_sui_balance() {
     owner: get_address(),
   })
 
-  logger.SUI('get balance', mists_to_sui(totalBalance))
   return BigInt(totalBalance)
 }
 
@@ -206,17 +208,42 @@ export async function sui_is_character_name_taken(name) {
 
   txb.setGasBudget(100000000)
 
-  const {
-    effects: {
-      status: { status },
-    },
-  } = await client.dryRunTransactionBlock({
-    transactionBlock: await txb.build({ client }),
-  })
+  try {
+    const {
+      effects: {
+        status: { status, error },
+      },
+    } = await client.dryRunTransactionBlock({
+      transactionBlock: await txb.build({ client }),
+    })
 
-  logger.SUI('is character name taken', { name, status })
+    logger.SUI('is character name taken', { name, status })
 
-  return status === 'failure'
+    if (error?.includes('Some("is_name_taken") }, 5')) {
+      toast.error(
+        `The app is outdated and can't use this feature. Please update the app.`,
+      )
+    }
+
+    return status === 'failure'
+  } catch (error) {
+    if (
+      error.message.includes('rejection') ||
+      error.message.includes('Rejected')
+    )
+      return
+
+    if (error.message.includes('No valid gas coins')) {
+      toast.error(
+        'You need Sui in your wallet to perform this action',
+        'Transaction failed',
+      )
+      return
+    }
+
+    toast.error(error.message, 'Transaction failed')
+    throw error
+  }
 }
 
 export async function sui_delete_character(id) {
@@ -293,8 +320,6 @@ export async function sui_get_receipts() {
     id: data.content.fields.id.id,
   }))
 
-  logger.SUI('get receipts', receipts)
-
   return receipts
 }
 
@@ -317,8 +342,6 @@ export async function sui_get_locked_characters(receipts) {
       id: fields.id.id,
     }),
   )
-
-  logger.SUI('get locked characters', mapped)
 
   return mapped
 }
@@ -348,8 +371,6 @@ export async function sui_get_unlocked_characters() {
       id: fields.id.id,
     }),
   )
-
-  logger.SUI('get unlocked characters', mapped)
 
   return mapped
 }
@@ -389,7 +410,11 @@ export async function sui_subscribe({ signal }) {
       },
     })
   } catch (error) {
-    console.error('Unable to subscribe to the Sui node', error)
+    if (error.message.includes('Invalid params'))
+      console.error(
+        'Unable to subscribe to the Sui node as it is too crowded. Please try again later.',
+      )
+    else console.error('Unable to subscribe to the Sui node', error)
     active_subscription.unsubscribe = null
   }
 

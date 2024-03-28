@@ -56,8 +56,16 @@ export default function () {
         /** @param {Type.Wallet} wallet */
         async wallet => {
           try {
-            // find the wallet by its name and replace it
-            await set_network(wallet.chain)
+            const {
+              sui: { selected_wallet_name },
+            } = context.get_state()
+
+            if (!selected_wallet_name) await set_network(wallet.chain)
+            else if (
+              selected_wallet_name &&
+              selected_wallet_name === wallet.name
+            )
+              await set_network(wallet.chain)
 
             await iter(wallet.accounts)
               .toAsyncIterator()

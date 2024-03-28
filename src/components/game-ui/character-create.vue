@@ -4,11 +4,19 @@ fr:
   character_name_valid: Le nom du personnage doit être compris entre 3 et 20 caractères
   create_button: Créer
   cancel_button: Annuler
+  name_too_long: Le nom est trop long
+  name_invalid: Le nom est invalide
+  name_white_space: Le nom ne peut pas contenir d'espaces blancs
+  name_taken: Ce nom est déjà pris
 en:
   character_name: character name
   character_name_valid: The character name must be between 3 and 20 chars
   create_button: Create
   cancel_button: Cancel
+  name_too_long: Name is too long
+  name_invalid: Name is invalid
+  name_white_space: Name cannot contain white spaces
+  name_taken: This name is already taken
 </i18n>
 
 <script setup>
@@ -99,14 +107,14 @@ const selected_class_data = computed(() => {
   };
 });
 
-const name_too_short = computed(
-  () => new_character_name.value.trim().length < 3,
-);
 const name_too_long = computed(
   () => new_character_name.value.trim().length > 20,
 );
 const name_invalid = computed(
   () => !new_character_name.value.trim().match(/^[a-zA-Z0-9-_]+$/),
+);
+const name_white_space = computed(
+  () => !new_character_name.value.match(/^[a-zA-Z0-9-_]+$/),
 );
 
 function on_server_error({ code }) {
@@ -128,9 +136,11 @@ watch(new_character_dialog, value => {
 
 watch(new_character_name, value => {
   if (value.length > 2 && name_too_long.value) {
-    name_error.value = 'Name is too long';
+    name_error.value = t('name_too_long');
   } else if (value.length > 2 && name_invalid.value) {
-    name_error.value = 'Name is invalid';
+    name_error.value = t('name_invalid');
+  } else if (value.length > 2 && name_white_space.value) {
+    name_error.value = t('name_white_space');
   } else if (value) name_error.value = '';
 });
 
@@ -138,11 +148,13 @@ async function create_character() {
   character_creation_loading.value = true;
   const female = selected_class_type.value.includes('FEMALE');
   const classe = selected_class_type.value.includes('IOP') ? 'iop' : 'sram';
+
   if (await sui_is_character_name_taken(new_character_name.value)) {
-    name_error.value = 'This name is already taken';
+    name_error.value = t('name_taken');
     character_creation_loading.value = false;
     return;
   }
+
   try {
     await sui_create_character({
       name: new_character_name.value,
@@ -161,7 +173,8 @@ async function create_character() {
 const is_character_name_valid = computed(
   () =>
     new_character_name.value.length > 3 &&
-    new_character_name.value.length <= 20,
+    new_character_name.value.length <= 20 &&
+    new_character_name.value.match(/^[a-zA-Z0-9-_]+$/),
 );
 
 function cancel() {
