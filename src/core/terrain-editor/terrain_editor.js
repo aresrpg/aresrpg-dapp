@@ -1,4 +1,3 @@
-import { AresRpgEngine } from '@aresrpg/aresrpg-engine'
 import {
   Vector3,
   WebGLRenderer,
@@ -8,9 +7,25 @@ import {
   AxesHelper,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { VoxelMap } from '@aresrpg/aresrpg-world'
+import {
+  ProcGenLayer,
+  VoxelMap,
+  VoxelType,
+  WorldGenerator,
+} from '@aresrpg/aresrpg-world'
+import { Terrain } from '@aresrpg/aresrpg-engine'
 
-import dispose from '../utils/three/dispose'
+import dispose from '../three-utils/dispose'
+
+import proc_layers_json from './proc_layers.json'
+
+const voxel_types_mapping = height => {
+  if (height < 75) return VoxelType.WATER
+  else if (height < 80) return VoxelType.SAND
+  else if (height < 125) return VoxelType.GRASS
+  else if (height < 175) return VoxelType.ROCK
+  return VoxelType.SNOW
+}
 
 function on_resize({ renderer, camera }) {
   return () => {
@@ -28,22 +43,28 @@ export function create_terrain_editor(canvas) {
     75,
     window.innerWidth / window.innerHeight,
     0.1,
-    1000,
+    2000,
   )
   const camera_control = new OrbitControls(camera, renderer.domElement)
 
   const scene = new Scene()
-  // const noise_scale = 1 / 8 // 1 unit of noise per N voxels
+  const noise_scale = 1 / 8 // 1 unit of noise per N voxels
+  const map_size = Math.pow(2, 9) // 10 => 1024, 11 => 2048, 12 => 4096,..
   const bmin = new Vector3(0, 0, 0)
-  const bmax = new Vector3(256, 130, 256)
+  const bmax = new Vector3(map_size, 256, map_size)
   const bbox = new Box3(bmin, bmax)
-  const voxel_map = new VoxelMap(bbox)
-  // const world_gen = new WorldGenerator(noise_scale)
+  const proc_layers = ProcGenLayer.fromJsonConfig({
+    procLayers: proc_layers_json.noise_panels,
+  })
+  const world_gen = new WorldGenerator(noise_scale, proc_layers)
+  // layer to render: possible values 'layer#N' or 'combination'
+  const selection = 'layer#1'
+  world_gen.config = { selection }
+  world_gen.voxelTypeMapper = voxel_types_mapping
+  const voxel_map = new VoxelMap(bbox, world_gen)
+
   const axis_helper = new AxesHelper(500)
-
-  const terrain = new AresRpgEngine.Terrain(voxel_map)
-
-  // world_gen.fill(voxel_map.voxelsOctree, bbox);
+  const terrain = new Terrain(voxel_map)
 
   camera.position.set(-50, 100, -50)
   camera_control.target.set(voxel_map.size.x / 2, 0, voxel_map.size.z / 2)
