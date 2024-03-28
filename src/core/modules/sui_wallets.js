@@ -107,13 +107,17 @@ export default function () {
             last_wallet_name,
             { selected_wallet_name, wallets, selected_address },
           ) => {
-            if (last_wallet_name !== selected_wallet_name) {
+            if (
+              selected_wallet_name &&
+              selected_wallet_name !== last_wallet_name
+            ) {
               const last_selected_address =
                 selected_address ||
                 localStorage.getItem('last_selected_address')
-              const available_addresses = wallets[
-                selected_wallet_name
-              ].accounts.map(({ address }) => address)
+              const selected_wallet = wallets[selected_wallet_name]
+              const available_addresses = selected_wallet?.accounts.map(
+                ({ address }) => address,
+              )
 
               // here we try to select the address depending on last choices or the first one
               if (

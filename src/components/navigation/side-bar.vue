@@ -36,9 +36,6 @@
     vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('settings') }}
       template(#icon)
         i.bx.bx-cog
-    vs-sidebar-item(v-if="VITE_ENABLE_TERRAIN_EDITOR" id="terrain-editor" @click="router.push('/terrain-editor')") {{ t('terrain-editor') }}
-      template(#icon)
-        i.bx.bx-paint-roll
     vs-sidebar-item(id="discord" @click="open_discord") Discord
       template(#icon)
         i.bx.bxl-discord-alt

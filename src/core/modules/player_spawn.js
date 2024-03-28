@@ -39,24 +39,24 @@ export default function () {
               const selected_character = locked_characters.find(
                 ({ id }) => id === selected_character_id,
               )
-              console.dir({
-                selected_character,
-                locked_characters,
-              })
-              const { classe, female, name } = selected_character
 
-              player = pool.character({ classe, female }).get_non_instanced()
+              if (selected_character) {
+                const { classe, male, name } = selected_character
+                player = pool
+                  .character({ classe, female: !male })
+                  .get_non_instanced()
 
-              player.title.text = name
+                player.title.text = name
 
-              dispatch('action/register_player', player)
-              dispatch('packet/playerPosition', {
-                position: {
-                  x: 0,
-                  y: 105,
-                  z: 0,
-                },
-              })
+                dispatch('action/register_player', player)
+                dispatch('packet/playerPosition', {
+                  position: {
+                    x: 0,
+                    y: 105,
+                    z: 0,
+                  },
+                })
+              }
             }
 
             return selected_character_id

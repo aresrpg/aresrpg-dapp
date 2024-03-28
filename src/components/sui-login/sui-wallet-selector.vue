@@ -48,10 +48,10 @@ const emits = defineEmits(['connection_done']);
 const registered_wallets = ref([]);
 
 function update_wallets({ sui: { wallets } }) {
-  const wallets_names = wallets.map(wallet => wallet.name);
+  const wallets_names = Object.keys(wallets);
 
   if (wallets_names.join() !== registered_wallets.value.join())
-    registered_wallets.value = wallets;
+    registered_wallets.value = Object.values(wallets);
 }
 
 onMounted(async () => {

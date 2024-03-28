@@ -23,6 +23,7 @@ import {
 } from '../../env.js'
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
+import toast from '../../toast.js'
 
 const PACKAGES = {
   'sui:testnet': {
@@ -84,7 +85,7 @@ export const set_network = async network => {
     if (last_used_network === network) return
     last_used_network = network
 
-    logger.SUI('switch network to', network)
+    logger.SUI('switch network', network)
 
     client = get_client(network.split(':')[1])
     const {
@@ -119,20 +120,22 @@ function get_wallet() {
 }
 
 function get_address() {
-  return context.get_state().selected_address
+  return context.get_state().sui.selected_address
 }
 
-const execute = transaction_block => {
-  const signed = get_wallet().signTransactionBlock({
-    transaction_block,
-    sender: get_address(),
-  })
+const execute = async transaction_block => {
+  const sender = get_address()
+  if (!sender) toast.error('Please login again', 'Wallet not found')
 
-  console.log('signed', signed)
+  const { transactionBlockBytes, signature } =
+    await get_wallet().signTransactionBlock({
+      transaction_block,
+      sender,
+    })
 
   return client.executeTransactionBlock({
-    transactionBlock: signed,
-    signature: null,
+    transactionBlock: transactionBlockBytes,
+    signature,
   })
 }
 
@@ -260,8 +263,11 @@ export async function sui_send_object(id, to) {
 }
 
 export async function sui_get_receipts() {
+  const owner = get_address()
+  if (!owner) return []
+
   const result = await client.getOwnedObjects({
-    owner: get_address(),
+    owner,
     filter: {
       StructType: `${package_original}::server::CharacterLockReceipt`,
     },
@@ -308,8 +314,11 @@ export async function sui_get_locked_characters(receipts) {
 }
 
 export async function sui_get_unlocked_characters() {
+  const owner = get_address()
+  if (!owner) return []
+
   const result = await client.getOwnedObjects({
-    owner: get_address(),
+    owner,
     filter: {
       StructType: `${package_original}::character::Character`,
     },
@@ -343,16 +352,23 @@ export async function sui_subscribe() {
   logger.SUI('subscribing to events')
 
   try {
-    if (active_subscription.unsubscribe) {
+    if (active_subscription.emitter) {
       active_subscription.emitter.removeAllListeners()
       clearInterval(active_subscription.interval)
-      await active_subscription.unsubscribe()
+      if (active_subscription.unsubscribe)
+        await active_subscription.unsubscribe()
     }
 
     active_subscription.emitter = emitter
     active_subscription.interval = setInterval(() => {
       emitter.emit('update', { type: 'interval' })
     }, 10000)
+
+    // trigger an update directly to update the UI
+    setTimeout(() => {
+      emitter.emit('update', { type: 'interval' })
+    }, 200)
+
     active_subscription.unsubscribe = await client.subscribeEvent({
       onMessage: event => emitter.emit('update', event),
       filter: {
@@ -364,6 +380,7 @@ export async function sui_subscribe() {
     })
   } catch (error) {
     console.error('Unable to subscribe to the Sui node', error)
+    active_subscription.unsubscribe = null
   }
 
   return emitter

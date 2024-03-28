@@ -31,6 +31,7 @@ import Dropdown from 'v-dropdown';
 
 import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
 import { context } from '../../core/game/game.js';
+import { mists_to_sui } from '../../core/sui/client.js';
 
 const { t } = useI18n();
 
@@ -42,7 +43,6 @@ const update_selected_account = account => {
 const breakpoints = useBreakpoints({
   mobile: 1000,
 });
-
 // dialog to choose between google and Sui Wallet
 const login_dialog = ref(false);
 // dialog to choose the Sui Wallet
@@ -50,21 +50,52 @@ const sui_wallet_dialog = ref(false);
 const dropdown = ref(null);
 
 const available_accounts = ref([]);
-const network = ref('mainnet');
+const current_wallet = ref(null);
+const current_network = ref('mainnet');
+const current_address = ref(null);
+const current_account = ref(null);
 const sui_balance = ref(null);
 
-function update_accounts({ sui: { selected_wallet_name, wallets, balance } }) {
+function update_accounts({
+  sui: { selected_wallet_name, wallets, balance, selected_address },
+}) {
   const selected_wallet = wallets[selected_wallet_name];
   const accounts = selected_wallet?.accounts ?? [];
+  const accounts_addresses = accounts.filter(
+    ({ address }) => address !== selected_address,
+  );
+  const available_accounts_addresses = available_accounts.value.map(
+    ({ address }) => address,
+  );
+  const selected_account = accounts.find(
+    ({ address }) => address === selected_address,
+  );
   const network = selected_wallet?.chain.split(':')[1];
 
-  if (accounts.join() !== available_accounts.value.join())
-    available_accounts.value = accounts;
-  else available_accounts.value = [];
+  if (accounts_addresses.join() !== available_accounts_addresses.join())
+    available_accounts.value = accounts.filter(
+      ({ address }) => address !== selected_address,
+    );
 
-  if (network !== network.value) network.value = network;
-
+  if (network !== current_network.value) current_network.value = network;
   if (balance !== sui_balance.value) sui_balance.value = balance;
+  // @ts-ignore
+  if (current_wallet.value?.name !== selected_wallet_name)
+    current_wallet.value = selected_wallet;
+
+  if (!selected_wallet) {
+    available_accounts.value = [];
+    current_address.value = null;
+    current_account.value = null;
+  }
+
+  if (selected_address !== current_address.value) {
+    current_address.value = selected_address;
+    current_account.value = { ...selected_account };
+  }
+
+  if (current_account.value?.alias !== selected_account?.alias)
+    current_account.value = selected_account;
 }
 
 onMounted(() => {
@@ -87,20 +118,20 @@ function address_display(account) {
 nav(:class="{ small: breakpoints.mobile.matches }")
   vs-row(justify="end")
     // ======
-    vs-button.btn(v-if="!selected_wallet" type="border" color="#eee" @click="login_dialog = true")
+    vs-button.btn(v-if="!current_wallet" type="border" color="#eee" @click="login_dialog = true")
       i.bx.bx-droplet
       span {{ t('connect') }}
     vs-row.row(v-else justify="end")
       .sui-balance(v-if="sui_balance != null")
-        span {{ mist_to_sui(sui_balance) }}
+        span {{ mists_to_sui(sui_balance) }}
         img.icon(src="../../assets/sui/sui-logo.png")
-      .badge(:class="{ mainnet: network === 'mainnet' }") Sui {{ network }} #[img.icon(:src="selected_wallet.icon")]
+      .badge(:class="{ mainnet: current_network === 'mainnet' }") Sui {{ current_network }} #[img.icon(:src="current_wallet.icon")]
       // Address container with dropdown
 
       Dropdown(:border="false" ref="dropdown")
         template(#trigger)
           vs-button(type="transparent" color="#eee").address_container
-            span.address {{ address_display(selected_account) }}
+            span.address {{ address_display(current_account) }}
             i.bx.bx-chevron-down
         .dropdown-content
           vs-row(justify="center")
@@ -112,7 +143,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
               @click="() => (update_selected_account(account), dropdown.close())"
             ) {{ address_display(account) }}
           vs-row(justify="center")
-            vs-button.btn(type="transparent" block color="#E74C3C" @click="() => selected_wallet.disconnect()")
+            vs-button.btn(type="transparent" block color="#E74C3C" @click="() => current_wallet.disconnect()")
               i.bx.bx-log-out
               span {{ t('logout') }}
       //- vs-avatar(history size="60" @click="logout_dialog = true")

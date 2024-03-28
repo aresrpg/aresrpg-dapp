@@ -24,11 +24,11 @@
 </i18n>
 
 <template lang="pug">
-.character(:class="{ locked: props.locked, [props.character.type]: true, male: props.character.male }")
+.character(:class="{ locked: props.locked, [props.character.classe]: true, male: props.character.male }")
   span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
   .field
     .title classe:
-    .value {{ props.character.type }}
+    .value {{ props.character.classe }}
     i.bx(:class="genrer_icon")
   .field
     .title id:
