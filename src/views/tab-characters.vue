@@ -20,7 +20,7 @@
   en:
     welcome: Welcome Adventurer!
     explanation: |
-      AresRPG is an immersive, voxel-based MMORPG that unfolds entirely within your browser, uniquely crafted atop the {0} chain.
+      AresRPG is an immersive voxel-based MMORPG that unfolds entirely within your browser, uniquely crafted atop the {0} chain.
       Our innovative approach eliminates the need for traditional databases; every piece of data is securely stored on-chain.
       This means you, as a User, hold complete ownership over your in-game assets.
       Everything from items and characters to gold coins and titles resides within your wallet, offering you unparalleled control and security.

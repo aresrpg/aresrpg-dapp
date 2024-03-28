@@ -140,7 +140,11 @@ const execute = async transaction_block => {
 
     return result
   } catch (error) {
-    if (error.message === 'Rejected from user') return
+    if (
+      error.message.includes('rejection') ||
+      error.message.includes('Rejected')
+    )
+      return
     throw error
   }
 }
