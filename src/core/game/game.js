@@ -88,6 +88,15 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {import("three").AnimationAction} AnimAction */
 /** @typedef {typeof INITIAL_STATE.settings.sky.lights} SkyLights */
 
+export const ANON = {
+  id: 'default',
+  name: 'Anon',
+  position: { x: 0, y: 100, z: 0 },
+  experience: 1,
+  classe: 'IOP',
+  male: true,
+}
+
 export const INITIAL_STATE = {
   settings: {
     target_fps: 120,
@@ -153,16 +162,7 @@ export const INITIAL_STATE = {
     /** @type {Type.Wallet[]} */
     wallets: [],
     /** @type {Type.Character[]} */
-    locked_characters: [
-      {
-        id: 'default',
-        name: 'Anon',
-        position: { x: 0, y: 100, z: 0 },
-        level: 1,
-        classe: 'IOP',
-        female: false,
-      },
-    ],
+    locked_characters: [ANON],
     /** @type {Type.Character[]} */
     unlocked_characters: [],
     selected_wallet_name: null,

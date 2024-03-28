@@ -16,15 +16,15 @@ vs-button.btn(
   type="transparent"
   :loading="websocket_loading"
   :color="ws_color"
-  :animate-inactive="user.online"
+  :animate-inactive="online"
   animation-type="vertical"
   @click="toggle_ws"
 )
-  i.bx(:class="{ 'bx-wifi-off': !user.online, 'bx-wifi': user.online }")
-  span {{ user.online ? t('online_ws') : t('offline_ws') }}
+  i.bx(:class="{ 'bx-wifi-off': !online, 'bx-wifi': online }")
+  span {{ online ? t('online_ws') : t('offline_ws') }}
   template(#animate)
     i.bx.bx-broadcast
-    span {{ user.online ? t('disconnect') : t('connect') }}
+    span {{ online ? t('disconnect') : t('connect') }}
 </template>
 
 <script setup>

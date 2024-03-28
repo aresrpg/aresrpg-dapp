@@ -12,7 +12,7 @@ function update() {
       color: '#42A5F5',
       background: '#212121',
     })
-  } else if (!loading) {
+  } else if (!loading.value) {
     loading_instance?.close()
   }
 }

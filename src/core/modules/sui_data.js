@@ -1,4 +1,4 @@
-import { context } from '../game/game.js'
+import { ANON, context } from '../game/game.js'
 import {
   sui_get_locked_characters,
   sui_get_receipts,
@@ -53,12 +53,12 @@ export default function () {
               })
             } else {
               context.dispatch('action/sui_data_update', {
-                locked_characters: [],
+                locked_characters: [ANON],
                 unlocked_characters: [],
                 character_lock_receipts: [],
               })
-              decrease_loading()
             }
+            decrease_loading()
           }
           return selected_address
         },

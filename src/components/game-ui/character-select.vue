@@ -25,6 +25,7 @@ import { context } from '../../core/game/game.js';
 const dropdown = ref(null);
 
 const characters = ref([]);
+const selected_character = ref(null);
 
 function update_characters({
   selected_character_id,
@@ -39,6 +40,14 @@ function update_characters({
     characters.value = locked_characters.filter(
       character => character.id !== selected_character_id,
     );
+
+  if (selected_character_id) {
+    selected_character.value = locked_characters.find(
+      character => character.id === selected_character_id,
+    );
+  } else {
+    selected_character.value = null;
+  }
 }
 
 onMounted(() => {

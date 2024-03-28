@@ -88,15 +88,15 @@ sectionContainer
       .explanation2 {{ t('explanation2') }}
   .space
   // Locked characters
-  sectionHeader(:title="t('locked_characters')" :desc="user.locked_characters ? t('locked_characters_desc') : null" color="#00C853")
+  sectionHeader(:title="t('locked_characters')" :desc="locked_characters ? t('locked_characters_desc') : null" color="#00C853")
     .character-container
       div.nothing(v-if="loading")
-      usercharacter(v-else v-for="character in user.locked_characters" :key="character.id" :locked="true" :character="character")
+      usercharacter(v-else v-for="character in locked_characters" :key="character.id" :locked="true" :character="character")
 
   // Unlocked characters
   sectionHeader(:title="t('unlocked_characters')" :desc="t('unlocked_characters_desc')" color="#212121")
     .character-container
-      usercharacter(v-if="user.unlocked_characters" v-for="character in user.unlocked_characters" :key="character.id" :character="character")
+      usercharacter(v-if="unlocked_characters" v-for="character in unlocked_characters" :key="character.id" :character="character")
       .new(@click="new_character_dialog = true") {{ t('new') }}
 
   // Create a new character
