@@ -221,13 +221,13 @@ async function send_character() {
     z-index: 20
 
   &.iop
-    background: url('/classe/iop_female.jpg') center / cover
+    background: url('../../assets/classe/iop_female.jpg') center / cover
     &.male
-      background: url('/classe/iop_male.jpg') center / cover
+      background: url('../../assets/classe/iop_male.jpg') center / cover
   &.sram
-    background: url('/classe/sram_female.jpg') center / cover
+    background: url('../../assets/classe/sram_female.jpg') center / cover
     &.male
-      background: url('classe/sram_male.jpg') center / cover
+      background: url('../../assets/classe/sram_male.jpg') center / cover
 
   &.locked
     border 1px solid #FFCA28

@@ -20,6 +20,11 @@ import {
   sui_create_character,
   sui_is_character_name_taken,
 } from '../../core/sui/client.js';
+import iop from '../../assets/classe/iop_male.jpg';
+import iop_f from '../../assets/classe/iop_female.jpg';
+import sram from '../../assets/classe/sram_male.jpg';
+import sram_f from '../../assets/classe/sram_female.jpg';
+import xelor from '../../assets/classe/xelor_male.jpg';
 
 import characterCanvasDisplay from './character-canvas-display.vue';
 import SpellDisplay from './menu_spell_display.vue';
@@ -34,12 +39,6 @@ const new_character_dialog = inject('new_character_dialog');
 
 const emits = defineEmits(['cancel']);
 const { t } = useI18n();
-
-const iop = '/classe/iop_male.jpg';
-const iop_f = '/classe/iop_female.jpg';
-const sram = '/classe/sram_male.jpg';
-const sram_f = '/classe/sram_female.jpg';
-const xelor = '/classe/xelor_male.jpg';
 
 const characters = [
   {
