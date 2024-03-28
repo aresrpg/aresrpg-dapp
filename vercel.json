@@ -16,10 +16,5 @@
         }
       ]
     }
-  ],
-
-  "rewrites": [
-    { "source": "/classe/(.*)", "destination": "/classe/$1" },
-    { "source": "/(.*)", "destination": "/" }
   ]
 }
