@@ -18,5 +18,8 @@
     }
   ],
 
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    { "source": "/classe/(.*)", "destination": "/classe/$1" },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
