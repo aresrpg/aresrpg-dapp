@@ -228,11 +228,11 @@ export default function () {
         day_autoupdate_paused = paused
       })
 
-      // events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
-      //   if (fromUi) {
-      //     set_day_time(value)
-      //   }
-      // })
+      events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
+        if (fromUi) {
+          set_day_time(value)
+        }
+      })
 
       events.on('SKY_SUNSIZE_CHANGED', update_sun_size)
 

@@ -24,7 +24,7 @@
 </i18n>
 
 <template lang="pug">
-.character(:class="{ locked: props.locked, [props.character.classe]: true, male: props.character.male }")
+.character(:class="{ locked: props.locked, [props.character.classe]: true, male: props.character.sex === 'male' }")
   span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
   .field
     .title classe:
@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isValidSuiAddress } from '@mysten/sui.js/utils';
 
@@ -103,31 +103,14 @@ const { t } = useI18n();
 const props = defineProps(['character', 'locked']);
 
 const genrer_icon = computed(() =>
-  props.character.male ? 'bx-male-sign' : 'bx-female-sign',
+  props.character.sex === 'male' ? 'bx-male-sign' : 'bx-female-sign',
 );
 
-const network = ref('mainnet');
+const network = inject('current_network');
 
 const character_explorer_link = computed(
   () => `https://suiscan.xyz/${network.value}/object/${props.character.id}`,
 );
-
-function update_network({ sui: { selected_wallet_name, wallets } }) {
-  const selected_wallet = wallets[selected_wallet_name];
-  if (selected_wallet) {
-    const [, chain] = selected_wallet.chain.split(':');
-    if (chain !== network.value) network.value = chain;
-  }
-}
-
-onMounted(() => {
-  context.events.on('STATE_UPDATED', update_network);
-  update_network(context.get_state());
-});
-
-onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_network);
-});
 
 const is_valid_sui_address = computed(() => {
   const is_alias = send_to.value.endsWith('.sui');
@@ -238,13 +221,13 @@ async function send_character() {
     z-index: 20
 
   &.IOP
-    background: url('../../assets/class/iop_f.jpg') center / cover
+    background: url('/classe/iop_female.jpg') center / cover
     &.male
-      background: url('../../assets/class/iop.jpg') center / cover
+      background: url('/classe/iop_male.jpg') center / cover
   &.SRAM
-    background: url('../../assets/class/sram_f.jpg') center / cover
+    background: url('/classe/sram_female.jpg') center / cover
     &.male
-      background: url('../../assets/class/sram.jpg') center / cover
+      background: url('classe/sram_male.jpg') center / cover
 
   &.locked
     border 1px solid #FFCA28

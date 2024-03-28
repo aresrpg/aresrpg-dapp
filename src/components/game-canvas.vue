@@ -24,6 +24,7 @@ const renderer_container = ref(null);
 
 const sidebar_reduced = inject('sidebar_reduced');
 const game_visible = inject('game_visible');
+const show_topbar = inject('show_topbar');
 
 const webgl_available = ref(true);
 
@@ -33,24 +34,31 @@ onMounted(() => {
     set_canvas(renderer_container.value);
     sidebar_reduced.value = true;
     game_visible.value = true;
+    show_topbar.value = false;
+    run_game();
   }
 });
 
 onUnmounted(() => {
   sidebar_reduced.value = false;
   game_visible.value = false;
+  show_topbar.value = true;
   pause_game();
 });
 
 onActivated(() => {
   sidebar_reduced.value = true;
   game_visible.value = true;
+  show_topbar.value = false;
+  console.log('game visible');
   run_game();
 });
 
 onDeactivated(() => {
   sidebar_reduced.value = false;
   game_visible.value = false;
+  show_topbar.value = true;
+  console.log('game not visible');
   pause_game();
 });
 </script>

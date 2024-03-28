@@ -3,7 +3,9 @@ router-view
 </template>
 
 <script setup>
-import { provide, ref } from 'vue';
+import { onUnmounted, onMounted, provide, ref } from 'vue';
+
+import { context } from './core/game/game.js';
 // internal vuejs
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const name = 'app';
@@ -11,8 +13,72 @@ const name = 'app';
 const sidebar_reduced = ref(false);
 const game_visible = ref(false);
 
+const available_accounts = ref([]);
+const current_wallet = ref(null);
+const current_network = ref('mainnet');
+const current_address = ref(null);
+const current_account = ref(null);
+const sui_balance = ref(null);
+
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
+provide('available_accounts', available_accounts);
+provide('current_wallet', current_wallet);
+provide('current_network', current_network);
+provide('current_address', current_address);
+provide('current_account', current_account);
+provide('sui_balance', sui_balance);
+
+function update_accounts({
+  sui: { selected_wallet_name, wallets, balance, selected_address },
+}) {
+  const selected_wallet = wallets[selected_wallet_name];
+  const accounts = selected_wallet?.accounts ?? [];
+  const accounts_addresses = accounts.filter(
+    ({ address }) => address !== selected_address,
+  );
+  const available_accounts_addresses = available_accounts.value.map(
+    ({ address }) => address,
+  );
+  const selected_account = accounts.find(
+    ({ address }) => address === selected_address,
+  );
+  const network = selected_wallet?.chain.split(':')[1];
+
+  if (accounts_addresses.join() !== available_accounts_addresses.join())
+    available_accounts.value = accounts.filter(
+      ({ address }) => address !== selected_address,
+    );
+
+  if (network !== current_network.value) current_network.value = network;
+  if (balance !== sui_balance.value) sui_balance.value = balance;
+  // @ts-ignore
+  if (current_wallet.value?.name !== selected_wallet_name)
+    current_wallet.value = selected_wallet;
+
+  if (!selected_wallet) {
+    available_accounts.value = [];
+    current_address.value = null;
+    current_account.value = null;
+  }
+
+  if (selected_address !== current_address.value) {
+    current_address.value = selected_address;
+    current_account.value = { ...selected_account };
+  }
+
+  if (current_account.value?.alias !== selected_account?.alias)
+    current_account.value = selected_account;
+}
+
+onMounted(() => {
+  context.events.on('STATE_UPDATED', update_accounts);
+  update_accounts(context.get_state());
+});
+
+onUnmounted(() => {
+  context.events.off('STATE_UPDATED', update_accounts);
+});
 </script>
 
 <style lang="stylus">

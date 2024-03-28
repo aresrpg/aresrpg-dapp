@@ -166,7 +166,7 @@ export async function sui_get_sui_balance() {
   return BigInt(totalBalance)
 }
 
-export async function sui_create_character({ name, type, male = true }) {
+export async function sui_create_character({ name, type, sex = 'male' }) {
   const tx = new TransactionBlock()
 
   const [character] = tx.moveCall({
@@ -175,13 +175,13 @@ export async function sui_create_character({ name, type, male = true }) {
       tx.object(name_registry),
       tx.pure(name),
       tx.pure(type),
-      tx.pure(male),
+      tx.pure(sex),
     ],
   })
 
   tx.transferObjects([character], get_address())
 
-  logger.SUI('create character', { name, type, male })
+  logger.SUI('create character', { name, type, sex })
 
   await execute(tx)
 }
@@ -346,28 +346,28 @@ export async function sui_get_unlocked_characters() {
 
 export async function sui_get_inventory() {}
 
-export async function sui_subscribe() {
+export async function sui_subscribe({ signal }) {
   const emitter = new EventEmitter()
 
   logger.SUI('subscribing to events')
 
-  try {
+  async function try_reset() {
     if (active_subscription.emitter) {
       active_subscription.emitter.removeAllListeners()
       clearInterval(active_subscription.interval)
       if (active_subscription.unsubscribe)
         await active_subscription.unsubscribe()
     }
+  }
 
+  signal.addEventListener('abort', try_reset, { once: true })
+
+  try {
+    await try_reset()
     active_subscription.emitter = emitter
     active_subscription.interval = setInterval(() => {
       emitter.emit('update', { type: 'interval' })
     }, 10000)
-
-    // trigger an update directly to update the UI
-    setTimeout(() => {
-      emitter.emit('update', { type: 'interval' })
-    }, 200)
 
     active_subscription.unsubscribe = await client.subscribeEvent({
       onMessage: event => emitter.emit('update', event),
