@@ -57,6 +57,7 @@ export default function () {
     },
     observe({ events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
+      events.emit('CHUNKS_LOADED')
 
       scene.add(terrain.container)
 
