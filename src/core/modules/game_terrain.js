@@ -5,11 +5,6 @@ import { to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 import {
   Box3,
-  FrontSide,
-  Mesh,
-  MeshPhongMaterial,
-  PlaneGeometry,
-  Vector2,
   Vector3,
 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine/dist/exports.js'
