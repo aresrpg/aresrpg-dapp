@@ -79,7 +79,7 @@ export default function () {
 
             context.dispatch('action/register_wallet', wallet)
           } catch (error) {
-            console.error('Unable to handle the wallet event', error)
+            console.error('Unable to handle the wallet event,', error)
           }
         },
       )
