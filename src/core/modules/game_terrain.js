@@ -49,7 +49,6 @@ export default function () {
   const map = new VoxelMap(map_box, world_generator)
 
   const terrain = new Terrain(map)
-  terrain.showEntireMap()
 
   return {
     tick() {
@@ -97,9 +96,7 @@ export default function () {
 
           if (!player.position) return
           const current_chunk = to_chunk_position(player.position)
-          console.log(
-            `${player.position.x} ${player.position.y} ${player.position.z}`,
-          )
+          terrain.showMapAroundPosition(player.position, 50);
           if (
             last_chunk &&
             (last_chunk?.x !== current_chunk.x ||
