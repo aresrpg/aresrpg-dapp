@@ -43,7 +43,7 @@ import player_characters from '../modules/player_characters.js'
 import game_lights from '../modules/game_lights.js'
 import game_audio from '../modules/game_audio.js'
 import game_entities from '../modules/game_entities.js'
-import game_chunks from '../modules/game_chunks.js'
+import game_terrain from '../modules/game_terrain.js'
 import game_instanced from '../modules/game_instanced.js'
 import create_pools from '../game/pool.js'
 import logger from '../../logger.js'
@@ -222,7 +222,7 @@ const MODULES = [
   game_camera,
   game_audio,
   game_entities,
-  game_chunks,
+  game_terrain,
   game_connect,
 ]
 
