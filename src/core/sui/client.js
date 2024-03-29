@@ -92,15 +92,18 @@ export const set_network = async network => {
     package_upgraded = upgraded
     name_registry = name_reg
     admin_cap = adm_cap
+    try {
+      const known_storages_result = await client.getObject({
+        id: admin_cap,
+        options: { showContent: true },
+      })
 
-    const known_storages_result = await client.getObject({
-      id: admin_cap,
-      options: { showContent: true },
-    })
-
-    known_storages =
-      // @ts-ignore
-      known_storages_result.data.content.fields.known_storages.fields.contents
+      known_storages =
+        // @ts-ignore
+        known_storages_result.data.content.fields.known_storages.fields.contents
+    } catch (error) {
+      console.error('unable to get the admin cap, env missing ?')
+    }
   }
 }
 
@@ -401,11 +404,14 @@ export async function sui_subscribe({ signal }) {
     }, 10000)
 
     active_subscription.unsubscribe = await client.subscribeEvent({
-      onMessage: event => emitter.emit('update', event),
+      onMessage: event => {
+        logger.SUI('rpc event', event)
+        emitter.emit('update', event)
+      },
       filter: {
         All: [
-          { Package: package_original },
-          { MoveEventField: { path: '/for', value: get_address() } },
+          { Package: package_upgraded },
+          // { MoveEventField: { path: '/for', value: get_address() } },
         ],
       },
     })
@@ -430,8 +436,6 @@ export async function get_alias(address) {
   const {
     data: [name],
   } = await mainnet_client.resolveNameServiceNames({ address, limit: 1 })
-
-  logger.SUI('get alias', { address, name })
 
   if (name) {
     SUINS_CACHE.set(address, name)
