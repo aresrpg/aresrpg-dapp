@@ -3,10 +3,7 @@ import { setInterval } from 'timers/promises'
 
 import { to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
-import {
-  Box3,
-  Vector3,
-} from 'three'
+import { Box3, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine/dist/exports.js'
 import {
   ProcGenLayer,
@@ -19,16 +16,16 @@ import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import proc_layers_json from '../../assets/terrain/proc_gen.json'
 
+const blocks_types_mapping = height => {
+  if (height < 75) return VoxelType.WATER
+  else if (height < 80) return VoxelType.SAND
+  else if (height < 125) return VoxelType.GRASS
+  else if (height < 175) return VoxelType.ROCK
+  return VoxelType.SNOW
+}
+
 /** @type {Type.Module} */
 export default function () {
-  const voxel_types_mapping = height => {
-    if (height < 75) return VoxelType.WATER
-    else if (height < 80) return VoxelType.SAND
-    else if (height < 125) return VoxelType.GRASS
-    else if (height < 175) return VoxelType.ROCK
-    return VoxelType.SNOW
-  }
-
   const map_from = new Vector3(0, 0, 0)
   const map_to = new Vector3(256, 255, 256)
   const map_box = new Box3(map_from, map_to)
@@ -37,10 +34,14 @@ export default function () {
   const proc_layers = ProcGenLayer.fromJsonConfig({
     procLayers: proc_layers_json.noise_panels,
   })
-  const world_generator = new WorldGenerator(noise_scale, proc_layers)
-  const selection = 'layer#1'
-  world_generator.config = { selection }
-  world_generator.voxelTypeMapper = voxel_types_mapping
+  const world_generator = new WorldGenerator()
+  const selection = ProcGenLayer.layerIndex(1)
+  WorldGenerator.instance.config = {
+    selection,
+    samplingScale: noise_scale,
+    procLayers: proc_layers,
+    blockTypeMapper: blocks_types_mapping,
+  }
   const map = new VoxelMap(map_box, world_generator)
 
   const terrain = new Terrain(map)
@@ -91,7 +92,7 @@ export default function () {
 
           if (!player.position) return
           const current_chunk = to_chunk_position(player.position)
-          terrain.showMapAroundPosition(player.position, 50);
+          terrain.showMapAroundPosition(player.position, 50)
           if (
             last_chunk &&
             (last_chunk?.x !== current_chunk.x ||
