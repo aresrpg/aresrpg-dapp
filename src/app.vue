@@ -6,6 +6,7 @@ router-view
 import { onUnmounted, onMounted, provide, ref } from 'vue';
 
 import { context } from './core/game/game.js';
+import { is_chain_supported } from './core/utils/sui/is_chain_supported.js';
 // internal vuejs
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const name = 'app';
@@ -19,6 +20,7 @@ const current_network = ref('mainnet');
 const current_address = ref(null);
 const current_account = ref(null);
 const sui_balance = ref(null);
+const network_supported = ref(false);
 
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
@@ -28,11 +30,14 @@ provide('current_network', current_network);
 provide('current_address', current_address);
 provide('current_account', current_account);
 provide('sui_balance', sui_balance);
+provide('network_supported', network_supported);
 
 function update_accounts({
+  sui,
   sui: { selected_wallet_name, wallets, balance, selected_address },
 }) {
   const selected_wallet = wallets[selected_wallet_name];
+  const is_network_supported = is_chain_supported(sui);
   const accounts = selected_wallet?.accounts ?? [];
   const accounts_addresses = accounts.filter(
     ({ address }) => address !== selected_address,
@@ -44,6 +49,9 @@ function update_accounts({
     ({ address }) => address === selected_address,
   );
   const network = selected_wallet?.chain.split(':')[1];
+
+  if (network_supported.value !== is_network_supported)
+    network_supported.value = is_network_supported;
 
   if (accounts_addresses.join() !== available_accounts_addresses.join())
     available_accounts.value = accounts.filter(
