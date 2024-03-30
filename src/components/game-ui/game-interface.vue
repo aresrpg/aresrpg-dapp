@@ -14,8 +14,6 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, reactive } from 'vue';
-
 import characterSelectVue from './character-select.vue';
 import wsConnectBtnVue from './ws-connect-btn.vue';
 import zoneVue from './zone.vue';

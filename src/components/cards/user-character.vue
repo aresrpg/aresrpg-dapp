@@ -1,33 +1,33 @@
 <i18n>
   en:
-    lock: Lock
-    unlock: Unlock
+    lock: Select
+    unlock: Unselect
     delete: Delete
     send: Send
     delete_desc: Are you sure you want to delete this character?
     cancel: Cancel
     confirm: Confirm
     invalid_address: Invalid Sui address
-    lock_desc: You're about to lock this character to access it in game, you can unlock it at anytime when you're done playing
-    unlock_desc: You're about to unlock this character and retrieve it in your wallet
-    lock_failed: Failed to lock character, please retry shortly
+    lock_desc: You're about to select this character to access it in game, you can unselect it at anytime when you're done playing
+    unlock_desc: You're about to unselect this character and retrieve it in your wallet
+    lock_failed: Failed to select character, please retry shortly
     delete_failed: Failed to delete character, please retry shortly
-    unlock_failed: Failed to unlock character, please retry shortly
+    unlock_failed: Failed to unselect character, please retry shortly
     send_failed: Failed to send character, please retry shortly
   fr:
-    lock: Verrouiller
-    unlock: Déverrouiller
+    lock: Sélectionner
+    unlock: Désélectionner
     delete: Supprimer
     send: Envoyer
     delete_desc: Êtes-vous sûr de vouloir supprimer ce personnage ?
     cancel: Annuler
     confirm: Confirmer
     invalid_address: Adresse Sui invalide
-    lock_desc: Vous êtes sur le point de verrouiller ce personnage pour y accéder en jeu, vous pouvez le déverrouiller à tout moment lorsque vous avez fini de jouer
-    unlock_desc: Vous êtes sur le point de déverrouiller ce personnage et de le récupérer dans votre portefeuille
-    lock_failed: Échec de verrouillage du personnage, veuillez réessayer ultérieurement
+    lock_desc: Vous êtes sur le point de sélectionner ce personnage pour y accéder en jeu, vous pouvez le désélectionner à tout moment lorsque vous avez fini de jouer
+    unlock_desc: Vous êtes sur le point de désélectionner ce personnage et de le récupérer dans votre portefeuille
+    lock_failed: Échec de sélection du personnage, veuillez réessayer ultérieurement
     delete_failed: Échec de suppression du personnage, veuillez réessayer ultérieurement
-    unlock_failed: Échec de déverrouillage du personnage, veuillez réessayer ultérieurement
+    unlock_failed: Échec de la désélection du personnage, veuillez réessayer ultérieurement
     send_failed: Échec de l'envoi du personnage, veuillez réessayer ultérieurement
 </i18n>
 

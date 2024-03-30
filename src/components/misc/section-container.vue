@@ -12,49 +12,20 @@
   span(v-if="!current_wallet && !props.allow_offline") {{ t('please_connect') }}
   span(v-else-if="!network_supported && !props.allow_offline")
     .content
-        i18n-t(keypath="chain_not_supported") #[b.sui-network {{ network }}]
+        i18n-t(keypath="chain_not_supported") #[b.sui-network {{ current_network }}]
   slot(v-else)
 </template>
 
 <script setup>
-import { onUnmounted, onMounted, ref } from 'vue';
+import { inject } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-import { context } from '../../core/game/game.js';
-import { is_chain_supported } from '../../core/utils/sui/is_chain_supported.js';
 
 const { t } = useI18n();
 const props = defineProps(['allow_offline']);
 
-const network = ref('mainnet');
-const network_supported = ref(false);
-const current_wallet = ref(null);
-
-function update_network({ sui, sui: { selected_wallet_name, wallets } }) {
-  const selected_wallet = wallets[selected_wallet_name];
-  const is_network_supported = is_chain_supported(sui);
-
-  // @ts-ignore
-  if (selected_wallet?.name !== current_wallet.value?.name)
-    current_wallet.value = selected_wallet;
-
-  if (network_supported.value !== is_network_supported)
-    network_supported.value = is_network_supported;
-
-  if (selected_wallet) {
-    const [, chain] = selected_wallet.chain.split(':');
-    if (chain !== network.value) network.value = chain;
-  }
-}
-
-onMounted(() => {
-  context.events.on('STATE_UPDATED', update_network);
-  update_network(context.get_state());
-});
-
-onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_network);
-});
+const current_wallet = inject('current_wallet');
+const network_supported = inject('network_supported');
+const current_network = inject('current_network');
 </script>
 
 <style lang="stylus" scoped>
