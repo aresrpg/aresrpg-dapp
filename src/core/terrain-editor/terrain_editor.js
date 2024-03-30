@@ -8,7 +8,6 @@ import {
   AxesHelper,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { VoxelMap } from '@aresrpg/aresrpg-world'
 
 import dispose from '../utils/three/dispose'
 
@@ -37,7 +36,7 @@ export function create_terrain_editor(canvas) {
   const bmin = new Vector3(0, 0, 0)
   const bmax = new Vector3(256, 130, 256)
   const bbox = new Box3(bmin, bmax)
-  const voxel_map = new VoxelMap(bbox)
+  const voxel_map = null // new VoxelMap(bbox)
   // const world_gen = new WorldGenerator(noise_scale)
   const axis_helper = new AxesHelper(500)
 
