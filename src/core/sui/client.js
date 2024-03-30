@@ -411,7 +411,7 @@ export async function sui_subscribe({ signal }) {
       filter: {
         All: [
           { Package: package_upgraded },
-          // { MoveEventField: { path: '/for', value: get_address() } },
+          { MoveEventField: { path: '/for', value: get_address() } },
         ],
       },
     })
@@ -441,4 +441,14 @@ export async function get_alias(address) {
     SUINS_CACHE.set(address, name)
     return name
   }
+}
+
+export async function sui_sign_payload(message) {
+  const address = get_address()
+  const { bytes, signature } = await get_wallet().signPersonalMessage(
+    message,
+    address,
+  )
+
+  context.send_packet('packet/signatureResponse', { bytes, signature })
 }

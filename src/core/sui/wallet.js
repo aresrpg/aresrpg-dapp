@@ -80,11 +80,11 @@ export async function initialize_wallets(last_selected_wallet_name) {
           transactionBlock: transaction_block,
         })
       },
-      signPersonalMessage(msg) {
+      signPersonalMessage(msg, address) {
         // @ts-ignore
         return features['sui:signPersonalMessage'].signPersonalMessage({
           // @ts-ignore
-          account: memory.selected_address,
+          account: { address },
           message: new TextEncoder().encode(msg),
         })
       },

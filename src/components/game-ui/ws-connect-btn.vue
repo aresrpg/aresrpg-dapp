@@ -4,61 +4,77 @@ fr:
   connect: Connexion
   offline_ws: Hors ligne
   online_ws: En ligne
+  connecting_ws: Connexion..
+  login_first: Vous devez vous authentifier avant de vous connecter au serveur
+  wrong_network: Aucun serveur {network} disponible
 en:
   disconnect: Disconnect
   connect: Connect
   offline_ws: Offline
   online_ws: Online
+  connecting_ws: Connecting..
+  login_first: You need to login before connecting to the server
+  wrong_network: No {network} server available
 </i18n>
 
 <template lang="pug">
 vs-button.btn(
+  :disabled="!server_for_network"
   type="transparent"
-  :loading="websocket_loading"
+  :loading="is_connecting"
   :color="ws_color"
-  :animate-inactive="online"
+  :animate-inactive="is_online"
   animation-type="vertical"
   @click="toggle_ws"
 )
-  i.bx(:class="{ 'bx-wifi-off': !online, 'bx-wifi': online }")
-  span {{ online ? t('online_ws') : t('offline_ws') }}
+  i.bx(:class="{ 'bx-wifi-off': !is_online, 'bx-wifi': is_online }")
+  span(v-if="server_for_network") {{ is_online ? t('online_ws') : t('offline_ws') }}
+  i18n-t(v-else keypath="wrong_network" tag="span")
+    template(#network) {{ current_network?.toUpperCase() }}
   template(#animate)
     i.bx.bx-broadcast
-    span {{ online ? t('disconnect') : t('connect') }}
+    span {{ is_online ? t('disconnect') : t('connect') }}
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { context, ws_status } from '../../core/game/game.js';
+import {
+  context,
+  disconnect_ws,
+  get_server_url,
+} from '../../core/game/game.js';
+import toast from '../../toast.js';
+import logger from '../../logger.js';
 
 const { t } = useI18n();
 
-const websocket_loading = ref(false);
+const connection_status = ref('CLOSED');
+const is_connecting = computed(() => connection_status.value === 'CONNECTING');
+const is_online = computed(() => connection_status.value === 'ONLINE');
+
+const current_address = inject('current_address');
+const current_network = inject('current_network');
+
+const server_for_network = computed(
+  () => !!get_server_url(current_network.value),
+);
 
 const ws_color = computed(() => {
-  switch (ws_status.value) {
-    case 'OPEN':
-      return '#27AE60';
-    case 'CONNECTING':
-      return '#FFA500';
-    case 'CLOSED':
-      return '#FF0000';
-    default:
-      return '#212121';
-  }
+  if (is_connecting.value) return '#FFA500';
+  if (is_online.value) return '#27AE60';
+  return '#C0392B';
 });
 
-const online = ref(false);
-
-function update_online(state) {
-  if (state.online !== online.value) online.value = state.online;
+function update_online({ online }) {
+  const status = connection_status.value;
+  if (online && status !== 'ONLINE') connection_status.value = 'ONLINE';
+  else if (status === 'ONLINE' && !online) connection_status.value = 'CLOSED';
 }
 
 onMounted(() => {
   context.events.on('STATE_UPDATED', update_online);
-  update_online(context.get_state());
 });
 
 onUnmounted(() => {
@@ -66,25 +82,32 @@ onUnmounted(() => {
 });
 
 function toggle_ws() {
-  if (websocket_loading.value) return;
-
-  websocket_loading.value = true;
-  if (online) disconnect_from_server();
-  else connect_to_server();
+  const status = connection_status.value;
+  if (status === 'CONNECTING') return;
+  if (status === 'CLOSED') connect_to_server();
+  else disconnect_from_server();
 }
 
-function connect_to_server() {
-  setTimeout(() => {
-    context.dispatch('action/set_online', true);
-    websocket_loading.value = false;
-  }, 1000);
+async function connect_to_server() {
+  connection_status.value = 'CONNECTING';
+  if (!current_address.value) {
+    toast.warn(t('login_first'), 'Hey!', `<i class='bx bxs-cheese'></i>`);
+    connection_status.value = 'CLOSED';
+    return;
+  }
+
+  logger.SOCKET('Connecting to server');
+
+  try {
+    await context.connect_ws();
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function disconnect_from_server() {
-  setTimeout(() => {
-    context.dispatch('action/set_online', false);
-    websocket_loading.value = false;
-  }, 1000);
+  connection_status.value = 'CLOSED';
+  disconnect_ws();
 }
 </script>
 

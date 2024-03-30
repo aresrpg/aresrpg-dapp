@@ -26,14 +26,15 @@ en:
 </i18n>
 
 <script setup>
-import { ref, onMounted, onUnmounted, inject } from 'vue';
+import { ref, inject } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
 import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
 
 import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
-import { context } from '../../core/game/game.js';
+import { context, disconnect_ws } from '../../core/game/game.js';
 import { mists_to_sui } from '../../core/sui/client.js';
+import logger from '../../logger.js';
 
 const { t } = useI18n();
 
@@ -62,6 +63,11 @@ function address_display(account) {
   if (!account) return 'not found';
   if (account.alias) return account.alias;
   return `${account.address.slice(0, 6)}...${account.address.slice(-4)}`;
+}
+
+function disconnect_wallet() {
+  current_wallet.value.disconnect();
+  disconnect_ws();
 }
 </script>
 
@@ -95,7 +101,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
               @click="() => (update_selected_account(account), dropdown.close())"
             ) {{ address_display(account) }}
           vs-row(justify="center")
-            vs-button.btn(type="transparent" block color="#E74C3C" @click="() => current_wallet.disconnect()")
+            vs-button.btn(type="transparent" block color="#E74C3C" @click="disconnect_wallet")
               i.bx.bx-log-out
               span {{ t('logout') }}
       //- vs-avatar(history size="60" @click="logout_dialog = true")

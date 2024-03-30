@@ -1,4 +1,4 @@
-import { ANON, context } from '../game/game.js'
+import { ANON, context, disconnect_ws } from '../game/game.js'
 import {
   sui_get_locked_characters,
   sui_get_receipts,
@@ -56,7 +56,9 @@ export default function () {
           const address_changed = last_address !== selected_address
           const network_changed = last_network !== network
 
-          if (address_changed || network_changed)
+          if (address_changed || network_changed) {
+            disconnect_ws()
+
             if (selected_address && network) {
               increase_loading()
 
@@ -83,6 +85,7 @@ export default function () {
                 character_lock_receipts: [],
               })
             }
+          }
           return {
             last_address: selected_address,
             last_network: network,

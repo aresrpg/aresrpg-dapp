@@ -12,9 +12,9 @@
       Chaque personnage se lance dans son propre voyage unique, avec un inventaire personnalisé et un chemin de progression.
       La liberté est vôtre : équipez vos personnages comme bon vous semble, et si vous le souhaitez, vous pouvez facilement les retirer ou leurs objets pour les mettre en vente sur le marché.
       AresRPG n'est pas seulement un jeu ; c'est un royaume dans lequel vos décisions façonnent votre destin, et vos actifs vous appartiennent véritablement.
-    locked_characters: 🔒 personnages verrouillés
+    locked_characters: 🔒 Personnages sélectionnés
     locked_characters_desc: Ces personnages sont actuellement utilisés, vous pouvez jouer avec eux dans le jeu
-    unlocked_characters: personnages déverrouillés
+    unlocked_characters: Personnages disponibles
     unlocked_characters_desc: Ceux-ci sont uniquement dans votre portefeuille, vous pouvez librement les transférer ou les vendre
     new: Nouveau personnage
   en:
@@ -30,9 +30,9 @@
       Each character embarks on its own unique journey, boasting a personalized inventory and progression pathway.
       The freedom is yours: Stuff your characters as you see fit, and should you decide, you can easily withdraw them or their items to feature anything on the marketplace for trade.
       AresRPG is not just a game; it's a realm where your decisions craft your destiny, and your assets are truly your own.
-    locked_characters: 🔒 Locked characters
+    locked_characters: 🔒 Selected characters
     locked_characters_desc: Those characters are currently in use, you can play with them in the game
-    unlocked_characters: Unlocked characters
+    unlocked_characters: Available characters
     unlocked_characters_desc: These one are only in your wallet, you can freely transfer or sell them
     new: New character
 </i18n>

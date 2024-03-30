@@ -1,22 +1,37 @@
 import toast from '../../toast'
+import { sui_sign_payload } from '../sui/client.js'
+import { ares_client, context } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
   return {
-    observe({ events, connect_ws }) {
-      events.on('CONNECT_TO_SERVER', () => {
-        connect_ws().catch(error => {
-          console.error(error)
-        })
-      })
+    reduce(state, { type, payload }) {
+      if (type === 'action/set_online')
+        return {
+          ...state,
+          online: payload,
+        }
 
-      events.on('packet/connectionSuccess', () => {
-        toast.success('Successfully connected to AresRPG', 'Socket')
-      })
+      return state
+    },
+    async observe({ events }) {
+      const {
+        i18n: {
+          global: { t },
+        },
+      } = await import('../../main.js')
 
-      events.on('packet/joinGame', () => {
-        // const { game_state } = get_state()
-        // send_packet('packet/joinGameReady', {})
+      events.on('packet/signatureRequest', async ({ payload }) => {
+        const message = `${t('sign_message')}\n\n::${payload}`
+        try {
+          await sui_sign_payload(message)
+          context.dispatch('action/set_online', true)
+        } catch (error) {
+          console.error('Failed to sign message:', error)
+          context.dispatch('action/set_online', true)
+          context.dispatch('action/set_online', false)
+          ares_client.end('User rejection')
+        }
       })
     },
   }

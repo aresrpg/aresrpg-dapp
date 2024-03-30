@@ -48,12 +48,14 @@ import player_spawn from '../modules/player_spawn.js'
 import game_instanced from '../modules/game_instanced.js'
 import create_pools from '../game/pool.js'
 import logger from '../../logger.js'
-import { VITE_SERVER_URL } from '../../env.js'
+import { VITE_SERVER_MAINNET_URL, VITE_SERVER_TESTNET_URL } from '../../env.js'
 import toast from '../../toast.js'
 import sui_data from '../modules/sui_data.js'
 import sui_wallets from '../modules/sui_wallets.js'
-import player_online from '../modules/player_online.js'
 import { decrease_loading } from '../utils/loading.js'
+import game_connect from '../modules/game_connect.js'
+
+import { handle_server_error } from './error_handler.js'
 
 export const GRAVITY = 9.81
 
@@ -209,7 +211,6 @@ const MODULES = [
   player_characters,
   player_movement,
   player_spawn,
-  player_online,
 
   game_sky,
   game_render,
@@ -219,6 +220,7 @@ const MODULES = [
   game_audio,
   game_entities,
   game_chunks,
+  game_connect,
 ]
 
 function last_event_value(emitter, event, default_value = null) {
@@ -270,54 +272,47 @@ renderer.info.autoReset = false
 
 composer.setSize(window.innerWidth, window.innerHeight)
 
+export function get_server_url(network) {
+  if (network === 'testnet') return VITE_SERVER_TESTNET_URL
+  else if (network === 'mainnet') return VITE_SERVER_MAINNET_URL
+}
+
 function connect_ws() {
   return new Promise(resolve => {
-    const { status } = useWebSocket(VITE_SERVER_URL, {
-      autoReconnect: true,
-      onDisconnected(ws, event) {
-        decrease_loading()
-        if (event.reason) {
+    const { selected_address, selected_wallet_name, wallets } = get_state().sui
+    const { chain } = wallets[selected_wallet_name]
+    const [, network] = chain.split(':')
+    const server_url = get_server_url(network).replaceAll('http', 'ws')
+    const { status } = useWebSocket(
+      `${server_url}?address=${selected_address}&network=${network}`,
+      {
+        autoReconnect: false,
+        async onDisconnected(ws, event) {
+          decrease_loading()
+          if (event.reason) await handle_server_error(event.reason)
+          ares_client?.notify_end(event.reason)
           logger.SOCKET(`disconnected: ${event.reason}`)
-          switch (event.reason) {
-            case 'ALREADY_ONLINE':
-              toast.error(
-                'It seems you are already connected to the server, please wait a few seconds and try again',
-                'Oh no!',
-                "<i class='bx bx-key'/>",
-              )
-              break
-            case 'EARLY_ACCESS_KEY_REQUIRED':
-              toast.error(
-                'You need an early access key to play on AresRPG',
-                'Oh no!',
-                "<i class='bx bx-key'/>",
-              )
-              break
-            default:
-              toast.error(event.reason)
-          }
-        }
-        ares_client?.notify_end(event.reason)
-        logger.SOCKET(`disconnected: ${event.reason}`)
-      },
-      onMessage(ws, event) {
-        const message = event.data
-        ares_client?.notify_message(message)
-      },
-      onConnected: ws => {
-        ws.binaryType = 'arraybuffer'
-        logger.SOCKET(`connected to ${VITE_SERVER_URL}`)
+          context.dispatch('action/set_online', false)
+        },
+        onMessage(ws, event) {
+          const message = event.data
+          ares_client?.notify_message(message)
+        },
+        onConnected: ws => {
+          ws.binaryType = 'arraybuffer'
+          logger.SOCKET(`connected to ${server_url}`)
 
-        ares_client = create_client({
-          socket_write: ws.send.bind(ws),
-          socket_end: message => ws.close(1000, message),
-        })
+          ares_client = create_client({
+            socket_write: ws.send.bind(ws),
+            socket_end: message => ws.close(1000, message),
+          })
 
-        ares_client.stream.pipe(packets)
+          ares_client.stream.pipe(packets)
 
-        resolve()
+          resolve()
+        },
       },
-    })
+    )
 
     watch(status, value => {
       ws_status.value = value
@@ -335,7 +330,7 @@ const context = {
   send_packet(type, payload) {
     if (!ares_client) throw new Error('Not connected to server')
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)
-    ares_client.value.send(type, payload)
+    ares_client.send(type, payload)
   },
   /** @type {() => Promise<void>} */
   connect_ws,
@@ -449,4 +444,14 @@ export function pause_game() {
   game_visible_emitter.emit('hide')
 }
 
-export { context, ws_status }
+export function disconnect_ws() {
+  const { online } = get_state()
+  if (online) {
+    logger.SOCKET('Disconnecting from server')
+
+    ares_client.end('USER_DISCONNECTED')
+    context.dispatch('action/set_online', false)
+  }
+}
+
+export { context, ws_status, ares_client }
