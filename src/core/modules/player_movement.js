@@ -2,8 +2,9 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Object3D, Vector3 } from 'three'
+import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
+import { WorldGenerator } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, current_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
@@ -62,6 +63,10 @@ export default function () {
         .normalize()
 
       if (player.target_position) {
+        const { x, z } = player.target_position
+        const block_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
+        const world_height = WorldGenerator.instance.getHeight(block_pos)
+        player.target_position.y = Math.floor(world_height)
         player.move(player.target_position)
         player.target_position = null
 
@@ -153,7 +158,10 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       // const ground_height = HEIGHTFIELD(dummy.position.x, dummy.position.z)
-      const ground_height = 98.5
+      const { x, z } = dummy.position
+      const block_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
+      const world_height = WorldGenerator.instance.getHeight(block_pos)
+      const ground_height = Math.floor(world_height)
 
       if (!ground_height) return
 
