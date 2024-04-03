@@ -96,7 +96,49 @@ export default function () {
     procLayers: proc_layers,
     blockTypeMapper: block_types_mapping,
   }
-  const map = new VoxelMap(map_box, WorldGenerator.instance)
+  const voxelMap = new VoxelMap(map_box, WorldGenerator.instance)
+
+  const map = {
+    voxelMaterialsList: voxelMap.voxelMaterialsList,
+    getLocalMapData: async (patchStart, patchEnd) => {
+      // TODO make this function run in another thread
+
+      const cacheStart = patchStart.clone().subScalar(1)
+      const cacheEnd = patchEnd.clone().addScalar(1)
+      const cacheSize = new Vector3().subVectors(cacheEnd, cacheStart)
+      const cache = new Uint16Array(cacheSize.x * cacheSize.y * cacheSize.z)
+
+      const indexFactor = { x: 1, y: cacheSize.x, z: cacheSize.x * cacheSize.y }
+
+      const buildIndex = position => {
+        if (position.x < 0 || position.y < 0 || position.z < 0) {
+          throw new Error()
+        }
+        return (
+          position.x * indexFactor.x +
+          position.y * indexFactor.y +
+          position.z * indexFactor.z
+        )
+      }
+
+      let isEmpty = true
+      for (const voxel of voxelMap.iterateOnVoxels(cacheStart, cacheEnd)) {
+        const localPosition = new Vector3().subVectors(
+          voxel.position,
+          cacheStart,
+        )
+        const cacheIndex = buildIndex(localPosition)
+        cache[cacheIndex] = 1 + voxel.materialId
+        isEmpty = false
+      }
+
+      return {
+        data: cache,
+        isEmpty,
+      }
+    },
+  }
+
   const terrain = new Terrain(map)
 
   return {
