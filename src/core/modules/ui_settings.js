@@ -1,4 +1,6 @@
 import { GUI } from 'dat.gui'
+import { WorldGenerator } from '@aresrpg/aresrpg-world'
+import { Vector2 } from 'three'
 
 import { INITIAL_STATE, current_character } from '../game/game.js'
 
@@ -48,13 +50,15 @@ export default function () {
               if (player.position) {
                 // @ts-ignore
                 const { x, z } = player.position
+                const ground_height = WorldGenerator.instance.getHeight(
+                  new Vector2(x, z),
+                )
 
-                console.log('teleporting', player.id, x, z)
                 dispatch('packet/characterMove', {
                   id: player.id,
                   position: {
                     x,
-                    y: 105,
+                    y: ground_height + 3,
                     z,
                   },
                 })
@@ -99,7 +103,7 @@ export default function () {
         .onChange(value => events.emit('SKY_SUNSIZE_CHANGED', value))
 
       terrain_folder
-        .add(settings, 'view_distance', 1, 10, 1)
+        .add(settings, 'view_distance', 50, 400, 50)
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
 

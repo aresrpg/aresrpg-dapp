@@ -22,10 +22,10 @@ const block_types_mapping = height => {
 const block_types_color_mapping = {
   [BlockType.NONE]: 0x000000,
   [BlockType.ROCK]: 0xababab,
-  [BlockType.GRASS]: 0x00b920,
+  [BlockType.GRASS]: 0x41980a,
   [BlockType.SNOW]: 0xe5e5e5,
-  [BlockType.WATER]: 0x0055e2,
-  [BlockType.SAND]: 0xdcbe28,
+  [BlockType.WATER]: 0x74ccf4,
+  [BlockType.SAND]: 0xc2b280,
 }
 
 // kept for backward compat with engine
@@ -149,13 +149,10 @@ export default function () {
     },
     observe({ events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
+      // this notify the player_movement module that the terrain is ready
       events.emit('CHUNKS_LOADED')
 
       scene.add(terrain.container)
-
-      events.on('CLEAR_CHUNKS', () => {
-        // reset_chunks(true)
-      })
 
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
         async (
@@ -185,11 +182,15 @@ export default function () {
       // handle voxels chunks
       aiter(abortable(setInterval(1000, null, { signal }))).reduce(
         async last_chunk => {
-          const player = current_character()
+          const state = get_state()
+          const player = current_character(state)
 
           if (!player.position) return
           const current_chunk = to_chunk_position(player.position)
-          terrain.showMapAroundPosition(player.position, 50)
+          terrain.showMapAroundPosition(
+            player.position,
+            state.settings.view_distance,
+          )
           if (
             last_chunk &&
             (last_chunk?.x !== current_chunk.x ||
