@@ -4,7 +4,7 @@ import { setInterval } from 'timers/promises'
 import { to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 import { Box3, Color, Vector2, Vector3 } from 'three'
-import { Terrain } from '@aresrpg/aresrpg-engine/dist/exports.js'
+import { Terrain } from '@aresrpg/aresrpg-engine'
 import { ProcGenLayer, BlockType, WorldGenerator } from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
