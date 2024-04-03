@@ -11,6 +11,7 @@ export const error_translations = {
     MAX_PLAYERS: `Sorry sir, the server is full and we don't yet have the capacity to handle that much players, please try again later`,
     SIGNATURE_TIMEOUT: 'Please sign the message faster!',
     INVALID_SIGNATURE: 'Invalid signature',
+    NO_REASON: 'The server appears to be down, please try again later',
   },
   fr: {
     ALREADY_ONLINE:
@@ -20,6 +21,8 @@ export const error_translations = {
     MAX_PLAYERS: `Désolé Sir, le serveur est plein et nous n'avons pas encore la capacité de gérer autant de joueurs, veuillez réessayer plus tard`,
     SIGNATURE_TIMEOUT: 'Veuillez signer le message plus rapidement!',
     INVALID_SIGNATURE: 'Signature invalide',
+    NO_REASON:
+      'Le serveur semble être hors ligne, veuillez réessayer plus tard',
   },
 }
 
@@ -30,6 +33,15 @@ export async function handle_server_error(reason) {
     const { i18n } = await import('../../main.js')
     // eslint-disable-next-line prefer-destructuring
     t = i18n.global.t
+  }
+
+  if (!reason) {
+    toast.error(
+      t('NO_REASON'),
+      'Can the dev do something?',
+      "<i class='bx bx-error-circle'/>",
+    )
+    return
   }
 
   switch (reason) {

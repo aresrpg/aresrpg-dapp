@@ -4,6 +4,7 @@ import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
 
 import { abortable } from '../utils/iterator'
+import { current_character } from '../game/game.js'
 
 const CAMERA_MIN_ZOOM = 4
 const CAMERA_MAX_ZOOM = 500
@@ -11,8 +12,13 @@ const CAMERA_MAX_ZOOM = 500
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick({ player, settings: { free_camera } }, { camera_controls }, delta) {
-      if (!player?.position) return
+    tick(state, { camera_controls }, delta) {
+      const player = current_character(state)
+      if (!player.position) return
+
+      const {
+        settings: { free_camera },
+      } = state
 
       if (!free_camera) {
         const { x, y, z } = player.position

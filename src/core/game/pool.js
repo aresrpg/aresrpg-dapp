@@ -161,8 +161,8 @@ export default function create_pools(scene) {
 
     return {
       instanced_entity: instance,
-      /** @type {(id: string) => Omit<Type.Entity, 'level' | 'siblings'>} */
-      get(id) {
+      /** @type {(param: {id: string, name: string}) => Type.ThreeEntity} */
+      get({ id, name }) {
         if (!id) throw new Error('id is required')
 
         const success = instance.entity.add_entity(id)
@@ -185,6 +185,7 @@ export default function create_pools(scene) {
           new MeshBasicMaterial(),
           false,
         )
+        title.text = name
 
         scene.add(title)
 
@@ -198,6 +199,13 @@ export default function create_pools(scene) {
           title,
           height,
           radius,
+          jump_time: 0,
+          audio: null,
+          action: null,
+          apply_state(entity) {
+            entity.move(current_position)
+            entity.animate(current_animation)
+          },
           move(position) {
             // @ts-ignore
             if (current_position.distanceTo(position) < 0.01) return
@@ -242,7 +250,8 @@ export default function create_pools(scene) {
           target_position: null,
         }
       },
-      get_non_instanced() {
+      /** @type {(param: {id: string, name: string}) => Type.ThreeEntity} */
+      get_non_instanced({ id, name }) {
         const { model, compute_animations } = clone_model()
         const { mixer, actions } = compute_animations()
 
@@ -257,6 +266,7 @@ export default function create_pools(scene) {
           new MeshBasicMaterial(),
           false,
         )
+        title.text = name
 
         origin.add(title)
         origin.add(model)
@@ -273,13 +283,17 @@ export default function create_pools(scene) {
         outline_pass.selectedObjects.push(model)
 
         return {
-          id: 'PLAYER',
+          id,
           title,
           height,
           radius,
           mixer,
-          level: 1,
-          siblings: [],
+          jump_time: 0,
+          audio: null,
+          action: null,
+          apply_state() {
+            throw new Error('Not implemented')
+          },
           move(position) {
             origin.position.copy(position)
           },
@@ -345,6 +359,14 @@ export default function create_pools(scene) {
     }),
   }
 
+  function find_target_entity(classe, sex) {
+    if (classe.toLowerCase() === 'iop')
+      return sex === 'male' ? instances.iop_male : instances.iop_female
+    if (classe.toLowerCase() === 'sram')
+      return sex === 'male' ? instances.sram_male : instances.sram_female
+    return instances.chafer
+  }
+
   return {
     register_outline(outline) {
       outline_pass = outline
@@ -357,12 +379,12 @@ export default function create_pools(scene) {
 
       instances.chafer.instanced_entity.dispose()
     },
-    character({ classe, female }) {
-      if (classe.toLowerCase() === 'iop') {
-        return female ? instances.iop_female : instances.iop_male
-      }
-      if (classe.toLowerCase() === 'sram') {
-        return female ? instances.sram_female : instances.sram_male
+    /** @param {Type.SuiCharacter} character */
+    entity({ id, name, classe, sex = 'male' }) {
+      const target_entity = find_target_entity(classe, sex)
+      return {
+        instanced: () => target_entity.get({ id, name }),
+        non_instanced: () => target_entity.get_non_instanced({ id, name }),
       }
     },
     ...instances,

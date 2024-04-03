@@ -101,7 +101,8 @@ async function connect_to_server() {
   try {
     await context.connect_ws();
   } catch (error) {
-    console.error(error);
+    console.error('Failed to connect to server', error);
+    connection_status.value = 'CLOSED';
   }
 }
 

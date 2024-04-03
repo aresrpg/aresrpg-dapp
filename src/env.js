@@ -7,8 +7,8 @@ const {
   VITE_ARESRPG_NAME_REGISTRY_TESTNET = '0xfc1378a46b20749d88c05faf56eab33882d9672673f029a2f5b25aec748d3492',
   VITE_ARESRPG_SERVER_ADMIN_CAP_TESTNET = '0x957fed230800f2950f48961ef5900771fb2ee4e2eb8ec51d113693069e1622f0',
 
-  VITE_SUI_TESTNET_RPC = 'https://fullnode.testnet.sui.io',
-  VITE_SUI_TESTNET_WSS = 'wss://fullnode.testnet.sui.io',
+  VITE_SUI_TESTNET_RPC = 'https://rpc.ankr.com/sui_testnet/02fe1fb555dee5f0f895faf43a27d670f3abeeb11a554b5f0ff07fbd84de9201',
+  VITE_SUI_TESTNET_WSS = 'wss://rpc.ankr.com/sui_testnet/ws/02fe1fb555dee5f0f895faf43a27d670f3abeeb11a554b5f0ff07fbd84de9201',
   VITE_SERVER_TESTNET_URL = 'http://localhost:3002',
 
   VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED = '',

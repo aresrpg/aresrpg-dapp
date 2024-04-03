@@ -6,6 +6,7 @@ import { aiter } from 'iterator-helper'
 import { FrontSide, Mesh, MeshPhongMaterial, PlaneGeometry } from 'three'
 
 import { abortable } from '../utils/iterator.js'
+import { current_character } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -37,11 +38,6 @@ export default function () {
         // reset_chunks(true)
       })
 
-      // allow first loading of chunks
-      events.once('packet/playerPosition', () => {
-        // rebuild_chunks(to_chunk_position(position))
-      })
-
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
         async (
           { last_view_distance, last_far_view_distance },
@@ -70,9 +66,9 @@ export default function () {
       // handle voxels chunks
       aiter(abortable(setInterval(1000, null, { signal }))).reduce(
         async last_chunk => {
-          const { player } = get_state()
+          const player = current_character()
 
-          if (!player) return
+          if (!player.position) return
           const current_chunk = to_chunk_position(player.position)
 
           if (

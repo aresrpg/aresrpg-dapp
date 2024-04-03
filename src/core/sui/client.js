@@ -40,6 +40,9 @@ const PACKAGES = {
 }
 
 const SUINS_CACHE = new LRUCache({ max: 50 })
+const OBJECTS_CACHE = new LRUCache({
+  max: 500,
+})
 
 const get_url = (network, ws) => {
   const is_mainnet = network === 'mainnet'
@@ -73,6 +76,43 @@ let name_registry = VITE_ARESRPG_NAME_REGISTRY_MAINNET
 let admin_cap = VITE_ARESRPG_SERVER_ADMIN_CAP_MAINNET
 let known_storages = []
 
+function parse_sui_object(object) {
+  const { fields } = object.data.content
+  return {
+    ...fields,
+    id: fields.id.id,
+  }
+}
+
+async function get_cached_object(id, client) {
+  const object = OBJECTS_CACHE.get(id)
+  if (object) return object
+
+  const fetched_object = parse_sui_object(
+    await client.getObject({ id, options: { showContent: true } }),
+  )
+
+  OBJECTS_CACHE.set(id, fetched_object)
+  return fetched_object
+}
+
+async function get_cached_objects(ids, client) {
+  const missing = ids.filter(id => !OBJECTS_CACHE.has(id))
+
+  if (missing.length) {
+    const results = await client.multiGetObjects({
+      ids: missing,
+      options: { showContent: true },
+    })
+
+    results.map(parse_sui_object).forEach(result => {
+      OBJECTS_CACHE.set(result.id, result)
+    })
+  }
+
+  return ids.map(id => OBJECTS_CACHE.get(id))
+}
+
 export const set_network = async network => {
   if (network === 'sui:mainnet' || network === 'sui:testnet') {
     if (last_used_network === network) return
@@ -81,6 +121,7 @@ export const set_network = async network => {
     logger.SUI('switch network', network)
 
     client = get_client(network.split(':')[1])
+
     const {
       original,
       upgraded,
@@ -93,14 +134,9 @@ export const set_network = async network => {
     name_registry = name_reg
     admin_cap = adm_cap
     try {
-      const known_storages_result = await client.getObject({
-        id: admin_cap,
-        options: { showContent: true },
-      })
+      const known_storages_result = await get_cached_object(admin_cap, client)
 
-      known_storages =
-        // @ts-ignore
-        known_storages_result.data.content.fields.known_storages.fields.contents
+      known_storages = known_storages_result.known_storages.fields.contents
     } catch (error) {
       console.error('unable to get the admin cap, env missing ?')
     }
@@ -329,24 +365,15 @@ export async function sui_get_receipts() {
 export async function sui_get_locked_characters(receipts) {
   if (!receipts.length) return []
 
-  const characters = await client.multiGetObjects({
-    ids: receipts.map(({ character_id }) => character_id),
-    options: { showContent: true },
-  })
-
-  const mapped = characters.map(
-    ({
-      data: {
-        // @ts-ignore
-        content: { fields },
-      },
-    }) => ({
-      ...fields,
-      id: fields.id.id,
-    }),
+  const characters = await get_cached_objects(
+    receipts.map(({ character_id }) => character_id),
+    client,
   )
 
-  return mapped
+  return characters.map(character => ({
+    ...character,
+    position: JSON.parse(character.position),
+  }))
 }
 
 export async function sui_get_unlocked_characters() {
@@ -363,19 +390,28 @@ export async function sui_get_unlocked_characters() {
     },
   })
 
-  const mapped = result.data.map(
-    ({
-      data: {
-        // @ts-ignore
-        content: { fields },
-      },
-    }) => ({
-      ...fields,
-      id: fields.id.id,
-    }),
-  )
+  const mapped = result.data
+    .map(
+      ({
+        data: {
+          // @ts-ignore
+          content: { fields },
+        },
+      }) => ({
+        ...fields,
+        id: fields.id.id,
+      }),
+    )
+    .map(character => ({
+      ...character,
+      position: JSON.parse(character.position),
+    }))
 
   return mapped
+}
+
+export async function sui_get_character(id) {
+  return get_cached_object(id, client)
 }
 
 export async function sui_get_inventory() {}
@@ -410,7 +446,7 @@ export async function sui_subscribe({ signal }) {
       },
       filter: {
         All: [
-          { Package: package_upgraded },
+          { Package: package_original },
           { MoveEventField: { path: '/for', value: get_address() } },
         ],
       },

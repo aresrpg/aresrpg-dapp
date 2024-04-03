@@ -9,12 +9,13 @@
 import { onMounted, onUnmounted, reactive } from 'vue';
 
 import pkg from '../../../package.json';
-import { context } from '../../core/game/game.js';
+import { context, current_character } from '../../core/game/game.js';
 
 const position = reactive({ x: 0, y: 0, z: 0 });
 
-function update_position({ player }) {
-  if (player) {
+function update_position(state) {
+  const player = current_character(state);
+  if (player.position) {
     const x = Math.round(player.position.x);
     const y = Math.round(player.position.y);
     const z = Math.round(player.position.z);
@@ -26,7 +27,7 @@ function update_position({ player }) {
 
 onMounted(() => {
   context.events.on('STATE_UPDATED', update_position);
-  update_position(context.get_state());
+  update_position();
 });
 
 onUnmounted(() => {

@@ -1,4 +1,6 @@
-import { ANON, context, disconnect_ws } from '../game/game.js'
+import { Vector3 } from 'three'
+
+import { context, disconnect_ws } from '../game/game.js'
 import {
   sui_get_locked_characters,
   sui_get_receipts,
@@ -27,6 +29,14 @@ export default function () {
     },
     async observe() {
       let controller = new AbortController()
+      const default_character = {
+        id: 'default',
+        name: 'Chafer Lancier',
+        experience: 0,
+        position: new Vector3(0, 105, 0),
+        classe: 'default',
+        sex: 'default',
+      }
 
       async function update_user_data() {
         const character_lock_receipts = await sui_get_receipts()
@@ -69,8 +79,10 @@ export default function () {
                 })
                 await update_user_data()
               } else {
+                controller.abort()
+                controller = new AbortController()
                 context.dispatch('action/sui_data_update', {
-                  locked_characters: [ANON],
+                  locked_characters: [default_character],
                   unlocked_characters: [],
                   character_lock_receipts: [],
                 })
@@ -80,7 +92,7 @@ export default function () {
               controller.abort()
               controller = new AbortController()
               context.dispatch('action/sui_data_update', {
-                locked_characters: [ANON],
+                locked_characters: [default_character],
                 unlocked_characters: [],
                 character_lock_receipts: [],
               })
