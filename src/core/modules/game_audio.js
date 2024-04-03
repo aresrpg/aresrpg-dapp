@@ -14,6 +14,7 @@ import step4 from '../../assets/sound/step4.ogg'
 import step5 from '../../assets/sound/step5.ogg'
 import step6 from '../../assets/sound/step6.ogg'
 import main_theme from '../../assets/sound/main_theme.mp3'
+import { current_character } from '../game/game.js'
 
 const listener = new AudioListener()
 
@@ -69,31 +70,35 @@ export default function () {
         }, 500)
       })
 
-      events.on('packet/entityMove', ({ id, position }) => {
-        const { entities, player } = get_state()
-        const entity = entities.get(id)
+      events.on('packet/characterMove', ({ id, position }) => {
+        const state = get_state()
+        const { visible_characters } = state
+        const player = current_character(state)
+
+        // entities only contains other entities, not the player
+        const other_character = visible_characters.get(id)
         const { x, y, z } = position
-        if (entity) {
-          if (player) {
-            const distance = player.position.distanceTo(new Vector3(x, y, z))
+        if (player.position && other_character) {
+          const distance = player.position.distanceTo(new Vector3(x, y, z))
 
-            if (distance < CHUNK_SIZE) {
-              if (!entity.audio) {
-                entity.audio = new PositionalAudio(listener)
-                scene.add(entity.audio)
-                entity.audio.setLoop(false)
-                entity.audio.setRefDistance(1)
-                entity.audio.setVolume(3)
-                entity.audio.duration = 0.3
-              }
+          if (distance < CHUNK_SIZE) {
+            if (!other_character.audio) {
+              other_character.audio = new PositionalAudio(listener)
+              scene.add(other_character.audio)
+              other_character.audio.setLoop(false)
+              other_character.audio.setRefDistance(1)
+              other_character.audio.setVolume(3)
+              other_character.audio.duration = 0.3
+            }
 
-              entity.audio.position.set(x, y, z)
+            other_character.audio.position.set(x, y, z)
 
-              if (step_audio_buffers.length && !entity.audio.isPlaying) {
-                // Choose a random step sound
-                entity.audio.setBuffer(random_element(step_audio_buffers))
-                entity.audio.play() // Play the sound
-              }
+            if (step_audio_buffers.length && !other_character.audio.isPlaying) {
+              // Choose a random step sound
+              other_character.audio.setBuffer(
+                random_element(step_audio_buffers),
+              )
+              other_character.audio.play() // Play the sound
             }
           }
         }

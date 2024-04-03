@@ -6,6 +6,9 @@ import { aiter } from 'iterator-helper'
 
 import { compute_animation_state } from '../animations/animation.js'
 import { abortable } from '../utils/iterator.js'
+import { sui_get_character } from '../sui/client.js'
+import { experience_to_level } from '../utils/game/experience.js'
+import { current_character } from '../game/game.js'
 
 const MOVE_UPDATE_INTERVAL = 0.1
 const MAX_TITLE_VIEW_DISTANCE = CHUNK_SIZE * 1.3
@@ -17,95 +20,115 @@ const CANCELED_BY_NOT_MOVING = ['JUMP', 'WALK', 'RUN']
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick({ entities }, __, delta) {
+    tick({ visible_characters }, __, delta) {
       // handle entities movement
-      for (const entity of entities.values()) {
-        if (entity.jump_time == null) entity.jump_time = 0
-        entity.jump_time = Math.max(0, entity.jump_time - delta)
+      for (const character of visible_characters.values()) {
+        if (character.jump_time == null) character.jump_time = 0
+        character.jump_time = Math.max(0, character.jump_time - delta)
 
-        if (entity.action === 'JUMP' && !entity.jump_time) entity.action = null
+        if (character.action === 'JUMP' && !character.jump_time)
+          character.action = null
 
-        if (entity.target_position) {
-          const old_position = entity.position.clone()
+        if (character.target_position) {
+          const old_position = character.position.clone()
           const lerp_factor = Math.min(delta / MOVE_UPDATE_INTERVAL, 1)
           const new_position = new Vector3().lerpVectors(
-            entity.position,
-            entity.target_position,
+            character.position,
+            character.target_position,
             lerp_factor,
           )
 
           const movement = new Vector3().subVectors(
-            entity.target_position,
+            character.target_position,
             new_position,
           )
 
-          entity.move(new_position)
-          entity.rotate(movement)
+          character.move(new_position)
+          character.rotate(movement)
 
           // if is moving
-          if (old_position.distanceTo(entity.target_position) > 0.5) {
-            if (CANCELED_BY_MOVING.includes(entity.action)) entity.action = null
+          if (old_position.distanceTo(character.target_position) > 0.5) {
+            if (CANCELED_BY_MOVING.includes(character.action))
+              character.action = null
           }
 
           const is_moving_horizontally = movement.setY(0).lengthSq() > 0.001
 
-          if (new_position.distanceTo(entity.target_position) < 0.01) {
-            entity.target_position = null
-            if (CANCELED_BY_NOT_MOVING.includes(entity.action)) {
-              entity.action = null
+          if (new_position.distanceTo(character.target_position) < 0.01) {
+            character.target_position = null
+            if (CANCELED_BY_NOT_MOVING.includes(character.action)) {
+              character.action = null
             }
           }
 
-          entity.animate(
+          character.animate(
             compute_animation_state({
-              is_on_ground: entity.action !== 'JUMP',
+              is_on_ground: character.action !== 'JUMP',
               is_moving_horizontally,
-              action: entity.action,
+              action: character.action,
             }),
           )
         } else {
-          entity.animate(
+          character.animate(
             compute_animation_state({
-              is_on_ground: entity.action !== 'JUMP',
+              is_on_ground: character.action !== 'JUMP',
               is_moving_horizontally: false,
-              action: entity.action,
+              action: character.action,
             }),
           )
         }
       }
     },
     observe({ events, pool, get_state, signal }) {
-      events.on('packet/entitySpawn', packet => {
-        const { entities } = get_state()
+      // listening for character movements with the goal of registering new entities
+      // the logic is only triggered when the character has never been seen before
+      events.on('packet/characterMove', ({ id, position }) => {
+        const { visible_characters } = get_state()
+        if (!visible_characters.has(id)) {
+          const default_sui_data = {
+            id,
+            name: 'Loading..',
+            experience: 0,
+            classe: 'iop',
+            sex: 'male',
+            position: new Vector3(position.x, position.y, position.z),
+          }
+          const default_three_character = pool
+            .entity(default_sui_data)
+            .instanced()
 
-        packet.entities.forEach(
-          ({ id, position, type, name, classe, female, level, siblings }) => {
-            if (entities.has(id)) return
+          visible_characters.set(id, {
+            ...default_sui_data,
+            ...default_three_character,
+          })
 
-            const entity =
-              type === 'PLAYER'
-                ? pool.character({ classe, female }).get(id)
-                : pool.chafer.get(id)
+          default_three_character.move(position)
 
-            entity.title.text = `${name} (${level})`
+          sui_get_character(id)
+            .then(sui_data => {
+              default_three_character.remove()
 
-            if (type === 'MOB') {
-              // position.y = HEIGHTFIELD(position.x, position.z) + entity.height
-              position.y = 100
-            }
+              const level = experience_to_level(sui_data.experience)
+              const three_character = pool
+                .entity({
+                  ...sui_data,
+                  name: `${sui_data.name} (${level})`,
+                })
+                .instanced()
 
-            entity.move(position)
-            entities.set(id, {
-              ...entity,
-              jump_time: 0,
-              target_position: null,
-              action: null,
-              audio: null,
-              level,
-              siblings,
+              default_three_character.apply_state(three_character)
+              visible_characters.set(id, {
+                ...visible_characters.get(id),
+                ...three_character,
+              })
             })
-          },
-        )
+            .catch(error =>
+              console.error(
+                'Error updatintg character through Sui data:',
+                error,
+              ),
+            )
+        }
       })
 
       events.on('packet/entityDespawn', ({ ids }) => {
@@ -120,17 +143,15 @@ export default function () {
       })
 
       // manage LOD when other entities moves
-      events.on('packet/entityMove', ({ id, position }) => {
+      events.on('packet/characterMove', ({ id, position }) => {
         const { entities } = get_state()
         const entity = entities.get(id)
-        const { x, y, z } = position
-        const state = get_state()
         if (entity) {
+          const player = current_character()
+          const { x, y, z } = position
           entity.target_position = new Vector3(x, y, z)
-          if (state.player) {
-            const distance = state.player.position.distanceTo(
-              new Vector3(x, y, z),
-            )
+          if (player.position) {
+            const distance = player.position.distanceTo(new Vector3(x, y, z))
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 
@@ -148,12 +169,13 @@ export default function () {
 
       // manage LOD when player moves
       aiter(abortable(setInterval(1000, null, { signal }))).forEach(() => {
-        const { entities } = get_state()
-        entities.forEach(entity => {
-          const { position } = entity
-          const state = get_state()
+        const state = get_state()
+        const { visible_characters } = state
+        const player = current_character(state)
 
-          if (state.player) {
+        if (player.position) {
+          visible_characters.forEach(entity => {
+            const { position } = entity
             const distance = state.player.position.distanceTo(position)
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
@@ -166,13 +188,13 @@ export default function () {
             ) {
               entity.title.visible = true
             }
-          }
-        })
+          })
+        }
       })
 
       events.on('packet/entityAction', ({ id, action }) => {
-        const { entities } = get_state()
-        const entity = entities.get(id)
+        const { visible_characters } = get_state()
+        const entity = visible_characters.get(id)
 
         if (entity) {
           if (action === 'JUMP') entity.jump_time = 0.8

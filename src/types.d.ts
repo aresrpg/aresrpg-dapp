@@ -25,30 +25,37 @@ declare namespace Type {
   type Position = { x: number; y: number; z: number }
   type SkyLights = import('./core/game/game').SkyLights
 
-  type Entity = {
+  type ThreeEntity = {
     id: string
-    title: import('troika-three-text').Text
     height: number
     radius: number
-    level: number
-    siblings: { name: string; level: number }[]
+    title: import('troika-three-text').Text
     position: import('three').Vector3
-    target_position: Position
+    target_position: Position | null
     set_low_priority?: (skip: boolean) => void
+    apply_state: (entity: Partial<ThreeEntity>) => void
     move: (position: Position) => void
     rotate: (rotation: import('three').Vector3) => void
     animate: (name: string) => void
     remove: () => void
     mixer?: import('three').AnimationMixer
+    jump_time: number
+    action: string
+    audio: import('three').PositionalAudio
   }
 
-  type Character = {
+  // type Entity = {
+  //   level: number
+  //   siblings: { name: string; level: number }[]
+  // }
+
+  type SuiCharacter = {
     id: string
     name: string
-    position: Position
     experience: number
     classe: string
     sex: string
+    position: import('three').Vector3
   }
 
   type Receipt = {
@@ -88,24 +95,21 @@ declare namespace Type {
   type Actions = {
     'action/show_fps': boolean
     'action/target_fps': number
-    'action/show_entities_collider': boolean
     'action/keydown': string
     'action/keyup': string
-    'action/load_game_state': GameState
-    'action/register_player': Entity
     'action/select_character': string
     'action/view_distance': number
-    'action/far_view_distance': number
     'action/free_camera': boolean
     'action/sky_lights_change': SkyLights
-    'action/set_characters': Character[]
+    'action/add_character': SuiCharacter
+    'action/remove_character': string
     'action/register_wallet': Wallet
     'action/select_wallet': string
     'action/select_address': string
     'action/sui_data_update': {
       balance?: bigint
-      locked_characters?: Character[]
-      unlocked_characters?: Character[]
+      locked_characters?: SuiCharacter[]
+      unlocked_characters?: SuiCharacter[]
       character_lock_receipts?: Receipt[]
     }
     'action/set_online': boolean

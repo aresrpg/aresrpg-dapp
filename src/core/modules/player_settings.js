@@ -30,14 +30,6 @@ export default function () {
               view_distance: Math.max(1, Math.min(15, payload)),
             },
           }
-        case 'action/far_view_distance':
-          return {
-            ...state,
-            settings: {
-              ...state.settings,
-              far_view_distance: Math.max(5, Math.min(60, payload)),
-            },
-          }
         case 'action/free_camera':
           return {
             ...state,

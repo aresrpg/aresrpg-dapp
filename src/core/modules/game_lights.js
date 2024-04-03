@@ -17,6 +17,7 @@ import { aiter } from 'iterator-helper'
 
 import water_normal from '../../assets/waternormals.jpg'
 import { abortable } from '../utils/iterator.js'
+import { current_character } from '../game/game.js'
 
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
@@ -79,13 +80,13 @@ export default function () {
 
       function get_player_chunk_position() {
         try {
-          const player = get_state()?.player
-          if (!player) return new Vector3()
-          return to_chunk_position(player.position)
+          const player = current_character()
+          if (player.position) return to_chunk_position(player.position)
         } catch (error) {
-          console.error(error)
-          return new Vector3()
+          console.error('Failed to get player chunk position:', error)
         }
+
+        return new Vector3()
       }
 
       function update_directional_light_position(
@@ -93,19 +94,21 @@ export default function () {
       ) {
         const chunk_position = get_player_chunk_position()
 
-        const light_base_position = new Vector3(
-          chunk_position.x * CHUNK_SIZE,
-          300,
-          chunk_position.z * CHUNK_SIZE,
-        )
-        const light_target_position = light_base_position.clone().setY(0)
+        if (chunk_position) {
+          const light_base_position = new Vector3(
+            chunk_position.x * CHUNK_SIZE,
+            300,
+            chunk_position.z * CHUNK_SIZE,
+          )
+          const light_target_position = light_base_position.clone().setY(0)
 
-        // Calculate the sun and moon position relative to the base position
-        const sun_position_offset = light_position.clone().multiplyScalar(200)
-        directional_light.position
-          .copy(light_base_position)
-          .add(sun_position_offset)
-        directional_light.target.position.copy(light_target_position)
+          // Calculate the sun and moon position relative to the base position
+          const sun_position_offset = light_position.clone().multiplyScalar(200)
+          directional_light.position
+            .copy(light_base_position)
+            .add(sun_position_offset)
+          directional_light.target.position.copy(light_target_position)
+        }
       }
 
       function apply_sky_lights(sky_lights) {

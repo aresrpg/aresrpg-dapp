@@ -44,7 +44,6 @@ import game_lights from '../modules/game_lights.js'
 import game_audio from '../modules/game_audio.js'
 import game_entities from '../modules/game_entities.js'
 import game_chunks from '../modules/game_chunks.js'
-import player_spawn from '../modules/player_spawn.js'
 import game_instanced from '../modules/game_instanced.js'
 import create_pools from '../game/pool.js'
 import logger from '../../logger.js'
@@ -89,15 +88,6 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
 /** @typedef {typeof INITIAL_STATE.settings.sky.lights} SkyLights */
-
-export const ANON = {
-  id: 'default',
-  name: 'Anon',
-  position: { x: 0, y: 100, z: 0 },
-  experience: 1,
-  classe: 'IOP',
-  sex: 'male',
-}
 
 export const INITIAL_STATE = {
   settings: {
@@ -156,16 +146,17 @@ export const INITIAL_STATE = {
     dance: false,
   },
 
-  /** @type {Type.Entity} */
-  player: null,
   selected_character_id: 'default',
+
+  /** @type {Type.ThreeEntity[]} */
+  characters: [],
 
   sui: {
     /** @type {Type.Wallet[]} */
     wallets: [],
-    /** @type {Type.Character[]} */
-    locked_characters: [ANON],
-    /** @type {Type.Character[]} */
+    /** @type {Type.SuiCharacter[]} */
+    locked_characters: [],
+    /** @type {Type.SuiCharacter[]} */
     unlocked_characters: [],
     selected_wallet_name: null,
     selected_address: null,
@@ -179,8 +170,21 @@ export const INITIAL_STATE = {
 
   inventory: [],
 
-  /** @type {Map<string, Type.Entity & { jump_time: number, target_position: import("three").Vector3, action: string, audio: import("three").PositionalAudio }>} */
-  entities: new Map(),
+  // represents other characters on the map
+  /** @type {Map<string, Type.ThreeEntity>} */
+  visible_characters: new Map(),
+}
+
+/** @return {Partial<Type.ThreeEntity & Type.SuiCharacter>} */
+export function current_character(state = get_state()) {
+  const by_id = ({ id }) => id === state.selected_character_id
+  const three_character = state.characters.find(by_id)
+  const sui_character = state.sui.locked_characters.find(by_id)
+
+  return {
+    ...sui_character,
+    ...three_character,
+  }
 }
 
 CameraControls.install({
@@ -210,7 +214,6 @@ const MODULES = [
   player_settings,
   player_characters,
   player_movement,
-  player_spawn,
 
   game_sky,
   game_render,
@@ -247,6 +250,7 @@ const camera = new PerspectiveCamera(
   1500, // Far clipping plane
 )
 const pool = create_pools(scene)
+
 const orthographic_camera = new OrthographicCamera()
 /** @type {Type.Events} */
 // @ts-ignore
@@ -278,7 +282,7 @@ export function get_server_url(network) {
 }
 
 function connect_ws() {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const { selected_address, selected_wallet_name, wallets } = get_state().sui
     const { chain } = wallets[selected_wallet_name]
     const [, network] = chain.split(':')
@@ -289,10 +293,12 @@ function connect_ws() {
         autoReconnect: false,
         async onDisconnected(ws, event) {
           decrease_loading()
-          if (event.reason) await handle_server_error(event.reason)
+          await handle_server_error(event.reason)
           ares_client?.notify_end(event.reason)
           logger.SOCKET(`disconnected: ${event.reason}`)
           context.dispatch('action/set_online', false)
+
+          reject(new Error('Disconnected from server'))
         },
         onMessage(ws, event) {
           const message = event.data
@@ -328,7 +334,7 @@ const context = {
   camera_controls: new CameraControls(camera, renderer.domElement),
   /** @type {import("@aresrpg/aresrpg-protocol/src/types").create_client['send']} */
   send_packet(type, payload) {
-    if (!ares_client) throw new Error('Not connected to server')
+    if (!ares_client) return // not connected
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)
     ares_client.send(type, payload)
   },

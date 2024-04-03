@@ -5,7 +5,7 @@ import { aiter } from 'iterator-helper'
 import { Object3D, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
 
-import { GRAVITY } from '../game/game.js'
+import { GRAVITY, current_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { compute_animation_state } from '../animations/animation.js'
 
@@ -43,9 +43,13 @@ export default function () {
   const dummy = new Object3D()
 
   return {
-    tick({ inputs, player }, { camera }, delta) {
-      if (!player?.position) return
+    tick(state, { camera }, delta) {
+      const player = state.characters.find(
+        character => character.id === state.selected_character_id,
+      )
+      if (!player) return
 
+      const { inputs } = state
       const origin = player.position.clone()
 
       const camera_forward = new Vector3(0, 0, -1)
@@ -70,10 +74,9 @@ export default function () {
 
       // Avoid falling to hell
       // TODO: tp to nether if falling to hell
-      if (origin.y <= -30) {
+      if (origin.y <= 50) {
         velocity.setScalar(0)
-        // const { x, z } = origin
-        // player.move(new Vector3(origin.x, HEIGHTFIELD(x, z) + 5, origin.z))
+        player.move(new Vector3(origin.x, 105, origin.z))
         return
       }
 
@@ -230,23 +233,26 @@ export default function () {
       // })
     },
     reduce(state, { type, payload }) {
-      if (type === 'packet/playerPosition') {
-        return {
-          ...state,
-          player: {
-            ...state.player,
-            target_position: payload.position,
-          },
-        }
+      // if the character is mine
+      if (
+        type === 'packet/characterMove' &&
+        payload.id === state.selected_character_id
+      ) {
+        const target_character = state.characters.find(
+          character => character.id === payload.id,
+        )
+        // and if it's the current controlled character
+        if (target_character)
+          target_character.target_position = payload.position
       }
       return state
     },
-    observe({ events, signal, get_state, dispatch }) {
+    observe({ events, signal, dispatch, send_packet }) {
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
         last_position => {
-          const { player } = get_state()
+          const player = current_character()
 
-          if (!player) return last_position
+          if (!player.position) return last_position
 
           /** @type {Vector3} */
           // @ts-ignore
@@ -262,7 +268,10 @@ export default function () {
             last_position.y !== y ||
             last_position.z !== z
           ) {
-            // send_packet('packet/playerPosition', { position })
+            send_packet('packet/characterMove', {
+              id: player.id,
+              position: { x, y, z },
+            })
           }
 
           return { x, y, z }

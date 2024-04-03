@@ -1,4 +1,3 @@
-import toast from '../../toast'
 import { sui_sign_payload } from '../sui/client.js'
 import { ares_client, context } from '../game/game.js'
 

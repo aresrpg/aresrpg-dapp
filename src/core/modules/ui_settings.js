@@ -1,6 +1,6 @@
 import { GUI } from 'dat.gui'
 
-import { INITIAL_STATE } from '../game/game.js'
+import { INITIAL_STATE, current_character } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -51,17 +51,20 @@ export default function () {
         .add(
           {
             teleport: () => {
-              const { player } = get_state()
-              // @ts-ignore
-              const { x, z } = player.position
+              const player = current_character()
+              if (player.position) {
+                // @ts-ignore
+                const { x, z } = player.position
 
-              dispatch('packet/playerPosition', {
-                position: {
-                  x,
-                  y: 105,
-                  z,
-                },
-              })
+                dispatch('packet/characterMove', {
+                  id: player.id,
+                  position: {
+                    x,
+                    y: 105,
+                    z,
+                  },
+                })
+              }
             },
           },
           'teleport',
@@ -105,11 +108,6 @@ export default function () {
         .add(settings, 'view_distance', 1, 10, 1)
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
-
-      terrain_folder
-        .add(settings, 'far_view_distance', 5, 50, 1)
-        .name('Far view distance')
-        .onFinishChange(handle_change('action/far_view_distance'))
 
       terrain_folder
         .add(
