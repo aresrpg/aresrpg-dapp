@@ -96,45 +96,47 @@ export default function () {
     procLayers: proc_layers,
     blockTypeMapper: block_types_mapping,
   }
-  const voxelMap = new VoxelMap(map_box, WorldGenerator.instance)
+  const voxel_map = new VoxelMap(map_box, WorldGenerator.instance)
 
   const map = {
-    voxelMaterialsList: voxelMap.voxelMaterialsList,
-    getLocalMapData: async (patchStart, patchEnd) => {
+    voxelMaterialsList: voxel_map.voxelMaterialsList,
+    getLocalMapData: async (block_start, block_end) => {
       // TODO make this function run in another thread
 
-      const cacheStart = patchStart.clone().subScalar(1)
-      const cacheEnd = patchEnd.clone().addScalar(1)
-      const cacheSize = new Vector3().subVectors(cacheEnd, cacheStart)
-      const cache = new Uint16Array(cacheSize.x * cacheSize.y * cacheSize.z)
+      const block_size = new Vector3().subVectors(block_end, block_start)
+      const cache = new Uint16Array(block_size.x * block_size.y * block_size.z)
 
-      const indexFactor = { x: 1, y: cacheSize.x, z: cacheSize.x * cacheSize.y }
+      const index_factor = {
+        x: 1,
+        y: block_size.x,
+        z: block_size.x * block_size.y,
+      }
 
-      const buildIndex = position => {
+      const build_index = position => {
         if (position.x < 0 || position.y < 0 || position.z < 0) {
           throw new Error()
         }
         return (
-          position.x * indexFactor.x +
-          position.y * indexFactor.y +
-          position.z * indexFactor.z
+          position.x * index_factor.x +
+          position.y * index_factor.y +
+          position.z * index_factor.z
         )
       }
 
-      let isEmpty = true
-      for (const voxel of voxelMap.iterateOnVoxels(cacheStart, cacheEnd)) {
-        const localPosition = new Vector3().subVectors(
+      let is_empty = true
+      for (const voxel of voxel_map.iterateOnVoxels(block_start, block_end)) {
+        const local_position = new Vector3().subVectors(
           voxel.position,
-          cacheStart,
+          block_start,
         )
-        const cacheIndex = buildIndex(localPosition)
-        cache[cacheIndex] = 1 + voxel.materialId
-        isEmpty = false
+        const cache_index = build_index(local_position)
+        cache[cache_index] = 1 + voxel.materialId
+        is_empty = false
       }
 
       return {
         data: cache,
-        isEmpty,
+        isEmpty: is_empty,
       }
     },
   }
