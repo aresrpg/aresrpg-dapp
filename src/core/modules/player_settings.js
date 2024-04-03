@@ -27,7 +27,7 @@ export default function () {
             ...state,
             settings: {
               ...state.settings,
-              view_distance: Math.max(1, Math.min(15, payload)),
+              view_distance: Math.max(50, Math.min(400, payload)),
             },
           }
         case 'action/free_camera':

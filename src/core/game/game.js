@@ -129,8 +129,7 @@ export const INITIAL_STATE = {
       },
     },
 
-    view_distance: 3,
-    far_view_distance: 20,
+    view_distance: 100,
 
     free_camera: false,
   },
