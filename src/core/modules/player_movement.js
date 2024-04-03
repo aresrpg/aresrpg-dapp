@@ -79,9 +79,9 @@ export default function () {
 
       // Avoid falling to hell
       // TODO: tp to nether if falling to hell
-      if (origin.y <= 50) {
+      if (origin.y <= 10) {
         velocity.setScalar(0)
-        player.move(new Vector3(origin.x, 105, origin.z))
+        player.move(new Vector3(origin.x, 125, origin.z))
         return
       }
 

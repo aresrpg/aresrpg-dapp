@@ -26,7 +26,6 @@ export default function () {
         const level = experience_to_level(payload.experience)
 
         three_character.title.text = `${payload.name} (${level})`
-        // three_character.move(new Vector3(0, 105, 0))
 
         return {
           ...state,
