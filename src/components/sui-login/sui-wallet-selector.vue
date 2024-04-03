@@ -7,6 +7,7 @@ en:
   section2_title: Store your Digital Assets
   section2_desc: Send, receive, store, and display your items and tokens.
   wallet_connect_refused: Why did you cancel ? 🫠
+  no_wallet: It seem you don't have any wallet, please install one. You can start with the official
 fr:
   connect: Connecter un Portefeuille
   what: Qu'est-ce qu'un Portefeuille
@@ -15,6 +16,7 @@ fr:
   section2_title: Stockez vos actifs numériques
   section2_desc: Envoyez, recevez, stockez et affichez vos objets et tokens.
   wallet_connect_refused: Pourquoi avez-vous annulé ? 🫠
+  no_wallet: Il semble que vous n'ayez pas de portefeuille Sui, veuillez en installer un. Vous pouvez commencer par le Wallet officiel
 </i18n>
 
 <template lang="pug">
@@ -27,10 +29,13 @@ fr:
   .right-pane
     .head {{ t('what') }}
     .content
-      .section
+      .section(v-if="!registered_wallets.length")
+        .title.uhoh Uh Oh !
+        .desc {{ t('no_wallet') }} #[a(href="https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil" target="_blank") Sui Wallet]
+      .section(v-if="registered_wallets.length")
         .title {{ t('section1_title') }}
         .desc {{ t('section1_desc') }}
-      .section
+      .section(v-if="registered_wallets.length")
         .title {{ t('section2_title') }}
         .desc {{ t('section2_desc') }}
 </template>
@@ -76,6 +81,9 @@ async function connect_to_wallet(wallet) {
 </script>
 
 <style lang="stylus" scoped>
+.uhoh
+  color red
+
 .head
   font-size 1.3em
   font-weight 900
@@ -125,4 +133,8 @@ async function connect_to_wallet(wallet) {
           font-size .9em
           padding-left .5em
           opacity .8
+          a
+            color white
+            text-decoration underline
+            font-weight 900
 </style>
