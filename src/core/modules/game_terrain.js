@@ -20,6 +20,7 @@ const block_types_mapping = height => {
 }
 
 const block_types_color_mapping = {
+  [BlockType.NONE]: 0x000000,
   [BlockType.ROCK]: 0xababab,
   [BlockType.GRASS]: 0x00b920,
   [BlockType.SNOW]: 0xe5e5e5,
