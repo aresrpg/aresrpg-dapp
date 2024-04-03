@@ -83,8 +83,15 @@ export default function () {
       // listening for character movements with the goal of registering new entities
       // the logic is only triggered when the character has never been seen before
       events.on('packet/characterMove', ({ id, position }) => {
-        const { visible_characters } = get_state()
-        if (!visible_characters.has(id)) {
+        const {
+          visible_characters,
+          sui: { locked_characters },
+        } = get_state()
+        const character_is_mine = locked_characters.some(
+          ({ id: locked_id }) => locked_id === id,
+        )
+
+        if (!visible_characters.has(id) && !character_is_mine) {
           const default_sui_data = {
             id,
             name: 'Loading..',
@@ -144,8 +151,8 @@ export default function () {
 
       // manage LOD when other entities moves
       events.on('packet/characterMove', ({ id, position }) => {
-        const { entities } = get_state()
-        const entity = entities.get(id)
+        const { visible_characters } = get_state()
+        const entity = visible_characters.get(id)
         if (entity) {
           const player = current_character()
           const { x, y, z } = position

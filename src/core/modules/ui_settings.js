@@ -7,14 +7,7 @@ export default function () {
   const settings = { ...INITIAL_STATE.settings }
 
   return {
-    observe({
-      events,
-      dispatch,
-      signal,
-      get_state,
-      on_game_hide,
-      on_game_show,
-    }) {
+    observe({ events, dispatch, signal, on_game_hide, on_game_show }) {
       const gui = new GUI()
 
       signal.addEventListener('abort', () => {
@@ -56,6 +49,7 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
 
+                console.log('teleporting', player.id, x, z)
                 dispatch('packet/characterMove', {
                   id: player.id,
                   position: {
@@ -109,43 +103,6 @@ export default function () {
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
 
-      terrain_folder
-        .add(
-          { clear_chunks: () => events.emit('CLEAR_CHUNKS') },
-          'clear_chunks',
-        )
-        .name('Clear Chunks')
-
-      // world_gen_folder
-      //   .add(Biomes.DEFAULT, 'scale', 1, 4000, 1)
-      //   .name('Scale')
-      //   .onFinishChange(handle_biome_change)
-
-      // world_gen_folder
-      //   .add(Biomes.DEFAULT, 'height', 1, 1000, 1)
-      //   .name('Height')
-      //   .onFinishChange(handle_biome_change)
-
-      // world_gen_folder
-      //   .add(Biomes.DEFAULT, 'octaves', 1, 20, 1)
-      //   .name('Octaves')
-      //   .onFinishChange(handle_biome_change)
-
-      // world_gen_folder
-      //   .add(Biomes.DEFAULT, 'persistence', 0, 1, 0.01)
-      //   .name('Persistence')
-      //   .onFinishChange(handle_biome_change)
-
-      // world_gen_folder
-      //   .add(Biomes.DEFAULT, 'lacunarity', 0, 10, 0.01)
-      //   .name('Lacunarity')
-      //   .onFinishChange(handle_biome_change)
-
-      // world_gen_folder
-      //   .add(Biomes.DEFAULT, 'exponentiation', 0, 20, 0.01)
-      //   .name('Exponentiation')
-      //   .onFinishChange(handle_biome_change)
-
       camera_folder
         .add(settings, 'free_camera')
         .name('Free Camera')
@@ -153,7 +110,6 @@ export default function () {
 
       game_folder.open()
       terrain_folder.open()
-      // world_gen_folder.open()
       camera_folder.open()
       gui.hide()
     },
