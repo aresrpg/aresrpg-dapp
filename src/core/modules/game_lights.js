@@ -6,16 +6,11 @@ import {
   Color,
   DirectionalLight,
   DirectionalLightHelper,
-  PlaneGeometry,
-  RepeatWrapping,
-  TextureLoader,
   Vector3,
 } from 'three'
-import { Water } from 'three/examples/jsm/objects/Water.js'
 import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 
-import water_normal from '../../assets/waternormals.jpg'
 import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 
@@ -25,24 +20,7 @@ const CAMERA_SHADOW_SIZE = 100
 
 /** @type {Type.Module} */
 export default function () {
-  const water_geometry = new PlaneGeometry(10000, 10000)
-  const water = new Water(water_geometry, {
-    textureWidth: 512,
-    textureHeight: 512,
-    waterNormals: new TextureLoader().load(water_normal, function (texture) {
-      texture.wrapS = texture.wrapT = RepeatWrapping
-    }),
-    sunDirection: new Vector3(),
-    sunColor: 0xffffff,
-    waterColor: 0x001e0f,
-    distortionScale: 3.7,
-    fog: true,
-  })
-
   return {
-    tick() {
-      water.material.uniforms.time.value += 1.0 / 60.0
-    },
     observe({ scene, get_state, events, signal }) {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
@@ -71,12 +49,6 @@ export default function () {
       scene.add(directional_light.target)
       scene.add(dirlight_helper)
       scene.add(dircamera_helper)
-
-      // water
-      water.position.y = 9.5
-      water.rotation.x = -Math.PI / 2
-
-      scene.add(water)
 
       function get_player_chunk_position() {
         try {
