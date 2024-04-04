@@ -1,9 +1,8 @@
 import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
-import { to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
-import { Box3, Color, Vector2, Vector3 } from 'three'
+import { Box3, Color, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
 import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 
@@ -110,34 +109,15 @@ export default function () {
         },
       )
 
-      // handle voxels chunks
-      aiter(abortable(setInterval(1000, null, { signal }))).reduce(
-        async last_chunk => {
-          const state = get_state()
-          const player = current_character(state)
+      aiter(abortable(setInterval(1000, null))).reduce(async () => {
+        const state = get_state()
+        const player = current_character(state)
 
-          if (!player.position) return
-          const current_chunk = to_chunk_position(player.position)
-          terrain.showMapAroundPosition(
-            player.position,
-            state.settings.view_distance,
-          )
-          if (
-            last_chunk &&
-            (last_chunk?.x !== current_chunk.x ||
-              last_chunk?.z !== current_chunk.z)
-          ) {
-            // here you know that the player has moved to a new chunk
-            // a chunk is a 32x32 area
-          }
-
-          return current_chunk
-        },
-        null,
-      )
-
-      signal.addEventListener('abort', () => {
-        // reset_chunks()
+        if (!player.position) return
+        terrain.showMapAroundPosition(
+          player.position,
+          state.settings.view_distance,
+        )
       })
     },
   }
