@@ -9,11 +9,10 @@ import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import proc_layers_json from '../../assets/terrain/proc_gen.json'
-
 import {
   block_types_color_mapping,
   block_types_mapping,
-} from './world_settings.js'
+} from '../utils/terrain/world_settings.js'
 
 /** @type {Type.Module} */
 export default function () {
