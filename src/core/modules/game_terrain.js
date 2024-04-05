@@ -10,8 +10,8 @@ import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import proc_layers_json from '../../assets/terrain/proc_gen.json'
 import {
-  block_types_color_mapping,
-  block_types_mapping,
+  blocks_mapping,
+  terrain_mapping,
 } from '../utils/terrain/world_settings.js'
 
 /** @type {Type.Module} */
@@ -25,11 +25,11 @@ export default function () {
     selection,
     samplingScale: noise_scale,
     procLayers: proc_layers,
-    blockTypeMapper: block_types_mapping,
+    terrainBlocksMapping: Object.values(terrain_mapping),
   }
 
   const map = {
-    voxelMaterialsList: Object.values(block_types_color_mapping).map(col => ({
+    voxelMaterialsList: Object.values(blocks_mapping).map(col => ({
       color: new Color(col),
     })),
     getLocalMapData: async (block_start, block_end) => {
