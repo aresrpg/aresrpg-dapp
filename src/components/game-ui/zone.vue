@@ -1,17 +1,28 @@
+<i18n>
+en:
+  players: Players
+fr:
+  players: Joueurs
+</i18n>
+
 <template lang="pug">
 .zone__container
   .zone Plaine des Caffres
   .position {{ position }}
+  .players {{ t('players') }}: {{ server_info.online_players }} / {{ server_info.max_players }}
   .version version {{ pkg.version }}
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, reactive } from 'vue';
+import { onMounted, onUnmounted, reactive, inject } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import pkg from '../../../package.json';
 import { context, current_character } from '../../core/game/game.js';
 
 const position = reactive({ x: 0, y: 0, z: 0 });
+const server_info = inject('server_info');
+const { t } = useI18n();
 
 function update_position(state) {
   const player = current_character(state);
@@ -47,8 +58,11 @@ onUnmounted(() => {
   .position
     font-size 1em
     color #EEEEEE
-  .version
+  .players
     margin-top .5em
+    font-size .8em
+    color #EEEEEE
+  .version
     font-size .8em
     color #EEEEEE
 </style>

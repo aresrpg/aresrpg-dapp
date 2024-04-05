@@ -1,16 +1,14 @@
 <i18n>
   fr:
-    unique_1: Il y a
-    unique_2: joueurs enregistrés
-    online_1: ainsi que
-    online_2: joueurs en ligne
+    total_player: Joueurs en ligne
+    total_characters: Personnages en ligne
     server: Serveur
+    not-online: Vous devez vous connecter au serveur pour voir les statistiques en direct
   en:
-    unique_1: There are
-    unique_2: registered players
-    online_1: and
-    online_2: players online
+    total_player: Online players
+    total_characters: Online characters
     server: Server
+    not-online: You must connect to the server to see live analytics
 </i18n>
 
 <template lang="pug">
@@ -19,17 +17,20 @@ vs-card
     h3.title {{  t('server') }}
   template(#img)
     img(src="../../assets/ice_dragon.gif")
-  template(#text)
-    .stats {{ t('unique_1') }} #[b {{ server_info.registrations ?? 0 }}] {{ t('unique_2') }}
-    .stats {{ t('online_1') }} #[b {{ server_info.online ?? 0 }}] {{ t('online_2') }}
+  template(#text v-if="online")
+    .stats {{ t('total_player') }}: #[b {{ server_info.online_players ?? 0 }}] / #[b {{ server_info.max_players ?? 0 }}]
+    .stats {{ t('total_characters') }}: #[b {{ server_info.online_characters ?? 0 }}]
+  template(#text v-else)
+    .stats {{  t('not-online') }}
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const server_info = ref({ registrations: 0, online: 0 });
+const online = inject('online');
+const server_info = inject('server_info');
 </script>
 
 <style lang="stylus" scoped>

@@ -3,7 +3,7 @@ router-view
 </template>
 
 <script setup>
-import { onUnmounted, onMounted, provide, ref } from 'vue';
+import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 
 import { context } from './core/game/game.js';
 import { is_chain_supported } from './core/utils/sui/is_chain_supported.js';
@@ -21,6 +21,13 @@ const current_address = ref(null);
 const current_account = ref(null);
 const sui_balance = ref(null);
 const network_supported = ref(false);
+const online = ref(false);
+
+const server_info = reactive({
+  online_players: 0,
+  max_players: 0,
+  online_characters: 0,
+});
 
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
@@ -31,10 +38,13 @@ provide('current_address', current_address);
 provide('current_account', current_account);
 provide('sui_balance', sui_balance);
 provide('network_supported', network_supported);
+provide('online', online);
+provide('server_info', server_info);
 
 function update_accounts({
   sui,
   sui: { selected_wallet_name, wallets, balance, selected_address },
+  online: state_online,
 }) {
   const selected_wallet = wallets[selected_wallet_name];
   const is_network_supported = is_chain_supported(sui);
@@ -77,15 +87,27 @@ function update_accounts({
 
   if (current_account.value?.alias !== selected_account?.alias)
     current_account.value = selected_account;
+
+  if (state_online !== online.value) online.value = state_online;
+}
+
+function on_server_info(event) {
+  const { playerCount, maxPlayers } = event;
+
+  server_info.online_players = playerCount;
+  server_info.max_players = maxPlayers;
 }
 
 onMounted(() => {
   context.events.on('STATE_UPDATED', update_accounts);
   update_accounts(context.get_state());
+
+  context.events.on('packet/serverInfo', on_server_info);
 });
 
 onUnmounted(() => {
   context.events.off('STATE_UPDATED', update_accounts);
+  context.events.off('packet/serverInfo', on_server_info);
 });
 </script>
 
