@@ -151,9 +151,21 @@ export default function () {
 
       // manage LOD when other entities moves
       events.on('packet/characterPosition', ({ id, position }) => {
-        const { visible_characters } = get_state()
+        const {
+          visible_characters,
+          sui: { locked_characters },
+        } = get_state()
         const entity = visible_characters.get(id)
-        if (entity) {
+        // can happen when a character previously foreign was sent to me
+        // without being despawned, so it would be mine but also in the visible_characters
+        const character_mine = locked_characters.find(
+          ({ id: locked_id }) => locked_id === id,
+        )
+
+        if (entity && character_mine) {
+          entity.remove()
+          visible_characters.delete(id)
+        } else if (entity) {
           const player = current_character()
           const { x, y, z } = position
           entity.target_position = new Vector3(x, y, z)
