@@ -17,6 +17,12 @@ const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
 const CAMERA_SHADOW_SIZE = 100
 
+function distance_between(position1, position2) {
+  const { x, y, z } = position1
+  const { x: x2, y: y2, z: z2 } = position2
+  return Math.sqrt((x - x2) ** 2 + (y - y2) ** 2 + (z - z2) ** 2)
+}
+
 /** @type {Type.Module} */
 export default function () {
   return {
@@ -78,17 +84,16 @@ export default function () {
         ({ last_sky_lights_version, last_player_position }, [state]) => {
           const lights_changed =
             state.settings.sky.lights.version !== last_sky_lights_version
+          const player = current_character(state)
+
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version
             update_sky_lights_color(state.settings.sky.lights)
           }
 
-          const player = current_character(state)
-          if (player.position) {
+          if (last_player_position && player.position) {
             const player_moved =
-              last_player_position &&
-              !last_player_position.equals(player.position)
-            last_player_position = player.position.clone()
+              distance_between(last_player_position, player.position) > 5
 
             if (lights_changed || player_moved) {
               update_directional_light_position(
@@ -98,7 +103,14 @@ export default function () {
             }
           }
 
-          return { last_sky_lights_version, last_player_position }
+          return {
+            last_sky_lights_version,
+            last_player_position: player.position,
+          }
+        },
+        {
+          last_sky_lights_version: 0,
+          last_player_position: null,
         },
       )
     },
