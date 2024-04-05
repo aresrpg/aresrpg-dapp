@@ -189,12 +189,7 @@ export default function () {
               sun_color,
               smoothstep(sun_position.y, -0.1, 1.0),
             ),
-            intensity:
-              1 -
-              Math.min(
-                smoothstep(sun_position.y, -0.3, -0.2),
-                1 - smoothstep(sun_position.y, 0, 0.05),
-              ),
+            intensity: smoothstep(Math.abs(sun_position.y), -0.1, 0.05),
           },
           ambient: {
             color: new Color().lerpColors(
