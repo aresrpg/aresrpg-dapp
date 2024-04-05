@@ -8,7 +8,6 @@ import {
   DirectionalLightHelper,
   Vector3,
 } from 'three'
-import { CHUNK_SIZE, to_chunk_position } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'
@@ -21,7 +20,7 @@ const CAMERA_SHADOW_SIZE = 100
 /** @type {Type.Module} */
 export default function () {
   return {
-    observe({ scene, get_state, events, signal }) {
+    observe({ scene, events, signal }) {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
 
@@ -50,45 +49,24 @@ export default function () {
       scene.add(dirlight_helper)
       scene.add(dircamera_helper)
 
-      function get_player_chunk_position() {
-        try {
-          const player = current_character()
-          if (player.position) return to_chunk_position(player.position)
-        } catch (error) {
-          console.error('Failed to get player chunk position:', error)
-        }
-
-        return new Vector3()
-      }
-
       function update_directional_light_position(
         /** @type Vector3 */ light_position,
+        /** @type Vector3 */ player_position,
       ) {
-        const chunk_position = get_player_chunk_position()
+        const light_target_position = player_position.clone()
 
-        if (chunk_position) {
-          const light_base_position = new Vector3(
-            chunk_position.x * CHUNK_SIZE,
-            300,
-            chunk_position.z * CHUNK_SIZE,
-          )
-          const light_target_position = light_base_position.clone().setY(0)
-
-          // Calculate the sun and moon position relative to the base position
-          const sun_position_offset = light_position.clone().multiplyScalar(200)
-          directional_light.position
-            .copy(light_base_position)
-            .add(sun_position_offset)
-          directional_light.target.position.copy(light_target_position)
-        }
+        const light_position_offset = light_position.clone().multiplyScalar(400)
+        directional_light.position
+          .copy(light_target_position)
+          .add(light_position_offset)
+        directional_light.target.position.copy(light_target_position)
       }
 
-      function apply_sky_lights(sky_lights) {
+      function update_sky_lights_color(sky_lights) {
         scene.fog.color = sky_lights.fog.color
           .clone()
           .lerp(new Color('#000000'), 0.4)
 
-        update_directional_light_position(sky_lights.directional.position)
         directional_light.color = sky_lights.directional.color
         directional_light.intensity = sky_lights.directional.intensity
 
@@ -97,12 +75,30 @@ export default function () {
       }
 
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
-        (sky_lights_version, [state]) => {
-          if (state.settings.sky.lights.version !== sky_lights_version) {
-            sky_lights_version = state.settings.sky.lights.version
-            apply_sky_lights(state.settings.sky.lights)
+        ({ last_sky_lights_version, last_player_position }, [state]) => {
+          const lights_changed =
+            state.settings.sky.lights.version !== last_sky_lights_version
+          if (lights_changed) {
+            last_sky_lights_version = state.settings.sky.lights.version
+            update_sky_lights_color(state.settings.sky.lights)
           }
-          return state.settings.sky.lights.version
+
+          const player = current_character(state)
+          if (player.position) {
+            const player_moved =
+              last_player_position &&
+              !last_player_position.equals(player.position)
+            last_player_position = player.position.clone()
+
+            if (lights_changed || player_moved) {
+              update_directional_light_position(
+                state.settings.sky.lights.directional.position,
+                last_player_position,
+              )
+            }
+          }
+
+          return { last_sky_lights_version, last_player_position }
         },
       )
     },
