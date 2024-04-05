@@ -1,6 +1,6 @@
 import toast from '../../toast.js'
 
-import { context } from './game.js'
+import { context, ws_status } from './game.js'
 
 export const error_translations = {
   en: {
@@ -61,7 +61,8 @@ export async function handle_server_error(reason) {
       toast.info(t('MAX_PLAYERS'), 'Suuuuu', "<i class='bx bxs-hot'/>")
       break
     case 'SIGNATURE_TIMEOUT':
-      if (context.get_state().online)
+      console.log('ws_status', ws_status.value)
+      if (ws_status.value === 'CLOSED')
         toast.error(
           t('SIGNATURE_TIMEOUT'),
           'Aaaaaaaah 🫠',

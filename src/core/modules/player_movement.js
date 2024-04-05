@@ -6,7 +6,7 @@ import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
 import { WorldGenerator } from '@aresrpg/aresrpg-world'
 
-import { GRAVITY, current_character } from '../game/game.js'
+import { GRAVITY, context, current_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { compute_animation_state } from '../animations/animation.js'
 
@@ -115,7 +115,10 @@ export default function () {
           jump_cooldown = JUMP_COOLDWON
           on_ground = false
 
-          // send_packet('packet/entityAction', { id: '', action: 'JUMP' })
+          context.send_packet('packet/characterAction', {
+            id: player.id,
+            action: 'JUMP',
+          })
           is_walking = false
         } else {
           jump_state = jump_states.NONE
@@ -189,7 +192,10 @@ export default function () {
       if (inputs.dance && !is_dancing && Date.now() - last_dance > 1000) {
         is_dancing = true
         last_dance = Date.now()
-        // send_packet('packet/entityAction', { id: '', action: 'DANCE' })
+        context.send_packet('packet/characterAction', {
+          id: player.id,
+          action: 'DANCE',
+        })
       }
 
       if (is_moving_horizontally) {
@@ -199,12 +205,18 @@ export default function () {
         if (on_ground) {
           if (inputs.walk && !is_walking) {
             is_walking = true
-            // send_packet('packet/entityAction', { id: '', action: 'WALK' })
+            context.send_packet('packet/characterAction', {
+              id: player.id,
+              action: 'WALK',
+            })
           }
 
           if (!inputs.walk && is_walking) {
             is_walking = false
-            // send_packet('packet/entityAction', { id: '', action: 'RUN' })
+            context.send_packet('packet/characterAction', {
+              id: player.id,
+              action: 'RUN',
+            })
           }
         }
 
@@ -243,7 +255,7 @@ export default function () {
     reduce(state, { type, payload }) {
       // if the character is mine
       if (
-        type === 'packet/characterMove' &&
+        type === 'packet/characterPosition' &&
         payload.id === state.selected_character_id
       ) {
         const target_character = state.characters.find(
@@ -267,16 +279,16 @@ export default function () {
           const { position } = player
 
           // round position with 2 decimals
-          const x = Math.round(position.x * 1000) / 1000
-          const y = Math.round(position.y * 1000) / 1000
-          const z = Math.round(position.z * 1000) / 1000
+          const x = Math.round(position.x * 100) / 100
+          const y = Math.round(position.y * 100) / 100
+          const z = Math.round(position.z * 100) / 100
 
           if (
             last_position.x !== x ||
             last_position.y !== y ||
             last_position.z !== z
           ) {
-            send_packet('packet/characterMove', {
+            send_packet('packet/characterPosition', {
               id: player.id,
               position: { x, y, z },
             })

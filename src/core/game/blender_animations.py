@@ -1,6 +1,7 @@
 import bpy
 
-actions_to_keep = ["Afk 01_Belly-Global",
+actions_to_keep = [
+"Afk 01_Belly-Global",
 "Afk 01_Chest-Global",
 "Afk 01_Controller-Global",
 "Afk 01_Head-Global",

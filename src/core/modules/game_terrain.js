@@ -56,7 +56,7 @@ export default function () {
 
       let is_empty = true
       const bbox = new Box3(block_start, block_end)
-      for (const voxel of WorldGenerator.instance.generate(bbox)) {
+      for (const voxel of WorldGenerator.instance.generate(bbox, false)) {
         const local_position = new Vector3().subVectors(voxel.pos, block_start)
         const cache_index = build_index(local_position)
         cache[cache_index] = 1 + voxel.type

@@ -55,25 +55,25 @@ function display_classe(type) {
   switch (type) {
     case 'IOP_MALE':
       if (!iop) {
-        iop = pool.iop_male.get(nanoid());
+        iop = pool.iop_male.get({ id: nanoid() });
         setup_classe(iop);
       }
       break;
     case 'SRAM_MALE':
       if (!sram) {
-        sram = pool.sram_male.get(nanoid());
+        sram = pool.sram_male.get({ id: nanoid() });
         setup_classe(sram);
       }
       break;
     case 'IOP_FEMALE':
       if (!iop_female) {
-        iop_female = pool.iop_female.get(nanoid());
+        iop_female = pool.iop_female.get({ id: nanoid() });
         setup_classe(iop_female);
       }
       break;
     case 'SRAM_FEMALE':
       if (!sram_female) {
-        sram_female = pool.sram_female.get(nanoid());
+        sram_female = pool.sram_female.get({ id: nanoid() });
         setup_classe(sram_female);
       }
       break;

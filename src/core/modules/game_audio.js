@@ -70,7 +70,7 @@ export default function () {
         }, 500)
       })
 
-      events.on('packet/characterMove', ({ id, position }) => {
+      events.on('packet/characterPosition', ({ id, position }) => {
         const state = get_state()
         const { visible_characters } = state
         const player = current_character(state)
