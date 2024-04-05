@@ -54,7 +54,7 @@ export default function () {
                   new Vector2(x, z),
                 )
 
-                dispatch('packet/characterMove', {
+                dispatch('packet/characterPosition', {
                   id: player.id,
                   position: {
                     x,

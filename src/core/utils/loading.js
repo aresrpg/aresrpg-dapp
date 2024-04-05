@@ -18,11 +18,11 @@ function update() {
 }
 
 export function increase_loading() {
-  loading.value++
+  loading.value = Math.max(0, loading.value + 1)
   update()
 }
 
 export function decrease_loading() {
-  loading.value--
+  loading.value = Math.max(0, loading.value - 1)
   update()
 }

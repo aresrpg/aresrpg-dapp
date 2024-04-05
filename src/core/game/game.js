@@ -64,10 +64,7 @@ const FILTER_ACTION_IN_LOGS = [
   'action/set_state_player_position',
   'action/sky_lights_change',
 ]
-export const FILTER_PACKET_IN_LOGS = [
-  'packet/playerPosition',
-  'packet/entityMove',
-]
+export const FILTER_PACKET_IN_LOGS = ['packet/characterPosition']
 
 LOADING_MANAGER.onStart = (url, items_loaded, items_total) => {
   window.dispatchEvent(new Event('assets_loading'))
@@ -294,7 +291,13 @@ function connect_ws() {
           await handle_server_error(event.reason)
           ares_client?.notify_end(event.reason)
           logger.SOCKET(`disconnected: ${event.reason}`)
+
+          context.dispatch('action/set_online', true)
           context.dispatch('action/set_online', false)
+
+          const { visible_characters } = context.get_state()
+          visible_characters.forEach(character => character.remove())
+          visible_characters.clear()
 
           reject(new Error('Disconnected from server'))
         },
@@ -332,7 +335,7 @@ const context = {
   camera_controls: new CameraControls(camera, renderer.domElement),
   /** @type {import("@aresrpg/aresrpg-protocol/src/types").create_client['send']} */
   send_packet(type, payload) {
-    if (!ares_client) return // not connected
+    if (!ares_client || ares_client.controller.signal.aborted) return // not connected
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)
     ares_client.send(type, payload)
   },

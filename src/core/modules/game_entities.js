@@ -52,7 +52,7 @@ export default function () {
               character.action = null
           }
 
-          const is_moving_horizontally = movement.setY(0).lengthSq() > 0.001
+          const is_moving_horizontally = movement.setY(0).lengthSq() > 0.1
 
           if (new_position.distanceTo(character.target_position) < 0.01) {
             character.target_position = null
@@ -82,7 +82,7 @@ export default function () {
     observe({ events, pool, get_state, signal }) {
       // listening for character movements with the goal of registering new entities
       // the logic is only triggered when the character has never been seen before
-      events.on('packet/characterMove', ({ id, position }) => {
+      events.on('packet/characterPosition', ({ id, position }) => {
         const {
           visible_characters,
           sui: { locked_characters },
@@ -139,18 +139,18 @@ export default function () {
       })
 
       events.on('packet/entityDespawn', ({ ids }) => {
-        const { entities } = get_state()
+        const { visible_characters } = get_state()
         ids.forEach(id => {
-          const entity = entities.get(id)
+          const entity = visible_characters.get(id)
           if (entity) {
             entity.remove()
-            entities.delete(id)
+            visible_characters.delete(id)
           }
         })
       })
 
       // manage LOD when other entities moves
-      events.on('packet/characterMove', ({ id, position }) => {
+      events.on('packet/characterPosition', ({ id, position }) => {
         const { visible_characters } = get_state()
         const entity = visible_characters.get(id)
         if (entity) {
@@ -183,7 +183,7 @@ export default function () {
         if (player.position) {
           visible_characters.forEach(entity => {
             const { position } = entity
-            const distance = state.player.position.distanceTo(position)
+            const distance = player.position.distanceTo(position)
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 
@@ -199,7 +199,7 @@ export default function () {
         }
       })
 
-      events.on('packet/entityAction', ({ id, action }) => {
+      events.on('packet/characterAction', ({ id, action }) => {
         const { visible_characters } = get_state()
         const entity = visible_characters.get(id)
 
