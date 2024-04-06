@@ -12,6 +12,8 @@ export const error_translations = {
     SIGNATURE_TIMEOUT: 'Please sign the message faster!',
     INVALID_SIGNATURE: 'Invalid signature',
     NO_REASON: 'The server appears to be down, please try again later',
+    MOVE_FIRST:
+      'Please move before doing this action, the server must acknowledge your existence first',
   },
   fr: {
     ALREADY_ONLINE:
@@ -23,6 +25,7 @@ export const error_translations = {
     INVALID_SIGNATURE: 'Signature invalide',
     NO_REASON:
       'Le serveur semble être hors ligne, veuillez réessayer plus tard',
+    MOVE_FIRST: `Veuillez bouger avant de faire cette action, le serveur doit d'abord reconnaître votre existence`,
   },
 }
 
@@ -71,6 +74,9 @@ export async function handle_server_error(reason) {
       break
     case 'INVALID_SIGNATURE':
       toast.error(t('INVALID_SIGNATURE'))
+      break
+    case 'CHARACTER_INVALID':
+      toast.error(t('MOVE_FIRST'))
       break
     default:
       toast.error(reason)
