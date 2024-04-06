@@ -44,6 +44,7 @@
         i.bx.bxl-twitter
     template(#footer v-if="!sidebar_reduced")
       .footer
+        .version v{{ pkg.version }}
         serverInfo
         .lang(@click="lang_dialog = true") {{ t('lang') }}
 </template>
@@ -53,6 +54,7 @@ import { inject, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
+import pkg from '../../../package.json';
 import serverInfo from '../cards/server-info.vue';
 
 const lang_dialog = inject('lang_dialog');
@@ -109,6 +111,10 @@ const open_twitter = () => {
   display flex
   flex-flow column nowrap
   align-items center
+  .version
+    font-size .8em
+    margin-bottom .25em
+
   .lang
     font-size .8em
     margin-top .5em
