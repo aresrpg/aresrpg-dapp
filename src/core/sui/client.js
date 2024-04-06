@@ -40,7 +40,7 @@ const PACKAGES = {
 }
 
 const SUINS_CACHE = new LRUCache({ max: 50 })
-const OBJECTS_CACHE = new LRUCache({
+export const OBJECTS_CACHE = new LRUCache({
   max: 500,
 })
 
@@ -84,12 +84,15 @@ function parse_sui_object(object) {
   }
 }
 
-async function get_cached_object(id, client) {
+async function get_cached_object(id, sui_client = client) {
   const object = OBJECTS_CACHE.get(id)
   if (object) return object
 
   const fetched_object = parse_sui_object(
-    await client.getObject({ id, options: { showContent: true } }),
+    await sui_client.getObject({
+      id,
+      options: { showContent: true },
+    }),
   )
 
   OBJECTS_CACHE.set(id, fetched_object)
@@ -411,7 +414,7 @@ export async function sui_get_unlocked_characters() {
 }
 
 export async function sui_get_character(id) {
-  return get_cached_object(id, client)
+  return get_cached_object(id)
 }
 
 export async function sui_get_inventory() {}
@@ -473,10 +476,11 @@ export async function get_alias(address) {
     data: [name],
   } = await mainnet_client.resolveNameServiceNames({ address, limit: 1 })
 
-  if (name) {
-    SUINS_CACHE.set(address, name)
-    return name
-  }
+  if (name) SUINS_CACHE.set(address, name)
+  else SUINS_CACHE.set(address, address)
+
+  // @ts-ignore
+  return SUINS_CACHE.get(address)
 }
 
 export async function sui_sign_payload(message) {

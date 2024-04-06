@@ -139,6 +139,9 @@ sc-disableScollBar()
   i
     margin-right .5em
 
+.drv
+  border none
+
 .ares_btn
   background rgba(#212121, .3)
   backdrop-filter blur(12px)

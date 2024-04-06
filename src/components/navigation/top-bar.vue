@@ -61,7 +61,7 @@ const sui_balance = inject('sui_balance');
 
 function address_display(account) {
   if (!account) return 'not found';
-  if (account.alias) return account.alias;
+  if (account.alias?.includes('.sui')) return account.alias;
   return `${account.address.slice(0, 6)}...${account.address.slice(-4)}`;
 }
 

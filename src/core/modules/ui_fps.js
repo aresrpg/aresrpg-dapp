@@ -10,12 +10,12 @@ export default function () {
   const stats_fps = new Stats()
   stats_fps.showPanel(0) // 0: FPS
   stats_fps.dom.style.cssText =
-    'position:fixed;bottom:144px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
+    'position:fixed;bottom:294px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
 
   const stats_memory = new Stats()
   stats_memory.showPanel(2) // 2: Memory
   stats_memory.dom.style.cssText =
-    'position:fixed;bottom:96px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
+    'position:fixed;bottom:246px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
 
   // Custom panel for mesh count
   const stats_mesh = new Stats()
@@ -23,14 +23,14 @@ export default function () {
   stats_mesh.addPanel(mesh_panel)
   stats_mesh.showPanel(3) // Show the custom panel
   stats_mesh.dom.style.cssText =
-    'position:fixed;bottom:48px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
+    'position:fixed;bottom:198px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
 
   const stats_draw_calls = new Stats()
   const draw_calls_panel = new Stats.Panel('Draws', '#f8f', '#212') // Use appropriate colors
   stats_draw_calls.addPanel(draw_calls_panel)
   stats_draw_calls.showPanel(3)
   stats_draw_calls.dom.style.cssText =
-    'position:fixed;bottom:0px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
+    'position:fixed;bottom:150px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
 
   function show_stats(show) {
     if (show) {
