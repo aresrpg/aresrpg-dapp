@@ -1,9 +1,11 @@
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { inject } from '@vercel/analytics'
-import Vuesax from 'vuesax-alpha'
 import 'vuesax-alpha/dist/index.css'
 import 'vuesax-alpha/theme-chalk/dark/css-vars.css'
+import Vuesax from 'vuesax-alpha'
+import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
+import ContextMenu from '@imengyu/vue3-context-menu'
 
 import app from './app.vue'
 import router from './router.js'

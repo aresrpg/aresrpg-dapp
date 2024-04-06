@@ -7,7 +7,7 @@
     wsConnectBtnVue
   //- .top_right
   .bottom_panel
-    .chat
+    gameChat
     .infos
     .inventory
     .map
@@ -17,6 +17,7 @@
 import characterSelectVue from './character-select.vue';
 import wsConnectBtnVue from './ws-connect-btn.vue';
 import zoneVue from './zone.vue';
+import gameChat from './game-chat.vue';
 </script>
 
 <style lang="stylus" scoped>
@@ -37,45 +38,8 @@ import zoneVue from './zone.vue';
       font-size .8em
       color #EEEEEE
   .bottom_panel
-    background #212121
-    opacity .7
-    width 100vw
-    height 150px
+    width calc(100vw - 50px)
+    right 0
     bottom 0
     display grid
-    display: grid;
-    grid-template-columns: 1fr minmax(100px, 200px) 1fr minmax(100px, 200px)
-    grid-template-areas "chat infos inventory map"
-
-    .chat
-      grid-area chat
-      border 3px solid #F39C12
-    .infos
-      grid-area infos
-      border 3px solid #3498DB
-    .inventory
-      grid-area inventory
-      border 3px solid #9B59B6
-    .map
-      grid-area map
-      border 3px solid #F1C40F
-
-  .escape_menu
-    position absolute
-    background rgba(#212121, .5)
-    top 50%
-    left 50%
-    transform translate(-50%, -50%)
-    backdrop-filter blur(12px)
-    padding 2em
-    padding-bottom 1em
-    border-radius 6px
-    overflow hidden
-    >*
-      width 300px
-      padding 1em .5em
-      display flex
-      margin-bottom 1em
-    .keys
-      opacity .6
 </style>
