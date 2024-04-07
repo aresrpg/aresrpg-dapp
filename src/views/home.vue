@@ -137,6 +137,9 @@ h3.title
           color #eee
           font-weight 900
           text-transform uppercase
+      .view
+        overflow-y auto
+        height 100%
   >.mobile
     display flex
     justify-content center

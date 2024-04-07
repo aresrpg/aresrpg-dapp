@@ -37,11 +37,7 @@ b.sui-network
   text-transform uppercase
   color #eee
 .container
-  display flex
-  flex-flow column nowrap
-  align-items center
   padding 3em
-  height 100%
   >span
     display flex
     width 100%

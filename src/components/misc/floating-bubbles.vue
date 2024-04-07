@@ -1,10 +1,7 @@
 <template lang="pug">
 .bubbles
   - for (var i = 0; i < 128; i++)
-      div.bubble(
-        style=`
-        --size:${2+Math.random()*4}rem; --distance:${6+Math.random()*4}rem; --position:${-5+Math.random()*110}%; --time:${2+Math.random()*2}s; --delay:${-1*(2+Math.random()*2)}s;
-        `)
+      div.bubble(style=`--size:${2+Math.random()*4}rem; --distance:${6+Math.random()*4}rem; --position:${-5+Math.random()*110}%; --time:${2+Math.random()*2}s; --delay:${-1*(2+Math.random()*2)}s;`)
 </template>
 
 <style lang="stylus" scoped>
@@ -14,6 +11,8 @@
   left 0
   right 0
   height 1rem
+  pointer-events none
+  user-select none
   filter:url("#blob")
 .bubble
   position absolute
