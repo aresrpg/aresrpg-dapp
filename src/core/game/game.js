@@ -242,7 +242,7 @@ const camera = new PerspectiveCamera(
   60, // Field of view
   window.innerWidth / window.innerHeight, // Aspect ratio
   0.1, // Near clipping plane
-  1500, // Far clipping plane
+  2000, // Far clipping plane
 )
 const pool = create_pools(scene)
 

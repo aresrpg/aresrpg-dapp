@@ -170,6 +170,8 @@ i
   border-radius 12px
   margin .5em
   max-width 1000px
+  width 40%
+  min-width 300px
   min-height 150px
   max-height 150px
   transition all .3s
