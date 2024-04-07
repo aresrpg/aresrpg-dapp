@@ -14,8 +14,8 @@ fr:
 <template lang="pug">
 .chat_container(:class="{ hidden, wide }")
   i.bx.bx-low-vision(@click="hidden = !hidden")
-  i.bx.bxs-chevrons-up(v-if="!wide" @click="wide = true")
-  i.bx.bxs-chevrons-down(v-else @click="wide = false")
+  i.bx.bxs-chevrons-up(v-if="!wide" @click="() => set_wide(true)")
+  i.bx.bxs-chevrons-down(v-else @click="() => set_wide(false)")
   .history(
     ref="msg_container"
     @click.right="on_right_click"
@@ -69,6 +69,15 @@ function on_right_click_id(event, id) {
   });
 }
 
+function set_wide(value) {
+  wide.value = value;
+  if (!value) {
+    setTimeout(() => {
+      scroll_to_bottom();
+    }, 300);
+  }
+}
+
 function send_message() {
   const msg = current_message.value.trim();
   if (!msg) return;
@@ -103,12 +112,21 @@ function address_display(address) {
 
 function on_scroll() {
   const container = msg_container.value;
-  // @ts-ignore
-  if (container.scrollTop + container.clientHeight < container.scrollHeight) {
+  if (
+    // @ts-ignore
+    container.scrollTop + container.clientHeight + 10 <
+    // @ts-ignore
+    container.scrollHeight
+  ) {
     auto_scroll.value = false;
   } else {
     auto_scroll.value = true;
   }
+}
+
+function scroll_to_bottom() {
+  // @ts-ignore
+  msg_container.value.scrollTop = msg_container.value.scrollHeight;
 }
 
 async function handle_message({ id, message, address }) {
@@ -125,10 +143,7 @@ async function handle_message({ id, message, address }) {
       history.value.shift();
     }
     nextTick(() => {
-      if (auto_scroll.value) {
-        // @ts-ignore
-        msg_container.value.scrollTop = msg_container.value.scrollHeight;
-      }
+      if (auto_scroll.value) scroll_to_bottom();
     });
   } catch (error) {
     console.error('Unable to send message', error);
