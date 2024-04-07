@@ -70,10 +70,10 @@ export default function () {
     },
     sampleHeightmap(x, z) {
       const altitude = WorldGenerator.instance.getHeight(new Vector2(x, z))
-      const blockType = WorldGenerator.instance.getBlock(
+      const block_type = WorldGenerator.instance.getBlock(
         new Vector3(x, Math.floor(altitude - 0.5), z),
       )
-      const material = this.voxelMaterialsList[blockType]
+      const material = this.voxelMaterialsList[block_type]
       return {
         altitude: Math.floor(altitude),
         color: material.color,

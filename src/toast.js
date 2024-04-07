@@ -1,5 +1,6 @@
 import { VsNotification } from 'vuesax-alpha'
 
+// @ts-ignore
 import FluentEmojiHighContrastFly from '~icons/fluent-emoji-high-contrast/fly'
 
 export default {
