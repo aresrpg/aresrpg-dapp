@@ -26,6 +26,7 @@ export default function () {
     samplingScale: noise_scale,
     procLayers: proc_layers,
     terrainBlocksMapping: Object.values(terrain_mapping),
+    seaLevel: 76,
   }
 
   const map = {
