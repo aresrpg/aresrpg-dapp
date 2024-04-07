@@ -98,7 +98,7 @@ export default function () {
 
       composer.addPass(renderpass)
       composer.addPass(bloompass)
-      composer.addPass(gtaopass)
+      // composer.addPass(gtaopass)
       // composer.addPass(n8aopass)
       composer.addPass(gamma_correction)
       composer.addPass(outline)
