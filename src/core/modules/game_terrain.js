@@ -2,7 +2,7 @@ import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Box3, Color, Vector3 } from 'three'
+import { Box3, Color, Vector2, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
 import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 
@@ -68,15 +68,24 @@ export default function () {
         isEmpty: is_empty,
       }
     },
+    sampleHeightmap(x, z) {
+      const altitude = WorldGenerator.instance.getHeight(new Vector2(x, z));
+      const blockType = WorldGenerator.instance.getBlock(new Vector3(x, Math.floor(altitude - 0.5), z));
+      const material = this.voxelMaterialsList[blockType];
+      return {
+        altitude: Math.floor(altitude),
+        color: material.color,
+      }
+    }
   }
 
   const terrain = new Terrain(map)
 
   return {
     tick() {
-      terrain.updateUniforms()
+      terrain.update()
     },
-    observe({ events, signal, scene, get_state }) {
+    observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
       events.emit('CHUNKS_LOADED')
@@ -112,11 +121,14 @@ export default function () {
         const state = get_state()
         const player = current_character(state)
 
-        if (!player.position) return
-        terrain.showMapAroundPosition(
-          player.position,
-          state.settings.view_distance,
-        )
+        if (player.position) {
+          terrain.showMapAroundPosition(
+            player.position,
+            state.settings.view_distance,
+          )
+        }
+
+        terrain.setLod(camera.position, 50, 2000);
       })
     },
   }
