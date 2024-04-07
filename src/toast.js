@@ -1,5 +1,7 @@
 import { VsNotification } from 'vuesax-alpha'
 
+import FluentEmojiHighContrastFly from '~icons/fluent-emoji-high-contrast/fly'
+
 export default {
   success(content, title = 'AresRPG', icon = "<i class='bx bx-check'></i>") {
     VsNotification({
@@ -11,10 +13,10 @@ export default {
       content,
     })
   },
-  error(content, title = 'Oh no!', icon = "<i class='bx bxs-bug'></i>") {
+  error(content, title = 'Oh no!', icon = FluentEmojiHighContrastFly) {
     VsNotification({
       flat: true,
-      color: 'danger',
+      color: '#E57373',
       position: 'bottom-right',
       title,
       content,

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import Icons from 'unplugin-icons/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,6 +20,10 @@ export default defineConfig({
       },
       // Whether to polyfill `node:` protocol imports.
       protocolImports: true,
+    }),
+    Icons({
+      // experimental
+      autoInstall: true,
     }),
   ],
 })

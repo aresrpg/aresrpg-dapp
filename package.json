@@ -45,6 +45,10 @@
     "workerpool": "^9.1.1"
   },
   "devDependencies": {
+    "@iconify-json/emojione-v1": "^1.1.10",
+    "@iconify-json/fluent-emoji-high-contrast": "^1.1.15",
+    "@iconify-json/noto": "^1.1.18",
+    "@iconify-json/streamline-emojis": "^1.1.8",
     "@types/dat.gui": "^0.7.13",
     "@types/node": "^20.12.5",
     "@types/three": "^0.163.0",
@@ -63,6 +67,7 @@
     "prettier": "3.2.5",
     "pug": "^3.0.2",
     "stylus": "^0.63.0",
+    "unplugin-icons": "^0.18.5",
     "vite": "^5.2.8",
     "vite-plugin-node-polyfills": "^0.21.0",
     "vite-plugin-wasm": "^3.3.0",
