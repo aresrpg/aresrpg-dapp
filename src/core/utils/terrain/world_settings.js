@@ -29,7 +29,7 @@ export const terrain_mapping = {
   },
   lowlands: {
     blockType: BlockType.DRY_GRASS,
-    threshold: 110,
+    threshold: 106,
   },
   highlands: {
     blockType: BlockType.GRASS,
@@ -37,7 +37,7 @@ export const terrain_mapping = {
   },
   mountains: {
     blockType: BlockType.ROCK,
-    threshold: 148,
+    threshold: 150,
   },
   mountains_top: {
     blockType: BlockType.SNOW,
