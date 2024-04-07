@@ -69,14 +69,16 @@ export default function () {
       }
     },
     sampleHeightmap(x, z) {
-      const altitude = WorldGenerator.instance.getHeight(new Vector2(x, z));
-      const blockType = WorldGenerator.instance.getBlock(new Vector3(x, Math.floor(altitude - 0.5), z));
-      const material = this.voxelMaterialsList[blockType];
+      const altitude = WorldGenerator.instance.getHeight(new Vector2(x, z))
+      const blockType = WorldGenerator.instance.getBlock(
+        new Vector3(x, Math.floor(altitude - 0.5), z),
+      )
+      const material = this.voxelMaterialsList[blockType]
       return {
         altitude: Math.floor(altitude),
         color: material.color,
       }
-    }
+    },
   }
 
   const terrain = new Terrain(map)
@@ -128,7 +130,7 @@ export default function () {
           )
         }
 
-        terrain.setLod(camera.position, 50, 2000);
+        terrain.setLod(camera.position, 50, 2000)
       })
     },
   }
