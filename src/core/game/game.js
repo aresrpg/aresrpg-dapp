@@ -242,7 +242,7 @@ const camera = new PerspectiveCamera(
   60, // Field of view
   window.innerWidth / window.innerHeight, // Aspect ratio
   0.1, // Near clipping plane
-  2000, // Far clipping plane
+  3000, // Far clipping plane
 )
 const pool = create_pools(scene)
 
@@ -256,7 +256,7 @@ const get_state = last_event_value(events, 'STATE_UPDATED', INITIAL_STATE)
 const controller = new AbortController()
 
 scene.background = new Color('#000000')
-scene.fog = new Fog('#000000', 0, 1500)
+scene.fog = new Fog('#000000', 0.25 * camera.far, 0.98 * camera.far)
 
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
