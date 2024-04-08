@@ -174,10 +174,13 @@ export default function () {
 
         sky_lights_version = (sky_lights_version + 1) % 1000
 
+        const fog_color = new Color().lerpColors(new Color(0x61455), new Color(0xA1BDEB), smoothstep(sun_position.y, -0.12, 0.15))
+        fog_color.lerpColors(new Color(0xFFAB71), fog_color, smoothstep(Math.abs(sun_position.y - 0.0), 0, 0.15))
+
         const sky_lights = {
           version: sky_lights_version,
           fog: {
-            color: sun_color.clone(),
+            color: fog_color,
           },
           directional: {
             position:

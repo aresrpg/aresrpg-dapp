@@ -69,9 +69,7 @@ export default function () {
       }
 
       function update_sky_lights_color(sky_lights) {
-        scene.fog.color = sky_lights.fog.color
-          .clone()
-          .lerp(new Color('#000000'), 0.4)
+        scene.fog.color = sky_lights.fog.color.clone()
 
         directional_light.color = sky_lights.directional.color
         directional_light.intensity = sky_lights.directional.intensity
