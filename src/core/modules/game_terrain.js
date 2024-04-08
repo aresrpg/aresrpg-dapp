@@ -130,7 +130,7 @@ export default function () {
           )
         }
 
-        terrain.setLod(camera.position, 50, 2000)
+        terrain.setLod(camera.position, 50, camera.far)
       })
     },
   }
