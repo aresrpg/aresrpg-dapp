@@ -26,7 +26,7 @@ export default function () {
     samplingScale: noise_scale,
     procLayers: proc_layers,
     terrainBlocksMapping: Object.values(terrain_mapping),
-    seaLevel: 76,
+    seaLevel: 75,
   }
 
   const map = {
@@ -70,7 +70,8 @@ export default function () {
       }
     },
     sampleHeightmap(x, z) {
-      const altitude = WorldGenerator.instance.getHeight(new Vector2(x, z))
+      const ground_level = WorldGenerator.instance.getHeight(new Vector2(x, z))
+      const altitude = Math.max(ground_level, WorldGenerator.instance.seaLevel)
       const block_type = WorldGenerator.instance.getBlock(
         new Vector3(x, Math.floor(altitude - 0.5), z),
       )
