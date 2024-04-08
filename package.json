@@ -12,9 +12,9 @@
     "postversion": "git push --follow-tags"
   },
   "dependencies": {
-    "@aresrpg/aresrpg-engine": "^1.5.0",
+    "@aresrpg/aresrpg-engine": "^1.6.0",
     "@aresrpg/aresrpg-protocol": "^2.2.1",
-    "@aresrpg/aresrpg-world": "^0.3.0",
+    "@aresrpg/aresrpg-world": "^0.4.0",
     "@bufbuild/buf": "^1.30.1",
     "@bufbuild/protobuf": "^1.8.0",
     "@bufbuild/protoc-gen-es": "^1.8.0",
@@ -55,7 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^7.5.0",
     "@typescript-eslint/parser": "^7.5.0",
     "@vitejs/plugin-vue": "^5.0.4",
-    "@vue/language-plugin-pug": "^2.0.10",
+    "@vue/language-plugin-pug": "^2.0.11",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-config-standard": "17.1.0",
@@ -72,7 +72,7 @@
     "vite-plugin-node-polyfills": "^0.21.0",
     "vite-plugin-wasm": "^3.3.0",
     "vue-eslint-parser": "^9.4.2",
-    "vue-tsc": "^2.0.10"
+    "vue-tsc": "^2.0.11"
   },
   "husky": {
     "hooks": {
