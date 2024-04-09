@@ -1,6 +1,6 @@
 import { BlockType } from '@aresrpg/aresrpg-world'
 
-export const blocks_mapping = {
+export const blocks_colors = {
   [BlockType.NONE]: 0x000000,
   [BlockType.WATER]: 0x74ccf4,
   [BlockType.SAND]: 0xc2b280,

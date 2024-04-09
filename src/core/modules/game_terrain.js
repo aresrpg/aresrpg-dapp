@@ -10,7 +10,7 @@ import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import proc_layers_json from '../../assets/terrain/proc_gen.json'
 import {
-  blocks_mapping,
+  blocks_colors,
   terrain_mapping,
 } from '../utils/terrain/world_settings.js'
 
@@ -26,11 +26,11 @@ export default function () {
     samplingScale: noise_scale,
     procLayers: proc_layers,
     terrainBlocksMapping: Object.values(terrain_mapping),
-    seaLevel: 75,
+    seaLevel: 76,
   }
 
   const map = {
-    voxelMaterialsList: Object.values(blocks_mapping).map(col => ({
+    voxelMaterialsList: Object.values(blocks_colors).map(col => ({
       color: new Color(col),
     })),
     getLocalMapData: async (block_start, block_end) => {
@@ -70,15 +70,17 @@ export default function () {
       }
     },
     sampleHeightmap(x, z) {
-      const ground_level = WorldGenerator.instance.getHeight(new Vector2(x, z))
-      const altitude = Math.max(ground_level, WorldGenerator.instance.seaLevel)
-      const block_type = WorldGenerator.instance.getBlock(
-        new Vector3(x, Math.floor(altitude - 0.5), z),
+      const raw_height = WorldGenerator.instance.getHeight(new Vector2(x, z))
+      const block_level = Math.max(
+        Math.floor(raw_height),
+        WorldGenerator.instance.seaLevel,
       )
-      const material = this.voxelMaterialsList[block_type]
+      const block_pos = new Vector3(x, block_level, z)
+      const block_type = WorldGenerator.instance.getBlockType(block_pos)
+      const block_color = new Color(blocks_colors[block_type])
       return {
-        altitude: Math.floor(altitude),
-        color: material.color,
+        altitude: block_level,
+        color: block_color,
       }
     },
   }
