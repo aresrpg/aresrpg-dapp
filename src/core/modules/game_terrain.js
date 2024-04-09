@@ -71,10 +71,8 @@ export default function () {
     },
     sampleHeightmap(x, z) {
       const raw_height = WorldGenerator.instance.getHeight(new Vector2(x, z))
-      const block_level = Math.max(
-        Math.floor(raw_height),
-        WorldGenerator.instance.seaLevel,
-      )
+      const block_level =
+        Math.max(Math.floor(raw_height), WorldGenerator.instance.seaLevel) - 1
       const block_pos = new Vector3(x, block_level, z)
       const block_type = WorldGenerator.instance.getBlockType(block_pos)
       const block_color = new Color(blocks_colors[block_type])
