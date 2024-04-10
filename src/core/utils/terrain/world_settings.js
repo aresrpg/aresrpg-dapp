@@ -18,29 +18,57 @@ export const terrain_mapping = {
   sea: {
     blockType: BlockType.WATER,
     threshold: 0,
+    randomness: {
+      low: 0,
+      high: 0,
+    },
   },
   beach: {
     blockType: BlockType.SAND,
     threshold: 75,
+    randomness: {
+      low: 0,
+      high: 5,
+    },
   },
   cliff: {
     blockType: BlockType.ROCK,
     threshold: 84,
+    randomness: {
+      low: 0,
+      high: 0,
+    },
   },
   lowlands: {
     blockType: BlockType.DRY_GRASS,
     threshold: 106,
+    randomness: {
+      low: 8,
+      high: 0,
+    },
   },
   highlands: {
     blockType: BlockType.GRASS,
     threshold: 125,
+    randomness: {
+      low: 0,
+      high: 15,
+    },
   },
   mountains: {
     blockType: BlockType.ROCK,
     threshold: 150,
+    randomness: {
+      low: 0,
+      high: 20,
+    },
   },
   mountains_top: {
     blockType: BlockType.SNOW,
     threshold: 185,
+    randomness: {
+      low: 25,
+      high: 0,
+    },
   },
 }
