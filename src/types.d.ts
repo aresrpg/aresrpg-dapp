@@ -99,6 +99,7 @@ declare namespace Type {
     'action/keyup': string
     'action/mousedown': number
     'action/mouseup': number
+    'action/window_focus': boolean
     'action/select_character': string
     'action/view_distance': number
     'action/free_camera': boolean
