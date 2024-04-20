@@ -87,7 +87,8 @@ export default function () {
 
       const movement = new Vector3()
 
-      if (inputs.forward) movement.add(camera_forward)
+      if (inputs.forward || (inputs.mouseLeft && inputs.mouseRight))
+        movement.add(camera_forward)
       if (inputs.backward) movement.sub(camera_forward)
       if (inputs.right) movement.add(camera_right)
       if (inputs.left) movement.sub(camera_right)
@@ -186,8 +187,7 @@ export default function () {
         player.move(dummy.position)
       }
 
-      const is_moving_horizontally =
-        inputs.forward || inputs.backward || inputs.right || inputs.left
+      const is_moving_horizontally = movement.x !== 0 || movement.z !== 0
 
       if (inputs.dance && !is_dancing && Date.now() - last_dance > 1000) {
         is_dancing = true
