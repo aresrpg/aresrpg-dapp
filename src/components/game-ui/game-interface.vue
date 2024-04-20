@@ -34,6 +34,9 @@ import gameChat from './game-chat.vue';
     flex-flow row nowrap
     justify-content center
     align-items center
+    pointer-events none
+    > *
+      pointer-events all
     .server
       font-size .8em
       color #EEEEEE
@@ -42,4 +45,7 @@ import gameChat from './game-chat.vue';
     right 0
     bottom 0
     display grid
+    pointer-events none
+    > *
+      pointer-events all
 </style>
