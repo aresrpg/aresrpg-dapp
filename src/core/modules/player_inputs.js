@@ -17,6 +17,20 @@ export default function () {
           ...state,
           inputs,
         }
+      } else if (type === 'action/mousedown' || type === 'action/mouseup') {
+        const button = payload
+        const { inputs } = state
+        const enabled = type === 'action/mousedown'
+        if (button === 0) {
+          inputs.mouseLeft = enabled
+        } else if (button === 2) {
+          inputs.mouseRight = enabled
+        }
+
+        return {
+          ...state,
+          inputs,
+        }
       }
       return state
     },
@@ -28,6 +42,14 @@ export default function () {
       // @ts-ignore
       aiter(on(window, 'keyup', { signal })).forEach(([{ code }]) =>
         dispatch('action/keyup', code),
+      )
+      // @ts-ignore
+      aiter(on(window, 'mouseup', { signal })).forEach(([{ button }]) =>
+        dispatch('action/mouseup', button),
+      )
+      // @ts-ignore
+      aiter(on(window, 'mousedown', { signal })).forEach(([{ button }]) =>
+        dispatch('action/mousedown', button),
       )
     },
   }

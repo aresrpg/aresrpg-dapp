@@ -97,6 +97,8 @@ declare namespace Type {
     'action/target_fps': number
     'action/keydown': string
     'action/keyup': string
+    'action/mousedown': number
+    'action/mouseup': number
     'action/select_character': string
     'action/view_distance': number
     'action/free_camera': boolean
