@@ -31,6 +31,21 @@ export default function () {
           ...state,
           inputs,
         }
+      } else if (type === 'action/window_focus') {
+        const lost_focus = !payload
+        if (lost_focus) {
+          const { inputs } = state
+          inputs.mouseLeft = false
+          inputs.mouseRight = false
+          inputs.forward = false
+          inputs.backward = false
+          inputs.left = false
+          inputs.right = false
+          return {
+            ...state,
+            inputs,
+          }
+        }
       }
       return state
     },
@@ -50,6 +65,11 @@ export default function () {
       // @ts-ignore
       aiter(on(window, 'mousedown', { signal })).forEach(([{ button }]) =>
         dispatch('action/mousedown', button),
+      )
+
+      // @ts-ignore
+      aiter(on(window, 'blur', { signal })).forEach(() =>
+        dispatch('action/window_focus', false),
       )
     },
   }
