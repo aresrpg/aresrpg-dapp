@@ -288,6 +288,7 @@ export default function create_pools(scene) {
           height,
           radius,
           mixer,
+          object3d: origin,
           jump_time: 0,
           audio: null,
           action: null,
