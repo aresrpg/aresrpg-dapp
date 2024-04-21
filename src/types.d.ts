@@ -32,6 +32,7 @@ declare namespace Type {
     title: import('troika-three-text').Text
     position: import('three').Vector3
     target_position: Position | null
+    object3d?: import('three').Object3D
     set_low_priority?: (skip: boolean) => void
     apply_state: (entity: Partial<ThreeEntity>) => void
     move: (position: Position) => void
