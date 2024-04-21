@@ -87,7 +87,7 @@ export default function () {
 
       const movement = new Vector3()
 
-      if (inputs.forward || (inputs.mouseLeft && inputs.mouseRight))
+      if (inputs.forward || (inputs.mouse_left && inputs.mouse_right))
         movement.add(camera_forward)
       if (inputs.backward) movement.sub(camera_forward)
       if (inputs.right) movement.add(camera_right)
