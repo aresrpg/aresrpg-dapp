@@ -132,8 +132,8 @@ export const INITIAL_STATE = {
   },
 
   inputs: {
-    mouseLeft: false,
-    mouseRight: false,
+    mouse_left: false,
+    mouse_right: false,
     forward: false,
     backward: false,
     left: false,

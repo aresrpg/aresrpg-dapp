@@ -22,9 +22,9 @@ export default function () {
         const { inputs } = state
         const enabled = type === 'action/mousedown'
         if (button === 0) {
-          inputs.mouseLeft = enabled
+          inputs.mouse_left = enabled
         } else if (button === 2) {
-          inputs.mouseRight = enabled
+          inputs.mouse_right = enabled
         }
 
         return {
@@ -35,8 +35,8 @@ export default function () {
         const lost_focus = !payload
         if (lost_focus) {
           const { inputs } = state
-          inputs.mouseLeft = false
-          inputs.mouseRight = false
+          inputs.mouse_left = false
+          inputs.mouse_right = false
           inputs.forward = false
           inputs.backward = false
           inputs.left = false
