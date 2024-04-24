@@ -59,7 +59,9 @@ export default function () {
         /** @type Vector3 */ light_position,
         /** @type Vector3 */ player_position,
       ) {
-        const light_target_position = player_position.clone()
+        const light_target_position = player_position.clone
+          ? player_position.clone()
+          : new Vector3(player_position.x, player_position.y, player_position.z)
 
         const light_position_offset = light_position.clone().multiplyScalar(400)
         directional_light.position

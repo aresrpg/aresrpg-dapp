@@ -1,6 +1,8 @@
 import toast from '../../toast.js'
 
-import { context, ws_status } from './game.js'
+import { ws_status } from './game.js'
+
+import FluentEmojiSkull from '~icons/fluent-emoji/skull'
 
 export const error_translations = {
   en: {
@@ -14,6 +16,9 @@ export const error_translations = {
     NO_REASON: 'The server appears to be down, please try again later',
     MOVE_FIRST:
       'Please move before doing this action, the server must acknowledge your existence first',
+    CHARACTER_UNLOCKED: 'Did you unlock your character ?',
+    INVALID_CONTRACT:
+      'The contract is invalid, is your app up to date ? Try to refresh the page',
   },
   fr: {
     ALREADY_ONLINE:
@@ -26,6 +31,9 @@ export const error_translations = {
     NO_REASON:
       'Le serveur semble être hors ligne, veuillez réessayer plus tard',
     MOVE_FIRST: `Veuillez bouger avant de faire cette action, le serveur doit d'abord reconnaître votre existence`,
+    CHARACTER_UNLOCKED: 'Avez-vous débloqué votre personnage ?',
+    INVALID_CONTRACT:
+      'Le contrat est invalide, votre application est-elle à jour ? Essayez de rafraîchir la page',
   },
 }
 
@@ -77,6 +85,12 @@ export async function handle_server_error(reason) {
       break
     case 'CHARACTER_INVALID':
       toast.error(t('MOVE_FIRST'))
+      break
+    case 'CHARACTER_UNLOCKED':
+      toast.error(t('CHARACTER_UNLOCKED'), '...', FluentEmojiSkull)
+      break
+    case 'INVALID_CONTRACT':
+      toast.error(t('INVALID_CONTRACT'))
       break
     default:
       toast.error(reason)

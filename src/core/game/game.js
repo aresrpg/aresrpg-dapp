@@ -285,7 +285,7 @@ function connect_ws() {
     const [, network] = chain.split(':')
     const server_url = get_server_url(network).replaceAll('http', 'ws')
     const { status } = useWebSocket(
-      `${server_url}?address=${selected_address}&network=${network}`,
+      `${server_url}?address=${selected_address}`,
       {
         autoReconnect: false,
         async onDisconnected(ws, event) {

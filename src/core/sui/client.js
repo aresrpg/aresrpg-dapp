@@ -450,7 +450,7 @@ export async function sui_subscribe({ signal }) {
       filter: {
         All: [
           { Package: package_original },
-          { MoveEventField: { path: '/for', value: get_address() } },
+          { MoveEventField: { path: '/target', value: get_address() } },
         ],
       },
     })

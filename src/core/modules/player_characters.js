@@ -27,6 +27,8 @@ export default function () {
 
         three_character.title.text = `${payload.name} (${level})`
 
+        three_character.target_position = payload.position
+
         return {
           ...state,
           characters: [...state.characters, three_character],
