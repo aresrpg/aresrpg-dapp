@@ -52,8 +52,8 @@ export default function () {
       scene.add(ambient_light)
       scene.add(directional_light)
       scene.add(directional_light.target)
-      scene.add(dirlight_helper)
-      scene.add(dircamera_helper)
+      // scene.add(dirlight_helper)
+      // scene.add(dircamera_helper)
 
       function update_directional_light_position(
         /** @type Vector3 */ light_position,

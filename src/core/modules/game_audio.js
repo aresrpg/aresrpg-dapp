@@ -13,7 +13,6 @@ import step3 from '../../assets/sound/step3.ogg'
 import step4 from '../../assets/sound/step4.ogg'
 import step5 from '../../assets/sound/step5.ogg'
 import step6 from '../../assets/sound/step6.ogg'
-import main_theme from '../../assets/sound/main_theme.mp3'
 import { current_character } from '../game/game.js'
 
 const listener = new AudioListener()
@@ -46,11 +45,14 @@ export function play_step_sound() {
   }
 }
 
-const audio_buffer = audio_loader.loadAsync(main_theme).then(buffer => {
-  main_audio.setBuffer(buffer)
-  main_audio.setLoop(true)
-  main_audio.setVolume(0.5)
-})
+const audio_buffer = import('../../assets/sound/main_theme.mp3')
+  .then(module => module.default)
+  .then(main_theme => audio_loader.loadAsync(main_theme))
+  .then(buffer => {
+    main_audio.setBuffer(buffer)
+    main_audio.setLoop(true)
+    main_audio.setVolume(0.5)
+  })
 
 /** @type {Type.Module} */
 export default function () {
