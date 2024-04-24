@@ -2,6 +2,7 @@ import toast from '../../toast.js'
 
 import { ws_status } from './game.js'
 
+// @ts-ignore
 import FluentEmojiSkull from '~icons/fluent-emoji/skull'
 
 export const error_translations = {

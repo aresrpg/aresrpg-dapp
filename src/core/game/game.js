@@ -335,7 +335,7 @@ const context = {
   pool,
   composer,
   camera_controls: new CameraControls(camera, renderer.domElement),
-  /** @type {import("@aresrpg/aresrpg-protocol/src/types").create_client['send']} */
+  /** @type {import("@aresrpg/aresrpg-protocol/src/types").send} */
   send_packet(type, payload) {
     if (!ares_client || ares_client.controller.signal.aborted) return // not connected
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)
