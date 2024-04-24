@@ -64,7 +64,7 @@ export default function () {
 
       if (player.target_position) {
         const { x, z } = player.target_position
-        const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
+        const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
         const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
         player.target_position.y = Math.floor(raw_height)
         player.move(player.target_position)
@@ -163,7 +163,7 @@ export default function () {
 
       // const ground_height = HEIGHTFIELD(dummy.position.x, dummy.position.z)
       const { x, z } = dummy.position
-      const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
+      const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
       const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
       const ground_height = Math.floor(raw_height)
 

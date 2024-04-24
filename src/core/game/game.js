@@ -26,6 +26,7 @@ import { aiter } from 'iterator-helper'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import CameraControls from 'camera-controls'
 import { create_client } from '@aresrpg/aresrpg-protocol'
+import { WorldGenerator } from '@aresrpg/aresrpg-world'
 import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 
@@ -357,6 +358,7 @@ const context = {
   camera,
   signal: controller.signal,
   controller,
+  world_gen: WorldGenerator.instance,
   on_game_show: handler => {
     game_visible_emitter.on('show', handler)
   },

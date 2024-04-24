@@ -1,5 +1,5 @@
 import { GUI } from 'dat.gui'
-import { WorldGenerator } from '@aresrpg/aresrpg-world'
+import { ProcGenGuiGenerator, WorldGenerator } from '@aresrpg/aresrpg-world'
 import { Vector2 } from 'three'
 
 import { INITIAL_STATE, current_character } from '../game/game.js'
@@ -29,7 +29,8 @@ export default function () {
       daytime_folder.open()
       const terrain_folder = gui.addFolder('Terrain Settings')
       const camera_folder = gui.addFolder('Camera Settings')
-
+      const procgen_folder = gui.addFolder('Procgen Settings')
+      ProcGenGuiGenerator(procgen_folder)
       const handle_change = name => value => dispatch(name, value)
 
       game_folder

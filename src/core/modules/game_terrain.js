@@ -9,6 +9,7 @@ import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import proc_layers_json from '../../assets/terrain/proc_gen.json'
+// import biome_layers_json from '../../assets/terrain/biome_layers.json'
 import {
   blocks_colors,
   terrain_mapping,
@@ -20,13 +21,23 @@ export default function () {
   const proc_layers = ProcGenLayer.fromJsonConfig({
     procLayers: proc_layers_json.noise_panels,
   })
+  // const biome_layers = ProcGenLayer.fromJsonConfig({
+  //   procLayers: biome_layers_json.noise_panels,
+  // })
   const selection = ProcGenLayer.layerIndex(0)
   WorldGenerator.instance.config = {
     selection,
     samplingScale: noise_scale,
     procLayers: proc_layers,
+    biomaps: proc_layers, // TODO use dedicated biome maps
     terrainBlocksMapping: Object.values(terrain_mapping),
     seaLevel: 76,
+  }
+
+  WorldGenerator.instance.parent = {}
+  WorldGenerator.instance.parent.onChange = originator => {
+    // console.log(originator)
+    WorldGenerator.instance.needsRegen = true
   }
 
   const map = {
@@ -57,7 +68,7 @@ export default function () {
 
       let is_empty = true
       const bbox = new Box3(block_start, block_end)
-      for (const voxel of WorldGenerator.instance.generate(bbox, false)) {
+      for (const voxel of WorldGenerator.instance.generateChunk(bbox)) {
         const local_position = new Vector3().subVectors(voxel.pos, block_start)
         const cache_index = build_index(local_position)
         cache[cache_index] = 1 + voxel.type
@@ -70,9 +81,9 @@ export default function () {
       }
     },
     sampleHeightmap(x, z) {
-      const block_level =
-        WorldGenerator.instance.getHeight(new Vector2(x, z)) - 1
-      const block_pos = new Vector3(x, block_level, z)
+      const block_pos = new Vector3(x, 0, z)
+      const block_level = WorldGenerator.instance.getHeight(block_pos) - 1
+      block_pos.y = block_level
       const block_type = WorldGenerator.instance.getBlockType(block_pos)
       const block_color = new Color(blocks_colors[block_type])
       return {
@@ -83,9 +94,19 @@ export default function () {
   }
 
   const terrain = new Terrain(map)
-
+  let last_regen = 0
+  const regen_delay = 1000
   return {
     tick() {
+      if (WorldGenerator.instance.needsRegen) {
+        const current_time = Date.now()
+        if (current_time - last_regen >= regen_delay) {
+          console.log(`regen terrain`)
+          last_regen = current_time
+          WorldGenerator.instance.needsRegen = false
+          terrain.clear()
+        }
+      }
       terrain.update()
     },
     observe({ camera, events, signal, scene, get_state }) {
