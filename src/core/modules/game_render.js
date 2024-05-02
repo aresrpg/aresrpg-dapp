@@ -8,6 +8,7 @@ import { CustomBlending, Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
+
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass'
 
 /** @type {Type.Module} */
