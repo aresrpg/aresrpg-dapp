@@ -10,6 +10,7 @@ import iop_female from '../../assets/models/iop_female.glb?url'
 import sram_male from '../../assets/models/sram_male.glb?url'
 import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
+
 import { CartoonRenderpass } from './rendering/cartoon_renderpass'
 
 function create_billboard_material(base_material, keep_aspect) {

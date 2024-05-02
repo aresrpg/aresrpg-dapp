@@ -1,38 +1,54 @@
-import { BufferGeometry, Color, Float32BufferAttribute, HalfFloatType, Layers, Mesh, MultiplyBlending, NoBlending, PerspectiveCamera, RawShaderMaterial, Scene, Uint16BufferAttribute, Vector2, WebGLRenderTarget, WebGLRenderer } from "three";
-import { Pass } from "three/examples/jsm/postprocessing/Pass";
+import {
+  BufferGeometry,
+  Color,
+  Float32BufferAttribute,
+  HalfFloatType,
+  Layers,
+  Mesh,
+  MultiplyBlending,
+  NoBlending,
+  PerspectiveCamera,
+  RawShaderMaterial,
+  Scene,
+  Uint16BufferAttribute,
+  Vector2,
+  WebGLRenderTarget,
+  WebGLRenderer,
+} from 'three'
+import { Pass } from 'three/examples/jsm/postprocessing/Pass'
 
 class CartoonRenderpass extends Pass {
-    static non_outlined_layer = 1
+  static non_outlined_layer = 1
 
-    #rendertarget;
-    #fullscreen_quad;
-    #outline_material;
-    #copy_material;
+  #rendertarget
+  #fullscreen_quad
+  #outline_material
+  #copy_material
 
-    constructor(/** @type Scene */ scene, /** @type PerspectiveCamera */ camera) {
-        super();
+  constructor(/** @type Scene */ scene, /** @type PerspectiveCamera */ camera) {
+    super()
 
-        this.scene = scene;
-        this.camera = camera;
+    this.scene = scene
+    this.camera = camera
 
-        this.needsSwap = false;
+    this.needsSwap = false
 
-        this.#rendertarget = new WebGLRenderTarget(1, 1, {
-            type: HalfFloatType,
-        });
+    this.#rendertarget = new WebGLRenderTarget(1, 1, {
+      type: HalfFloatType,
+    })
 
-        this.#outline_material = new RawShaderMaterial({
-            glslVersion: "300 es",
-            blending: NoBlending,
-            depthTest: false,
-            depthWrite: false,
-            uniforms: {
-                uDepthTexture: { value: null },
-                uTexelSize: { value: new Vector2(1, 1) },
-                uCameraNear: { value: 0 },
-                uCameraFar: { value: 0 },
-            },
-            vertexShader: `in vec2 aCorner;
+    this.#outline_material = new RawShaderMaterial({
+      glslVersion: '300 es',
+      blending: NoBlending,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uDepthTexture: { value: null },
+        uTexelSize: { value: new Vector2(1, 1) },
+        uCameraNear: { value: 0 },
+        uCameraFar: { value: 0 },
+      },
+      vertexShader: `in vec2 aCorner;
 
             out vec2 vUv;
             
@@ -40,7 +56,7 @@ class CartoonRenderpass extends Pass {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
                 vUv = 0.5 * aCorner + 0.5;
             }`,
-            fragmentShader: `precision mediump float;
+      fragmentShader: `precision mediump float;
 
             #include <packing>
 
@@ -177,17 +193,17 @@ class CartoonRenderpass extends Pass {
                 float outline = computeOutline(fragDepth);
                 fragColor = vec4(vec3(outline), 1);
             }`,
-        });
+    })
 
-        this.#copy_material = new RawShaderMaterial({
-            glslVersion: "300 es",
-            blending: MultiplyBlending,
-            depthTest: false,
-            depthWrite: false,
-            uniforms: {
-                uTexture: { value: this.#rendertarget.texture },
-            },
-            vertexShader: `in vec2 aCorner;
+    this.#copy_material = new RawShaderMaterial({
+      glslVersion: '300 es',
+      blending: MultiplyBlending,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uTexture: { value: this.#rendertarget.texture },
+      },
+      vertexShader: `in vec2 aCorner;
 
             out vec2 vUv;
             
@@ -195,7 +211,7 @@ class CartoonRenderpass extends Pass {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
                 vUv = 0.5 * aCorner + 0.5;
             }`,
-            fragmentShader: `precision mediump float;
+      fragmentShader: `precision mediump float;
 
             uniform sampler2D uTexture;
 
@@ -205,76 +221,85 @@ class CartoonRenderpass extends Pass {
             void main(void) {
                 fragColor = texture(uTexture, vUv);
             }`,
-        })
+    })
 
-        const quadGeometry = new BufferGeometry();
-        quadGeometry.setAttribute("aCorner", new Float32BufferAttribute([-1, +1, +1, +1, -1, -1, +1, -1], 2));
-        quadGeometry.setIndex(new Uint16BufferAttribute([0, 2, 1, 2, 3, 1], 1));
-        this.#fullscreen_quad = new Mesh(quadGeometry, this.#outline_material);
-        this.#fullscreen_quad.frustumCulled = false;
+    const quad_geometry = new BufferGeometry()
+    quad_geometry.setAttribute(
+      'aCorner',
+      new Float32BufferAttribute([-1, +1, +1, +1, -1, -1, +1, -1], 2),
+    )
+    quad_geometry.setIndex(new Uint16BufferAttribute([0, 2, 1, 2, 3, 1], 1))
+    this.#fullscreen_quad = new Mesh(quad_geometry, this.#outline_material)
+    this.#fullscreen_quad.frustumCulled = false
+  }
+
+  setSize(/** @type number */ width, /** @type number */ height) {
+    this.#outline_material.uniforms.uTexelSize.value = new Vector2(
+      1 / width,
+      1 / height,
+    )
+    this.#rendertarget.setSize(width, height)
+  }
+
+  render(
+    /** @type WebGLRenderer */ renderer,
+    /** @type WebGLRenderTarget */ _write_buffer,
+    /** @type WebGLRenderTarget */ read_buffer /*, deltaTime, maskActive */,
+  ) {
+    const previous_state = {
+      rendertarget: renderer.getRenderTarget(),
+      camera_mask: this.camera.layers.mask,
+      autoclear: renderer.autoClear,
+      autoclear_color: renderer.autoClearColor,
+      autoclear_depth: renderer.autoClearDepth,
     }
 
-    setSize(/** @type number */ width, /** @type number */ height) {
-        this.#outline_material.uniforms.uTexelSize.value = new Vector2(1 / width, 1 / height);
-        this.#rendertarget.setSize(width, height);
+    renderer.autoClear = false
+    renderer.autoClearColor = false
+    renderer.autoClearDepth = false
+
+    if (this.renderToScreen) {
+      throw new Error('Render to screen not supported')
     }
+    renderer.setRenderTarget(read_buffer)
+    renderer.clear(true, true, renderer.autoClearStencil)
 
-    render(/** @type WebGLRenderer */ renderer, /** @type WebGLRenderTarget */ writeBuffer, /** @type WebGLRenderTarget */ readBuffer /*, deltaTime, maskActive */) {
-        const previous_state = {
-            rendertarget: renderer.getRenderTarget(),
-            camera_mask: this.camera.layers.mask,
-            autoclear: renderer.autoClear,
-            autoclear_color: renderer.autoClearColor,
-            autoclear_depth: renderer.autoClearDepth,
-        };
+    // draw geometry that will be outlined
+    this.camera.layers.enableAll()
+    this.camera.layers.disable(CartoonRenderpass.non_outlined_layer)
+    renderer.render(this.scene, this.camera)
 
-        renderer.autoClear = false;
-        renderer.autoClearColor = false;
-        renderer.autoClearDepth = false;
+    // extract outlines
+    this.#outline_material.uniforms.uDepthTexture.value =
+      read_buffer.depthTexture
+    this.#outline_material.uniforms.uCameraNear.value = this.camera.near
+    this.#outline_material.uniforms.uCameraFar.value = this.camera.far
+    this.#fullscreen_quad.material = this.#outline_material
 
-        if (this.renderToScreen) {
-            throw new Error("Render to screen not supported");
-        }
-        renderer.setRenderTarget(readBuffer);
-        renderer.clear(true, true, renderer.autoClearStencil);
+    this.camera.layers.enableAll()
+    renderer.setRenderTarget(this.#rendertarget)
+    renderer.render(this.#fullscreen_quad, this.camera)
 
-        // draw geometry that will be outlined
-        this.camera.layers.enableAll();
-        this.camera.layers.disable(CartoonRenderpass.non_outlined_layer);
-        renderer.render(this.scene, this.camera);
+    // add outlines
+    this.#fullscreen_quad.material = this.#copy_material
+    renderer.setRenderTarget(read_buffer)
+    renderer.render(this.#fullscreen_quad, this.camera)
 
-        // extract outlines
-        this.#outline_material.uniforms.uDepthTexture.value = readBuffer.depthTexture;
-        this.#outline_material.uniforms.uCameraNear.value = this.camera.near;
-        this.#outline_material.uniforms.uCameraFar.value = this.camera.far;
-        this.#fullscreen_quad.material = this.#outline_material;
+    // draw the rest of the geometry
+    this.camera.layers.set(CartoonRenderpass.non_outlined_layer)
+    renderer.render(this.scene, this.camera)
 
-        this.camera.layers.enableAll();
-        renderer.setRenderTarget(this.#rendertarget);
-        renderer.render(this.#fullscreen_quad, this.camera);
+    this.camera.layers.mask = previous_state.camera_mask
+    renderer.autoClear = previous_state.autoclear
+    renderer.autoClearColor = previous_state.autoclear_color
+    renderer.autoClearDepth = previous_state.autoclear_depth
+  }
 
-        // add outlines
-        this.#fullscreen_quad.material = this.#copy_material;
-        renderer.setRenderTarget(readBuffer);
-        renderer.render(this.#fullscreen_quad, this.camera);
-
-        // draw the rest of the geometry
-        this.camera.layers.set(CartoonRenderpass.non_outlined_layer);
-        renderer.render(this.scene, this.camera);
-
-        this.camera.layers.mask = previous_state.camera_mask;
-        renderer.autoClear = previous_state.autoclear;
-        renderer.autoClearColor = previous_state.autoclear_color;
-        renderer.autoClearDepth = previous_state.autoclear_depth;
-    }
-
-    dispose() {
-        this.#fullscreen_quad.geometry.dispose();
-        this.#outline_material.dispose();
-        this.#copy_material.dispose();
-    }
+  dispose() {
+    this.#fullscreen_quad.geometry.dispose()
+    this.#outline_material.dispose()
+    this.#copy_material.dispose()
+  }
 }
 
-export {
-    CartoonRenderpass,
-};
+export { CartoonRenderpass }
