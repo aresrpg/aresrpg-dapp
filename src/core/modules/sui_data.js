@@ -3,7 +3,6 @@ import { Vector3 } from 'three'
 import { context, disconnect_ws } from '../game/game.js'
 import {
   sui_get_locked_characters,
-  sui_get_receipts,
   sui_get_sui_balance,
   sui_get_unlocked_characters,
   sui_subscribe,
@@ -11,6 +10,27 @@ import {
 import { state_iterator } from '../utils/iterator.js'
 import { decrease_loading, increase_loading } from '../utils/loading.js'
 import { is_chain_supported } from '../utils/sui/is_chain_supported.js'
+
+export const DEFAULT_SUI_CHARACTER = {
+  id: 'default',
+  name: 'Chafer Lancier',
+  classe: 'default',
+  sex: 'default',
+
+  position: { x: 0, y: 110, z: 0 },
+  experience: 0,
+  health: 30,
+  selected: false,
+  soul: 100,
+  available_stat_points: 0,
+
+  vitality: 0,
+  wisdom: 0,
+  strength: 0,
+  intelligence: 0,
+  chance: 0,
+  agility: 0,
+}
 
 /** @type {Type.Module} */
 export default function () {
@@ -29,20 +49,10 @@ export default function () {
     },
     async observe() {
       let controller = new AbortController()
-      const default_character = {
-        id: 'default',
-        name: 'Chafer Lancier',
-        experience: 0,
-        position: new Vector3(0, 105, 0),
-        classe: 'default',
-        sex: 'default',
-      }
-
       async function update_user_data() {
-        const character_lock_receipts = await sui_get_receipts()
         const [locked_characters, unlocked_characters, balance] =
           await Promise.all([
-            sui_get_locked_characters(character_lock_receipts),
+            sui_get_locked_characters(),
             sui_get_unlocked_characters(),
             sui_get_sui_balance(),
           ])
@@ -51,7 +61,6 @@ export default function () {
           balance,
           locked_characters,
           unlocked_characters,
-          character_lock_receipts,
         })
       }
 
@@ -82,7 +91,7 @@ export default function () {
                 controller.abort()
                 controller = new AbortController()
                 context.dispatch('action/sui_data_update', {
-                  locked_characters: [default_character],
+                  locked_characters: [DEFAULT_SUI_CHARACTER],
                   unlocked_characters: [],
                   character_lock_receipts: [],
                 })
@@ -92,12 +101,13 @@ export default function () {
               controller.abort()
               controller = new AbortController()
               context.dispatch('action/sui_data_update', {
-                locked_characters: [default_character],
+                locked_characters: [DEFAULT_SUI_CHARACTER],
                 unlocked_characters: [],
                 character_lock_receipts: [],
               })
             }
           }
+
           return {
             last_address: selected_address,
             last_network: network,

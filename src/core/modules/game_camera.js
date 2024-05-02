@@ -2,9 +2,9 @@ import { on } from 'events'
 
 import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
-import { clamp, smootherstep } from 'three/src/math/MathUtils'
+import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
 
-import { abortable } from '../utils/iterator'
+import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 
 const CAMERA_MIN_DISTANCE = 0.001
@@ -113,7 +113,9 @@ export default function () {
               )
               renderer.domElement.removeEventListener('wheel', on_mouse_wheel)
               set_camera_padding(0, 0, 0, 0)
+              // @ts-ignore
               camera_controls.mouseButtons.right = CameraControls.ACTION.OFFSET
+              // @ts-ignore
               camera_controls.mouseButtons.wheel = CameraControls.ACTION.DOLLY
             } else {
               camera_controls.maxDistance = CAMERA_MAX_DISTANCE
@@ -126,7 +128,9 @@ export default function () {
               })
               set_camera_padding(200, 0, 0, 0)
               set_distance(camera_controls.distance)
+              // @ts-ignore
               camera_controls.mouseButtons.right = CameraControls.ACTION.ROTATE
+              // @ts-ignore
               camera_controls.mouseButtons.wheel = CameraControls.ACTION.NONE
             }
           }

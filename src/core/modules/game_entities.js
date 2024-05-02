@@ -1,7 +1,6 @@
 import { setInterval } from 'timers/promises'
 
 import { Vector3 } from 'three'
-import { CHUNK_SIZE } from '@aresrpg/aresrpg-protocol'
 import { aiter } from 'iterator-helper'
 
 import { compute_animation_state } from '../animations/animation.js'
@@ -10,8 +9,10 @@ import { sui_get_character } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { current_character } from '../game/game.js'
 
+import { DEFAULT_SUI_CHARACTER } from './sui_data.js'
+
 const MOVE_UPDATE_INTERVAL = 0.1
-const MAX_TITLE_VIEW_DISTANCE = CHUNK_SIZE * 1.3
+const MAX_TITLE_VIEW_DISTANCE = 40
 const MAX_ANIMATION_DISTANCE = 64
 
 const CANCELED_BY_MOVING = ['DANCE']
@@ -92,20 +93,12 @@ export default function () {
         )
 
         if (!visible_characters.has(id) && !character_is_mine) {
-          const default_sui_data = {
-            id,
-            name: 'Loading..',
-            experience: 0,
-            classe: 'iop',
-            sex: 'male',
-            position: new Vector3(position.x, position.y, position.z),
-          }
           const default_three_character = pool
-            .entity(default_sui_data)
+            .entity(DEFAULT_SUI_CHARACTER)
             .instanced()
 
           visible_characters.set(id, {
-            ...default_sui_data,
+            ...DEFAULT_SUI_CHARACTER,
             ...default_three_character,
           })
 

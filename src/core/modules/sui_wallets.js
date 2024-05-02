@@ -60,12 +60,12 @@ export default function () {
               sui: { selected_wallet_name },
             } = context.get_state()
 
-            if (!selected_wallet_name) await set_network(wallet.chain)
+            if (!selected_wallet_name) set_network(wallet.chain)
             else if (
               selected_wallet_name &&
               selected_wallet_name === wallet.name
             )
-              await set_network(wallet.chain)
+              set_network(wallet.chain)
 
             await iter(wallet.accounts)
               .toAsyncIterator()
@@ -97,6 +97,8 @@ export default function () {
         const wallet = context.get_state().sui.wallets[name]
         // make sure the wallet exists before dispatching
         if (!wallet) return
+
+        if (wallet.chain) set_network(wallet.chain)
 
         context.dispatch('action/select_wallet', name)
         localStorage.setItem('last_selected_wallet', name)
