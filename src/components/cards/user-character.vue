@@ -43,12 +43,11 @@
     a.value.id(:href="character_explorer_link" target="_blank") {{ props.character.id.slice(0, 24) }}...
   .actions
     vs-button(
-      v-if="!props.locked"
+      v-if="props.locked"
       type="transparent"
       size="small"
       color="#EF5350"
       @click="delete_dialog = true") {{ t('delete') }}
-    vs-button(v-if="!props.locked" type="transparent" size="small" color="#42A5F5" @click="send_dialog = true") {{ t('send') }}
     vs-button(v-if="!props.locked" type="transparent" size="small" color="#4CAF50" @click="lock_dialog = true") {{ t('lock') }}
     vs-button(v-else type="transparent" size="small" color="#4CAF50" @click="unlock_dialog = true") {{ t('unlock') }}
 
@@ -78,19 +77,6 @@
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="unlock_dialog = false") {{ t('cancel') }}
           vs-button(type="transparent" color="#2ECC71" @click="unlock_character") {{ t('confirm') }}
-
-    /// send dialog
-    vs-dialog(v-model="send_dialog" :loading="send_loading")
-      template(#header) {{ t('send') }}
-      .dialog-content
-        vs-input(v-model="send_to" block label="Sui address" color="#448AFF" icon-after)
-          template(#icon)
-            i.bx.bx-droplet
-          template(#message-warn v-if="send_to && !is_valid_sui_address") {{ t('invalid_address') }}
-      template(#footer)
-        .dialog-footer
-          vs-button(type="transparent" color="#E74C3C" @click="send_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="send_character") {{ t('confirm') }}
 </template>
 
 <script setup>
@@ -103,7 +89,6 @@ import { context } from '../../core/game/game.js';
 import {
   sui_delete_character,
   sui_lock_character,
-  sui_send_object,
   sui_unlock_character,
 } from '../../core/sui/client.js';
 import toast from '../../toast.js';
@@ -144,7 +129,7 @@ const unlock_loading = ref(false);
 async function delete_character() {
   try {
     delete_loading.value = true;
-    await sui_delete_character(props.character.id);
+    await sui_delete_character(props.character);
   } catch (error) {
     console.error(error);
     toast.warn(t('delete_failed'));
@@ -157,7 +142,7 @@ async function delete_character() {
 async function lock_character() {
   try {
     lock_loading.value = true;
-    await sui_lock_character(props.character.id);
+    await sui_lock_character(props.character);
   } catch (error) {
     console.error(error);
     toast.warn(t('lock_failed'));
@@ -171,35 +156,13 @@ async function unlock_character() {
   try {
     unlock_loading.value = true;
 
-    const receipt = context
-      .get_state()
-      .sui.character_lock_receipts?.find(
-        ({ character_id }) => character_id === props.character.id,
-      );
-
-    if (!receipt) throw new Error('No receipt id found');
-
-    await sui_unlock_character(receipt);
+    await sui_unlock_character(props.character);
   } catch (error) {
     console.error(error);
     toast.warn(t('unlock_failed'));
   } finally {
     unlock_loading.value = false;
     unlock_dialog.value = false;
-  }
-}
-
-async function send_character() {
-  try {
-    send_loading.value = true;
-    if (!is_valid_sui_address.value) throw new Error('Invalid Sui address');
-    await sui_send_object(props.character.id, send_to.value);
-  } catch (error) {
-    console.error(error);
-    toast.warn(t('send_failed'));
-  } finally {
-    send_loading.value = false;
-    send_dialog.value = false;
   }
 }
 </script>
