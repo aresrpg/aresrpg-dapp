@@ -1,9 +1,7 @@
 import {
   BufferGeometry,
-  Color,
   Float32BufferAttribute,
   HalfFloatType,
-  Layers,
   Mesh,
   MultiplyBlending,
   NoBlending,
@@ -15,7 +13,7 @@ import {
   WebGLRenderTarget,
   WebGLRenderer,
 } from 'three'
-import { Pass } from 'three/examples/jsm/postprocessing/Pass'
+import { Pass } from 'three/examples/jsm/postprocessing/Pass.js'
 
 class CartoonRenderpass extends Pass {
   static non_outlined_layer = 1
@@ -51,7 +49,7 @@ class CartoonRenderpass extends Pass {
       vertexShader: `in vec2 aCorner;
 
             out vec2 vUv;
-            
+
             void main(void) {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
                 vUv = 0.5 * aCorner + 0.5;
@@ -88,7 +86,7 @@ class CartoonRenderpass extends Pass {
                     readDepth(vec2(+1,+0)),
                     readDepth(vec2(+1,+1))
                 );
-                
+
                 // kernel definition (in glsl matrices are filled in column-major order)
                 const float Gx[9] = float[](
                     -1.0, -2.0, -1.0,
@@ -145,7 +143,7 @@ class CartoonRenderpass extends Pass {
                     readDepth(vec2(+2,+1)),
                     readDepth(vec2(+2,+2))
                 );
-                
+
                 // kernel definition (in glsl matrices are filled in column-major order)
                 const float Gx[25] = float[](
                      2.0,  2.0,  4.0,  2.0,  2.0,
@@ -180,9 +178,9 @@ class CartoonRenderpass extends Pass {
 
                 const float maxDepth = 0.75;
                 fragDepth /= maxDepth;
-                
+
                 float strength = clamp(1.0 - fragDepth, 0.0, 1.0);
-                
+
                 float f = clamp(1.0 - pow(fragDepth, 2.0), 0.0, 1.0);
                 float factor = mix(2000.0, 0.0, f);
                 return 1.0 - clamp(strength * factor * sobel, 0.0, 1.0);
@@ -206,7 +204,7 @@ class CartoonRenderpass extends Pass {
       vertexShader: `in vec2 aCorner;
 
             out vec2 vUv;
-            
+
             void main(void) {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
                 vUv = 0.5 * aCorner + 0.5;

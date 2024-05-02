@@ -9,7 +9,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
-import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass'
+import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 
 /** @type {Type.Module} */
 export default function () {
