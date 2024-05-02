@@ -1,13 +1,14 @@
 // import { N8AOPass } from 'n8ao'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+// import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 // import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { CustomBlending, Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
+import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass'
 
 /** @type {Type.Module} */
 export default function () {
@@ -27,7 +28,8 @@ export default function () {
         window.innerWidth,
         window.innerHeight,
       )
-      const renderpass = new RenderPass(scene, camera)
+      // const renderpass = new RenderPass(scene, camera)
+      const renderpass = new CartoonRenderpass(scene, camera)
       // const outputpass = new OutputPass()
       const gamma_correction = new ShaderPass(GammaCorrectionShader)
       const outline = new OutlinePass(
@@ -110,7 +112,7 @@ export default function () {
         () => {
           composer.removePass(renderpass)
           composer.removePass(bloompass)
-          composer.removePass(gtaopass)
+          // composer.removePass(gtaopass)
           // composer.removePass(n8aopass)
           composer.removePass(gamma_correction)
           composer.removePass(outline)
