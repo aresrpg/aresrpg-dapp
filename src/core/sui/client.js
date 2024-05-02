@@ -1,148 +1,65 @@
 import EventEmitter from 'events'
 
-import { SuiClient, SuiHTTPTransport } from '@mysten/sui.js/client'
 import { TransactionBlock } from '@mysten/sui.js/transactions'
-import BN from 'bignumber.js'
+import { BigNumber as BN } from 'bignumber.js'
 import { MIST_PER_SUI } from '@mysten/sui.js/utils'
 import { LRUCache } from 'lru-cache'
+import { KioskTransaction, Network } from '@mysten/kiosk'
+import { SDK } from '@aresrpg/aresrpg-sdk/sui'
 
+import { context } from '../game/game.js'
+import logger from '../../logger.js'
+import toast from '../../toast.js'
 import {
-  VITE_ARESRPG_SERVER_ADMIN_CAP_MAINNET,
-  VITE_ARESRPG_SERVER_ADMIN_CAP_TESTNET,
-  VITE_ARESRPG_NAME_REGISTRY_MAINNET,
-  VITE_ARESRPG_NAME_REGISTRY_TESTNET,
-  VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
-  VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
-  VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
-  VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
   VITE_SUI_MAINNET_RPC,
   VITE_SUI_MAINNET_WSS,
   VITE_SUI_TESTNET_RPC,
   VITE_SUI_TESTNET_WSS,
 } from '../../env.js'
-import { context } from '../game/game.js'
-import logger from '../../logger.js'
-import toast from '../../toast.js'
-
-const PACKAGES = {
-  'sui:testnet': {
-    original: VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
-    upgraded: VITE_ARESRPG_PACKAGE_TESTNET_UPGRADED,
-    name_registry: VITE_ARESRPG_NAME_REGISTRY_TESTNET,
-    admin_cap: VITE_ARESRPG_SERVER_ADMIN_CAP_TESTNET,
-  },
-  'sui:mainnet': {
-    original: VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
-    upgraded: VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED,
-    name_registry: VITE_ARESRPG_NAME_REGISTRY_MAINNET,
-    admin_cap: VITE_ARESRPG_SERVER_ADMIN_CAP_MAINNET,
-  },
-}
 
 const SUINS_CACHE = new LRUCache({ max: 50 })
+
 export const OBJECTS_CACHE = new LRUCache({
   max: 500,
+  ttl: 1000 * 60 * 5, // 5 minutes
 })
 
-const get_url = (network, ws) => {
-  const is_mainnet = network === 'mainnet'
-  const rpc = is_mainnet ? VITE_SUI_MAINNET_RPC : VITE_SUI_TESTNET_RPC
-  const wss = is_mainnet ? VITE_SUI_MAINNET_WSS : VITE_SUI_TESTNET_WSS
+let current_network = 'sui:devnet'
 
-  return ws ? wss : rpc
-}
+const sdk_mainnet = await SDK({
+  rpc_url: VITE_SUI_MAINNET_RPC,
+  wss_url: VITE_SUI_MAINNET_WSS,
+  network: Network.MAINNET,
+})
 
-const get_client = network =>
-  new SuiClient({
-    transport: new SuiHTTPTransport({
-      url: get_url(network),
-      websocket: {
-        reconnectTimeout: 1000,
-        url: get_url(network, true).replace('http', 'ws'),
-      },
-    }),
-  })
+const sdk_testnet = await SDK({
+  rpc_url: VITE_SUI_TESTNET_RPC,
+  wss_url: VITE_SUI_TESTNET_WSS,
+  network: Network.TESTNET,
+})
 
-// client used to resolve SuiNS aliases
-const mainnet_client = get_client('mainnet')
+export const sdk = () =>
+  current_network === 'mainnet' ? sdk_mainnet : sdk_testnet
 
-// client of which network is determined by user
-let client = get_client('mainnet')
-
-let last_used_network = 'sui:devnet'
-let package_original = VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL
-let package_upgraded = VITE_ARESRPG_PACKAGE_MAINNET_UPGRADED
-let name_registry = VITE_ARESRPG_NAME_REGISTRY_MAINNET
-let admin_cap = VITE_ARESRPG_SERVER_ADMIN_CAP_MAINNET
-let known_storages = []
-
-function parse_sui_object(object) {
-  const { fields } = object.data.content
-  return {
-    ...fields,
-    id: fields.id.id,
-  }
-}
-
-async function get_cached_object(id, sui_client = client) {
+/** @return {Promise<Type.SuiCharacter>} */
+export async function sui_get_character(id) {
   const object = OBJECTS_CACHE.get(id)
-  if (object) return object
+  if (object)
+    // @ts-ignore
+    return object
 
-  const fetched_object = parse_sui_object(
-    await sui_client.getObject({
-      id,
-      options: { showContent: true },
-    }),
-  )
+  const fetched_object = sdk().get_character(id)
 
   OBJECTS_CACHE.set(id, fetched_object)
   return fetched_object
 }
 
-async function get_cached_objects(ids, client) {
-  const missing = ids.filter(id => !OBJECTS_CACHE.has(id))
-
-  if (missing.length) {
-    const results = await client.multiGetObjects({
-      ids: missing,
-      options: { showContent: true },
-    })
-
-    results.map(parse_sui_object).forEach(result => {
-      OBJECTS_CACHE.set(result.id, result)
-    })
-  }
-
-  return ids.map(id => OBJECTS_CACHE.get(id))
-}
-
-export const set_network = async network => {
+export const set_network = network => {
   if (network === 'sui:mainnet' || network === 'sui:testnet') {
-    if (last_used_network === network) return
-    last_used_network = network
+    const [, parsed_network] = network.split(':')
 
-    logger.SUI('switch network', network)
-
-    client = get_client(network.split(':')[1])
-
-    const {
-      original,
-      upgraded,
-      name_registry: name_reg,
-      admin_cap: adm_cap,
-    } = PACKAGES[network]
-
-    package_original = original
-    package_upgraded = upgraded
-    name_registry = name_reg
-    admin_cap = adm_cap
-    try {
-      const known_storages_result = await get_cached_object(admin_cap, client)
-
-      known_storages = known_storages_result.known_storages.fields.contents
-    } catch (error) {
-      console.error('unable to get the admin cap, env missing ?')
-    }
+    logger.SUI('switch network', { network })
+    current_network = parsed_network
   }
 }
 
@@ -171,7 +88,8 @@ const execute = async transaction_block => {
         transaction_block,
         sender,
       })
-    const result = await client.executeTransactionBlock({
+
+    const result = await sdk().sui_client.executeTransactionBlock({
       transactionBlock: transactionBlockBytes,
       signature,
       options: { showEffects: true },
@@ -185,7 +103,7 @@ const execute = async transaction_block => {
     )
       return
 
-    if (error.message.includes(', 5')) {
+    if (error.message.includes('Some("assert_latest") }, 1')) {
       toast.error(
         `The app is outdated and can't use this feature. Please update the app.`,
       )
@@ -200,12 +118,12 @@ const active_subscription = {
   interval: null,
 }
 
-function random_storage() {
-  const storage =
-    known_storages[Math.floor(Math.random() * known_storages.length)]
+export async function sui_get_locked_characters() {
+  return sdk().get_locked_characters(get_address())
+}
 
-  if (!storage) throw new Error('No available storage')
-  return storage
+export async function sui_get_unlocked_characters() {
+  return sdk().get_unlocked_characters(get_address())
 }
 
 export function mists_to_sui(balance) {
@@ -213,29 +131,66 @@ export function mists_to_sui(balance) {
 }
 
 export async function sui_get_sui_balance() {
-  const { totalBalance } = await client.getBalance({
-    owner: get_address(),
+  return sdk().get_sui_balance(get_address())
+}
+
+async function enforce_personal_kiosk(tx, recipient) {
+  const { kioskOwnerCaps } = await sdk().kiosk_client.getOwnedKiosks({
+    address: recipient,
   })
 
-  return BigInt(totalBalance)
+  const first_personal_kiosk = kioskOwnerCaps.find(
+    ({ isPersonal }) => !!isPersonal,
+  )
+
+  const kiosk_tx = new KioskTransaction({
+    transactionBlock: tx,
+    kioskClient: sdk().kiosk_client,
+    ...(first_personal_kiosk && { cap: first_personal_kiosk }),
+  })
+
+  if (!first_personal_kiosk) kiosk_tx.createPersonal(true)
+
+  return {
+    kiosk_tx,
+    kiosk_id: kiosk_tx.getKiosk(),
+    kiosk_cap: kiosk_tx.getKioskCap(),
+  }
 }
 
 export async function sui_create_character({ name, type, sex = 'male' }) {
   const tx = new TransactionBlock()
 
-  const [character] = tx.moveCall({
-    target: `${package_upgraded}::character::create_character`,
+  const { kiosk_tx, kiosk_id, kiosk_cap } = await enforce_personal_kiosk(
+    tx,
+    get_address(),
+  )
+
+  const [character_id] = tx.moveCall({
+    target: `${sdk().LATEST_PACKAGE_ID}::aresrpg::create_and_lock_character`,
     arguments: [
-      tx.object(name_registry),
+      kiosk_id,
+      kiosk_cap,
+      tx.object(sdk().NAME_REGISTRY),
+      tx.object(sdk().CHARACTER_POLICY),
       tx.pure(name),
       tx.pure(type),
       tx.pure(sex),
+      tx.object(sdk().VERSION),
     ],
   })
 
-  tx.transferObjects([character], get_address())
-
+  // finalize resolve the kiosk promise (personal kiosk borrow of kiosk cap)
   logger.SUI('create character', { name, type, sex })
+
+  lock_character({
+    character_id,
+    kiosk_id,
+    kiosk_cap,
+    tx,
+  })
+
+  kiosk_tx.finalize()
 
   await execute(tx)
 }
@@ -244,28 +199,24 @@ export async function sui_is_character_name_taken(name) {
   const txb = new TransactionBlock()
   txb.setSender(get_address())
   txb.moveCall({
-    target: `${package_upgraded}::character::is_name_taken`,
-    arguments: [txb.object(name_registry), txb.pure(name)],
+    target: `${sdk().LATEST_PACKAGE_ID}::registry::assert_name_available`,
+    arguments: [txb.object(sdk().NAME_REGISTRY), txb.pure(name.toLowerCase())],
   })
 
   txb.setGasBudget(100000000)
+
+  const { sui_client } = sdk()
 
   try {
     const {
       effects: {
         status: { status, error },
       },
-    } = await client.dryRunTransactionBlock({
-      transactionBlock: await txb.build({ client }),
+    } = await sui_client.dryRunTransactionBlock({
+      transactionBlock: await txb.build({ client: sui_client }),
     })
 
-    logger.SUI('is character name taken', { name, status })
-
-    if (error?.includes('Some("is_name_taken") }, 5')) {
-      toast.error(
-        `The app is outdated and can't use this feature. Please update the app.`,
-      )
-    }
+    logger.SUI('is character name taken', { name, status, error })
 
     return status === 'failure'
   } catch (error) {
@@ -288,12 +239,62 @@ export async function sui_is_character_name_taken(name) {
   }
 }
 
-export async function sui_delete_character(id) {
-  const tx = new TransactionBlock()
+function lock_character({ character_id, kiosk_id, kiosk_cap, tx }) {
+  tx.moveCall({
+    target: `${sdk().LATEST_PACKAGE_ID}::aresrpg::select_character`,
+    arguments: [
+      kiosk_id,
+      kiosk_cap,
+      tx.object(sdk().CHARACTER_PROTECTED_POLICY),
+      character_id,
+      tx.object(sdk().VERSION),
+    ],
+  })
+
+  logger.SUI('lock character', character_id)
+}
+
+async function borrow_kiosk_owner_cap({ personal_kiosk_cap_id, tx, handler }) {
+  const personal_kiosk_package_id = sdk().kiosk_client.getRulePackageId(
+    'personalKioskRulePackageId',
+  )
+
+  const [kiosk_cap, promise] = tx.moveCall({
+    target: `${personal_kiosk_package_id}::personal_kiosk::borrow_val`,
+    arguments: [tx.object(personal_kiosk_cap_id)],
+  })
+
+  handler(kiosk_cap)
 
   tx.moveCall({
-    target: `${package_upgraded}::character::delete_character`,
-    arguments: [tx.object(id), tx.object(name_registry)],
+    target: `${personal_kiosk_package_id}::personal_kiosk::return_val`,
+    arguments: [tx.object(personal_kiosk_cap_id), kiosk_cap, promise],
+  })
+}
+
+// character must be locked in the extension as it's the only way to access the object bypassing the lock
+export async function sui_delete_character({
+  kiosk_id,
+  personal_kiosk_cap_id,
+  id,
+}) {
+  const tx = new TransactionBlock()
+
+  borrow_kiosk_owner_cap({
+    personal_kiosk_cap_id,
+    tx,
+    handler: kiosk_cap => {
+      tx.moveCall({
+        target: `${sdk().LATEST_PACKAGE_ID}::aresrpg::delete_character`,
+        arguments: [
+          tx.object(kiosk_id),
+          kiosk_cap,
+          tx.object(sdk().NAME_REGISTRY),
+          tx.pure.id(id),
+          tx.object(sdk().VERSION),
+        ],
+      })
+    },
   })
 
   logger.SUI('delete character', id)
@@ -301,128 +302,103 @@ export async function sui_delete_character(id) {
   await execute(tx)
 }
 
-export async function sui_lock_character(character_id) {
+export async function sui_lock_character({
+  kiosk_id,
+  personal_kiosk_cap_id,
+  id,
+}) {
   const tx = new TransactionBlock()
 
-  tx.moveCall({
-    target: `${package_upgraded}::server::lock_character`,
-    arguments: [tx.object(random_storage()), tx.object(character_id)],
+  borrow_kiosk_owner_cap({
+    personal_kiosk_cap_id,
+    tx,
+    handler: kiosk_cap => {
+      lock_character({
+        character_id: tx.pure.id(id),
+        kiosk_id: tx.object(kiosk_id),
+        kiosk_cap,
+        tx,
+      })
+    },
   })
-
-  logger.SUI('lock character', character_id)
 
   await execute(tx)
 }
 
-export async function sui_unlock_character(receipt) {
+export async function sui_unlock_character({
+  kiosk_id,
+  personal_kiosk_cap_id,
+  id,
+}) {
   const tx = new TransactionBlock()
-  const [character] = tx.moveCall({
-    target: `${package_upgraded}::server::unlock_character`,
-    arguments: [tx.object(receipt.storage_id), tx.object(receipt.id)],
-  })
-  tx.transferObjects([character], tx.pure(get_address()))
 
-  logger.SUI('unlock character', receipt.id)
+  borrow_kiosk_owner_cap({
+    personal_kiosk_cap_id,
+    tx,
+    handler: kiosk_cap => {
+      tx.moveCall({
+        target: `${sdk().LATEST_PACKAGE_ID}::aresrpg::unselect_character`,
+        arguments: [
+          tx.object(kiosk_id),
+          kiosk_cap,
+          tx.object(sdk().CHARACTER_POLICY),
+          tx.pure.id(id),
+          tx.object(sdk().VERSION),
+        ],
+      })
+    },
+  })
+
+  logger.SUI('unlock character', { kiosk_id, id })
 
   await execute(tx)
 }
 
-export async function sui_send_object(id, to) {
-  const is_alias = to.endsWith('.sui')
-  const address = is_alias
-    ? await mainnet_client.resolveNameServiceAddress({ name: to })
-    : to
+// export async function sui_send_character(
+//   { id, kiosk_id, personal_kiosk_cap_id },
+//   to,
+// ) {
+//   const is_alias = to.endsWith('.sui')
+//   const address = is_alias
+//     ? await sui_mainnet_client.resolveNameServiceAddress({ name: to })
+//     : to
 
-  const tx = new TransactionBlock()
-  tx.transferObjects([tx.object(id)], tx.pure(address))
+//   const { kioskOwnerCaps: my_kiosk_caps } =
+//     await sdk().kiosk_client.getOwnedKiosks({
+//       address: get_address(),
+//     })
+//   const personal_kiosk_cap = my_kiosk_caps.find(
+//     ({ objectId }) => objectId === personal_kiosk_cap_id,
+//   )
+//   const tx = new TransactionBlock()
+//   const source_kiosk_tx = new KioskTransaction({
+//     transactionBlock: tx,
+//     kioskClient: sdk().kiosk_client,
+//     cap: personal_kiosk_cap,
+//   })
 
-  logger.SUI('send object', { id, to })
+//   const recipient_kiosk = await enforce_personal_kiosk(tx, address)
+//   const item = {
+//     itemType: `${sdk().PACKAGE_ID}::character::Character`,
+//     itemId: id,
+//     price: 0n,
+//   }
 
-  await execute(tx)
-}
+//   source_kiosk_tx.list(item)
+//   source_kiosk_tx.finalize()
 
-export async function sui_get_receipts() {
-  const owner = get_address()
-  if (!owner) return []
+//   await recipient_kiosk.kiosk_tx.purchaseAndResolve({
+//     ...item,
+//     sellerKiosk: kiosk_id,
+//   })
 
-  const result = await client.getOwnedObjects({
-    owner,
-    filter: {
-      StructType: `${package_original}::server::CharacterLockReceipt`,
-    },
-    options: {
-      showContent: true,
-    },
-  })
+//   logger.SUI('send character', { id, to })
 
-  const receipts = result.data.map(({ data }) => ({
-    // @ts-ignore
-    ...data.content.fields,
-    // @ts-ignore
-    id: data.content.fields.id.id,
-  }))
-
-  return receipts
-}
-
-export async function sui_get_locked_characters(receipts) {
-  if (!receipts.length) return []
-
-  const characters = await get_cached_objects(
-    receipts.map(({ character_id }) => character_id),
-    client,
-  )
-
-  return characters.map(character => ({
-    ...character,
-    position: JSON.parse(character.position),
-  }))
-}
-
-export async function sui_get_unlocked_characters() {
-  const owner = get_address()
-  if (!owner) return []
-
-  const result = await client.getOwnedObjects({
-    owner,
-    filter: {
-      StructType: `${package_original}::character::Character`,
-    },
-    options: {
-      showContent: true,
-    },
-  })
-
-  const mapped = result.data
-    .map(
-      ({
-        data: {
-          // @ts-ignore
-          content: { fields },
-        },
-      }) => ({
-        ...fields,
-        id: fields.id.id,
-      }),
-    )
-    .map(character => ({
-      ...character,
-      position: JSON.parse(character.position),
-    }))
-
-  return mapped
-}
-
-export async function sui_get_character(id) {
-  return get_cached_object(id)
-}
-
-export async function sui_get_inventory() {}
+//   await execute(tx)
+// }
 
 export async function sui_subscribe({ signal }) {
   const emitter = new EventEmitter()
-
-  logger.SUI('subscribing to events')
 
   async function try_reset() {
     if (active_subscription.emitter) {
@@ -442,17 +418,9 @@ export async function sui_subscribe({ signal }) {
       emitter.emit('update', { type: 'interval' })
     }, 10000)
 
-    active_subscription.unsubscribe = await client.subscribeEvent({
-      onMessage: event => {
-        logger.SUI('rpc event', event)
-        emitter.emit('update', event)
-      },
-      filter: {
-        All: [
-          { Package: package_original },
-          { MoveEventField: { path: '/target', value: get_address() } },
-        ],
-      },
+    active_subscription.unsubscribe = await sdk().subscribe(event => {
+      logger.SUI('rpc event', event)
+      emitter.emit('update', event)
     })
   } catch (error) {
     if (error.message.includes('Invalid params'))
@@ -474,7 +442,10 @@ export async function get_alias(address) {
 
   const {
     data: [name],
-  } = await mainnet_client.resolveNameServiceNames({ address, limit: 1 })
+  } = await sdk_mainnet.sui_client.resolveNameServiceNames({
+    address,
+    limit: 1,
+  })
 
   if (name) SUINS_CACHE.set(address, name)
   else SUINS_CACHE.set(address, address)
