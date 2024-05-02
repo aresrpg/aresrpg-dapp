@@ -21,7 +21,7 @@ en:
 
 <script setup>
 import { inject, ref, watch, computed } from 'vue';
-import Spells from '@aresrpg/aresrpg-protocol/src/spells.json';
+import Spells from '@aresrpg/aresrpg-sdk/spells';
 import { useI18n } from 'vue-i18n';
 
 import {

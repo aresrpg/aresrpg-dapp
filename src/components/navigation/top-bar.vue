@@ -232,4 +232,5 @@ nav
   user-select none
   backdrop-filter blur(10px)
   background rgba(0, 0, 0, .5)
+  max-width 200px
 </style>
