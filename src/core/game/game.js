@@ -176,7 +176,7 @@ export const INITIAL_STATE = {
   visible_characters: new Map(),
 }
 
-/** @return {Partial<Type.ThreeEntity & Type.SuiCharacter>} */
+/** @type {(state?: INITIAL_STATE) => Type.ThreeEntity & Type.SuiCharacter} */
 export function current_character(state = get_state()) {
   const by_id = ({ id }) => id === state.selected_character_id
   const three_character = state.characters.find(by_id)
@@ -188,6 +188,7 @@ export function current_character(state = get_state()) {
   }
 }
 
+// @ts-ignore
 CameraControls.install({
   THREE: {
     Vector2,
@@ -350,8 +351,9 @@ const context = {
   actions,
   pool,
   composer,
+  // @ts-ignore
   camera_controls: new CameraControls(camera, renderer.domElement),
-  /** @type {import("@aresrpg/aresrpg-protocol/src/types").send} */
+  /** @type {import("@aresrpg/aresrpg-protocol/src/types.js").send} */
   send_packet(type, payload) {
     if (!ares_client || ares_client.controller.signal.aborted) return // not connected
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)

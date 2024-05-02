@@ -10,7 +10,7 @@ import {
   ShaderMaterial,
   Vector3,
 } from 'three'
-import { smoothstep } from 'three/src/math/MathUtils'
+import { smoothstep } from 'three/src/math/MathUtils.js'
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'

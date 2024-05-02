@@ -5,7 +5,6 @@ import {
   PositionalAudio,
   Vector3,
 } from 'three'
-import { CHUNK_SIZE } from '@aresrpg/aresrpg-protocol'
 
 import step1 from '../../assets/sound/step1.ogg'
 import step2 from '../../assets/sound/step2.ogg'
@@ -83,7 +82,7 @@ export default function () {
         if (player.position && other_character) {
           const distance = player.position.distanceTo(new Vector3(x, y, z))
 
-          if (distance < CHUNK_SIZE) {
+          if (distance < 40) {
             if (!other_character.audio) {
               other_character.audio = new PositionalAudio(listener)
               scene.add(other_character.audio)
