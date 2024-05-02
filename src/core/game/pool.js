@@ -11,7 +11,7 @@ import sram_male from '../../assets/models/sram_male.glb?url'
 import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
 
-import { CartoonRenderpass } from './rendering/cartoon_renderpass'
+import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
 
 function create_billboard_material(base_material, keep_aspect) {
   return createDerivedMaterial(base_material, {
