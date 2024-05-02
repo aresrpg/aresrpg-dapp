@@ -1,4 +1,4 @@
-import { VsNotification } from 'vuesax-alpha'
+import { VsNotification } from 'vuesax-alpha/es'
 
 // @ts-ignore
 import FluentEmojiHighContrastFly from '~icons/fluent-emoji-high-contrast/fly'

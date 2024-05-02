@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { VsLoadingFn } from 'vuesax-alpha'
+import { VsLoadingFn } from 'vuesax-alpha/es'
 
 export const loading = ref(0)
 let loading_instance = null

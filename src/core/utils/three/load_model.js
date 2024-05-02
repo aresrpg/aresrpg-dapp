@@ -1,9 +1,9 @@
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import { AnimationMixer, DefaultLoadingManager } from 'three'
 import { MeshoptDecoder } from 'meshoptimizer'
-import { clone } from 'three/examples/jsm/utils/SkeletonUtils'
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 
 const GLTF_LOADER = new GLTFLoader(DefaultLoadingManager)
 const DRACO_LOADER = new DRACOLoader(DefaultLoadingManager)
