@@ -1,6 +1,6 @@
 import {
-  VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL,
-  VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL,
+  VITE_SERVER_MAINNET_URL,
+  VITE_SERVER_TESTNET_URL,
 } from '../../../env.js'
 
 export function is_chain_supported({ selected_wallet_name, wallets }) {
@@ -8,12 +8,12 @@ export function is_chain_supported({ selected_wallet_name, wallets }) {
   if (!wallet) return false
   switch (wallet.chain) {
     case 'sui:mainnet':
-      return !!VITE_ARESRPG_PACKAGE_MAINNET_ORIGINAL
+      return !!VITE_SERVER_MAINNET_URL
     case 'sui:testnet':
-      return !!VITE_ARESRPG_PACKAGE_TESTNET_ORIGINAL
+      return !!VITE_SERVER_TESTNET_URL
     case 'sui:devnet':
       return false
     default:
-      return true
+      return false
   }
 }
