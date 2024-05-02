@@ -10,6 +10,7 @@ import iop_female from '../../assets/models/iop_female.glb?url'
 import sram_male from '../../assets/models/sram_male.glb?url'
 import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
+import { CartoonRenderpass } from './rendering/cartoon_renderpass'
 
 function create_billboard_material(base_material, keep_aspect) {
   return createDerivedMaterial(base_material, {
@@ -186,6 +187,7 @@ export default function create_pools(scene) {
           false,
         )
         title.text = name
+        title.layers.set(CartoonRenderpass.non_outlined_layer)
 
         scene.add(title)
 
@@ -267,6 +269,7 @@ export default function create_pools(scene) {
           false,
         )
         title.text = name
+        title.layers.set(CartoonRenderpass.non_outlined_layer)
 
         origin.add(title)
         origin.add(model)

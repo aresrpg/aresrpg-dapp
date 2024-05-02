@@ -21,6 +21,10 @@ import {
   Raycaster,
   OrthographicCamera,
   Clock,
+  WebGLRenderTarget,
+  DepthTexture,
+  HalfFloatType,
+  LinearFilter,
 } from 'three'
 import { aiter } from 'iterator-helper'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
@@ -239,7 +243,20 @@ const game_visible_emitter = new EventEmitter()
 const scene = new Scene()
 const packets = new PassThrough({ objectMode: true })
 const renderer = new WebGLRenderer({ antialias: true })
-const composer = new EffectComposer(renderer)
+const renderer_size = renderer.getSize(new Vector2());
+const composer = new EffectComposer(renderer, new WebGLRenderTarget(
+  renderer_size.x,
+  renderer_size.y,
+  {
+    magFilter: LinearFilter,
+    minFilter: LinearFilter,
+    generateMipmaps: false,
+    stencilBuffer: false,
+    type: HalfFloatType,
+    depthBuffer: true,
+    depthTexture: new DepthTexture(renderer_size.x, renderer_size.y),
+  }
+))
 const camera = new PerspectiveCamera(
   60, // Field of view
   window.innerWidth / window.innerHeight, // Aspect ratio
