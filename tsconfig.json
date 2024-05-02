@@ -1,12 +1,12 @@
 {
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts", "**/*.vue"],
+  "exclude": ["node_modules", "**/*.vue"],
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
     "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "emitDeclarationOnly": true,

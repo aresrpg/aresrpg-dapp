@@ -17,13 +17,13 @@ declare module 'three/addons/capabilities/WebGL.js' {
 }
 
 declare namespace Type {
-  type Module = import('./core/game/game').Module
-  type State = import('./core/game/game').State
-  type Packets = import('@aresrpg/aresrpg-protocol/src/types').Packets
+  type Module = import('./core/game/game.js').Module
+  type State = import('./core/game/game.js').State
+  type Packets = import('@aresrpg/aresrpg-protocol/src/types.js').Packets
   type GameState = 'MENU' | 'GAME' | 'EDITOR'
   type Await<T> = T extends Promise<infer U> ? U : T
   type Position = { x: number; y: number; z: number }
-  type SkyLights = import('./core/game/game').SkyLights
+  type SkyLights = import('./core/game/game.js').SkyLights
 
   type ThreeEntity = {
     id: string
@@ -50,14 +50,7 @@ declare namespace Type {
   //   siblings: { name: string; level: number }[]
   // }
 
-  type SuiCharacter = {
-    id: string
-    name: string
-    experience: number
-    classe: string
-    sex: string
-    position: import('three').Vector3
-  }
+  type SuiCharacter = import('@aresrpg/aresrpg-sdk/types').SuiCharacter
 
   type Receipt = {
     id: string
