@@ -2,7 +2,6 @@
 fr:
   mobile: Ton écran est trop petit pour accéder à l'app
   lang: Choisir une langue
-  chain_not_supported: Vous utilisez le {0} Sui, qui n'est actuellement pas pris en charge, veuillez changer de network
 en:
   mobile: Use this app on desktop only
   lang: Choose a language
