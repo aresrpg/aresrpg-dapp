@@ -18,7 +18,7 @@ onMounted(async () => {
   }, 10000);
   try {
     increase_loading();
-    const result = await enoki_login();
+    await enoki_login();
     const address = enoki_address();
     const wallet = enoki_wallet();
     // @ts-ignore
