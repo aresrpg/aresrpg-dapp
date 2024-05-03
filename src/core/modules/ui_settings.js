@@ -58,7 +58,7 @@ export default function () {
                   id: player.id,
                   position: {
                     x,
-                    y: ground_height + 3,
+                    y: ground_height + 10,
                     z,
                   },
                 })

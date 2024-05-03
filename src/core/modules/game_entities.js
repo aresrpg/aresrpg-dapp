@@ -94,11 +94,11 @@ export default function () {
 
         if (!visible_characters.has(id) && !character_is_mine) {
           const default_three_character = pool
-            .entity(DEFAULT_SUI_CHARACTER)
+            .entity(DEFAULT_SUI_CHARACTER())
             .instanced()
 
           visible_characters.set(id, {
-            ...DEFAULT_SUI_CHARACTER,
+            ...DEFAULT_SUI_CHARACTER(),
             ...default_three_character,
           })
 

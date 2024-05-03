@@ -2,7 +2,7 @@ import { on } from 'events'
 
 import { aiter, iter } from 'iterator-helper'
 
-import { get_alias, set_network } from '../sui/client.js'
+import { get_alias } from '../sui/client.js'
 import { initialize_wallets, wallet_emitter } from '../sui/wallet.js'
 import { context } from '../game/game.js'
 
@@ -56,17 +56,6 @@ export default function () {
         /** @param {Type.Wallet} wallet */
         async wallet => {
           try {
-            const {
-              sui: { selected_wallet_name },
-            } = context.get_state()
-
-            if (!selected_wallet_name) set_network(wallet.chain)
-            else if (
-              selected_wallet_name &&
-              selected_wallet_name === wallet.name
-            )
-              set_network(wallet.chain)
-
             await iter(wallet.accounts)
               .toAsyncIterator()
               .forEach(async account => {
@@ -97,8 +86,6 @@ export default function () {
         const wallet = context.get_state().sui.wallets[name]
         // make sure the wallet exists before dispatching
         if (!wallet) return
-
-        if (wallet.chain) set_network(wallet.chain)
 
         context.dispatch('action/select_wallet', name)
         localStorage.setItem('last_selected_wallet', name)

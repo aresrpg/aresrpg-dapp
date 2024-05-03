@@ -1,5 +1,3 @@
-import { Vector3 } from 'three'
-
 import { context, disconnect_ws } from '../game/game.js'
 import {
   sui_get_locked_characters,
@@ -9,15 +7,14 @@ import {
 } from '../sui/client.js'
 import { state_iterator } from '../utils/iterator.js'
 import { decrease_loading, increase_loading } from '../utils/loading.js'
-import { is_chain_supported } from '../utils/sui/is_chain_supported.js'
 
-export const DEFAULT_SUI_CHARACTER = {
+export const DEFAULT_SUI_CHARACTER = () => ({
   id: 'default',
   name: 'Chafer Lancier',
   classe: 'default',
   sex: 'default',
 
-  position: { x: 0, y: 110, z: 0 },
+  position: { x: 0, y: 220, z: 0 },
   experience: 0,
   health: 30,
   selected: false,
@@ -30,7 +27,7 @@ export const DEFAULT_SUI_CHARACTER = {
   intelligence: 0,
   chance: 0,
   agility: 0,
-}
+})
 
 /** @type {Type.Module} */
 export default function () {
@@ -65,53 +62,34 @@ export default function () {
       }
 
       state_iterator().reduce(
-        async (
-          { last_address, last_network },
-          { sui, sui: { wallets, selected_address, selected_wallet_name } },
-        ) => {
-          const wallet = wallets[selected_wallet_name]
-          const network = wallet?.chain
-
+        async (last_address, { sui: { selected_address } }) => {
           const address_changed = last_address !== selected_address
-          const network_changed = last_network !== network
 
-          if (address_changed || network_changed) {
+          if (address_changed) {
             disconnect_ws()
 
-            if (selected_address && network) {
+            if (selected_address) {
               increase_loading()
 
-              if (is_chain_supported(sui)) {
-                // unsubscription is handled internally
-                sui_subscribe(controller).then(emitter => {
-                  emitter.on('update', update_user_data)
-                })
-                await update_user_data()
-              } else {
-                controller.abort()
-                controller = new AbortController()
-                context.dispatch('action/sui_data_update', {
-                  locked_characters: [DEFAULT_SUI_CHARACTER],
-                  unlocked_characters: [],
-                  character_lock_receipts: [],
-                })
-              }
+              // unsubscription is handled internally
+              sui_subscribe(controller).then(emitter => {
+                emitter.on('update', update_user_data)
+              })
+              await update_user_data()
               decrease_loading()
             } else {
               controller.abort()
               controller = new AbortController()
+
               context.dispatch('action/sui_data_update', {
-                locked_characters: [DEFAULT_SUI_CHARACTER],
+                locked_characters: [DEFAULT_SUI_CHARACTER()],
                 unlocked_characters: [],
                 character_lock_receipts: [],
               })
             }
           }
 
-          return {
-            last_address: selected_address,
-            last_network: network,
-          }
+          return selected_address
         },
       )
     },
