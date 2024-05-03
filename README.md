@@ -18,20 +18,24 @@ AresRPG has been a minecraft server project for years and is now upgraded to a s
 ![](https://i.imgur.com/csWCkeW.png)
 
 - Try it out at https://app.aresrpg.world
+- Or the beta version at https://testnet.aresrpg.world
 
 ## Contribute
 
-The dApp is made to be ran locally by anyone, the only difference with using our domain is that we're using dedidcated Sui nodes while locally it defaults to Mystenlabs shared node
+The dApp is made to be ran locally by anyone, the only difference with using our domain is that we're using dedidcated Sui nodes while locally it defaults to Mystenlabs shared ones
 
 ```sh
 git clone git@github.com:aresrpg/dapp.git
 cd app
 ```
 
-- You can eventually enable the terrain editor
+## Env
 
 ```
-VITE_ENABLE_TERRAIN_EDITOR="true"
+VITE_SUI_RPC = 'https://fullnode.testnet.sui.io',
+VITE_SUI_WSS = 'wss://fullnode.testnet.sui.io',
+VITE_SERVER_URL = 'https://testnet-api.aresrpg.world',
+VITE_NETWORK = 'testnet',
 ```
 
 - Run the client
