@@ -243,7 +243,10 @@ const game_visible_emitter = new EventEmitter()
 
 const scene = new Scene()
 const packets = new PassThrough({ objectMode: true })
-const renderer = new WebGLRenderer({ antialias: true })
+const renderer = new WebGLRenderer({
+  antialias: true,
+  powerPreference: 'high-performance',
+})
 renderer.setPixelRatio(window.devicePixelRatio)
 const renderer_size = renderer.getSize(new Vector2())
 const composer = new EffectComposer(
