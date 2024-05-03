@@ -6,7 +6,7 @@ router-view
 import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 
 import { context } from './core/game/game.js';
-import { is_chain_supported } from './core/utils/sui/is_chain_supported.js';
+import { enoki_address, enoki_wallet } from './core/sui/enoki.js';
 // internal vuejs
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const name = 'app';
@@ -16,11 +16,9 @@ const game_visible = ref(false);
 
 const available_accounts = ref([]);
 const current_wallet = ref(null);
-const current_network = ref('mainnet');
 const current_address = ref(null);
 const current_account = ref(null);
 const sui_balance = ref(null);
-const network_supported = ref(false);
 const online = ref(false);
 
 const server_info = reactive({
@@ -29,25 +27,33 @@ const server_info = reactive({
   online_characters: 0,
 });
 
+const characters = ref([]);
+const selected_character = ref(null);
+
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
 provide('available_accounts', available_accounts);
 provide('current_wallet', current_wallet);
-provide('current_network', current_network);
 provide('current_address', current_address);
 provide('current_account', current_account);
 provide('sui_balance', sui_balance);
-provide('network_supported', network_supported);
 provide('online', online);
 provide('server_info', server_info);
+provide('characters', characters);
+provide('selected_character', selected_character);
 
 function update_accounts({
-  sui,
-  sui: { selected_wallet_name, wallets, balance, selected_address },
+  sui: {
+    selected_wallet_name,
+    wallets,
+    balance,
+    selected_address,
+    locked_characters,
+  },
+  selected_character_id,
   online: state_online,
 }) {
   const selected_wallet = wallets[selected_wallet_name];
-  const is_network_supported = is_chain_supported(sui);
   const accounts = selected_wallet?.accounts ?? [];
   const accounts_addresses = accounts.filter(
     ({ address }) => address !== selected_address,
@@ -58,17 +64,30 @@ function update_accounts({
   const selected_account = accounts.find(
     ({ address }) => address === selected_address,
   );
-  const network = selected_wallet?.chain.split(':')[1];
 
-  if (network_supported.value !== is_network_supported)
-    network_supported.value = is_network_supported;
+  const characters_ids = locked_characters
+    .map(character => character.id)
+    .filter(id => id !== selected_character_id);
+  const last_characters_ids = characters.value.map(character => character.id);
+
+  if (characters_ids.join() !== last_characters_ids.join())
+    characters.value = locked_characters.filter(
+      character => character.id !== selected_character_id,
+    );
+
+  if (selected_character_id) {
+    selected_character.value = locked_characters.find(
+      character => character.id === selected_character_id,
+    );
+  } else {
+    selected_character.value = null;
+  }
 
   if (accounts_addresses.join() !== available_accounts_addresses.join())
     available_accounts.value = accounts.filter(
       ({ address }) => address !== selected_address,
     );
 
-  if (network !== current_network.value) current_network.value = network;
   if (balance !== sui_balance.value) sui_balance.value = balance;
   // @ts-ignore
   if (current_wallet.value?.name !== selected_wallet_name)
@@ -103,6 +122,15 @@ onMounted(() => {
   update_accounts(context.get_state());
 
   context.events.on('packet/serverInfo', on_server_info);
+
+  const address = enoki_address();
+
+  if (address) {
+    // @ts-ignore
+    context.dispatch('action/register_wallet', enoki_wallet());
+    context.dispatch('action/select_wallet', 'Enoki');
+    context.dispatch('action/select_address', address);
+  }
 });
 
 onUnmounted(() => {

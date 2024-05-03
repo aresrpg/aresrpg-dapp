@@ -5,6 +5,7 @@ import inventory from './views/tab-inventory.vue'
 import settings from './views/tab-settings.vue'
 import world from './views/tab-world.vue'
 import characters from './views/tab-characters.vue'
+import enoki from './views/enoki.vue'
 
 export default createRouter({
   history: createWebHistory(),
@@ -12,6 +13,10 @@ export default createRouter({
     {
       path: '/:catchAll(.*)',
       redirect: '/characters',
+    },
+    {
+      path: '/enoki',
+      component: enoki,
     },
     {
       path: '/',

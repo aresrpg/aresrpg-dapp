@@ -1,18 +1,9 @@
 const {
-  VITE_SUI_TESTNET_RPC = 'https://rpc.ankr.com/sui_testnet/02fe1fb555dee5f0f895faf43a27d670f3abeeb11a554b5f0ff07fbd84de9201',
-  VITE_SUI_TESTNET_WSS = 'wss://rpc.ankr.com/sui_testnet/ws/02fe1fb555dee5f0f895faf43a27d670f3abeeb11a554b5f0ff07fbd84de9201',
-  VITE_SERVER_TESTNET_URL = 'http://localhost:3002',
-
-  VITE_SUI_MAINNET_RPC = 'https://rpc.ankr.com/sui/02fe1fb555dee5f0f895faf43a27d670f3abeeb11a554b5f0ff07fbd84de9201',
-  VITE_SUI_MAINNET_WSS = 'wss://rpc.ankr.com/sui/ws/02fe1fb555dee5f0f895faf43a27d670f3abeeb11a554b5f0ff07fbd84de9201',
-  VITE_SERVER_MAINNET_URL = '',
+  VITE_SUI_RPC = 'https://fullnode.testnet.sui.io',
+  VITE_SUI_WSS = 'wss://fullnode.testnet.sui.io',
+  VITE_SERVER_URL,
+  VITE_ENOKI_KEY = 'enoki_public_98a33b011a0542de52088c3f94bfe069',
+  NETWORK = 'testnet',
 } = import.meta.env
 
-export {
-  VITE_SUI_TESTNET_RPC,
-  VITE_SUI_TESTNET_WSS,
-  VITE_SUI_MAINNET_RPC,
-  VITE_SUI_MAINNET_WSS,
-  VITE_SERVER_TESTNET_URL,
-  VITE_SERVER_MAINNET_URL,
-}
+export { VITE_SUI_RPC, VITE_SUI_WSS, VITE_SERVER_URL, VITE_ENOKI_KEY, NETWORK }
