@@ -29,7 +29,7 @@ git clone git@github.com:aresrpg/dapp.git
 cd app
 ```
 
-## Env
+- Env
 
 ```
 VITE_SUI_RPC = 'https://fullnode.testnet.sui.io',
