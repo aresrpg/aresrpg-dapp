@@ -19,7 +19,8 @@ en:
 
 <template lang="pug">
 vs-button.btn(
-  :disabled="!server_for_network"
+  v-if="selected_character"
+  :disabled="!VITE_SERVER_URL"
   type="transparent"
   :loading="is_connecting"
   :color="ws_color"
@@ -28,9 +29,9 @@ vs-button.btn(
   @click="toggle_ws"
 )
   i.bx(:class="{ 'bx-wifi-off': !is_online, 'bx-wifi': is_online }")
-  span(v-if="server_for_network") {{ is_online ? t('online_ws') : t('offline_ws') }}
+  span(v-if="VITE_SERVER_URL") {{ is_online ? t('online_ws') : t('offline_ws') }}
   i18n-t(v-else keypath="wrong_network" tag="span")
-    template(#network) {{ current_network?.toUpperCase() }}
+    template(#network) {{ NETWORK }}
   template(#animate)
     i.bx.bx-broadcast
     span {{ is_online ? t('disconnect') : t('connect') }}
@@ -40,26 +41,19 @@ vs-button.btn(
 import { computed, ref, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import {
-  context,
-  disconnect_ws,
-  get_server_url,
-} from '../../core/game/game.js';
+import { context, disconnect_ws } from '../../core/game/game.js';
 import toast from '../../toast.js';
 import logger from '../../logger.js';
+import { VITE_SERVER_URL, NETWORK } from '../../env.js';
 
 const { t } = useI18n();
 
 const connection_status = ref('CLOSED');
+const selected_character = inject('selected_character');
 const is_connecting = computed(() => connection_status.value === 'CONNECTING');
 const is_online = computed(() => connection_status.value === 'ONLINE');
 
 const current_address = inject('current_address');
-const current_network = inject('current_network');
-
-const server_for_network = computed(
-  () => !!get_server_url(current_network.value),
-);
 
 const ws_color = computed(() => {
   if (is_connecting.value) return '#FFA500';

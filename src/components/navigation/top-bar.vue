@@ -11,6 +11,8 @@ fr:
   offline_ws: Hors ligne
   online_ws: En ligne
   testnet: Vous êtes actuellement sur un test network
+  copy: Copier l'adresse
+  copied: Adresse copiée dans le presse-papier
 en:
   logout: Logout
   disconnect: Disconnect
@@ -23,6 +25,8 @@ en:
   offline_ws: Offline
   online_ws: Online
   testnet: You are currently on a test network
+  copy: Copy address
+  copied: Address copied to clipboard
 </i18n>
 
 <script setup>
@@ -35,6 +39,14 @@ import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
 import { context, disconnect_ws } from '../../core/game/game.js';
 import { mists_to_sui } from '../../core/sui/client.js';
 import logger from '../../logger.js';
+import { enoki_login_url } from '../../core/sui/enoki.js';
+import { NETWORK } from '../../env.js';
+import { increase_loading } from '../../core/utils/loading.js';
+import toast from '../../toast.js';
+
+// @ts-ignore
+import PhCopy from '~icons/ph/copy';
+import StreamlineEmojisWaterWave from '~icons/streamline-emojis/water-wave';
 
 const { t } = useI18n();
 
@@ -54,7 +66,6 @@ const dropdown = ref(null);
 
 const available_accounts = inject('available_accounts');
 const current_wallet = inject('current_wallet');
-const current_network = inject('current_network');
 const current_address = inject('current_address');
 const current_account = inject('current_account');
 const sui_balance = inject('sui_balance');
@@ -69,11 +80,24 @@ function disconnect_wallet() {
   current_wallet.value.disconnect();
   disconnect_ws();
 }
+
+function copy_address() {
+  navigator.clipboard.writeText(current_account.value.address);
+  toast.success(t('copied'), 'Brrrrrrrr', StreamlineEmojisWaterWave);
+  dropdown.value.close();
+}
+
+async function enoki_login() {
+  login_dialog.value = false;
+  logger.INTERNAL(`Enoki login`);
+  increase_loading();
+  window.location.href = await enoki_login_url();
+}
 </script>
 
 <template lang="pug">
 nav(:class="{ small: breakpoints.mobile.matches }")
-  .beware-tesnet(v-if="current_wallet && current_network !== 'mainnet'") {{ t('testnet') }}
+  .beware-tesnet(v-if="NETWORK !== 'mainnet'") {{ t('testnet') }}
   vs-row(justify="end")
     // ======
     vs-button.btn(v-if="!current_wallet" type="border" color="#eee" @click="login_dialog = true")
@@ -83,7 +107,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       .sui-balance(v-if="sui_balance != null")
         span {{ mists_to_sui(sui_balance) }}
         img.icon(src="../../assets/sui/sui-logo.png")
-      .badge(:class="{ mainnet: current_network === 'mainnet' }") Sui {{ current_network }} #[img.icon(:src="current_wallet.icon")]
+      .badge(:class="{ mainnet: NETWORK === 'mainnet' }") Sui {{ NETWORK }} #[img.icon(:src="current_wallet.icon")]
       // Address container with dropdown
 
       Dropdown(:border="false" ref="dropdown")
@@ -101,6 +125,10 @@ nav(:class="{ small: breakpoints.mobile.matches }")
               @click="() => (update_selected_account(account), dropdown.close())"
             ) {{ address_display(account) }}
           vs-row(justify="center")
+            vs-button.btn(type="transparent" block color="#1ABC9C" @click="copy_address")
+              PhCopy
+              span {{ t('copy') }}
+          vs-row(justify="center")
             vs-button.btn(type="transparent" block color="#E74C3C" @click="disconnect_wallet")
               i.bx.bx-log-out
               span {{ t('logout') }}
@@ -114,7 +142,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       img.logo(src="../../assets/logo.png")
     vs-row(justify="center")
       .title {{ t('login') }}
-    vs-button.btn(type="gradient" block color="#E74C3C" disabled)
+    vs-button.btn(type="gradient" block color="#E74C3C" @click="enoki_login")
       i.bx.bxl-google
       span Google
     vs-button.btn(type="gradient" block color="#3498DB" @click="(sui_wallet_dialog = true, login_dialog = false)")
