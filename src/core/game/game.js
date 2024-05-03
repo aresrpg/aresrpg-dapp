@@ -51,7 +51,7 @@ import game_terrain from '../modules/game_terrain.js'
 import game_instanced from '../modules/game_instanced.js'
 import create_pools from '../game/pool.js'
 import logger from '../../logger.js'
-import { VITE_SERVER_MAINNET_URL, VITE_SERVER_TESTNET_URL } from '../../env.js'
+import { VITE_SERVER_URL } from '../../env.js'
 import sui_data from '../modules/sui_data.js'
 import sui_wallets from '../modules/sui_wallets.js'
 import { decrease_loading } from '../utils/loading.js'
@@ -67,6 +67,8 @@ const FILTER_ACTION_IN_LOGS = [
   'action/keyup',
   'action/set_state_player_position',
   'action/sky_lights_change',
+  'action/mousedown',
+  'action/mouseup',
 ]
 export const FILTER_PACKET_IN_LOGS = ['packet/characterPosition']
 
@@ -290,17 +292,10 @@ renderer.info.autoReset = false
 
 composer.setSize(window.innerWidth, window.innerHeight)
 
-export function get_server_url(network) {
-  if (network === 'testnet') return VITE_SERVER_TESTNET_URL
-  else if (network === 'mainnet') return VITE_SERVER_MAINNET_URL
-}
-
 function connect_ws() {
   return new Promise((resolve, reject) => {
-    const { selected_address, selected_wallet_name, wallets } = get_state().sui
-    const { chain } = wallets[selected_wallet_name]
-    const [, network] = chain.split(':')
-    const server_url = get_server_url(network).replaceAll('http', 'ws')
+    const { selected_address } = get_state().sui
+    const server_url = VITE_SERVER_URL.replaceAll('http', 'ws')
     const { status } = useWebSocket(
       `${server_url}?address=${selected_address}`,
       {
