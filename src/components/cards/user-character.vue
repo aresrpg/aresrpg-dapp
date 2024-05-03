@@ -92,6 +92,7 @@ import {
   sui_unlock_character,
 } from '../../core/sui/client.js';
 import toast from '../../toast.js';
+import { NETWORK } from '../../env.js';
 
 const { t } = useI18n();
 const props = defineProps(['character', 'locked']);
@@ -99,11 +100,8 @@ const props = defineProps(['character', 'locked']);
 const genrer_icon = computed(() =>
   props.character.sex === 'male' ? 'bx-male-sign' : 'bx-female-sign',
 );
-
-const network = inject('current_network');
-
 const character_explorer_link = computed(
-  () => `https://suiscan.xyz/${network.value}/object/${props.character.id}`,
+  () => `https://suiscan.xyz/${NETWORK}/object/${props.character.id}`,
 );
 
 const is_valid_sui_address = computed(() => {

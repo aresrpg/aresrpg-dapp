@@ -29,7 +29,7 @@ Dropdown(:border="false" ref="dropdown")
 
 <script setup>
 import Dropdown from 'v-dropdown';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -37,45 +37,13 @@ import { context } from '../../core/game/game.js';
 
 const dropdown = ref(null);
 
-const characters = ref([]);
-const selected_character = ref(null);
 const router = useRouter();
+const characters = inject('characters');
+const selected_character = inject('selected_character');
 
 function go_to_characters() {
   router.push('/characters');
 }
-
-function update_characters({
-  selected_character_id,
-  sui: { locked_characters },
-}) {
-  const characters_ids = locked_characters
-    .map(character => character.id)
-    .filter(id => id !== selected_character_id);
-  const last_characters_ids = characters.value.map(character => character.id);
-
-  if (characters_ids.join() !== last_characters_ids.join())
-    characters.value = locked_characters.filter(
-      character => character.id !== selected_character_id,
-    );
-
-  if (selected_character_id) {
-    selected_character.value = locked_characters.find(
-      character => character.id === selected_character_id,
-    );
-  } else {
-    selected_character.value = null;
-  }
-}
-
-onMounted(() => {
-  context.events.on('STATE_UPDATED', update_characters);
-  update_characters(context.get_state());
-});
-
-onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_characters);
-});
 
 function select_character(character) {
   context.dispatch('action/select_character', character.id);
