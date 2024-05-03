@@ -18,7 +18,7 @@ import bubbles from '../components/misc/floating-bubbles.vue';
 import SideBar from '../components/navigation/side-bar.vue';
 import serverInfo from '../components/cards/server-info.vue';
 
-const { t, locale, isGlobal } = useI18n();
+const { t, locale } = useI18n();
 
 const breakpoints = useBreakpoints({
   mobile: 1000,
