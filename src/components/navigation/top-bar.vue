@@ -142,7 +142,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       img.logo(src="../../assets/logo.png")
     vs-row(justify="center")
       .title {{ t('login') }}
-    vs-button.btn(type="gradient" block color="#E74C3C" @click="enoki_login")
+    vs-button.btn(type="gradient" block color="#E74C3C" @click="enoki_login" :disabled="NETWORK === 'mainnet'")
       i.bx.bxl-google
       span Google
     vs-button.btn(type="gradient" block color="#3498DB" @click="(sui_wallet_dialog = true, login_dialog = false)")

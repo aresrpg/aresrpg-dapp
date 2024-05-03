@@ -9,10 +9,11 @@
 
 <template lang="pug">
 .container
-  span(v-if="!current_wallet && !props.allow_offline") {{ t('please_connect') }}
-  span(v-else-if="!VITE_SERVER_URL && !props.allow_offline")
+  span(v-if="!VITE_SERVER_URL && !props.allow_offline")
     .content
-        i18n-t(keypath="chain_not_supported") #[b.sui-network {{ NETWORK }}] #[a(href="https://testnet.aresrpg.world") https://testnet.aresrpg.world]
+        i18n-t(keypath="chain_not_supported") #[b.sui-network {{ NETWORK }}]
+        a(href="https://testnet.aresrpg.world") https://testnet.aresrpg.world
+  span(v-else-if="!current_wallet && !props.allow_offline") {{ t('please_connect') }}
   slot(v-else)
 </template>
 
@@ -29,12 +30,16 @@ const current_wallet = inject('current_wallet');
 </script>
 
 <style lang="stylus" scoped>
+.content
+  a
+    color #eee
+    text-decoration underline
+    &:hover
+      color #fff
 
 b.sui-network
   max-width 80%
-  margin 0 .3em
-  font-weight 900
-  text-transform uppercase
+  text-transform capitalize
   color #eee
 .container
   padding 3em
