@@ -1,4 +1,4 @@
-import { context, current_character } from '../game/game.js'
+import { context, current_three_character } from '../game/game.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { state_iterator } from '../utils/iterator.js'
 
@@ -6,8 +6,8 @@ import { state_iterator } from '../utils/iterator.js'
 export default function () {
   return {
     tick(state, __, delta) {
-      const player = current_character(state)
-      if (player.mixer) player.mixer.update(delta)
+      const player = current_three_character(state)
+      if (player?.mixer) player.mixer.update(delta)
     },
     reduce(state, { type, payload }) {
       if (type === 'action/select_character')

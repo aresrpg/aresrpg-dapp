@@ -11,7 +11,7 @@ import {
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'
-import { current_character } from '../game/game.js'
+import { current_character_position } from '../game/game.js'
 
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
@@ -84,16 +84,16 @@ export default function () {
         ({ last_sky_lights_version, last_player_position }, [state]) => {
           const lights_changed =
             state.settings.sky.lights.version !== last_sky_lights_version
-          const player = current_character(state)
+          const player_position = current_character_position(state)
 
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version
             update_sky_lights_color(state.settings.sky.lights)
           }
 
-          if (last_player_position && player.position) {
+          if (last_player_position && player_position) {
             const player_moved =
-              distance_between(last_player_position, player.position) > 5
+              distance_between(last_player_position, player_position) > 5
 
             if (lights_changed || player_moved) {
               update_directional_light_position(
@@ -105,7 +105,7 @@ export default function () {
 
           return {
             last_sky_lights_version,
-            last_player_position: player.position,
+            last_player_position: player_position,
           }
         },
         {

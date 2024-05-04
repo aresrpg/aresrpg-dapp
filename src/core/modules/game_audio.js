@@ -12,7 +12,7 @@ import step3 from '../../assets/sound/step3.ogg'
 import step4 from '../../assets/sound/step4.ogg'
 import step5 from '../../assets/sound/step5.ogg'
 import step6 from '../../assets/sound/step6.ogg'
-import { current_character } from '../game/game.js'
+import { current_character_position } from '../game/game.js'
 
 const listener = new AudioListener()
 
@@ -74,13 +74,13 @@ export default function () {
       events.on('packet/characterPosition', ({ id, position }) => {
         const state = get_state()
         const { visible_characters } = state
-        const player = current_character(state)
+        const player_position = current_character_position(state)
 
         // entities only contains other entities, not the player
         const other_character = visible_characters.get(id)
         const { x, y, z } = position
-        if (player.position && other_character) {
-          const distance = player.position.distanceTo(new Vector3(x, y, z))
+        if (player_position && other_character) {
+          const distance = player_position.distanceTo(new Vector3(x, y, z))
 
           if (distance < 40) {
             if (!other_character.audio) {

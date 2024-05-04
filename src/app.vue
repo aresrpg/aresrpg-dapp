@@ -5,7 +5,7 @@ router-view
 <script setup>
 import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 
-import { context } from './core/game/game.js';
+import { context, current_character } from './core/game/game.js';
 import { enoki_address, enoki_wallet } from './core/sui/enoki.js';
 // internal vuejs
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -30,6 +30,8 @@ const server_info = reactive({
 const characters = ref([]);
 const selected_character = ref(null);
 
+const in_fight = ref(false);
+
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
 provide('available_accounts', available_accounts);
@@ -42,17 +44,21 @@ provide('server_info', server_info);
 provide('characters', characters);
 provide('selected_character', selected_character);
 
-function update_accounts({
-  sui: {
-    selected_wallet_name,
-    wallets,
-    balance,
-    selected_address,
-    locked_characters,
-  },
-  selected_character_id,
-  online: state_online,
-}) {
+provide('in_fight', in_fight);
+
+function update_accounts(state) {
+  const {
+    sui: {
+      selected_wallet_name,
+      wallets,
+      balance,
+      selected_address,
+      locked_characters,
+    },
+    selected_character_id,
+    online: state_online,
+  } = state;
+
   const selected_wallet = wallets[selected_wallet_name];
   const accounts = selected_wallet?.accounts ?? [];
   const accounts_addresses = accounts.filter(
@@ -75,11 +81,12 @@ function update_accounts({
       character => character.id !== selected_character_id,
     );
 
-  if (selected_character_id) {
-    selected_character.value = locked_characters.find(
-      character => character.id === selected_character_id,
-    );
-  } else {
+  if (
+    selected_character_id &&
+    selected_character.value?.id !== selected_character_id
+  ) {
+    selected_character.value = current_character(state);
+  } else if (!selected_character_id) {
     selected_character.value = null;
   }
 
