@@ -30,7 +30,7 @@ export async function enoki_login_url() {
     provider: 'google',
     clientId:
       '263863163058-qn6qhkjmdvmlj8f1n4r0kdi4e608usbo.apps.googleusercontent.com',
-    redirectUrl: 'http://localhost:5173/enoki',
+    redirectUrl: `${window.location.origin}/enoki`,
     // @ts-ignore
     network: NETWORK,
   })
@@ -57,8 +57,8 @@ export function enoki_wallet() {
     icon: enoki_logo,
     name: 'Enoki',
     version: '1',
-    connect() {
-      throw new Error('Not implemented')
+    async connect() {
+      window.location.href = await enoki_login_url()
     },
     disconnect() {
       enoki.logout()
