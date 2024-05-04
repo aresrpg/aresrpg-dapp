@@ -9,6 +9,7 @@
   .bottom_panel
     gameChat
     gameHealth
+    gameSpellbar
 </template>
 
 <script setup>
@@ -17,6 +18,7 @@ import wsConnectBtnVue from './ws-connect-btn.vue';
 import zoneVue from './zone.vue';
 import gameChat from './game-chat.vue';
 import gameHealth from './game-health.vue';
+import gameSpellbar from './game-spellbar.vue';
 </script>
 
 <style lang="stylus" scoped>
@@ -44,7 +46,11 @@ import gameHealth from './game-health.vue';
     right 0
     bottom 0
     pointer-events none
-    display flex
+    display grid
+    grid "chat health slots" 1fr / 1fr max-content 1fr
+    place-items end center
+    grid-gap .5em
+    padding .5em
     > *
       pointer-events all
 </style>
