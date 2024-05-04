@@ -27,7 +27,7 @@ export default defineConfig({
       autoInstall: true,
     }),
     VitePWA({
-      includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'robots.txt', '*.png', '*.jpg', '*.svg'],
       registerType: 'autoUpdate',
       workbox: {
         runtimeCaching: [
@@ -56,6 +56,18 @@ export default defineConfig({
               },
               cacheableResponse: {
                 statuses: [0, 200],
+              },
+            },
+          },
+          // New caching rule for assets
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|glb|mp3|wav|ogg)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: {
+                maxEntries: 300,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
               },
             },
           },
