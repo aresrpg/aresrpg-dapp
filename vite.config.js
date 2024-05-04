@@ -27,6 +27,11 @@ export default defineConfig({
       autoInstall: true,
     }),
     VitePWA({
+      scope: '/',
+      base: '/',
+      manifest: {
+        scope: '/',
+      },
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       registerType: 'autoUpdate',
       workbox: {
