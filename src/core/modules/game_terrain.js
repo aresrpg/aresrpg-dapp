@@ -7,7 +7,7 @@ import { Terrain } from '@aresrpg/aresrpg-engine'
 import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
-import { current_character } from '../game/game.js'
+import { current_character_position } from '../game/game.js'
 import proc_layers_json from '../../assets/terrain/proc_gen.json'
 import {
   blocks_colors,
@@ -122,11 +122,11 @@ export default function () {
 
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
-        const player = current_character(state)
+        const player_position = current_character_position(state)
 
-        if (player.position) {
+        if (player_position) {
           terrain.showMapAroundPosition(
-            player.position,
+            player_position,
             state.settings.view_distance,
           )
         }

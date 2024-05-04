@@ -51,6 +51,12 @@ declare namespace Type {
 
   type SuiCharacter = import('@aresrpg/aresrpg-sdk/types').SuiCharacter
 
+  type Spell = { name: string; icon: string }
+  type FullCharacter = ThreeEntity &
+    SuiCharacter & {
+      spells: Spell[]
+    }
+
   type Receipt = {
     id: string
     storage_id: string
@@ -110,6 +116,7 @@ declare namespace Type {
       character_lock_receipts?: Receipt[]
     }
     'action/set_online': boolean
+    'action/character_action': { id: string; action: string }
   } & Packets
 
   type Events = import('@aresrpg/aresrpg-protocol/src/types.d.ts').TypedEmitter<
@@ -121,7 +128,8 @@ declare namespace Type {
       CHUNKS_LOADED: void // notify that the loading of new chunks is finished
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
-    } & Packets
+    } & Packets &
+      Actions
   >
 
   type Action = {
