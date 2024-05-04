@@ -183,13 +183,14 @@ i
   flex-flow column
   background rgba(#212121, .6)
   border-radius 12px
-  margin .5em
-  max-width 1000px
-  width 40%
+  max-width 700px
+  width 100%
   min-width 300px
   min-height 150px
   max-height 150px
   transition all .3s
+  border 1px solid black
+  justify-self end
 
   &.hidden
     opacity .3
