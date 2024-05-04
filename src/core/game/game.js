@@ -56,8 +56,10 @@ import sui_data from '../modules/sui_data.js'
 import sui_wallets from '../modules/sui_wallets.js'
 import { decrease_loading } from '../utils/loading.js'
 import game_connect from '../modules/game_connect.js'
+import player_action from '../modules/player_action.js'
 
 import { handle_server_error } from './error_handler.js'
+import { get_spells } from './spells_per_class.js'
 
 export const GRAVITY = 9.81
 
@@ -159,7 +161,6 @@ export const INITIAL_STATE = {
     right: false,
     walk: false,
     jump: false,
-    dance: false,
   },
 
   selected_character_id: 'default',
@@ -191,16 +192,42 @@ export const INITIAL_STATE = {
   visible_characters: new Map(),
 }
 
-/** @type {(state?: INITIAL_STATE) => Type.ThreeEntity & Type.SuiCharacter} */
+/**
+ * !MUST NOT BE USED IN SUPER FREQUENT CALLS
+ * @type {(state?: INITIAL_STATE) => Type.FullCharacter} */
 export function current_character(state = get_state()) {
   const by_id = ({ id }) => id === state.selected_character_id
   const three_character = state.characters.find(by_id)
   const sui_character = state.sui.locked_characters.find(by_id)
 
+  const spells = get_spells(sui_character?.classe)
+
   return {
     ...sui_character,
     ...three_character,
+    spells,
   }
+}
+
+/** @type {(state?: INITIAL_STATE) => Type.ThreeEntity} */
+export function current_three_character(state = get_state()) {
+  const current = state.characters.find(
+    ({ id }) => id === state.selected_character_id,
+  )
+
+  return {
+    ...current,
+  }
+}
+
+/**
+ * A more lightweight version of the current character, for the position
+ * @type {(state?: INITIAL_STATE) => Vector3} */
+export function current_character_position(state = get_state()) {
+  const three_character = state.characters.find(
+    ({ id }) => id === state.selected_character_id,
+  )
+  return three_character?.position?.clone()
 }
 
 // @ts-ignore
@@ -231,6 +258,7 @@ const MODULES = [
   player_settings,
   player_characters,
   player_movement,
+  player_action,
 
   game_sky,
   game_render,

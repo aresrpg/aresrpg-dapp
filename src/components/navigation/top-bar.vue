@@ -46,6 +46,7 @@ import toast from '../../toast.js';
 
 // @ts-ignore
 import PhCopy from '~icons/ph/copy';
+// @ts-ignore
 import StreamlineEmojisWaterWave from '~icons/streamline-emojis/water-wave';
 
 const { t } = useI18n();
