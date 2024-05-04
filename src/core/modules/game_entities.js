@@ -7,7 +7,7 @@ import { compute_animation_state } from '../animations/animation.js'
 import { abortable } from '../utils/iterator.js'
 import { sui_get_character } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
-import { current_character } from '../game/game.js'
+import { current_character_position } from '../game/game.js'
 
 import { DEFAULT_SUI_CHARACTER } from './sui_data.js'
 
@@ -159,11 +159,11 @@ export default function () {
           entity.remove()
           visible_characters.delete(id)
         } else if (entity) {
-          const player = current_character()
+          const player_position = current_character_position()
           const { x, y, z } = position
           entity.target_position = new Vector3(x, y, z)
-          if (player.position) {
-            const distance = player.position.distanceTo(new Vector3(x, y, z))
+          if (player_position) {
+            const distance = player_position.distanceTo(new Vector3(x, y, z))
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 
@@ -183,12 +183,12 @@ export default function () {
       aiter(abortable(setInterval(1000, null, { signal }))).forEach(() => {
         const state = get_state()
         const { visible_characters } = state
-        const player = current_character(state)
+        const player_position = current_character_position(state)
 
-        if (player.position) {
+        if (player_position) {
           visible_characters.forEach(entity => {
             const { position } = entity
-            const distance = player.position.distanceTo(position)
+            const distance = player_position.distanceTo(position)
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 

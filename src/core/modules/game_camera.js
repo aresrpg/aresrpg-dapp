@@ -5,7 +5,7 @@ import CameraControls from 'camera-controls'
 import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
 
 import { abortable } from '../utils/iterator.js'
-import { current_character } from '../game/game.js'
+import { current_three_character } from '../game/game.js'
 
 const CAMERA_MIN_DISTANCE = 0.001
 const CAMERA_DISTANCE_STEP = 1
@@ -15,8 +15,8 @@ const CAMERA_MAX_DISTANCE = 50
 export default function () {
   return {
     tick(state, { camera_controls }, delta) {
-      const player = current_character(state)
-      if (!player.position) return
+      const player = current_three_character(state)
+      if (!player?.position) return
 
       const {
         settings: { free_camera },
