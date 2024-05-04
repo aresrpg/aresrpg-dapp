@@ -10,6 +10,7 @@ import ContextMenu from '@imengyu/vue3-context-menu'
 import app from './app.vue'
 import router from './router.js'
 import { error_translations } from './core/game/error_handler.js'
+import { error_sui } from './core/sui/client.js'
 
 inject()
 
@@ -32,11 +33,13 @@ export const i18n = createI18n({
   messages: {
     fr: {
       ...error_translations.fr,
+      ...error_sui.fr,
       sign_message:
         '[AresRPG] Ceci est un message de vérification pour prouver que vous possédez cette adresse. Il vous permettra de vous connecter au serveur',
     },
     en: {
       ...error_translations.en,
+      ...error_sui.en,
       sign_message:
         '[AresRPG] This is a verification message to prove that you own this address. It will allow you to connect to the server',
     },

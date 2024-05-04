@@ -13,7 +13,40 @@ import logger from '../../logger.js'
 import toast from '../../toast.js'
 import { NETWORK, VITE_SUI_RPC, VITE_SUI_WSS } from '../../env.js'
 
+// @ts-ignore
+import TwemojiSalt from '~icons/twemoji/salt'
+// @ts-ignore
+import MapGasStation from '~icons/map/gas-station'
+// @ts-ignore
+import MaterialSymbolsLightRuleSettings from '~icons/material-symbols-light/rule-settings'
+
 const SUINS_CACHE = new LRUCache({ max: 50 })
+
+let t = null
+
+export const error_sui = {
+  en: {
+    LOGIN_AGAIN: 'Please login again',
+    WALLET_NOT_FOUND: 'Wallet not found',
+    PLEASE_SWITCH_NETWORK: 'Please switch to the Sui',
+    ENOKI_SALT:
+      'Enoki failed to deliver the transaction (salt failure). Please try again.',
+    OUTDATED: `The app is outdated and can't use this feature. Please update the app.`,
+    NO_GAS: 'You need Sui in your wallet to perform this action',
+    WALLET_CONFIG: 'Wallet configuration error',
+  },
+  fr: {
+    LOGIN_AGAIN: 'Veuillez vous reconnecter',
+    WALLET_NOT_FOUND: 'Portefeuille introuvable',
+    PLEASE_SWITCH_NETWORK: 'Veuillez passer sur le Sui',
+    ENOKI_SALT:
+      "Enoki n'a pas pu livrer la transaction (échec du salt). Veuillez réessayer.",
+    OUTDATED: `L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour l'application.`,
+    NO_GAS:
+      'Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action',
+    WALLET_CONFIG: 'Erreur de configuration du portefeuille',
+  },
+}
 
 export const OBJECTS_CACHE = new LRUCache({
   max: 500,
@@ -52,14 +85,29 @@ function get_address() {
 }
 
 const execute = async transaction_block => {
+  if (!t) {
+    const { i18n } = await import('../../main.js')
+    // eslint-disable-next-line prefer-destructuring
+    t = i18n.global.t
+  }
+
   const sender = get_address()
   if (!sender) {
-    toast.error('Please login again', 'Wallet not found')
+    toast.error(t('LOGIN_AGAIN'), t('WALLET_NOT_FOUND'))
     throw new Error('Wallet not found')
   }
 
   try {
     const wallet = get_wallet()
+
+    if (wallet.chain !== `sui:${NETWORK}`) {
+      toast.error(
+        t('PLEASE_SWITCH_NETWORK') + ' ' + NETWORK,
+        t('WALLET_CONFIG'),
+        MaterialSymbolsLightRuleSettings,
+      )
+      return
+    }
 
     // ? Enoki doesn't seem to support returning a signed transaction block
     if (wallet.name === 'Enoki') {
@@ -84,12 +132,17 @@ const execute = async transaction_block => {
       return result
     }
   } catch (error) {
+    console.dir({ error }, { depth: Infinity })
     if (error.code === 'salt_failure') {
-      toast.error(
-        'Enoki failed to deliver the transaction (salt failure). Please try again.',
-      )
+      toast.error(t('ENOKI_SALT'), 'Oh no!', TwemojiSalt)
       return
     }
+
+    if (error.message.includes('No valid gas coins')) {
+      toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
+      return
+    }
+
     if (
       error.message.includes('rejection') ||
       error.message.includes('Rejected')
@@ -97,9 +150,7 @@ const execute = async transaction_block => {
       return
 
     if (error.message.includes('Some("assert_latest") }, 1')) {
-      toast.error(
-        `The app is outdated and can't use this feature. Please update the app.`,
-      )
+      toast.error(t('OUTDATED'))
     } else toast.error(error.message, 'Transaction failed')
     throw error
   }
@@ -217,10 +268,7 @@ export async function sui_is_character_name_taken(name) {
       return
 
     if (error.message.includes('No valid gas coins')) {
-      toast.error(
-        'You need Sui in your wallet to perform this action',
-        'Transaction failed',
-      )
+      toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
       return
     }
 
