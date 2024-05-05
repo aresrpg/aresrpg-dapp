@@ -10,6 +10,7 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { state_iterator } from '../utils/iterator.js'
+import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -74,8 +75,11 @@ export default function () {
 
       // Add this after the outline pass is created
 
+      const underwater_pass = new UnderwaterPass()
+
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
+      composer.addPass(underwater_pass)
       composer.addPass(bloompass)
       // composer.addPass(gtaopass)
       // composer.addPass(n8aopass)
@@ -98,6 +102,7 @@ export default function () {
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
+            underwater_pass.enabled = postprocessing.underwater_pass.enabled
           }
 
           return {
@@ -114,6 +119,7 @@ export default function () {
         () => {
           composer.removePass(renderpass)
           composer.removePass(cartoon_renderpass)
+          composer.removePass(underwater_pass)
           composer.removePass(bloompass)
           // composer.removePass(gtaopass)
           // composer.removePass(n8aopass)
