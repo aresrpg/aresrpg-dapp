@@ -28,6 +28,7 @@ class CartoonRenderpass extends Pass {
 
     this.scene = scene
     this.camera = camera
+    this.enable_thick_lines = false
 
     this.needsSwap = false
 
@@ -45,6 +46,7 @@ class CartoonRenderpass extends Pass {
         uTexelSize: { value: new Vector2(1, 1) },
         uCameraNear: { value: 0 },
         uCameraFar: { value: 0 },
+        uThickLines: { value: 0 },
       },
       vertexShader: `in vec2 aCorner;
 
@@ -62,6 +64,7 @@ class CartoonRenderpass extends Pass {
             uniform vec2 uTexelSize;
             uniform float uCameraNear;
             uniform float uCameraFar;
+            uniform uint uThickLines;
 
             in vec2 vUv;
             out vec4 fragColor;
@@ -173,7 +176,13 @@ class CartoonRenderpass extends Pass {
             }
 
             float computeOutline(float fragDepth) {
-                float sobel = abs(computeSobel_3(fragDepth));
+                float sobel;
+                if (uThickLines == 1u) {
+                  sobel = computeSobel_5(fragDepth);
+                } else {
+                  sobel = computeSobel_3(fragDepth);
+                }
+                sobel = abs(sobel);
                 sobel = min(0.5, sobel);
 
                 const float maxDepth = 0.75;
@@ -272,6 +281,7 @@ class CartoonRenderpass extends Pass {
       read_buffer.depthTexture
     this.#outline_material.uniforms.uCameraNear.value = this.camera.near
     this.#outline_material.uniforms.uCameraFar.value = this.camera.far
+    this.#outline_material.uniforms.uThickLines.value = +this.enable_thick_lines
     this.#fullscreen_quad.material = this.#outline_material
 
     this.camera.layers.enableAll()
