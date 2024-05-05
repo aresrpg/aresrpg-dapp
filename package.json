@@ -8,8 +8,7 @@
     "build": "vite build",
     "lint": "eslint . && prettier . --check && npm run typecheck",
     "typecheck": "vue-tsc --build",
-    "format": "prettier . --write && eslint . --fix",
-    "postversion": "git push --follow-tags"
+    "format": "prettier . --write && eslint . --fix"
   },
   "dependencies": {
     "@aresrpg/aresrpg-engine": "^1.6.1",
