@@ -123,7 +123,6 @@ declare namespace Type {
       CHUNKS_LOADED: void // notify that the loading of new chunks is finished
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
-      SKY_SUNSIZE_CHANGED: number
     } & Packets
   >
 

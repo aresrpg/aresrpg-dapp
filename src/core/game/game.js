@@ -111,7 +111,6 @@ export const INITIAL_STATE = {
     sky: {
       paused: false,
       value: 0.78,
-      sun_size: 0.0004,
 
       lights: {
         version: -1,
