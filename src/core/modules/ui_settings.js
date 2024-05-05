@@ -143,6 +143,13 @@ export default function () {
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_bloom_folder.open()
 
+      postprocessing_folder
+        .add(settings.postprocessing.underwater_pass, 'enabled')
+        .name('Enable underwater')
+        .onFinishChange(dispatch_postprocessing_change)
+
+      dispatch_postprocessing_change()
+
       game_folder.open()
       terrain_folder.open()
       camera_folder.open()

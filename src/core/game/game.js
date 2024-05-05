@@ -151,6 +151,10 @@ export const INITIAL_STATE = {
         enabled: true,
         strength: 0.2,
       },
+
+      underwater_pass: {
+        enabled: false,
+      },
     },
   },
 
