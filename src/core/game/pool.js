@@ -313,8 +313,6 @@ export default function create_pools(scene) {
             dispose(origin)
           },
           animate(name) {
-            if (name === 'IDLE' && current_animation === actions.DANCE) return
-
             const animation = actions[name]
             if (animation && animation !== current_animation) {
               fade_to_animation(current_animation, animation)
