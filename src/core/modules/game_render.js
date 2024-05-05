@@ -108,7 +108,7 @@ export default function () {
       // composer.addPass(outputpass)
 
       state_iterator().reduce(
-        ({ last_postprocessing_version }, { postprocessing }) => {
+        ({ last_postprocessing_version }, { settings: { postprocessing } }) => {
           const postprocessing_changed =
             postprocessing.version !== last_postprocessing_version
 
