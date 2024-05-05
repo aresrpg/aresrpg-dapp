@@ -90,6 +90,7 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
 /** @typedef {typeof INITIAL_STATE.settings.sky.lights} SkyLights */
+/** @typedef {typeof INITIAL_STATE.settings.postprocessing} PostProcessingState */
 
 export const INITIAL_STATE = {
   settings: {
@@ -135,6 +136,25 @@ export const INITIAL_STATE = {
     view_distance: 100,
 
     free_camera: false,
+
+    postprocessing: {
+      version: 0,
+      enabled: true,
+
+      cartoon_pass: {
+        enabled: true,
+        thick_lines: false,
+      },
+
+      bloom_pass: {
+        enabled: true,
+        strength: 1.5,
+      },
+
+      outline_pass: {
+        enabled: true,
+      },
+    },
   },
 
   inputs: {
@@ -439,8 +459,12 @@ function animate() {
       .forEach(tick => tick(state, context, delta))
 
     renderer.info.reset()
-    // renderer.render(scene, camera)
-    composer.render()
+
+    if (state.settings.postprocessing.enabled) {
+      composer.render()
+    } else {
+      renderer.render(scene, camera)
+    }
 
     const next_frame_duration = 1000 / state.settings.target_fps
 

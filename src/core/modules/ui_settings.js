@@ -29,8 +29,14 @@ export default function () {
       daytime_folder.open()
       const terrain_folder = gui.addFolder('Terrain Settings')
       const camera_folder = gui.addFolder('Camera Settings')
+      const postprocessing_folder = gui.addFolder('Postprocessing Settings')
 
       const handle_change = name => value => dispatch(name, value)
+
+      const dispatch_postprocessing_change = () => {
+        settings.postprocessing.version++
+        dispatch('action/postprocessing_changed', settings.postprocessing)
+      }
 
       game_folder
         .add(settings, 'show_fps')
@@ -112,9 +118,44 @@ export default function () {
         .name('Free Camera')
         .onFinishChange(handle_change('action/free_camera'))
 
+      postprocessing_folder
+        .add(settings.postprocessing, 'enabled')
+        .name('Enable')
+        .onFinishChange(dispatch_postprocessing_change)
+
+      const postprocessing_cartoon_folder =
+        postprocessing_folder.addFolder('Cartoon')
+      postprocessing_cartoon_folder
+        .add(settings.postprocessing.cartoon_pass, 'enabled')
+        .name('Enable')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_cartoon_folder
+        .add(settings.postprocessing.cartoon_pass, 'thick_lines')
+        .name('Thick lines')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_cartoon_folder.open()
+
+      const postprocessing_bloom_folder =
+        postprocessing_folder.addFolder('Bloom')
+      postprocessing_bloom_folder
+        .add(settings.postprocessing.bloom_pass, 'enabled')
+        .name('Enable')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_bloom_folder
+        .add(settings.postprocessing.bloom_pass, 'strength', 0, 1)
+        .name('Strength')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_bloom_folder.open()
+
+      postprocessing_folder
+        .add(settings.postprocessing.outline_pass, 'enabled')
+        .name('Enable outline')
+        .onFinishChange(dispatch_postprocessing_change)
+
       game_folder.open()
       terrain_folder.open()
       camera_folder.open()
+      postprocessing_folder.open()
       gui.hide()
     },
   }

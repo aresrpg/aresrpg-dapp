@@ -24,6 +24,7 @@ declare namespace Type {
   type Await<T> = T extends Promise<infer U> ? U : T
   type Position = { x: number; y: number; z: number }
   type SkyLights = import('./core/game/game.js').SkyLights
+  type PostProcessingState = import('./core/game/game.js').PostProcessingState
 
   type ThreeEntity = {
     id: string
@@ -89,6 +90,7 @@ declare namespace Type {
   type Actions = {
     'action/show_fps': boolean
     'action/target_fps': number
+    'action/postprocessing_changed': Type.PostProcessingState
     'action/keydown': string
     'action/keyup': string
     'action/mousedown': number
