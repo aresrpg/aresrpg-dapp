@@ -13,7 +13,7 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import { abortable } from '../utils/iterator.js'
+import { abortable, state_iterator } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -107,34 +107,23 @@ export default function () {
       composer.addPass(smaapass)
       // composer.addPass(outputpass)
 
-      function apply_state(
-        /** @type Type.PostProcessingState */ postprocessing,
-      ) {
-        cartoon_renderpass.enabled = postprocessing.cartoon_pass.enabled
-        cartoon_renderpass.enable_thick_lines =
-          postprocessing.cartoon_pass.thick_lines
-
-        renderpass.enabled = !cartoon_renderpass.enabled
-
-        bloompass.enabled = postprocessing.bloom_pass.enabled
-        bloompass.strength = postprocessing.bloom_pass.strength
-
-        outline.enabled = postprocessing.outline_pass.enabled
-      }
-
-      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
-        (
-          { last_postprocessing_version },
-          /** @type Type.State[] */ [state],
-        ) => {
-          const { postprocessing } = state.settings
-
+      state_iterator().reduce(
+        ({ last_postprocessing_version }, { postprocessing }) => {
           const postprocessing_changed =
             postprocessing.version !== last_postprocessing_version
 
           if (postprocessing_changed) {
             last_postprocessing_version = postprocessing.version
-            apply_state(postprocessing)
+            cartoon_renderpass.enabled = postprocessing.cartoon_pass.enabled
+            cartoon_renderpass.enable_thick_lines =
+              postprocessing.cartoon_pass.thick_lines
+
+            renderpass.enabled = !cartoon_renderpass.enabled
+
+            bloompass.enabled = postprocessing.bloom_pass.enabled
+            bloompass.strength = postprocessing.bloom_pass.strength
+
+            outline.enabled = postprocessing.outline_pass.enabled
           }
 
           return {

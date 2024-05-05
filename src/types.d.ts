@@ -23,8 +23,6 @@ declare namespace Type {
   type GameState = 'MENU' | 'GAME' | 'EDITOR'
   type Await<T> = T extends Promise<infer U> ? U : T
   type Position = { x: number; y: number; z: number }
-  type SkyLights = import('./core/game/game.js').SkyLights
-  type PostProcessingState = import('./core/game/game.js').PostProcessingState
 
   type ThreeEntity = {
     id: string
@@ -90,7 +88,7 @@ declare namespace Type {
   type Actions = {
     'action/show_fps': boolean
     'action/target_fps': number
-    'action/postprocessing_changed': Type.PostProcessingState
+    'action/postprocessing_changed': State['settings']['postprocessing']
     'action/keydown': string
     'action/keyup': string
     'action/mousedown': number
@@ -99,7 +97,7 @@ declare namespace Type {
     'action/select_character': string
     'action/view_distance': number
     'action/free_camera': boolean
-    'action/sky_lights_change': SkyLights
+    'action/sky_lights_change': State['settings']['sky_lights']
     'action/add_character': SuiCharacter
     'action/remove_character': string
     'action/register_wallet': Wallet
@@ -114,7 +112,7 @@ declare namespace Type {
     'action/set_online': boolean
   } & Packets
 
-  type Events = import('@aresrpg/aresrpg-protocol/src/types').TypedEmitter<
+  type Events = import('@aresrpg/aresrpg-protocol/src/types.d.ts').TypedEmitter<
     {
       STATE_UPDATED: State // the game state has been updated
       MOVE_MENU_CAMERA: [number, number, number] // move the camera of the menu screen

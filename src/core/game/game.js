@@ -89,8 +89,6 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {(state: State, context: Context, delta: number) => void} Ticker */
 /** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
-/** @typedef {typeof INITIAL_STATE.settings.sky.lights} SkyLights */
-/** @typedef {typeof INITIAL_STATE.settings.postprocessing} PostProcessingState */
 
 export const INITIAL_STATE = {
   settings: {
