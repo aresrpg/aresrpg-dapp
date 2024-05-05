@@ -240,12 +240,10 @@ export default function () {
         }
       })
 
-      events.on('SKY_SUNSIZE_CHANGED', update_sun_size)
-
       events.once('STATE_UPDATED', state => {
         day_autoupdate_paused = state.settings.sky.paused
         set_day_time(state.settings.sky.value)
-        update_sun_size(state.settings.sky.sun_size)
+        update_sun_size(0.0004)
       })
 
       aiter(
