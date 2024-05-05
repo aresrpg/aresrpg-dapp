@@ -6,7 +6,7 @@ import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
 import { WorldGenerator } from '@aresrpg/aresrpg-world'
 
-import { GRAVITY, context, current_character } from '../game/game.js'
+import { GRAVITY, context } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { compute_animation_state } from '../animations/animation.js'
 
@@ -35,11 +35,10 @@ export default function () {
   let jump_state = jump_states.NONE
   let jump_cooldown = 0
   let on_ground = false
-  let is_dancing = false
-  let is_walking = false
   let chunks_loaded = false
-
-  let last_dance = 0
+  let current_action = 'IDLE'
+  let last_action = 'IDLE'
+  let already_cancelled = false
 
   const dummy = new Object3D()
 
@@ -115,11 +114,14 @@ export default function () {
           jump_cooldown = JUMP_COOLDWON
           on_ground = false
 
-          context.send_packet('packet/characterAction', {
-            id: player.id,
-            action: 'JUMP',
-          })
-          is_walking = false
+          // context.send_packet('packet/characterAction', {
+          //   id: player.id,
+          //   action: 'JUMP',
+          // })
+          // context.dispatch('action/character_action', {
+          //   id: player.id,
+          //   action: 'JUMP',
+          // })
         } else {
           jump_state = jump_states.NONE
 
@@ -132,18 +134,23 @@ export default function () {
 
       switch (jump_state) {
         case jump_states.ASCENT:
+          if (current_action !== 'JUMP_RUN') current_action = 'FALL'
           // if started jumping, apply normal gravity
           velocity.y -= GRAVITY * ASCENT_GRAVITY_FACTOR * delta
           // prepare apex phase
           if (velocity.y <= 0.2) jump_state = jump_states.APEX
           break
         case jump_states.APEX:
+          // ignore falling if jumping while running
+          if (current_action !== 'JUMP_RUN') current_action = 'FALL'
           // if apex phase, apply reduced gravity
           velocity.y -= GRAVITY * APEX_GRAVITY_FACTOR * delta
           // prepare descent phase
           if (velocity.y <= 0) jump_state = jump_states.DESCENT
           break
         case jump_states.DESCENT:
+          // ignore falling if jumping while running
+          if (current_action !== 'JUMP_RUN') current_action = 'FALL'
           // if descent phase, apply increased gravity
           velocity.y -= GRAVITY * DESCENT_GRAVITY_FACTOR * delta
           // and also cancel forward impulse
@@ -152,6 +159,7 @@ export default function () {
           break
         case jump_states.NONE:
         default:
+          current_action = 'IDLE'
           // if not jumping, apply normal gravity as long as chunks are there
           if (on_ground) velocity.y = -GRAVITY * delta
           else velocity.y -= GRAVITY * DESCENT_GRAVITY_FACTOR * delta
@@ -187,68 +195,38 @@ export default function () {
 
       const is_moving_horizontally = movement.x !== 0 || movement.z !== 0
 
-      if (inputs.dance && !is_dancing && Date.now() - last_dance > 1000) {
-        is_dancing = true
-        last_dance = Date.now()
-        context.send_packet('packet/characterAction', {
-          id: player.id,
-          action: 'DANCE',
-        })
-      }
-
       if (is_moving_horizontally) {
-        is_dancing = false
         player.rotate(movement)
+        current_action = 'RUN'
 
         if (on_ground) {
-          if (inputs.walk && !is_walking) {
-            is_walking = true
-            context.send_packet('packet/characterAction', {
-              id: player.id,
-              action: 'WALK',
-            })
-          }
-
-          if (!inputs.walk && is_walking) {
-            is_walking = false
-            context.send_packet('packet/characterAction', {
-              id: player.id,
-              action: 'RUN',
-            })
-          }
-        }
+          if (inputs.walk) current_action = 'WALK'
+        } else if (jump_state === jump_states.ASCENT)
+          current_action = 'JUMP_RUN'
 
         if (on_ground) play_step_sound()
       }
 
-      const animation_name = compute_animation_state({
-        is_on_ground: dummy_bottom_y - 4 < ground_height,
-        // is_on_ground: ground_distance < 5,
-        is_moving_horizontally,
-        action:
-          jump_state === jump_states.ASCENT
-            ? 'JUMP'
-            : inputs.walk && is_moving_horizontally
-              ? 'WALK'
-              : inputs.dance
-                ? 'DANCE'
-                : null,
-      })
+      if (!(dummy_bottom_y - 4 < ground_height)) current_action = 'FALL'
 
-      if (is_moving_horizontally || !on_ground) player.animate(animation_name)
-      else player.animate(inputs.dance ? 'DANCE' : 'IDLE')
+      const should_cancel_other_actions =
+        is_moving_horizontally &&
+        !['RUN', 'WALK', 'JUMP', 'JUMP_RUN', 'FALL'].includes(player.action) &&
+        !already_cancelled
 
-      // const last_chunk = to_chunk_position(origin)
-      // const current_chunk = to_chunk_position(dummy.position)
+      if (current_action !== last_action || should_cancel_other_actions) {
+        context.dispatch('action/character_action', {
+          id: player.id,
+          action: current_action,
+        })
+        already_cancelled = true
+      }
 
-      // compute_sensors({
-      //   player,
-      //   character: {
-      //     capsule_radius: player.radius,
-      //     capsule_segment: player.segment,
-      //   },
-      //   sensors: shared.get_sensors(current_chunk),
-      // })
+      if (player.action === current_action) already_cancelled = false
+
+      last_action = current_action
+
+      player.animate(player.action)
     },
     reduce(state, { type, payload }) {
       // if the character is mine
@@ -268,7 +246,10 @@ export default function () {
     observe({ events, signal, dispatch, send_packet }) {
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
         last_position => {
-          const player = current_character()
+          const { characters, selected_character_id } = context.get_state()
+          const player = characters.find(
+            character => character.id === selected_character_id,
+          )
 
           if (!player.position) return last_position
 
