@@ -95,27 +95,6 @@ export default function () {
 
       pool.register_outline(outline)
 
-      const character_entities = [
-        pool.iop_female,
-        pool.iop_male,
-        pool.sram_female,
-        pool.sram_male,
-      ]
-
-      // add all the characters to the outline pass
-      // and register a dispose event to remove them
-      character_entities
-        .map(entity => entity.instanced_entity)
-        .forEach(({ body, on_dispose }) => {
-          outline.selectedObjects.push(body)
-          on_dispose(() => {
-            outline.selectedObjects.splice(
-              outline.selectedObjects.indexOf(body),
-              1,
-            )
-          })
-        })
-
       // Add this after the outline pass is created
 
       composer.addPass(renderpass)
