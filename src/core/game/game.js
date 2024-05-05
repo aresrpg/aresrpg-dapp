@@ -148,7 +148,7 @@ export const INITIAL_STATE = {
 
       bloom_pass: {
         enabled: true,
-        strength: 1.5,
+        strength: 0.2,
       },
 
       outline_pass: {
