@@ -4,32 +4,41 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Box3, Color, Vector2, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
-import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
+import { ProcLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
-import { current_three_character } from '../game/game.js'
-import proc_layers_json from '../../assets/terrain/proc_gen.json'
 import {
   blocks_colors,
-  terrain_mapping,
+  blocks_mapping_conf,
 } from '../utils/terrain/world_settings.js'
 
 /** @type {Type.Module} */
 export default function () {
-  const noise_scale = 1 / 8
-  const proc_layers = ProcGenLayer.fromJsonConfig({
-    procLayers: proc_layers_json.noise_panels,
-  })
-  const selection = ProcGenLayer.layerIndex(0)
-  WorldGenerator.instance.config = {
-    selection,
-    samplingScale: noise_scale,
-    procLayers: proc_layers,
-    terrainBlocksMapping: Object.values(terrain_mapping),
-    seaLevel: 76,
-  }
+  /**
+   * Procedural generation
+   */
+  const world_gen = WorldGenerator.instance
+  world_gen.heightmap.params.spreading = 1.42 - 1
+  world_gen.heightmap.sampling.harmonicsCount = 6
+  world_gen.amplitude.sampling.seed = 'amplitude_mod'
+  // Terrain blocks mapping
+  // const sortedItems = Object.values(blocks_mapping_conf).sort(
+  //   (item1, item2) => item1.x - item2.x,
+  // )
+  world_gen.blocksMapping.setMappingRanges(blocks_mapping_conf)
+  world_gen.blocksMapping.params.seaLevel = blocks_mapping_conf.beach.x
 
   const water_material_id = 1
+  // Vegetation tree distribution
+  const tree_map = new ProcLayer('treemap')
+  tree_map.sampling.harmonicsCount = 6 + 1
+  tree_map.params.spreading = 1.25 - 1
+  // amplitudeMod.next = treeMap
+  // const selection = isNaN(urlParams.layer) ? "all" : ProcGenLayer.layerIndex(urlParams.layer)
+
+  /**
+   * Engine
+   */
   const map = {
     voxelMaterialsList: Object.values(blocks_colors).map(col => ({
       color: new Color(col),
@@ -58,16 +67,11 @@ export default function () {
 
       let is_empty = true
       const bbox = new Box3(block_start, block_end)
-      for (const voxel of WorldGenerator.instance.generate(bbox, false)) {
-        if (voxel.type !== water_material_id) {
-          const local_position = new Vector3().subVectors(
-            voxel.pos,
-            block_start,
-          )
-          const cache_index = build_index(local_position)
-          cache[cache_index] = 1 + voxel.type
-          is_empty = false
-        }
+      for (const voxel of WorldGenerator.instance.genBlocks(bbox, true)) {
+        const local_position = new Vector3().subVectors(voxel.pos, block_start)
+        const cache_index = build_index(local_position)
+        cache[cache_index] = 1 + voxel.type
+        is_empty = false
       }
 
       return {
@@ -76,10 +80,15 @@ export default function () {
       }
     },
     sampleHeightmap(x, z) {
-      const block_level =
-        WorldGenerator.instance.getHeight(new Vector2(x, z)) - 1
-      const block_pos = new Vector3(x, block_level, z)
-      const block_type = WorldGenerator.instance.getBlockType(block_pos)
+      const block_pos = new Vector3(x, 0, z)
+      const block_level = WorldGenerator.instance.getHeight(block_pos)
+      block_pos.y = block_level
+      // hack to get native noise val and compute block type
+      const raw_val = WorldGenerator.instance.heightmap.lastEval.raw
+      const block_type = WorldGenerator.instance.blocksMapping.getBlockType(
+        block_pos,
+        raw_val,
+      )
       const block_color = new Color(blocks_colors[block_type])
       let altitude = block_level + 1
       if (block_type === water_material_id) {
@@ -87,16 +96,28 @@ export default function () {
       }
 
       return {
-        altitude,
+        altitude: block_pos.y + 0.25,
         color: block_color,
       }
     },
   }
 
   const terrain = new Terrain(map)
-
+  terrain.parameters.voxels.map.minAltitude = 0
+  terrain.parameters.voxels.map.maxAltitude = 400
+  // let last_regen = 0
+  // const regen_delay = 1000
   return {
     tick() {
+      // if (WorldGenerator.instance.needsRegen) {
+      //   const current_time = Date.now()
+      //   if (current_time - last_regen >= regen_delay) {
+      //     console.log(`regen terrain`)
+      //     last_regen = current_time
+      //     WorldGenerator.instance.needsRegen = false
+      //     terrain.clear()
+      //   }
+      // }
       terrain.update()
     },
     observe({ camera, events, signal, scene, get_state }) {
