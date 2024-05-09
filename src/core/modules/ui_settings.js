@@ -57,7 +57,7 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
                 const ground_height = WorldGenerator.instance.getHeight(
-                  new Vector2(x, z),
+                  player.position,
                 )
 
                 dispatch('packet/characterPosition', {
