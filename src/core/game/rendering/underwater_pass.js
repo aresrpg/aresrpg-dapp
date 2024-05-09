@@ -161,15 +161,17 @@ class UnderwaterPass extends Pass {
                 vec2 dUv = vec2(
                   noise(vec3(3.0 * uv.xy, uTime)),
                   noise(vec3(3.0 * uv.yx, uTime))
-                ) - 0.5;
+                );
 
                 vec2 atCenter = 1.0 - smoothstep(0.35, 0.5, abs(vUv - 0.5));
                 float factor = min(atCenter.x, atCenter.y);
                 dUv *= factor;
+                dUv *= 0.03;
 
-                uv = fract(vUv + 0.03 * dUv);
+                uv = fract(vUv + dUv);
+                uv = clamp(uv, vec2(0), vec2(1));
+
                 gl_FragColor = vec4(uColor, 1) * texture2D(uTexture, uv);
-                // gl_FragColor = vec4(dUv.x, 0, 0, 1);
             }`,
     })
 
