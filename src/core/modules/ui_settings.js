@@ -29,7 +29,8 @@ export default function () {
       daytime_folder.open()
       const terrain_folder = gui.addFolder('Terrain Settings')
       const camera_folder = gui.addFolder('Camera Settings')
-
+      // const procgen_folder = gui.addFolder('Procgen Settings')
+      // ProcGenGuiGenerator(procgen_folder)
       const handle_change = name => value => dispatch(name, value)
 
       game_folder
@@ -51,7 +52,7 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
                 const ground_height = WorldGenerator.instance.getHeight(
-                  new Vector2(x, z),
+                  player.position,
                 )
 
                 dispatch('packet/characterPosition', {

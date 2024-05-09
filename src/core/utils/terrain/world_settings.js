@@ -3,72 +3,80 @@ import { BlockType } from '@aresrpg/aresrpg-world'
 export const blocks_colors = {
   [BlockType.NONE]: 0x000000,
   [BlockType.WATER]: 0x74ccf4,
+  [BlockType.TREE_TRUNK]: 0x795548,
+  [BlockType.TREE_FOLIAGE]: 0x41980a,
   [BlockType.SAND]: 0xc2b280,
   [BlockType.GRASS]: 0x41980a,
-  [BlockType.DRY_GRASS]: 0x41980a, // TODO
-  [BlockType.MUD]: 0x41980a, // TODO
+  [BlockType.MUD]: 0x795548,
   [BlockType.ROCK]: 0xababab,
   [BlockType.SNOW]: 0xe5e5e5,
 }
 
-/**
- * terrain height mapping to block type
- */
-export const terrain_mapping = {
+export const blocks_mapping_conf = {
   sea: {
+    id: 0,
+    x: 0,
+    y: 0,
     blockType: BlockType.WATER,
-    threshold: 0,
-    randomness: {
+    amplitude: {
       low: 0,
       high: 0,
     },
   },
+  sea_2: { x: 0.18, y: 0.05 },
   beach: {
+    id: 2,
+    x: 0.26,
+    y: 0.21,
     blockType: BlockType.SAND,
-    threshold: 75,
-    randomness: {
+    amplitude: {
       low: 0,
       high: 5,
     },
   },
   cliff: {
+    id: 3,
+    x: 0.33,
+    y: 0.23,
     blockType: BlockType.ROCK,
-    threshold: 84,
-    randomness: {
+    amplitude: {
       low: 0,
       high: 0,
     },
   },
-  lowlands: {
-    blockType: BlockType.DRY_GRASS,
-    threshold: 106,
-    randomness: {
-      low: 8,
-      high: 0,
-    },
-  },
-  highlands: {
+  cliff_2: { x: 0.48, y: 0.42 },
+  lands: {
+    id: 4,
+    x: 0.48,
+    y: 0.42,
     blockType: BlockType.GRASS,
-    threshold: 125,
-    randomness: {
+    amplitude: {
       low: 0,
-      high: 15,
+      high: 0.2,
     },
+    treeSpawn: true,
   },
   mountains: {
+    id: 5,
+    x: 0.71,
+    y: 0.52,
     blockType: BlockType.ROCK,
-    threshold: 150,
-    randomness: {
+    amplitude: {
       low: 0,
-      high: 20,
+      high: 25,
     },
+    treeSpawn: true,
   },
   mountains_top: {
+    id: 6,
+    x: 0.9,
+    y: 0.76,
     blockType: BlockType.SNOW,
-    threshold: 185,
-    randomness: {
-      low: 25,
+    amplitude: {
+      low: 0,
       high: 0,
     },
   },
+  mountains_top_2: { x: 0.95, y: 0.92 },
+  mountains_top_3: { x: 1, y: 0.9 },
 }
