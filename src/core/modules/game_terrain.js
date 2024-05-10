@@ -2,7 +2,17 @@ import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Box3, Color, Vector2, Vector3 } from 'three'
+import {
+  Box3,
+  Color,
+  DoubleSide,
+  Matrix4,
+  Mesh,
+  MeshPhongMaterial,
+  PlaneGeometry,
+  Vector2,
+  Vector3,
+} from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
 import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 
@@ -29,6 +39,7 @@ export default function () {
     seaLevel: 76,
   }
 
+  const water_material_id = 1
   const map = {
     voxelMaterialsList: Object.values(blocks_colors).map(col => ({
       color: new Color(col),
@@ -58,10 +69,15 @@ export default function () {
       let is_empty = true
       const bbox = new Box3(block_start, block_end)
       for (const voxel of WorldGenerator.instance.generate(bbox, false)) {
-        const local_position = new Vector3().subVectors(voxel.pos, block_start)
-        const cache_index = build_index(local_position)
-        cache[cache_index] = 1 + voxel.type
-        is_empty = false
+        if (voxel.type !== water_material_id) {
+          const local_position = new Vector3().subVectors(
+            voxel.pos,
+            block_start,
+          )
+          const cache_index = build_index(local_position)
+          cache[cache_index] = 1 + voxel.type
+          is_empty = false
+        }
       }
 
       return {
@@ -75,8 +91,13 @@ export default function () {
       const block_pos = new Vector3(x, block_level, z)
       const block_type = WorldGenerator.instance.getBlockType(block_pos)
       const block_color = new Color(blocks_colors[block_type])
+      let altitude = block_level + 1
+      if (block_type === water_material_id) {
+        altitude = -1
+      }
+
       return {
-        altitude: block_level + 1,
+        altitude,
         color: block_color,
       }
     },
