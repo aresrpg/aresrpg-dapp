@@ -48,6 +48,7 @@ import game_lights from '../modules/game_lights.js'
 import game_audio from '../modules/game_audio.js'
 import game_entities from '../modules/game_entities.js'
 import game_terrain from '../modules/game_terrain.js'
+import game_water from '../modules/game_water.js'
 import game_instanced from '../modules/game_instanced.js'
 import create_pools from '../game/pool.js'
 import logger from '../../logger.js'
@@ -270,6 +271,7 @@ const MODULES = [
   game_audio,
   game_entities,
   game_terrain,
+  game_water,
   game_connect,
 ]
 
