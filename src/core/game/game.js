@@ -144,6 +144,7 @@ export const INITIAL_STATE = {
 
     camera: {
       is_free: false,
+      is_underwater: false,
     },
 
     postprocessing: {
@@ -161,7 +162,7 @@ export const INITIAL_STATE = {
       },
 
       underwater_pass: {
-        enabled: false,
+        enabled: true,
       },
     },
   },
