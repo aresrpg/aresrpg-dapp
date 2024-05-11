@@ -141,7 +141,9 @@ export const INITIAL_STATE = {
 
     view_distance: 100,
 
-    free_camera: false,
+    camera: {
+      is_free: false,
+    },
 
     postprocessing: {
       version: 0,
