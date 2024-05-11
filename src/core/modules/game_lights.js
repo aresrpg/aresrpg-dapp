@@ -1,18 +1,11 @@
 import { on } from 'events'
 
-import {
-  AmbientLight,
-  CameraHelper,
-  Color,
-  DirectionalLight,
-  DirectionalLightHelper,
-  Fog,
-  Vector3,
-} from 'three'
+import { AmbientLight, CameraHelper, DirectionalLight, Vector3 } from 'three'
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'
 import { current_three_character } from '../game/game.js'
+import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
@@ -30,9 +23,9 @@ export default function () {
     observe({ scene, events, signal, camera }) {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
+      ambient_light.layers.enable(CartoonRenderpass.non_outlined_layer)
 
       const directional_light = new DirectionalLight(0xffffff, 1)
-      const dirlight_helper = new DirectionalLightHelper(directional_light, 10)
       const dircamera_helper = new CameraHelper(directional_light.shadow.camera)
 
       directional_light.castShadow = true

@@ -16,6 +16,7 @@ import {
 
 import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
+import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -29,6 +30,7 @@ export default function () {
   const base_size = 500
   const base_mesh = new Mesh(new PlaneGeometry(base_size, base_size), material)
   base_mesh.rotateX(Math.PI / 2)
+  base_mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
   const meshes = []
 
