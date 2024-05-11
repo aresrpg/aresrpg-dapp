@@ -88,11 +88,21 @@ export default function () {
       // composer.addPass(outputpass)
 
       state_iterator().reduce(
-        ({ last_postprocessing_version }, { settings: { postprocessing } }) => {
+        (
+          { last_postprocessing_version, last_camera_is_underwater },
+          {
+            settings: {
+              postprocessing,
+              camera: { is_underwater },
+            },
+          },
+        ) => {
           const postprocessing_changed =
-            postprocessing.version !== last_postprocessing_version
+            postprocessing.version !== last_postprocessing_version ||
+            is_underwater !== last_camera_is_underwater
 
           if (postprocessing_changed) {
+            last_camera_is_underwater = is_underwater
             last_postprocessing_version = postprocessing.version
             cartoon_renderpass.enabled = postprocessing.cartoon_pass.enabled
             cartoon_renderpass.enable_thick_lines =
@@ -102,15 +112,18 @@ export default function () {
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
-            underwater_pass.enabled = postprocessing.underwater_pass.enabled
+            underwater_pass.enabled =
+              postprocessing.underwater_pass.enabled && is_underwater
           }
 
           return {
             last_postprocessing_version,
+            last_camera_is_underwater,
           }
         },
         {
           last_postprocessing_version: 0,
+          last_camera_is_underwater: false,
         },
       )
 
