@@ -1,4 +1,5 @@
 import { setInterval } from 'timers/promises'
+import { on } from 'events'
 
 import { aiter } from 'iterator-helper'
 import {
@@ -28,12 +29,11 @@ export default function () {
   const base_size = 500
   const base_mesh = new Mesh(new PlaneGeometry(base_size, base_size), material)
   base_mesh.rotateX(Math.PI / 2)
-  base_mesh.translateZ(-76)
 
   const meshes = []
 
   return {
-    observe({ scene, get_state }) {
+    observe({ scene, get_state, events, signal }) {
       const container = new Group()
       container.name = 'water'
 
@@ -50,11 +50,22 @@ export default function () {
 
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
-        const player = current_character(state)
 
-        if (player.position) {
-          container.position.set(player.position.x, 0, player.position.z)
+        const water_level = state.settings.water.level + 0.1
+        let player_position_x = 0
+        let player_position_z = 0
+
+        const player = current_character(state)
+        if (player && player.position) {
+          player_position_x = player.position.x
+          player_position_z = player.position.z
         }
+
+        container.position.set(
+          player_position_x,
+          water_level,
+          player_position_z,
+        )
       })
     },
   }
