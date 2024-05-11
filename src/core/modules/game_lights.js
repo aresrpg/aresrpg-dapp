@@ -6,6 +6,7 @@ import {
   Color,
   DirectionalLight,
   DirectionalLightHelper,
+  Fog,
   Vector3,
 } from 'three'
 import { aiter } from 'iterator-helper'
@@ -26,7 +27,7 @@ function distance_between(position1, position2) {
 /** @type {Type.Module} */
 export default function () {
   return {
-    observe({ scene, events, signal }) {
+    observe({ scene, events, signal, camera }) {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
 
@@ -71,8 +72,6 @@ export default function () {
       }
 
       function update_sky_lights_color(sky_lights) {
-        scene.fog.color = sky_lights.fog.color.clone()
-
         directional_light.color = sky_lights.directional.color
         directional_light.intensity = sky_lights.directional.intensity
 
@@ -80,16 +79,41 @@ export default function () {
         ambient_light.intensity = sky_lights.ambient.intensity
       }
 
+      function update_fog(camera_is_underwater, sky_lights) {
+        scene.fog.color = sky_lights.fog.color.clone()
+        if (camera_is_underwater) {
+          scene.fog.near = 0
+          scene.fog.far = 0.05 * camera.far
+        } else {
+          scene.fog.near = 0.25 * camera.far
+          scene.fog.far = 0.98 * camera.far
+        }
+      }
+
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
-        ({ last_sky_lights_version, last_player_position }, [state]) => {
+        (
+          {
+            last_sky_lights_version,
+            last_camera_is_underwater,
+            last_player_position,
+          },
+          [state],
+        ) => {
           const lights_changed =
-            state.settings.sky.lights.version !== last_sky_lights_version
+            state.settings.sky.lights.version !== last_sky_lights_version ||
+            state.settings.camera.is_underwater !== last_camera_is_underwater
           const player_position =
             current_three_character(state)?.position?.clone()
+
+          last_camera_is_underwater = state.settings.camera.is_underwater
 
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version
             update_sky_lights_color(state.settings.sky.lights)
+            update_fog(
+              state.settings.camera.is_underwater,
+              state.settings.sky.lights,
+            )
           }
 
           if (last_player_position && player_position) {
@@ -107,10 +131,12 @@ export default function () {
           return {
             last_sky_lights_version,
             last_player_position: player_position,
+            last_camera_is_underwater,
           }
         },
         {
           last_sky_lights_version: 0,
+          last_camera_is_underwater: false,
           last_player_position: null,
         },
       )

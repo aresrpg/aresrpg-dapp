@@ -14,15 +14,13 @@ const CAMERA_MAX_DISTANCE = 50
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick(state, { camera_controls }, delta) {
+    tick(state, { camera_controls, dispatch, camera }, delta) {
       const player = current_three_character(state)
       if (!player?.position) return
 
-      const {
-        settings: { camera },
-      } = state
+      const camera_state = state.settings.camera
 
-      if (!camera.is_free) {
+      if (!camera_state.is_free) {
         const { x, y, z } = player.position
 
         const center_camera_on_head =
@@ -37,6 +35,28 @@ export default function () {
         }
       }
       camera_controls.update(delta)
+
+      const is_underwater = camera.position.y <= state.settings.water.level
+      if (camera_state.is_underwater !== is_underwater) {
+        dispatch('action/camera_went_underwater', is_underwater)
+      }
+    },
+    reduce(state, { type, payload }) {
+      switch (type) {
+        case 'action/camera_went_underwater':
+          return {
+            ...state,
+            settings: {
+              ...state.settings,
+              camera: {
+                ...state.settings.camera,
+                is_underwater: payload,
+              },
+            },
+          }
+      }
+
+      return state
     },
     observe({ events, camera, camera_controls, renderer, signal }) {
       function set_camera_padding(top, right, bottom, left) {

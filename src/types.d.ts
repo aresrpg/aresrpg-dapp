@@ -104,6 +104,7 @@ declare namespace Type {
     'action/select_character': string
     'action/view_distance': number
     'action/free_camera': boolean
+    'action/camera_went_underwater': boolean
     'action/sky_lights_change': State['settings']['sky_lights']
     'action/add_character': SuiCharacter
     'action/remove_character': string
