@@ -135,6 +135,10 @@ export const INITIAL_STATE = {
       },
     },
 
+    water: {
+      level: 76,
+    },
+
     view_distance: 100,
 
     free_camera: false,
