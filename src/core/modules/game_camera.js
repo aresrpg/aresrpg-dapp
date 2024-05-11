@@ -19,10 +19,10 @@ export default function () {
       if (!player?.position) return
 
       const {
-        settings: { free_camera },
+        settings: { camera },
       } = state
 
-      if (!free_camera) {
+      if (!camera.is_free) {
         const { x, y, z } = player.position
 
         const center_camera_on_head =
@@ -98,10 +98,11 @@ export default function () {
           last_free_camera,
           [
             {
-              settings: { free_camera },
+              settings: { camera },
             },
           ],
         ) => {
+          const free_camera = camera.is_free
           if (last_free_camera !== free_camera) {
             if (free_camera) {
               camera_controls.colliderMeshes = []

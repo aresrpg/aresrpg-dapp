@@ -110,7 +110,7 @@ export default function () {
         .onFinishChange(handle_change('action/view_distance'))
 
       camera_folder
-        .add(settings, 'free_camera')
+        .add(settings.camera, 'is_free')
         .name('Free Camera')
         .onFinishChange(handle_change('action/free_camera'))
 
