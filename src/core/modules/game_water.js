@@ -46,7 +46,6 @@ export default function () {
           container.add(mesh)
         }
       }
-      scene.add(container)
 
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
@@ -68,6 +67,10 @@ export default function () {
         )
 
         material.color = state.settings.water.color
+
+        if (!container.parent) {
+          scene.add(container)
+        }
       })
     },
   }
