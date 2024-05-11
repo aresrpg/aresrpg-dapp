@@ -20,7 +20,7 @@ import { current_character } from '../game/game.js'
 /** @type {Type.Module} */
 export default function () {
   const material = new MeshPhongMaterial({
-    color: new Color(0x0000ff),
+    color: new Color(0x000000),
     shininess: 1,
     specular: 0xffffff,
     side: DoubleSide,
@@ -33,7 +33,7 @@ export default function () {
   const meshes = []
 
   return {
-    observe({ scene, get_state, events, signal }) {
+    observe({ scene, get_state }) {
       const container = new Group()
       container.name = 'water'
 
@@ -66,6 +66,8 @@ export default function () {
           water_level,
           player_position_z,
         )
+
+        material.color = state.settings.water.color
       })
     },
   }
