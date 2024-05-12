@@ -6,6 +6,7 @@ import {
   Color,
   CubeCamera,
   CubeTextureLoader,
+  HalfFloatType,
   Matrix4,
   Mesh,
   ShaderMaterial,
@@ -233,6 +234,7 @@ export default function () {
       }
 
       const cube_rendertarget = new WebGLCubeRenderTarget(512)
+      cube_rendertarget.texture.type = HalfFloatType
       scene.environment = cube_rendertarget.texture
       const cube_camera = new CubeCamera(1, 100000, cube_rendertarget)
 
