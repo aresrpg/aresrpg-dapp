@@ -1,17 +1,13 @@
 import { setInterval } from 'timers/promises'
-import { on } from 'events'
 
 import { aiter } from 'iterator-helper'
 import {
   Color,
   DoubleSide,
   Group,
-  Matrix4,
   Mesh,
-  MeshPhongMaterial,
-  Object3D,
+  MeshStandardMaterial,
   PlaneGeometry,
-  Vector3,
 } from 'three'
 
 import { abortable } from '../utils/iterator.js'
@@ -20,10 +16,12 @@ import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 
 /** @type {Type.Module} */
 export default function () {
-  const material = new MeshPhongMaterial({
+  const material = new MeshStandardMaterial({
     color: new Color(0x000000),
-    shininess: 1,
-    specular: 0xffffff,
+    roughness: 0,
+    metalness: 1,
+    emissive: new Color(0x000000),
+    emissiveIntensity: 0.2,
     side: DoubleSide,
   })
 
@@ -69,6 +67,7 @@ export default function () {
         )
 
         material.color = state.settings.water.color
+        material.emissive = state.settings.water.color
 
         if (!container.parent) {
           scene.add(container)
