@@ -2,17 +2,7 @@ import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import {
-  Box3,
-  Color,
-  DoubleSide,
-  Matrix4,
-  Mesh,
-  MeshPhongMaterial,
-  PlaneGeometry,
-  Vector2,
-  Vector3,
-} from 'three'
+import { Box3, Color, Vector2, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
 import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 
