@@ -76,7 +76,7 @@ export default function () {
         scene.fog.color = sky_lights.fog.color.clone()
         if (camera_is_underwater) {
           scene.fog.near = 0
-          scene.fog.far = 0.05 * camera.far
+          scene.fog.far = 0.2 * camera.far
         } else {
           scene.fog.near = 0.25 * camera.far
           scene.fog.far = 0.98 * camera.far
