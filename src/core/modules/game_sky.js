@@ -4,11 +4,13 @@ import {
   BackSide,
   BoxGeometry,
   Color,
+  CubeCamera,
   CubeTextureLoader,
   Matrix4,
   Mesh,
   ShaderMaterial,
   Vector3,
+  WebGLCubeRenderTarget,
 } from 'three'
 import { smoothstep } from 'three/src/math/MathUtils.js'
 import { aiter } from 'iterator-helper'
@@ -24,7 +26,7 @@ import night_pz from '../../assets/skybox/night_pz.png'
 /** @type {Type.Module} */
 export default function () {
   return {
-    observe({ scene, events, signal, dispatch }) {
+    observe({ scene, events, signal, dispatch, renderer }) {
       const day_duration_in_seconds = 2000 // duration of a complete day/night cycle
       const day_autoupdate_delay_in_milliseconds = 500 // delay between updates
       const day_autoupdate_step =
@@ -230,6 +232,10 @@ export default function () {
         }
       }
 
+      const cube_rendertarget = new WebGLCubeRenderTarget(512)
+      scene.environment = cube_rendertarget.texture
+      const cube_camera = new CubeCamera(1, 100000, cube_rendertarget)
+
       events.on('SKY_CYCLE_PAUSED', (/** @type {boolean} */ paused) => {
         day_autoupdate_paused = paused
       })
@@ -238,6 +244,8 @@ export default function () {
         if (fromUi) {
           set_day_time(value)
         }
+
+        cube_camera.update(renderer, skybox_mesh)
       })
 
       events.once('STATE_UPDATED', state => {
