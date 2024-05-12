@@ -322,6 +322,7 @@ const camera = new PerspectiveCamera(
   0.1, // Near clipping plane
   3000, // Far clipping plane
 )
+camera.layers.enableAll()
 const pool = create_pools(scene)
 
 const orthographic_camera = new OrthographicCamera()
