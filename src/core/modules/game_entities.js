@@ -7,7 +7,7 @@ import { compute_animation_state } from '../animations/animation.js'
 import { abortable } from '../utils/iterator.js'
 import { sui_get_character } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
-import { current_character_position } from '../game/game.js'
+import { current_three_character } from '../game/game.js'
 
 import { DEFAULT_SUI_CHARACTER } from './sui_data.js'
 
@@ -24,14 +24,7 @@ export default function () {
     tick({ visible_characters }, __, delta) {
       // handle entities movement
       for (const character of visible_characters.values()) {
-        if (character.jump_time == null) character.jump_time = 0
-        character.jump_time = Math.max(0, character.jump_time - delta)
-
-        if (character.action === 'JUMP' && !character.jump_time)
-          character.action = null
-
         if (character.target_position) {
-          const old_position = character.position.clone()
           const lerp_factor = Math.min(delta / MOVE_UPDATE_INTERVAL, 1)
           const new_position = new Vector3().lerpVectors(
             character.position,
@@ -47,37 +40,10 @@ export default function () {
           character.move(new_position)
           character.rotate(movement)
 
-          // if is moving
-          if (old_position.distanceTo(character.target_position) > 0.5) {
-            if (CANCELED_BY_MOVING.includes(character.action))
-              character.action = null
-          }
-
-          const is_moving_horizontally = movement.setY(0).lengthSq() > 0.1
-
-          if (new_position.distanceTo(character.target_position) < 0.01) {
+          if (new_position.distanceTo(character.target_position) < 0.01)
             character.target_position = null
-            if (CANCELED_BY_NOT_MOVING.includes(character.action)) {
-              character.action = null
-            }
-          }
-
-          character.animate(
-            compute_animation_state({
-              is_on_ground: character.action !== 'JUMP',
-              is_moving_horizontally,
-              action: character.action,
-            }),
-          )
-        } else {
-          character.animate(
-            compute_animation_state({
-              is_on_ground: character.action !== 'JUMP',
-              is_moving_horizontally: false,
-              action: character.action,
-            }),
-          )
         }
+        character.animate(character.action)
       }
     },
     observe({ events, pool, get_state, signal }) {
@@ -159,7 +125,7 @@ export default function () {
           entity.remove()
           visible_characters.delete(id)
         } else if (entity) {
-          const player_position = current_character_position()
+          const player_position = current_three_character()?.position
           const { x, y, z } = position
           entity.target_position = new Vector3(x, y, z)
           if (player_position) {
@@ -183,7 +149,7 @@ export default function () {
       aiter(abortable(setInterval(1000, null, { signal }))).forEach(() => {
         const state = get_state()
         const { visible_characters } = state
-        const player_position = current_character_position(state)
+        const player_position = current_three_character(state)?.position
 
         if (player_position) {
           visible_characters.forEach(entity => {

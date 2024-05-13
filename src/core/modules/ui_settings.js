@@ -2,7 +2,7 @@ import { GUI } from 'dat.gui'
 import { WorldGenerator } from '@aresrpg/aresrpg-world'
 import { Vector2 } from 'three'
 
-import { INITIAL_STATE, current_character } from '../game/game.js'
+import { INITIAL_STATE, current_three_character } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -52,8 +52,8 @@ export default function () {
         .add(
           {
             teleport: () => {
-              const player = current_character()
-              if (player.position) {
+              const player = current_three_character()
+              if (player?.position) {
                 // @ts-ignore
                 const { x, z } = player.position
                 const ground_height = WorldGenerator.instance.getHeight(
