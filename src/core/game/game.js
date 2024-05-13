@@ -57,6 +57,7 @@ import sui_wallets from '../modules/sui_wallets.js'
 import { decrease_loading } from '../utils/loading.js'
 import game_connect from '../modules/game_connect.js'
 import player_action from '../modules/player_action.js'
+import player_health from '../modules/player_health.js'
 
 import { handle_server_error } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -175,6 +176,10 @@ export const INITIAL_STATE = {
     locked_characters: [],
     /** @type {Type.SuiCharacter[]} */
     unlocked_characters: [],
+    /** @type {Type.SuiItem[]} */
+    locked_items: [],
+    /** @type {Type.SuiItem[]} */
+    unlocked_items: [],
     selected_wallet_name: null,
     selected_address: null,
     balance: null,
@@ -193,7 +198,7 @@ export const INITIAL_STATE = {
 }
 
 /**
- * !MUST NOT BE USED IN SUPER FREQUENT CALLS
+ * !This function is rarely used, you should always try to use the other current_X below
  * @type {(state?: INITIAL_STATE) => Type.FullCharacter} */
 export function current_character(state = get_state()) {
   const by_id = ({ id }) => id === state.selected_character_id
@@ -209,25 +214,15 @@ export function current_character(state = get_state()) {
   }
 }
 
-/** @type {(state?: INITIAL_STATE) => Type.ThreeEntity} */
+/** @return {Type.ThreeEntity} */
 export function current_three_character(state = get_state()) {
-  const current = state.characters.find(
-    ({ id }) => id === state.selected_character_id,
-  )
-
-  return {
-    ...current,
-  }
+  return state.characters.find(({ id }) => id === state.selected_character_id)
 }
 
-/**
- * A more lightweight version of the current character, for the position
- * @type {(state?: INITIAL_STATE) => Vector3} */
-export function current_character_position(state = get_state()) {
-  const three_character = state.characters.find(
+export function current_locked_character(state = get_state()) {
+  return state.sui.locked_characters.find(
     ({ id }) => id === state.selected_character_id,
   )
-  return three_character?.position?.clone()
 }
 
 // @ts-ignore
@@ -259,6 +254,7 @@ const MODULES = [
   player_characters,
   player_movement,
   player_action,
+  player_health,
 
   game_sky,
   game_render,

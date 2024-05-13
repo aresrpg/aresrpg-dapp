@@ -1,15 +1,26 @@
 <i18n>
-  fr:
-    empty: Ton inventaire est vide, gagne des items sur Zealy !
   en:
-    empty: Your inventory is empty, get some items on Zealy !
+    locked_items: 🥐 Inbox
+    locked_items_desc: You have new items to claim!
+    unlocked_items: Inventory
+    unlocked_items_desc: Items you own
+  fr:
+    locked_items: 🥐 Boîte aux lettres
+    locked_items_desc: Vous avez des objets à récupérer !
+    unlocked_items: Inventaire
+    unlocked_items_desc: Objets que vous possédez
 </i18n>
 
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted, inject } from 'vue';
 
+import { context } from '../core/game/game.js';
 import sectionContainer from '../components/misc/section-container.vue';
+import itemInbox from '../components/cards/item-inbox.vue';
+import sectionHeader from '../components/misc/section-header.vue';
+
 // import corbac from '../assets/corbac.png';
 // import siluri from '../assets/siluri.png';
 // import krinan from '../assets/krinan.png';
@@ -20,6 +31,10 @@ import sectionContainer from '../components/misc/section-container.vue';
 
 const { t } = useI18n();
 const router = useRouter();
+
+const owned_items = inject('owned_items');
+const extension_items = inject('extension_items');
+
 const REGISTRY = {
   // 'Familier Krinan Le Fourvoyeur': {
   //   name: 'Krinan',
@@ -81,120 +96,13 @@ const REGISTRY = {
 //   );
 // });
 const inventory = [];
-
-const go_to_zealy = () => {
-  window.open('https://zealy.io/c/aresrpg', '_blank');
-};
 </script>
 
 <template lang="pug">
 sectionContainer
-  .banner
-  .content( :class="{ empty: !inventory.length }")
-    .items
-      vs-button.empty(v-if="!inventory.length" type="gradient" color="#F39C12" @click="go_to_zealy") {{ t('empty') }}
-      .item(v-else v-for="item of inventory" :key="item.name")
-        img(:src="item.src")
-        .info
-          .name {{ item.name }}
-          .quantity x{{ item.amount }}
-          .tag {{ item.type }}
-          .issuer via #[b {{  item.issuer }}]
-        .desc {{ item.desc }}
+  sectionHeader(v-if="extension_items.length" :title="t('locked_items')" :desc="t('locked_items_desc')" color="#FDD835")
+    itemInbox(:items="extension_items")
+  sectionHeader(:title="t('unlocked_items')" color="#00C853")
 </template>
 
-<style lang="stylus" scoped>
-.container
-  display flex
-  flex-flow column nowrap
-  width 100%
-  height 100%
-  padding 2em
-  border-radius 12px
-  overflow hidden
-  position relative
-  color #ECF0F1
-  .banner
-    width 100%
-    border-top 1px solid white
-    display flex
-    flex-flow column nowrap
-  .content
-    display flex
-    width 100%
-    height 100%
-    color #eee
-    flex-flow column nowrap
-    width 100%
-
-    &.empty
-      justify-content center
-      align-items center
-    .items
-      padding .25em
-      display flex
-      flex-flow row wrap
-      justify-content start
-      .item
-        position relative
-        overflow hidden
-        border-radius 12px
-        width 200px
-        margin .25em
-        display flex
-        flex-flow column nowrap
-        box-shadow 1px 2px 3px black
-        background #212121
-        >img
-          width 100%
-          height 200px
-          object-fit cover
-          border-radius 12px
-
-        .desc
-          color white
-          font-size .75em
-          padding .5em
-          opacity .7
-          text-align center
-        .info
-          display flex
-          position absolute
-          top 0
-          left 0
-          right 0
-          padding .25em .5em
-          background rgba(#212121, .8)
-          backdrop-filter blur(5px)
-          flex-flow column nowrap
-          margin .2em
-          border-radius 10px
-          display grid
-          grid "name amount" 1fr "type issuer" max-content / 1fr max-content
-          .name
-            grid-area name
-            width 100%
-            text-transform uppercase
-            font-size .9em
-            font-weight 900
-            text-shadow 1px 2px 3px #212121
-          .quantity
-            grid-area amount
-            font-size .9em
-            justify-self end
-
-          .tag
-            grid-area type
-            width max-content
-            color #BDC3C7
-            font-size .7em
-            font-family 'Itim', cursive
-          .issuer
-            grid-area issuer
-            color #BDC3C7
-            font-size .7em
-            font-family 'Itim', cursive
-            b
-              font-weight 100
-              color #F1C40F
-</style>
+<style lang="stylus" scoped></style>
