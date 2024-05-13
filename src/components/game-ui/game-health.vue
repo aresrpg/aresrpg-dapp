@@ -1,8 +1,8 @@
 <template lang="pug">
 .health-container(:class="{ in_fight }")
-  img.open_stats(src="../../assets/ui/stats.png")
-  img.open_spells(src="../../assets/ui/spells.png")
-  img.open_inventory(src="../../assets/ui/inventory.png")
+  img.open_stats(src="../../assets/ui/stats.png" @click="emits('open_stats')")
+  img.open_spells(src="../../assets/ui/spells.png" @click="emits('open_spells')")
+  img.open_inventory(src="../../assets/ui/inventory.png" @click="emits('open_inventory')")
   .health(:class="{ in_fight }" @click="show_health_percent = !show_health_percent")
     .health-bar(:style="{ maxHeight: `${percent_health}%`}")
       img.sit(src="../../assets/ui/sit.png" @click.stop="sit_action")
@@ -23,7 +23,11 @@
 import { ref, onMounted, onUnmounted, computed, inject } from 'vue';
 import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
 
-import { context, current_character } from '../../core/game/game.js';
+import {
+  context,
+  current_locked_character,
+  current_three_character,
+} from '../../core/game/game.js';
 
 const show_health_percent = ref(false);
 const health = ref(30);
@@ -33,22 +37,26 @@ const pm = ref(6);
 
 const in_fight = inject('in_fight');
 
+const emits = defineEmits(['open_stats', 'open_spells', 'open_inventory']);
+
 const percent_health = computed(() => {
   return Math.round((100 * health.value) / max_health.value);
 });
 
 function update_health(state) {
-  const character = current_character(state);
-  health.value = character.health;
-  max_health.value = get_max_health(character);
+  const character = current_locked_character(state);
+  if (!character) return;
 
-  if (isNaN(max_health.value)) {
-    max_health.value = 35;
+  if (character.health !== health.value) {
+    health.value = character.health;
+    max_health.value = get_max_health(character);
   }
+
+  if (isNaN(max_health.value)) max_health.value = 30;
 }
 
 function sit_action() {
-  const character = current_character();
+  const character = current_three_character();
   if (character.action === 'SIT') {
     context.dispatch('action/character_action', {
       action: 'IDLE',

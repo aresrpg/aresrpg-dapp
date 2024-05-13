@@ -43,7 +43,7 @@
     a.value.id(:href="character_explorer_link" target="_blank") {{ props.character.id.slice(0, 24) }}...
   .actions
     vs-button(
-      v-if="props.locked"
+      v-if="!props.locked"
       type="transparent"
       size="small"
       color="#EF5350"
@@ -67,7 +67,7 @@
       template(#footer)
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="lock_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="lock_character") {{ t('confirm') }}
+          vs-button(type="transparent" color="#2ECC71" @click="select_character") {{ t('confirm') }}
 
     /// unlock dialog
     vs-dialog(v-model="unlock_dialog" :loading="unlock_loading")
@@ -76,7 +76,7 @@
       template(#footer)
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="unlock_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="unlock_character") {{ t('confirm') }}
+          vs-button(type="transparent" color="#2ECC71" @click="unselect_character") {{ t('confirm') }}
 </template>
 
 <script setup>
@@ -88,8 +88,8 @@ import { experience_to_level } from '../../core/utils/game/experience.js';
 import { context } from '../../core/game/game.js';
 import {
   sui_delete_character,
-  sui_lock_character,
-  sui_unlock_character,
+  sui_select_character,
+  sui_unselect_character,
 } from '../../core/sui/client.js';
 import toast from '../../toast.js';
 import { NETWORK } from '../../env.js';
@@ -137,10 +137,10 @@ async function delete_character() {
   }
 }
 
-async function lock_character() {
+async function select_character() {
   try {
     lock_loading.value = true;
-    await sui_lock_character(props.character);
+    await sui_select_character(props.character);
   } catch (error) {
     console.error(error);
     toast.warn(t('lock_failed'));
@@ -150,11 +150,11 @@ async function lock_character() {
   }
 }
 
-async function unlock_character() {
+async function unselect_character() {
   try {
     unlock_loading.value = true;
 
-    await sui_unlock_character(props.character);
+    await sui_unselect_character(props.character);
   } catch (error) {
     console.error(error);
     toast.warn(t('unlock_failed'));
@@ -194,13 +194,13 @@ async function unlock_character() {
     z-index: 20
 
   &.iop
-    background: url('../../assets/classe/iop_female.jpg') center / cover
+    background: url('/classe/iop_female.jpg') center / cover
     &.male
-      background: url('../../assets/classe/iop_male.jpg') center / cover
+      background: url('/classe/iop_male.jpg') center / cover
   &.sram
-    background: url('../../assets/classe/sram_female.jpg') center / cover
+    background: url('/classe/sram_female.jpg') center / cover
     &.male
-      background: url('../../assets/classe/sram_male.jpg') center / cover
+      background: url('/classe/sram_male.jpg') center / cover
 
   &.locked
     border 1px solid #FFCA28

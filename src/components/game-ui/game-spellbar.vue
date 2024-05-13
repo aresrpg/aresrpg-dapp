@@ -11,7 +11,6 @@ import { ref, onMounted, inject, computed } from 'vue';
 import stats from '../../assets/ui/stats.png';
 import spells from '../../assets/ui/spells.png';
 import inventory from '../../assets/ui/inventory.png';
-import { current_character } from '../../core/game/game.js';
 
 const in_fight = inject('in_fight');
 
