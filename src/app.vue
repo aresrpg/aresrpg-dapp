@@ -29,6 +29,8 @@ const server_info = reactive({
 
 const characters = ref([]);
 const selected_character = ref(null);
+const extension_items = ref([]);
+const owned_items = ref([]);
 
 const in_fight = ref(false);
 
@@ -43,10 +45,12 @@ provide('online', online);
 provide('server_info', server_info);
 provide('characters', characters);
 provide('selected_character', selected_character);
+provide('extension_items', extension_items);
+provide('owned_items', owned_items);
 
 provide('in_fight', in_fight);
 
-function update_accounts(state) {
+function update_all(state) {
   const {
     sui: {
       selected_wallet_name,
@@ -54,6 +58,8 @@ function update_accounts(state) {
       balance,
       selected_address,
       locked_characters,
+      locked_items,
+      unlocked_items,
     },
     selected_character_id,
     online: state_online,
@@ -70,6 +76,8 @@ function update_accounts(state) {
   const selected_account = accounts.find(
     ({ address }) => address === selected_address,
   );
+  const locked_ids = locked_items.map(c => c.id);
+  const unlocked_ids = unlocked_items.map(c => c.id);
 
   const characters_ids = locked_characters
     .map(character => character.id)
@@ -89,6 +97,12 @@ function update_accounts(state) {
   } else if (!selected_character_id) {
     selected_character.value = null;
   }
+
+  if (locked_ids.join() !== extension_items.value.map(c => c.id).join())
+    extension_items.value = locked_items;
+
+  if (unlocked_ids.join() !== owned_items.value.map(c => c.id).join())
+    owned_items.value = unlocked_items;
 
   if (accounts_addresses.join() !== available_accounts_addresses.join())
     available_accounts.value = accounts.filter(
@@ -125,8 +139,8 @@ function on_server_info(event) {
 }
 
 onMounted(() => {
-  context.events.on('STATE_UPDATED', update_accounts);
-  update_accounts(context.get_state());
+  context.events.on('STATE_UPDATED', update_all);
+  update_all(context.get_state());
 
   context.events.on('packet/serverInfo', on_server_info);
 
@@ -141,7 +155,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_accounts);
+  context.events.off('STATE_UPDATED', update_all);
   context.events.off('packet/serverInfo', on_server_info);
 });
 </script>
@@ -209,7 +223,6 @@ sc-disableScollBar()
 
 *
   sc-reset()
-  sc-disableScollBar()
   font-family 'Rubik', sans-serif
   outline none
   scroll-behavior smooth
