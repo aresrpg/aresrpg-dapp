@@ -50,6 +50,7 @@ declare namespace Type {
   // }
 
   type SuiCharacter = import('@aresrpg/aresrpg-sdk/types').SuiCharacter
+  type SuiItem = import('@aresrpg/aresrpg-sdk/types').SuiItem
 
   type Spell = { name: string; icon: string }
   type FullCharacter = ThreeEntity &
@@ -114,6 +115,8 @@ declare namespace Type {
       locked_characters?: SuiCharacter[]
       unlocked_characters?: SuiCharacter[]
       character_lock_receipts?: Receipt[]
+      locked_items?: SuiItem[]
+      unlocked_items?: SuiItem[]
     }
     'action/set_online': boolean
     'action/character_action': { id: string; action: string }
