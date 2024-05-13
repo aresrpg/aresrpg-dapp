@@ -18,18 +18,18 @@ import { onMounted, onUnmounted, reactive, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import pkg from '../../../package.json';
-import { context, current_character_position } from '../../core/game/game.js';
+import { context, current_three_character } from '../../core/game/game.js';
 
 const position = reactive({ x: 0, y: 0, z: 0 });
 const server_info = inject('server_info');
 const { t } = useI18n();
 
 function update_position(state) {
-  const position = current_character_position(state);
-  if (position) {
-    const x = Math.round(position.x);
-    const y = Math.round(position.y);
-    const z = Math.round(position.z);
+  const pos = current_three_character(state)?.position;
+  if (pos) {
+    const x = Math.round(pos.x);
+    const y = Math.round(pos.y);
+    const z = Math.round(pos.z);
     if (position.x !== x) position.x = x;
     if (position.y !== y) position.y = y;
     if (position.z !== z) position.z = z;
