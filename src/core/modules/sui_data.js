@@ -1,8 +1,10 @@
 import { context, disconnect_ws } from '../game/game.js'
 import {
   sui_get_locked_characters,
+  sui_get_locked_items,
   sui_get_sui_balance,
   sui_get_unlocked_characters,
+  sui_get_unlocked_items,
   sui_subscribe,
 } from '../sui/client.js'
 import { state_iterator } from '../utils/iterator.js'
@@ -19,7 +21,7 @@ export const DEFAULT_SUI_CHARACTER = () => ({
   health: 30,
   selected: false,
   soul: 100,
-  available_stat_points: 0,
+  available_points: 0,
 
   vitality: 0,
   wisdom: 0,
@@ -27,6 +29,9 @@ export const DEFAULT_SUI_CHARACTER = () => ({
   intelligence: 0,
   chance: 0,
   agility: 0,
+
+  kiosk_id: null,
+  personal_kiosk_cap_id: null,
 })
 
 /** @type {Type.Module} */
@@ -34,6 +39,16 @@ export default function () {
   return {
     reduce(state, { type, payload }) {
       if (type === 'action/sui_data_update') {
+        // some fields might be often updated by the server, so we don't want to override them with on chain data
+        payload.locked_characters.forEach(character => {
+          const existing_character = state.sui.locked_characters.find(
+            ({ id }) => id === character.id,
+          )
+
+          if (existing_character?.health)
+            character.health = existing_character.health
+        })
+
         return {
           ...state,
           sui: {
@@ -47,17 +62,26 @@ export default function () {
     async observe() {
       let controller = new AbortController()
       async function update_user_data() {
-        const [locked_characters, unlocked_characters, balance] =
-          await Promise.all([
-            sui_get_locked_characters(),
-            sui_get_unlocked_characters(),
-            sui_get_sui_balance(),
-          ])
+        const [
+          locked_characters,
+          unlocked_characters,
+          balance,
+          locked_items,
+          unlocked_items,
+        ] = await Promise.all([
+          sui_get_locked_characters(),
+          sui_get_unlocked_characters(),
+          sui_get_sui_balance(),
+          sui_get_locked_items(),
+          sui_get_unlocked_items(),
+        ])
 
         context.dispatch('action/sui_data_update', {
           balance,
           locked_characters,
           unlocked_characters,
+          locked_items,
+          unlocked_items,
         })
       }
 
@@ -84,7 +108,8 @@ export default function () {
               context.dispatch('action/sui_data_update', {
                 locked_characters: [DEFAULT_SUI_CHARACTER()],
                 unlocked_characters: [],
-                character_lock_receipts: [],
+                locked_items: [],
+                unlocked_items: [],
               })
             }
           }
