@@ -11,7 +11,7 @@ import {
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'
-import { current_character_position } from '../game/game.js'
+import { current_three_character } from '../game/game.js'
 
 const CAMERA_SHADOW_FAR = 500
 const CAMERA_SHADOW_NEAR = 0.1
@@ -84,7 +84,8 @@ export default function () {
         ({ last_sky_lights_version, last_player_position }, [state]) => {
           const lights_changed =
             state.settings.sky.lights.version !== last_sky_lights_version
-          const player_position = current_character_position(state)
+          const player_position =
+            current_three_character(state)?.position?.clone()
 
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version

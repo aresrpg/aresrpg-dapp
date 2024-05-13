@@ -83,7 +83,7 @@ export default function () {
       const on_mouse_wheel = event => {
         const delta_abs = Math.max(
           CAMERA_DISTANCE_STEP,
-          0.5 * camera_controls.distance,
+          0.35 * camera_controls.distance,
         )
         const delta = delta_abs * Math.sign(event.deltaY)
         set_distance(camera_controls.distance + delta)

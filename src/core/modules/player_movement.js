@@ -6,9 +6,8 @@ import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
 import { WorldGenerator } from '@aresrpg/aresrpg-world'
 
-import { GRAVITY, context } from '../game/game.js'
+import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { compute_animation_state } from '../animations/animation.js'
 
 import { play_step_sound } from './game_audio.js'
 
@@ -246,12 +245,9 @@ export default function () {
     observe({ events, signal, dispatch, send_packet }) {
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
         last_position => {
-          const { characters, selected_character_id } = context.get_state()
-          const player = characters.find(
-            character => character.id === selected_character_id,
-          )
+          const player = current_three_character()
 
-          if (!player.position) return last_position
+          if (!player?.position) return last_position
 
           /** @type {Vector3} */
           // @ts-ignore
