@@ -66,7 +66,7 @@ export async function sui_get_character(id) {
     // @ts-ignore
     return object
 
-  const fetched_object = sdk.get_character(id)
+  const fetched_object = sdk.get_character_by_id(id)
 
   OBJECTS_CACHE.set(id, fetched_object)
   return fetched_object
@@ -170,6 +170,34 @@ export async function sui_get_unlocked_characters() {
   return sdk.get_unlocked_characters(get_address())
 }
 
+export async function sui_get_locked_items() {
+  return sdk.get_locked_items(get_address())
+}
+
+export async function sui_get_unlocked_items() {
+  return sdk.get_unlocked_items(get_address())
+}
+
+export async function sui_withdraw_items_from_extension(ids) {
+  const tx = new TransactionBlock()
+
+  const { kiosk_cap, kiosk_id, kiosk_tx } = await sdk.enforce_personal_kiosk({
+    tx,
+    recipient: get_address(),
+  })
+
+  sdk.withdraw_items({
+    tx,
+    kiosk_id,
+    kiosk_cap,
+    item_ids: ids,
+  })
+
+  kiosk_tx.finalize()
+
+  await execute(tx)
+}
+
 export function mists_to_sui(balance) {
   return BN(balance).dividedBy(MIST_PER_SUI.toString()).toString()
 }
@@ -178,56 +206,24 @@ export async function sui_get_sui_balance() {
   return sdk.get_sui_balance(get_address())
 }
 
-async function enforce_personal_kiosk(tx, recipient) {
-  const { kioskOwnerCaps } = await sdk.kiosk_client.getOwnedKiosks({
-    address: recipient,
-  })
-
-  const first_personal_kiosk = kioskOwnerCaps.find(
-    ({ isPersonal }) => !!isPersonal,
-  )
-
-  const kiosk_tx = new KioskTransaction({
-    transactionBlock: tx,
-    kioskClient: sdk.kiosk_client,
-    ...(first_personal_kiosk && { cap: first_personal_kiosk }),
-  })
-
-  if (!first_personal_kiosk) kiosk_tx.createPersonal(true)
-
-  return {
-    kiosk_tx,
-    kiosk_id: kiosk_tx.getKiosk(),
-    kiosk_cap: kiosk_tx.getKioskCap(),
-  }
-}
-
 export async function sui_create_character({ name, type, sex = 'male' }) {
   const tx = new TransactionBlock()
 
-  const { kiosk_tx, kiosk_id, kiosk_cap } = await enforce_personal_kiosk(
+  const { kiosk_cap, kiosk_id, kiosk_tx } = await sdk.enforce_personal_kiosk({
     tx,
-    get_address(),
-  )
-
-  const [character_id] = tx.moveCall({
-    target: `${sdk.LATEST_PACKAGE_ID}::aresrpg::create_and_lock_character`,
-    arguments: [
-      kiosk_id,
-      kiosk_cap,
-      tx.object(sdk.NAME_REGISTRY),
-      tx.object(sdk.CHARACTER_POLICY),
-      tx.pure(name),
-      tx.pure(type),
-      tx.pure(sex),
-      tx.object(sdk.VERSION),
-    ],
+    recipient: get_address(),
   })
 
-  // finalize resolve the kiosk promise (personal kiosk borrow of kiosk cap)
-  logger.SUI('create character', { name, type, sex })
+  const character_id = sdk.create_character({
+    tx,
+    name,
+    classe: type,
+    sex,
+    kiosk_cap,
+    kiosk_id,
+  })
 
-  lock_character({
+  sdk.select_character({
     character_id,
     kiosk_id,
     kiosk_cap,
@@ -240,74 +236,16 @@ export async function sui_create_character({ name, type, sex = 'male' }) {
 }
 
 export async function sui_is_character_name_taken(name) {
-  const txb = new TransactionBlock()
-  txb.setSender(get_address())
-  txb.moveCall({
-    target: `${sdk.LATEST_PACKAGE_ID}::registry::assert_name_available`,
-    arguments: [txb.object(sdk.NAME_REGISTRY), txb.pure(name.toLowerCase())],
-  })
-
-  txb.setGasBudget(100000000)
-
-  const { sui_client } = sdk
-
   try {
-    const { error } = await sui_client.devInspectTransactionBlock({
-      transactionBlock: txb,
-      sender: get_address(),
+    return sdk.is_character_name_taken({
+      address: get_address(),
+      name,
     })
-
-    logger.SUI('is character name taken', { name, error })
-
-    return !!error
   } catch (error) {
-    if (
-      error.message.includes('rejection') ||
-      error.message.includes('Rejected')
-    )
-      return
-
-    if (error.message.includes('No valid gas coins')) {
+    if (error.message === 'NO_GAS')
       toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
-      return
-    }
-
-    toast.error(error.message, 'Transaction failed')
-    throw error
+    else toast.error(error.message, 'Transaction failed')
   }
-}
-
-function lock_character({ character_id, kiosk_id, kiosk_cap, tx }) {
-  tx.moveCall({
-    target: `${sdk.LATEST_PACKAGE_ID}::aresrpg::select_character`,
-    arguments: [
-      kiosk_id,
-      kiosk_cap,
-      tx.object(sdk.CHARACTER_PROTECTED_POLICY),
-      character_id,
-      tx.object(sdk.VERSION),
-    ],
-  })
-
-  logger.SUI('lock character', character_id)
-}
-
-async function borrow_kiosk_owner_cap({ personal_kiosk_cap_id, tx, handler }) {
-  const personal_kiosk_package_id = sdk.kiosk_client.getRulePackageId(
-    'personalKioskRulePackageId',
-  )
-
-  const [kiosk_cap, promise] = tx.moveCall({
-    target: `${personal_kiosk_package_id}::personal_kiosk::borrow_val`,
-    arguments: [tx.object(personal_kiosk_cap_id)],
-  })
-
-  handler(kiosk_cap)
-
-  tx.moveCall({
-    target: `${personal_kiosk_package_id}::personal_kiosk::return_val`,
-    arguments: [tx.object(personal_kiosk_cap_id), kiosk_cap, promise],
-  })
 }
 
 // character must be locked in the extension as it's the only way to access the object bypassing the lock
@@ -318,19 +256,15 @@ export async function sui_delete_character({
 }) {
   const tx = new TransactionBlock()
 
-  borrow_kiosk_owner_cap({
+  sdk.borrow_kiosk_owner_cap({
     personal_kiosk_cap_id,
     tx,
     handler: kiosk_cap => {
-      tx.moveCall({
-        target: `${sdk.LATEST_PACKAGE_ID}::aresrpg::delete_character`,
-        arguments: [
-          tx.object(kiosk_id),
-          kiosk_cap,
-          tx.object(sdk.NAME_REGISTRY),
-          tx.pure.id(id),
-          tx.object(sdk.VERSION),
-        ],
+      sdk.delete_character({
+        tx,
+        kiosk_id,
+        kiosk_cap,
+        character_id: tx.pure.id(id),
       })
     },
   })
@@ -340,22 +274,22 @@ export async function sui_delete_character({
   await execute(tx)
 }
 
-export async function sui_lock_character({
+export async function sui_select_character({
   kiosk_id,
   personal_kiosk_cap_id,
   id,
 }) {
   const tx = new TransactionBlock()
 
-  borrow_kiosk_owner_cap({
+  sdk.borrow_kiosk_owner_cap({
     personal_kiosk_cap_id,
     tx,
     handler: kiosk_cap => {
-      lock_character({
-        character_id: tx.pure.id(id),
-        kiosk_id: tx.object(kiosk_id),
-        kiosk_cap,
+      sdk.select_character({
         tx,
+        kiosk_id,
+        kiosk_cap,
+        character_id: tx.pure.id(id),
       })
     },
   })
@@ -363,26 +297,22 @@ export async function sui_lock_character({
   await execute(tx)
 }
 
-export async function sui_unlock_character({
+export async function sui_unselect_character({
   kiosk_id,
   personal_kiosk_cap_id,
   id,
 }) {
   const tx = new TransactionBlock()
 
-  borrow_kiosk_owner_cap({
+  sdk.borrow_kiosk_owner_cap({
     personal_kiosk_cap_id,
     tx,
     handler: kiosk_cap => {
-      tx.moveCall({
-        target: `${sdk.LATEST_PACKAGE_ID}::aresrpg::unselect_character`,
-        arguments: [
-          tx.object(kiosk_id),
-          kiosk_cap,
-          tx.object(sdk.CHARACTER_POLICY),
-          tx.pure.id(id),
-          tx.object(sdk.VERSION),
-        ],
+      sdk.unselect_character({
+        tx,
+        kiosk_id,
+        kiosk_cap,
+        character_id: id,
       })
     },
   })
