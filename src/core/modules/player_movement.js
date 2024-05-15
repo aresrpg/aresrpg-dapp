@@ -66,10 +66,10 @@ export default function () {
       if (player.target_position) {
         const { x, z } = player.target_position
         const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
-        ground_pos.y = WorldGenerator.instance.getHeight(ground_pos, true)
-        const block_level = Math.floor(ground_pos.y)
+        const ground_block = WorldGenerator.instance.getGroundBlock(ground_pos)
+        const ground_level = Math.floor(ground_block.pos.y)
         // hack: avoid player being stuck in terrain at spawning
-        player.target_position.y = block_level + 2
+        player.target_position.y = ground_level + 2
         player.move(player.target_position)
         player.target_position = null
         return
@@ -180,8 +180,8 @@ export default function () {
 
       const { x, z } = dummy.position
       const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
-      ground_pos.y = WorldGenerator.instance.getHeight(ground_pos, true)
-      const ground_height = Math.floor(ground_pos.y)
+      const ground_block = WorldGenerator.instance.getGroundBlock(ground_pos)
+      const ground_height = Math.floor(ground_block.pos.y)
 
       if (!ground_height) return
 

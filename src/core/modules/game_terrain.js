@@ -18,7 +18,7 @@ export default function () {
    * Procedural generation
    */
   const world_gen = WorldGenerator.instance
-  world_gen.heightmap.params.spreading = 1.42 - 1
+  world_gen.heightmap.params.spreading = 0.42 // (1.42 - 1)
   world_gen.heightmap.sampling.harmonicsCount = 6
   world_gen.amplitude.sampling.seed = 'amplitude_mod'
   // Terrain blocks mapping
@@ -32,7 +32,7 @@ export default function () {
   // Vegetation tree distribution
   const tree_map = new ProcLayer('treemap')
   tree_map.sampling.harmonicsCount = 6 + 1
-  tree_map.params.spreading = 1.25 - 1
+  tree_map.params.spreading = 0.25 // (1.25 - 1)
   // amplitudeMod.next = treeMap
   // const selection = isNaN(urlParams.layer) ? "all" : ProcGenLayer.layerIndex(urlParams.layer)
 
@@ -81,22 +81,13 @@ export default function () {
     },
     sampleHeightmap(x, z) {
       const block_pos = new Vector3(x, 0, z)
-      const block_level = WorldGenerator.instance.getHeight(block_pos)
-      block_pos.y = block_level
-      // hack to get native noise val and compute block type
-      const raw_val = WorldGenerator.instance.heightmap.lastEval.raw
-      const block_type = WorldGenerator.instance.blocksMapping.getBlockType(
+      const ground_block = WorldGenerator.instance.getGroundBlock(
         block_pos,
-        raw_val,
+        true,
       )
-      const block_color = new Color(blocks_colors[block_type])
-      let altitude = block_level + 1
-      if (block_type === water_material_id) {
-        altitude = -1
-      }
-
+      const block_color = new Color(blocks_colors[ground_block.type])
       return {
-        altitude: block_pos.y + 0.25,
+        altitude: ground_block.pos.y + 0.25,
         color: block_color,
       }
     },
