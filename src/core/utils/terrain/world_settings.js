@@ -54,7 +54,7 @@ export const blocks_mapping_conf = {
       low: 0,
       high: 0.2,
     },
-    treeSpawn: true,
+    vegetation: ['apple_tree'],
   },
   mountains: {
     id: 5,
@@ -65,7 +65,7 @@ export const blocks_mapping_conf = {
       low: 0,
       high: 25,
     },
-    treeSpawn: true,
+    vegetation: ['pine_tree'],
   },
   mountains_top: {
     id: 6,
