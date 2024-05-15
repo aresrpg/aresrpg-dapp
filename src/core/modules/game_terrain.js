@@ -9,7 +9,7 @@ import { ProcLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
 import { abortable } from '../utils/iterator.js'
 import {
   blocks_colors,
-  blocks_mapping_conf,
+  biome_mapping_conf,
 } from '../utils/terrain/world_settings.js'
 
 /** @type {Type.Module} */
@@ -25,8 +25,8 @@ export default function () {
   // const sortedItems = Object.values(blocks_mapping_conf).sort(
   //   (item1, item2) => item1.x - item2.x,
   // )
-  world_gen.blocksMapping.setMappingRanges(blocks_mapping_conf)
-  world_gen.blocksMapping.params.seaLevel = blocks_mapping_conf.beach.x
+  world_gen.biomeMapping.setBiomeMappings(biome_mapping_conf)
+  world_gen.biomeMapping.params.seaLevel = biome_mapping_conf.temperate.beach.x
 
   const water_material_id = 1
   // Vegetation tree distribution
