@@ -1,19 +1,16 @@
 // import { N8AOPass } from 'n8ao'
-import { on } from 'events'
 
-import { aiter } from 'iterator-helper'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 // import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
-import { CustomBlending, Vector2 } from 'three'
+import { Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
-import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import { abortable, state_iterator } from '../utils/iterator.js'
+import { state_iterator } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {
