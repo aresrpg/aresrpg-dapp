@@ -147,10 +147,6 @@ export const INITIAL_STATE = {
         enabled: true,
         strength: 0.2,
       },
-
-      outline_pass: {
-        enabled: true,
-      },
     },
   },
 
