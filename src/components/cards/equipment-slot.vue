@@ -143,7 +143,7 @@ img.slot-img
   object-fit contain
   padding .5em
   filter grayscale(1)
-  opacity .6
+  opacity .3
 
 img.equipped-img
   width 100%
