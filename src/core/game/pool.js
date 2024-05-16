@@ -10,6 +10,7 @@ import iop_female from '../../assets/models/iop_female.glb?url'
 import sram_male from '../../assets/models/sram_male.glb?url'
 import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
+import suifrens_bullshark from '../../assets/models/suifrens-bullshark.glb?url'
 
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
 
@@ -87,6 +88,10 @@ export const MODELS = {
     env_map_intensity: 0.5,
     scale: 1.2,
   }),
+  suifrens_bullshark: await load(suifrens_bullshark, {
+    env_map_intensity: 0.5,
+    scale: 1,
+  }),
 }
 
 function fade_to_animation(from, to, duration = 0.3) {
@@ -100,7 +105,7 @@ function fade_to_animation(from, to, duration = 0.3) {
  * @param {import("three").Scene} scene
  */
 export default function create_pools(scene) {
-  function instanciate(clone_model, { height, radius, name }) {
+  function instanciate(clone_model, { height, radius, name, offset_y = 0 }) {
     /**
      *
      * @param {InstancedEntity} existing_instance
@@ -212,12 +217,12 @@ export default function create_pools(scene) {
             if (current_position.distanceTo(position) < 0.01) return
             instance.entity.set_position(id, {
               ...position,
-              y: position.y - height * 0.5,
+              y: position.y - height * 0.5 + offset_y,
             })
             // @ts-ignore
             title.position.copy({
               ...position,
-              y: position.y + height,
+              y: position.y + height + offset_y,
             })
             // @ts-ignore
             current_position.copy(position)
@@ -351,6 +356,12 @@ export default function create_pools(scene) {
       height: 2.1,
       radius: 0.9,
       name: 'chafer',
+    }),
+    suifrens_bullshark: instanciate(MODELS.suifrens_bullshark, {
+      height: 0.9,
+      radius: 0.9,
+      name: 'suifrens_bullshark',
+      offset_y: -0.5,
     }),
   }
 

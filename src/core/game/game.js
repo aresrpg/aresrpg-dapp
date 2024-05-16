@@ -58,6 +58,7 @@ import { decrease_loading } from '../utils/loading.js'
 import game_connect from '../modules/game_connect.js'
 import player_action from '../modules/player_action.js'
 import player_health from '../modules/player_health.js'
+import player_pet from '../modules/player_pet.js'
 
 import { handle_server_error } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -255,6 +256,7 @@ const MODULES = [
   player_movement,
   player_action,
   player_health,
+  player_pet,
 
   game_sky,
   game_render,
