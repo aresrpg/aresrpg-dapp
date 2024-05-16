@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { inject, computed, ref } from 'vue';
+import { inject, computed, ref, onMounted } from 'vue';
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 
 import slot_relic from '../../assets/ui/slot_relic.png';
@@ -67,6 +67,10 @@ const accept_loading = ref(false);
 function start_edit_equipment() {
   edit_mode.value = true;
 }
+
+onMounted(() => {
+  Object.assign(edit_mode_equipment, real_equipment);
+});
 
 function cancel_edit_equipment() {
   edit_mode.value = false;
