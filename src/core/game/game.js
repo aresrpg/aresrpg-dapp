@@ -143,7 +143,7 @@ export const INITIAL_STATE = {
 
       cartoon_pass: {
         enabled: true,
-        thick_lines: window.devicePixelRatio >= 1.5,
+        thick_lines: window.devicePixelRatio >= 1.3,
       },
 
       bloom_pass: {

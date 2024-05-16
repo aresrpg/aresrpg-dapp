@@ -4,7 +4,7 @@ import { TransactionBlock } from '@mysten/sui.js/transactions'
 import { BigNumber as BN } from 'bignumber.js'
 import { MIST_PER_SUI } from '@mysten/sui.js/utils'
 import { LRUCache } from 'lru-cache'
-import { KioskTransaction, Network } from '@mysten/kiosk'
+import { Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
 import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client'
 
@@ -178,22 +178,74 @@ export async function sui_get_unlocked_items() {
   return sdk.get_unlocked_items(get_address())
 }
 
-export async function sui_withdraw_items_from_extension(ids) {
+export async function sui_withdraw_items_from_extension(items) {
   const tx = new TransactionBlock()
 
-  const { kiosk_cap, kiosk_id, kiosk_tx } = await sdk.enforce_personal_kiosk({
-    tx,
-    recipient: get_address(),
+  const by_kiosk = new Map()
+
+  items.forEach(item => {
+    if (!by_kiosk.has(item.kiosk_id)) by_kiosk.set(item.kiosk_id, [])
+    by_kiosk.get(item.kiosk_id).push(item.id)
   })
 
-  sdk.withdraw_items({
+  const { kiosks, finalize } = await sdk.get_user_kiosks({
+    address: get_address(),
     tx,
-    kiosk_id,
-    kiosk_cap,
-    item_ids: ids,
   })
 
-  kiosk_tx.finalize()
+  by_kiosk.forEach((ids, kiosk_id) => {
+    sdk.withdraw_items({
+      tx,
+      kiosk_id,
+      kiosk_cap: kiosks.get(kiosk_id),
+      item_ids: ids,
+    })
+  })
+
+  finalize()
+
+  await execute(tx)
+}
+
+export async function sui_equip_items({ character, to_equip, to_unequip }) {
+  const tx = new TransactionBlock()
+
+  const { kiosks, finalize } = await sdk.get_user_kiosks({
+    tx,
+    address: get_address(),
+  })
+
+  const { kiosk_id, id } = character
+  const kiosk_cap = kiosks.get(kiosk_id)
+
+  to_unequip.forEach(({ item, slot }) => {
+    sdk.unequip_item({
+      tx,
+      kiosk: kiosk_id,
+      kiosk_cap,
+      item_kiosk: item.kiosk_id,
+      character_id: id,
+      slot,
+      item_type: item._type,
+    })
+  })
+
+  to_equip.forEach(({ item, slot }) => {
+    sdk.equip_item({
+      tx,
+      kiosk: kiosk_id,
+      kiosk_cap,
+      item_kiosk: item.kiosk_id,
+      item_kiosk_cap: kiosks.get(item.kiosk_id),
+      item_id: item.id,
+      character_id: id,
+      slot,
+      item_type: item._type,
+    })
+  })
+
+  // return all kiosk cap for personal kiosks
+  finalize()
 
   await execute(tx)
 }
