@@ -100,8 +100,6 @@ function fade_to_animation(from, to, duration = 0.3) {
  * @param {import("three").Scene} scene
  */
 export default function create_pools(scene) {
-  let outline_pass = null
-
   function instanciate(clone_model, { height, radius, name }) {
     /**
      *
@@ -284,8 +282,6 @@ export default function create_pools(scene) {
 
         current_animation.play()
 
-        outline_pass.selectedObjects.push(model)
-
         return {
           id,
           title,
@@ -315,10 +311,6 @@ export default function create_pools(scene) {
           remove() {
             scene.remove(origin)
             dispose(origin)
-            outline_pass.selectedObjects.splice(
-              outline_pass.selectedObjects.indexOf(origin),
-              1,
-            )
           },
           animate(name) {
             if (name === 'IDLE' && current_animation === actions.DANCE) return
@@ -373,9 +365,6 @@ export default function create_pools(scene) {
   }
 
   return {
-    register_outline(outline) {
-      outline_pass = outline
-    },
     dispose() {
       instances.iop_male.instanced_entity.dispose()
       instances.iop_female.instanced_entity.dispose()
