@@ -20,10 +20,10 @@ en:
   action: AP
   movement: MP
   range: range
-  earth_resistance: Earth resistance
-  fire_resistance: Fire resistance
-  water_resistance: Water resistance
-  air_resistance: Air resistance
+  earth_resistance: "% Earth resistance"
+  fire_resistance: "% Fire resistance"
+  water_resistance: "% Water resistance"
+  air_resistance: "% Air resistance"
   effects: Effects
 fr:
   set: Panoplie
@@ -46,10 +46,10 @@ fr:
   action: PA
   movement: PM
   range: portée
-  earth_resistance: Résistance Terre
-  fire_resistance: Résistance Feu
-  water_resistance: Résistance Eau
-  air_resistance: Résistance Air
+  earth_resistance: "% Résistance Terre"
+  fire_resistance: "% Résistance Feu"
+  water_resistance: "% Résistance Eau"
+  air_resistance: "% Résistance Air"
   effects: Effets
 </i18n>
 
@@ -169,7 +169,7 @@ const stats = computed(() => {
   .content
     display flex
     flex-flow row nowrap
-    height 100%
+    height calc(100% - 22px)
     .left-content
       display flex
       flex-flow column nowrap
@@ -203,6 +203,7 @@ const stats = computed(() => {
       background rgba(#000, .3)
       border-radius 12px
       padding .5em
+      // font-size 2rem
       .scroll-container
         display flex
         flex-flow column nowrap
