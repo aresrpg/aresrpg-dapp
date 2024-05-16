@@ -52,11 +52,6 @@ export default function () {
       const cartoon_renderpass = new CartoonRenderpass(scene, camera)
       // const outputpass = new OutputPass()
       const gamma_correction = new ShaderPass(GammaCorrectionShader)
-      const outline = new OutlinePass(
-        new Vector2(window.innerWidth, window.innerHeight),
-        scene,
-        camera,
-      )
 
       const bloompass = new UnrealBloomPass(
         new Vector2(window.innerWidth, window.innerHeight),
@@ -81,20 +76,6 @@ export default function () {
       // n8aopass.configuration.denoiseSamples = 8
       // n8aopass.configuration.denoiseRadius = 6
 
-      outline.edgeThickness = 0.1
-
-      // outlinepass.overlayMaterial.blendSrc = 1
-      // outlinepass.overlayMaterial.blendDst = 1
-
-      outline.visibleEdgeColor.set('#000000')
-      outline.edgeStrength = 5
-      outline.edgeGlow = 0
-
-      outline.overlayMaterial.blending = CustomBlending
-      // shared.outline.selectedObjects.push(instanced_volume)
-
-      pool.register_outline(outline)
-
       // Add this after the outline pass is created
 
       composer.addPass(renderpass)
@@ -103,7 +84,6 @@ export default function () {
       // composer.addPass(gtaopass)
       // composer.addPass(n8aopass)
       composer.addPass(gamma_correction)
-      composer.addPass(outline)
       composer.addPass(smaapass)
       // composer.addPass(outputpass)
 
@@ -122,8 +102,6 @@ export default function () {
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
-
-            outline.enabled = postprocessing.outline_pass.enabled
           }
 
           return {
@@ -144,7 +122,6 @@ export default function () {
           // composer.removePass(gtaopass)
           // composer.removePass(n8aopass)
           composer.removePass(gamma_correction)
-          composer.removePass(outline)
           composer.removePass(smaapass)
           // composer.removePass(outputpass)
         },
