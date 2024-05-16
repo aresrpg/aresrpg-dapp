@@ -47,48 +47,68 @@ const characters = [
   {
     type: 'IOP_MALE',
     class: 'iop',
-    image: '/classe/iop_male.jpg',
+    image: 'http://assets.aresrpg.world/classe/iop_male.jpg',
     name: 'Iop (male)',
     desc: "Knights of the realm, the Iop's are as brave as they are brawn. With a penchant for charging headfirst into battle, their formidable strength is an asset in close combat. Though not the most strategic fighters, an Iop's presence on the battlefield can change the tide with a swing of their mighty sword.",
   },
   {
     type: 'IOP_FEMALE',
     class: 'iop',
-    image: '/classe/iop_female.jpg',
+    image: 'http://assets.aresrpg.world/classe/iop_female.jpg',
     name: 'Iop (female)',
     desc: 'The female Iop stands tall among her peers, blending grace with overwhelming power. Her sword, a whirlwind of steel, carves through enemies with precision and might. While often underestimated, her strategic prowess and indomitable courage make her a true force to be reckoned with.',
   },
   {
     type: 'SRAM_MALE',
     class: 'sram',
-    image: '/classe/sram_male.jpg',
+    image: 'http://assets.aresrpg.world/classe/sram_male.jpg',
     name: 'Sram (male)',
     desc: "Emerging from the shadows, the male Sram is the embodiment of death's guile. A master of stealth and deceit, he can vanish from sight to strike when least expected. With the power to summon skeletal warriors and lay cunning traps, he ensures that the battlefield is always in his favor.",
   },
   {
     type: 'SRAM_FEMALE',
     class: 'sram',
-    image: '/classe/sram_female.jpg',
+    image: 'http://assets.aresrpg.world/classe/sram_female.jpg',
     name: 'Sram (female)',
     desc: 'The female Sram, a specter of stealth and subterfuge, wields the powers of invisibility and necromancy with sinister finesse. Her traps ensnare the unwary, and her summoned minions rise from the earth to do her bidding. In the art of silent assassination, she has no equal.',
   },
   {
     type: 'XELOR',
-    image: '/classe/xelor_male.jpg',
+    image: 'http://assets.aresrpg.world/classe/xelor_male.jpg',
     disabled: true,
     desc: 'Xelors are the manipulators of time itself, capable of bending moments to their will. They can slow down foes, hasten allies, and, if legends are to be believed, reverse the flow of battle. Their command over temporal magic makes them enigmatic and unpredictable adversaries.',
   },
-  { type: 'XELOR', image: '/classe/xelor_male.jpg', disabled: true },
-  { type: 'XELOR', image: '/classe/xelor_male.jpg', disabled: true },
-  { type: 'XELOR', image: '/classe/xelor_male.jpg', disabled: true },
-  { type: 'XELOR', image: '/classe/xelor_male.jpg', disabled: true },
+  {
+    type: 'XELOR',
+    image: 'http://assets.aresrpg.world/classe/xelor_male.jpg',
+    disabled: true,
+  },
+  {
+    type: 'XELOR',
+    image: 'http://assets.aresrpg.world/classe/xelor_male.jpg',
+    disabled: true,
+  },
+  {
+    type: 'XELOR',
+    image: 'http://assets.aresrpg.world/classe/xelor_male.jpg',
+    disabled: true,
+  },
+  {
+    type: 'XELOR',
+    image: 'http://assets.aresrpg.world/classe/xelor_male.jpg',
+    disabled: true,
+  },
 ];
 
 function get_character_skin({ classe, female }) {
   if (classe === 'IOP')
-    return female ? '/classe/iop_female.jpg' : '/classe/iop_male.jpg';
+    return female
+      ? 'http://assets.aresrpg.world/classe/iop_female.jpg'
+      : 'http://assets.aresrpg.world/classe/iop_male.jpg';
   if (classe === 'SRAM')
-    return female ? '/classe/sram_female.jpg' : '/classe/sram_male.jpg';
+    return female
+      ? 'http://assets.aresrpg.world/classe/sram_female.jpg'
+      : 'http://assets.aresrpg.world/classe/sram_male.jpg';
 }
 
 const selected_class_data = computed(() => {

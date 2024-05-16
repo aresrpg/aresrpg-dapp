@@ -157,7 +157,7 @@ export default function create_pools(scene) {
 
     if (instance.actions.JUMP) instance.actions.JUMP.setLoop(LoopOnce, 1)
 
-    instance.actions.IDLE.play()
+    instance.actions.IDLE?.play()
 
     return {
       instanced_entity: instance,
@@ -202,7 +202,7 @@ export default function create_pools(scene) {
           radius,
           jump_time: 0,
           audio: null,
-          action: null,
+          action: 'IDLE',
           apply_state(entity) {
             entity.move(current_position)
             entity.animate(current_animation)
@@ -280,7 +280,7 @@ export default function create_pools(scene) {
 
         let current_animation = actions.IDLE
 
-        current_animation.play()
+        current_animation?.play()
 
         return {
           id,
@@ -291,7 +291,7 @@ export default function create_pools(scene) {
           object3d: origin,
           jump_time: 0,
           audio: null,
-          action: null,
+          action: 'IDLE',
           apply_state() {
             throw new Error('Not implemented')
           },

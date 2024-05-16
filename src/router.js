@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import home from './views/home.vue'
-import inventory from './views/tab-inventory.vue'
+import shop from './views/tab-shop.vue'
 import settings from './views/tab-settings.vue'
 import world from './views/tab-world.vue'
 import characters from './views/tab-characters.vue'
@@ -35,9 +35,9 @@ export default createRouter({
           meta: { keepAlive: true },
         },
         {
-          name: 'inventory',
-          path: '/inventory',
-          component: inventory,
+          name: 'shop',
+          path: '/shop',
+          component: shop,
         },
         {
           name: 'settings',

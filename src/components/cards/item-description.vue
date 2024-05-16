@@ -24,7 +24,7 @@ en:
   fire_resistance: Fire resistance
   water_resistance: Water resistance
   air_resistance: Air resistance
-  effects_none: "Effects: none"
+  effects: Effects
 fr:
   set: Panoplie
   to: à
@@ -50,22 +50,23 @@ fr:
   fire_resistance: Résistance Feu
   water_resistance: Résistance Eau
   air_resistance: Résistance Air
-  effects_none: "Effets: aucun"
+  effects: Effets
 </i18n>
 
 <template lang="pug">
 .description-container
   .header
     .name {{ item.name }}
+    .set(v-if="item.item_set !== 'none'") ({{ t('set') }} {{ item.item_set }})
     .lvl Lvl. {{ item.level }}
   .content
     .left-content
-      .set(v-if="item.item_set !== 'none'") {{ t('set') }}: {{ item.item_set || 'aventurier' }}
-      img.icon(:src="`/item/${item.item_type}.jpg`")
-      a.id {{ short_id(item.id) }}
+      img.icon(:src="item?.image_url")
+      a.id(@click="() => open_explorer(item.id)") {{ short_id(item.id) }}
       .bottom(v-if="item.critical_chance") cc: {{ item.critical_chance }} / {{ item.critical_outcomes }}
     .right-content
       .scroll-container
+        .eff {{ t('effects') }}:
         .damage(
           v-if="item.damages?.length"
           v-for="damage in item.damages"
@@ -81,13 +82,13 @@ fr:
         )
           img(:src="stat.icon")
           .value +{{ stat.value }} {{ t(stat.name) }}
-        div(v-else) {{ t('effects_none') }}
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { NETWORK } from '../../env.js';
 import action_icon from '../../assets/statistics/action.png';
 import movement_icon from '../../assets/statistics/movement.png';
 import range_icon from '../../assets/statistics/range.png';
@@ -104,6 +105,10 @@ const { t } = useI18n();
 const props = defineProps(['item']);
 
 const short_id = id => `${id.slice(0, 3)}..${id.slice(-3)}`;
+
+const open_explorer = id => {
+  window.open(`https://suiscan.xyz/${NETWORK}/object/${id}`, '_blank');
+};
 
 const stats = computed(() => {
   const { item } = props;
@@ -150,10 +155,15 @@ const stats = computed(() => {
     display flex
     flex-flow row nowrap
     font-size .9em
+    align-items center
     .name
       font-weight 900
       opacity .9
       text-transform uppercase
+    .set
+      font-size .8em
+      font-style italic
+      margin 0 .5em
     .lvl
       margin-left auto
   .content
@@ -165,10 +175,6 @@ const stats = computed(() => {
       flex-flow column nowrap
       margin-right 1em
       align-items space-between
-      .set
-        font-size .8em
-        font-style italic
-        margin-bottom .5em
       img.icon
         width 100px
         height 100px
@@ -183,6 +189,7 @@ const stats = computed(() => {
         font-size .8em
         text-decoration underline
         font-style italic
+        cursor pointer
         opacity .7
       .bottom
         text-transform uppercase
@@ -199,6 +206,11 @@ const stats = computed(() => {
       .scroll-container
         display flex
         flex-flow column nowrap
+
+        .eff
+          font-size .7em
+          margin-bottom .5em
+          opacity .7
 
         .damage
           display flex
