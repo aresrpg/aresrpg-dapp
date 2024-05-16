@@ -1,24 +1,16 @@
 <i18n>
   en:
-    locked_items: 🥐 Inbox
-    locked_items_desc: You have new items to claim!
-    unlocked_items: Inventory
-    unlocked_items_desc: Items you own
+    shop: 🥐 Market
   fr:
-    locked_items: 🥐 Boîte aux lettres
-    locked_items_desc: Vous avez des objets à récupérer !
-    unlocked_items: Inventaire
-    unlocked_items_desc: Objets que vous possédez
+    shop: 🥐 Hôtel des Ventes
 </i18n>
 
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { ref, onMounted, onUnmounted, inject } from 'vue';
+import { inject } from 'vue';
 
-import { context } from '../core/game/game.js';
 import sectionContainer from '../components/misc/section-container.vue';
-import itemInbox from '../components/cards/item-inbox.vue';
 import sectionHeader from '../components/misc/section-header.vue';
 
 // import corbac from '../assets/corbac.png';
@@ -33,7 +25,6 @@ const { t } = useI18n();
 const router = useRouter();
 
 const owned_items = inject('owned_items');
-const extension_items = inject('extension_items');
 
 const REGISTRY = {
   // 'Familier Krinan Le Fourvoyeur': {
@@ -95,14 +86,11 @@ const REGISTRY = {
 //     })) ?? []
 //   );
 // });
-const inventory = [];
 </script>
 
 <template lang="pug">
 sectionContainer
-  sectionHeader(v-if="extension_items.length" :title="t('locked_items')" :desc="t('locked_items_desc')" color="#FDD835")
-    itemInbox(:items="extension_items")
-  sectionHeader(:title="t('unlocked_items')" color="#00C853")
+  sectionHeader(:title="t('shop')" color="#00C853")
 </template>
 
 <style lang="stylus" scoped></style>

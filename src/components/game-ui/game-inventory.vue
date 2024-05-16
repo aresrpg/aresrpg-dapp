@@ -1,125 +1,104 @@
+<i18n>
+en:
+  claim_all: Claim all
+fr:
+  claim_all: Tout récupérer
+</i18n>
+
 <template lang="pug">
 .game-inventory
-  .perso
-    .name {{ selected_character.name }}
-    .relics
-      .r1
-        img.slot-img(src="../../assets/ui/slot_relic.png")
-        .slot
-      .r2
-        img.slot-img(src="../../assets/ui/slot_relic.png")
-        .slot
-      .r3
-        img.slot-img(src="../../assets/ui/slot_relic.png")
-        .slot
-      .r4
-        img.slot-img(src="../../assets/ui/slot_relic.png")
-        .slot
-      .r5
-        img.slot-img(src="../../assets/ui/slot_relic.png")
-        .slot
-      .r6
-        img.slot-img(src="../../assets/ui/slot_relic.png")
-        .slot
-    .center
-      .title
-        img.slot-img(src="../../assets/ui/slot_title.png")
-        .slot
-      .amulet
-        img.slot-img(src="../../assets/ui/slot_amulet.png")
-        .slot
-      .weapon
-        img.slot-img(src="../../assets/ui/slot_weapon.png")
-        .slot
-      .ring_left
-        img.slot-img(src="../../assets/ui/slot_ring.png")
-        .slot
-      .belt
-        img.slot-img(src="../../assets/ui/slot_belt.png")
-        .slot
-      .ring_right
-        img.slot-img(src="../../assets/ui/slot_ring.png")
-        .slot
-      .boots
-        img.slot-img(src="../../assets/ui/slot_boots.png")
-        .slot
-    .right
-      .hat
-        img.slot-img(src="../../assets/ui/slot_hat.png")
-        .slot
-      .cloack
-        img.slot-img(src="../../assets/ui/slot_cloack.png")
-        .slot
-      .pet
-        img.slot-img(src="../../assets/ui/slot_pet.png")
-        .slot
+  itemEquipments
   .item
-    itemDescription(v-if="target_item" :item="target_item")
+    itemDescription(v-if="selected_item" :item="selected_item")
   .inventory
     .header
       img.equipment(src="../../assets/ui/equipment.svg" :class="{ selected: selected_category === 'equipment' }" @click="selected_category = 'equipment'")
       img.consumables(src="../../assets/ui/consumable.svg" :class="{ selected: selected_category === 'consumables' }" @click="selected_category = 'consumables'")
       img.misc(src="../../assets/ui/misc.svg" :class="{ selected: selected_category === 'misc' }" @click="selected_category = 'misc'")
       img.loot(src="../../assets/ui/loot.svg" :class="{ selected: selected_category === 'loot' }" @click="selected_category = 'loot'")
-    .content
-      itemInventory(:items="items" @open_item_description="target_item = $event")
+    itemInventory.i-inv
+    vs-button.vsbtn(
+      type="gradient"
+      size="small"
+      color="#F9A825"
+      @click="claim_all"
+      :loading="claim_loading"
+      v-if="selected_category === 'loot' && extension_items.length"
+    ) {{ t('claim_all') }}
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue';
+import { ref, inject, provide, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import itemDescription from '../cards/item-description.vue';
 import itemInventory from '../cards/item-inventory.vue';
-import { is_resource, is_consumable } from '../../core/utils/item.js';
+import itemEquipments from '../cards/item-equipments.vue';
+import { sui_withdraw_items_from_extension } from '../../core/sui/client.js';
 
-const target_item = ref(null);
-const owned_items = inject('owned_items');
 const extension_items = inject('extension_items');
-const selected_character = inject('selected_character');
 
 const selected_category = ref('equipment');
 
-const items = computed(() => {
-  switch (selected_category.value) {
-    case 'loot':
-      return extension_items.value;
-    case 'consumables':
-      return owned_items.value.filter(is_consumable);
-    case 'misc':
-      return owned_items.value.filter(is_resource);
-    default:
-      return owned_items.value.filter(
-        item => !is_consumable(item) && !is_resource(item),
-      );
-  }
+const selected_item = ref(null);
+const edit_mode = ref(false);
+
+const edit_mode_equipment = reactive({
+  relic_1: null,
+  relic_2: null,
+  relic_3: null,
+  relic_4: null,
+  relic_5: null,
+  relic_6: null,
+  title: null,
+  amulet: null,
+  weapon: null,
+  left_ring: null,
+  belt: null,
+  right_ring: null,
+  boots: null,
+  hat: null,
+  cloack: null,
+  pet: null,
+  dragged_item: null,
+  dragg_started_from: null,
+  equipments: [],
 });
+
+provide('edit_mode', edit_mode);
+provide('selected_item', selected_item);
+provide('selected_category', selected_category);
+provide('edit_mode_equipment', edit_mode_equipment);
+
+const { t } = useI18n();
+
+const claim_loading = ref(false);
+
+async function claim_all() {
+  claim_loading.value = true;
+  try {
+    await sui_withdraw_items_from_extension(extension_items.value);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    claim_loading.value = false;
+  }
+}
 </script>
 
 <style lang="stylus" scoped>
-.name
-  position absolute
-  top .5em
-  right 50%
-  transform translateX(50%)
-  text-transform uppercase
-  opacity .6
-  font-weight bold
 
-img.slot-img
-  width 100%
+
+.vsbtn
+  margin-top 1em
+  height 50px
+
+.i-inv
+  border 1px solid rgba(#eee, .3)
+  border-radius 12px
+  border-top-right-radius 0
+  border-bottom-right-radius 0
   height 100%
-  object-fit contain
-  padding .5em
-  filter grayscale(1)
-  opacity .6
-.slot
-  position absolute
-  width 100%
-  height 100%
-  top 0
-  left 0
-  box-shadow: inset 0 0 15px 0 #212121
-  border 1px solid #212121
 
 .game-inventory
   display grid
@@ -128,66 +107,6 @@ img.slot-img
   height 100%
   width 80%
   max-width 900px
-  .perso
-    position relative
-    grid-area perso
-    border 5px double #212121
-    background linear-gradient(to bottom, #212121, rgba(#455A64, .7) 50%)
-    border-radius 12px
-    display flex
-    flex-flow row nowrap
-    justify-content space-between
-    align-items center
-    padding 1em
-    .relics
-      display flex
-      flex-flow column nowrap
-      >*
-        width 50px
-        height @width
-        margin-bottom 5px
-        position relative
-    .center
-      display grid
-      grid "title amulet weapon" 1fr "ring_left belt ring_right" 1fr "boots boots boots" 1fr / 1fr 1fr 1fr
-      place-items center
-      >*
-        width 60px
-        height @width
-        position relative
-      .title
-        grid-area title
-        width 80px
-        height @width
-        margin-right 1em
-      .amulet
-        grid-area amulet
-      .weapon
-        grid-area weapon
-        width 80px
-        height @width
-        margin-left 1em
-      .ring_left
-        grid-area ring_left
-      .belt
-        grid-area belt
-        width 80px
-        height @width
-        margin-top 1em
-      .ring_right
-        grid-area ring_right
-      .boots
-        grid-area boots
-        width 80px
-        height @width
-    .right
-      display flex
-      flex-flow column nowrap
-      >*
-        width 60px
-        height @width
-        margin-bottom 5px
-        position relative
   .item
     grid-area item
     border 5px double #212121
@@ -221,6 +140,8 @@ img.slot-img
       border 1px solid rgba(#eee, .3)
       // background rgba(#000, .3)
       border-radius 12px
-      padding .5em
-      height 100%
+      border-top-right-radius 0
+      border-bottom-right-radius 0
+      display flex
+      width 100%
 </style>

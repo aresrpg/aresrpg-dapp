@@ -5,7 +5,11 @@ router-view
 <script setup>
 import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 
-import { context, current_character } from './core/game/game.js';
+import {
+  context,
+  current_character,
+  current_locked_character,
+} from './core/game/game.js';
 import { enoki_address, enoki_wallet } from './core/sui/enoki.js';
 // internal vuejs
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -20,6 +24,7 @@ const current_address = ref(null);
 const current_account = ref(null);
 const sui_balance = ref(null);
 const online = ref(false);
+const inventory_counter = ref(1);
 
 const server_info = reactive({
   online_players: 0,
@@ -34,6 +39,25 @@ const owned_items = ref([]);
 
 const in_fight = ref(false);
 
+const equipment = reactive({
+  relic_1: null,
+  relic_2: null,
+  relic_3: null,
+  relic_4: null,
+  relic_5: null,
+  relic_6: null,
+  title: null,
+  amulet: null,
+  weapon: null,
+  left_ring: null,
+  belt: null,
+  right_ring: null,
+  boots: null,
+  hat: null,
+  cloack: null,
+  pet: null,
+});
+
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
 provide('available_accounts', available_accounts);
@@ -47,6 +71,8 @@ provide('characters', characters);
 provide('selected_character', selected_character);
 provide('extension_items', extension_items);
 provide('owned_items', owned_items);
+provide('equipment', equipment);
+provide('inventory_counter', inventory_counter);
 
 provide('in_fight', in_fight);
 
@@ -129,6 +155,101 @@ function update_all(state) {
     current_account.value = selected_account;
 
   if (state_online !== online.value) online.value = state_online;
+
+  if (selected_character.value) {
+    const character = current_locked_character(state);
+    if (character) {
+      const {
+        relic_1,
+        relic_2,
+        relic_3,
+        relic_4,
+        relic_5,
+        relic_6,
+        title,
+        amulet,
+        weapon,
+        left_ring,
+        belt,
+        right_ring,
+        boots,
+        hat,
+        cloack,
+        pet,
+      } = character;
+
+      let equipment_changed = false;
+
+      if (relic_1?.id !== equipment.relic_1?.id) {
+        equipment_changed = true;
+        equipment.relic_1 = relic_1;
+      }
+      if (relic_2?.id !== equipment.relic_2?.id) {
+        equipment_changed = true;
+        equipment.relic_2 = relic_2;
+      }
+      if (relic_3?.id !== equipment.relic_3?.id) {
+        equipment_changed = true;
+        equipment.relic_3 = relic_3;
+      }
+      if (relic_4?.id !== equipment.relic_4?.id) {
+        equipment_changed = true;
+        equipment.relic_4 = relic_4;
+      }
+      if (relic_5?.id !== equipment.relic_5?.id) {
+        equipment_changed = true;
+        equipment.relic_5 = relic_5;
+      }
+      if (relic_6?.id !== equipment.relic_6?.id) {
+        equipment_changed = true;
+        equipment.relic_6 = relic_6;
+      }
+      if (title?.id !== equipment.title?.id) {
+        equipment_changed = true;
+        equipment.title = title;
+      }
+      if (amulet?.id !== equipment.amulet?.id) {
+        equipment_changed = true;
+        equipment.amulet = amulet;
+      }
+      if (weapon?.id !== equipment.weapon?.id) {
+        equipment_changed = true;
+        equipment.weapon = weapon;
+      }
+      if (left_ring?.id !== equipment.left_ring?.id) {
+        equipment_changed = true;
+        equipment.left_ring = left_ring;
+      }
+      if (belt?.id !== equipment.belt?.id) {
+        equipment_changed = true;
+        equipment.belt = belt;
+      }
+      if (right_ring?.id !== equipment.right_ring?.id) {
+        equipment_changed = true;
+        equipment.right_ring = right_ring;
+      }
+      if (boots?.id !== equipment.boots?.id) {
+        equipment_changed = true;
+        equipment.boots = boots;
+      }
+      if (hat?.id !== equipment.hat?.id) {
+        equipment_changed = true;
+        equipment.hat = hat;
+      }
+      if (cloack?.id !== equipment.cloack?.id) {
+        equipment_changed = true;
+        equipment.cloack = cloack;
+      }
+      if (pet?.id !== equipment.pet?.id) {
+        equipment_changed = true;
+        equipment.pet = pet;
+      }
+
+      if (equipment_changed) {
+        inventory_counter.value++;
+      }
+    }
+  }
 }
 
 function on_server_info(event) {

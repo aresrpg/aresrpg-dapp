@@ -37,10 +37,27 @@ const equipments = [
   ITEM_CATEGORY.WAND,
 ]
 
+const weapons = [
+  ITEM_CATEGORY.AXE,
+  ITEM_CATEGORY.BOW,
+  ITEM_CATEGORY.DAGGER,
+  ITEM_CATEGORY.HAMMER,
+  ITEM_CATEGORY.SCYTHE,
+  ITEM_CATEGORY.STAFF,
+  ITEM_CATEGORY.SWORD,
+  ITEM_CATEGORY.WAND,
+  ITEM_CATEGORY.FISHING_ROD,
+  ITEM_CATEGORY.PICKAXE,
+]
+
 const consumable = [ITEM_CATEGORY.CONSUMABLE, ITEM_CATEGORY.RUNE]
 
 export function is_equipment(item) {
   return equipments.includes(item.item_category)
+}
+
+export function is_weapon(item) {
+  return weapons.includes(item.item_category)
 }
 
 export function is_consumable(item) {
