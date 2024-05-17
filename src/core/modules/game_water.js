@@ -125,7 +125,8 @@ export default function () {
       /* Fresnel factor describes the proportion of refracted and reflected.
        * Arguments expected to be normalized. */
       float getFresnelFactor(const vec3 normal, const vec3 fromEye) {
-          return mix(pow(1.0 - dot(normal, -fromEye), 5.0), 1.0, uF0);
+        float rawValue = mix(pow(1.0 - dot(normal, -fromEye), 5.0), 1.0, uF0);
+        return pow(rawValue, 0.25);
       }
 
       ${noise}
@@ -145,15 +146,13 @@ export default function () {
         vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
 
         vec3 envmapVec = (uNormalSide > 0.0) ? reflectVec : refractVec;
-
-        vec3 envColor = textureCube(uEnvMap, reflectVec).rgb;
+        vec3 envColor = textureCube(uEnvMap, envmapVec).rgb;
 
         vec3 refractedColor = (uNormalSide > 0.0) ? 0.1 * uColor : envColor;
         vec3 reflectedColor = (uNormalSide > 0.0) ? envColor : 0.1 * uColor;
 
         float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
         vec3 surfaceColor = mix(refractedColor, reflectedColor, fresnelFactor);
-        // surfaceColor = vec3(fresnelFactor);
 
         gl_FragColor = vec4(surfaceColor, 1);
       }`,
