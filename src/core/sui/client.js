@@ -439,8 +439,13 @@ export async function sui_subscribe({ signal }) {
     }, 10000)
 
     active_subscription.unsubscribe = await sdk.subscribe(event => {
-      logger.SUI('rpc event', event)
-      emitter.emit('update', event)
+      const { type } = event
+      const [, , event_name] = type.split('::')
+      logger.SUI(`rpc event ${event_name}`, event)
+      emitter.emit(event_name, {
+        ...event.parsedJson,
+        sender_is_me: event.sender === get_address(),
+      })
     })
   } catch (error) {
     if (error.message.includes('Invalid params'))
