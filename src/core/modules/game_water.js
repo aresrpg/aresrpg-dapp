@@ -1,13 +1,7 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import {
-  DoubleSide,
-  Group,
-  Mesh,
-  PlaneGeometry,
-  ShaderMaterial,
-} from 'three'
+import { DoubleSide, Group, Mesh, PlaneGeometry, ShaderMaterial } from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
