@@ -40,7 +40,7 @@ export default function () {
     reduce(state, { type, payload }) {
       if (type === 'action/sui_data_update') {
         // some fields might be often updated by the server, so we don't want to override them with on chain data
-        payload.locked_characters.forEach(character => {
+        payload.locked_characters?.forEach(character => {
           const existing_character = state.sui.locked_characters.find(
             ({ id }) => id === character.id,
           )
@@ -61,28 +61,30 @@ export default function () {
     },
     async observe() {
       let controller = new AbortController()
-      async function update_user_data() {
-        const [
-          locked_characters,
-          unlocked_characters,
-          balance,
-          locked_items,
-          unlocked_items,
-        ] = await Promise.all([
-          sui_get_locked_characters(),
-          sui_get_unlocked_characters(),
-          sui_get_sui_balance(),
-          sui_get_locked_items(),
-          sui_get_unlocked_items(),
-        ])
+      async function update_user_data({
+        update_locked_characters = false,
+        update_unlocked_characters = false,
+        update_balance = false,
+        update_locked_items = false,
+        update_unlocked_items = false,
+      }) {
+        const update = {}
 
-        context.dispatch('action/sui_data_update', {
-          balance,
-          locked_characters,
-          unlocked_characters,
-          locked_items,
-          unlocked_items,
-        })
+        if (update_locked_characters)
+          update.locked_characters = await sui_get_locked_characters()
+
+        if (update_unlocked_characters)
+          update.unlocked_characters = await sui_get_unlocked_characters()
+
+        if (update_balance) update.balance = await sui_get_sui_balance()
+
+        if (update_locked_items)
+          update.locked_items = await sui_get_locked_items()
+
+        if (update_unlocked_items)
+          update.unlocked_items = await sui_get_unlocked_items()
+
+        context.dispatch('action/sui_data_update', update)
       }
 
       state_iterator().reduce(
@@ -97,9 +99,102 @@ export default function () {
 
               // unsubscription is handled internally
               sui_subscribe(controller).then(emitter => {
-                emitter.on('update', update_user_data)
+                function is_kiosk_mine(id) {
+                  const state = context.get_state()
+                  const kiosk_is_mine = state.sui.locked_characters.some(
+                    ({ kiosk_id }) => kiosk_id === id,
+                  )
+
+                  return kiosk_is_mine
+                }
+
+                emitter.on('update', () => {
+                  update_user_data({
+                    update_locked_characters: true,
+                    update_unlocked_characters: true,
+                    update_balance: true,
+                    update_locked_items: true,
+                    update_unlocked_items: true,
+                  })
+                })
+
+                // emitter.on('update', update_user_data)
+                emitter.on('ItemEquipEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_locked_characters: true,
+                      update_unlocked_items: true,
+                    })
+                })
+
+                emitter.on('ItemUnequipEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_locked_characters: true,
+                      update_unlocked_items: true,
+                    })
+                })
+
+                emitter.on('CharacterCreateEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_unlocked_characters: true,
+                    })
+                })
+
+                emitter.on('CharacterSelectEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_locked_characters: true,
+                      update_unlocked_characters: true,
+                    })
+                })
+
+                emitter.on('CharacterUnselectEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_locked_characters: true,
+                      update_unlocked_characters: true,
+                    })
+                })
+
+                emitter.on('CharacterDeleteEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_unlocked_characters: true,
+                    })
+                })
+
+                emitter.on('StatsResetEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_locked_characters: true,
+                      update_unlocked_items: true,
+                    })
+                })
+
+                emitter.on('ItemMintEvent', event => {
+                  if (is_kiosk_mine(event.kiosk_id))
+                    update_user_data({
+                      update_locked_items: true,
+                    })
+                })
+
+                emitter.on('ItemWithdrawEvent', event => {
+                  if (event.sender_is_me)
+                    update_user_data({
+                      update_locked_items: true,
+                      update_unlocked_items: true,
+                    })
+                })
               })
-              await update_user_data()
+              await update_user_data({
+                update_locked_characters: true,
+                update_unlocked_characters: true,
+                update_balance: true,
+                update_locked_items: true,
+                update_unlocked_items: true,
+              })
               decrease_loading()
             } else {
               controller.abort()
