@@ -30,6 +30,7 @@
 
 <script setup>
 import { inject, computed, ref, onMounted } from 'vue';
+// @ts-ignore
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 
 import slot_relic from '../../assets/ui/slot_relic.png';
@@ -51,8 +52,11 @@ import { sui_equip_items } from '../../core/sui/client.js';
 
 import equipmentSlot from './equipment-slot.vue';
 
+// @ts-ignore
 import BxsLock from '~icons/bxs/lock';
+// @ts-ignore
 import RadixIconsCross2 from '~icons/radix-icons/cross-2';
+// @ts-ignore
 import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
 
 const selected_character = inject('selected_character');

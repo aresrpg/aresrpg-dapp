@@ -66,9 +66,10 @@ export async function sui_get_character(id) {
     // @ts-ignore
     return object
 
-  const fetched_object = sdk.get_character_by_id(id)
+  const fetched_object = await sdk.get_character_by_id(id)
 
   OBJECTS_CACHE.set(id, fetched_object)
+
   return fetched_object
 }
 
@@ -181,6 +182,8 @@ export async function sui_get_unlocked_items() {
 export async function sui_withdraw_items_from_extension(items) {
   const tx = new TransactionBlock()
 
+  sdk.add_header(tx)
+
   const by_kiosk = new Map()
 
   items.forEach(item => {
@@ -209,6 +212,8 @@ export async function sui_withdraw_items_from_extension(items) {
 
 export async function sui_equip_items({ character, to_equip, to_unequip }) {
   const tx = new TransactionBlock()
+
+  sdk.add_header(tx)
 
   const { kiosks, finalize } = await sdk.get_user_kiosks({
     tx,
@@ -261,6 +266,8 @@ export async function sui_get_sui_balance() {
 export async function sui_create_character({ name, type, sex = 'male' }) {
   const tx = new TransactionBlock()
 
+  sdk.add_header(tx)
+
   const { kiosk_cap, kiosk_id, kiosk_tx } = await sdk.enforce_personal_kiosk({
     tx,
     recipient: get_address(),
@@ -308,6 +315,7 @@ export async function sui_delete_character({
 }) {
   const tx = new TransactionBlock()
 
+  sdk.add_header(tx)
   sdk.borrow_kiosk_owner_cap({
     personal_kiosk_cap_id,
     tx,
@@ -333,6 +341,7 @@ export async function sui_select_character({
 }) {
   const tx = new TransactionBlock()
 
+  sdk.add_header(tx)
   sdk.borrow_kiosk_owner_cap({
     personal_kiosk_cap_id,
     tx,
@@ -356,6 +365,7 @@ export async function sui_unselect_character({
 }) {
   const tx = new TransactionBlock()
 
+  sdk.add_header(tx)
   sdk.borrow_kiosk_owner_cap({
     personal_kiosk_cap_id,
     tx,
