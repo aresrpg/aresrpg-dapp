@@ -95,12 +95,12 @@ export default function () {
 
         vec3 getSun(const vec3 rayDirection, const vec3 sunDirection) {
           float angle = 1.0 - clamp(dot(rayDirection, sunDirection), 0.0, 1.0);
-          float sun = 10.0 * step(angle, uSunSize);
+          float sun = 40.0 * step(angle, uSunSize);
 
           float glow = 0.1 * pow(1.0 - angle, 20.0) +
                        0.8 * pow(1.0 - angle, 300.0);
 
-          return uSunColor * (sun + glow);
+          return uSunColor * (sun + 0.5 * glow);
         }
 
         void main() {
