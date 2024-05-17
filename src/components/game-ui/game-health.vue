@@ -30,8 +30,8 @@ import {
 } from '../../core/game/game.js';
 
 const show_health_percent = ref(false);
-const health = ref(30);
-const max_health = ref(30);
+const health = ref(0);
+const max_health = ref(0);
 const pa = ref(12);
 const pm = ref(6);
 
@@ -45,12 +45,14 @@ const percent_health = computed(() => {
 
 function update_health(state) {
   const character = current_locked_character(state);
-  if (!character) return;
+  if (!character?._type) return;
 
-  if (character.health !== health.value) {
-    health.value = character.health;
-    max_health.value = get_max_health(character);
-  }
+  const supposed_max_health = get_max_health(character);
+
+  if (character.health !== health.value) health.value = character.health;
+
+  if (supposed_max_health !== max_health.value)
+    max_health.value = supposed_max_health;
 
   if (isNaN(max_health.value)) max_health.value = 30;
 }

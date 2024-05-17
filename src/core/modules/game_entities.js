@@ -15,9 +15,6 @@ const MOVE_UPDATE_INTERVAL = 0.1
 const MAX_TITLE_VIEW_DISTANCE = 40
 const MAX_ANIMATION_DISTANCE = 64
 
-const CANCELED_BY_MOVING = ['DANCE']
-const CANCELED_BY_NOT_MOVING = ['JUMP', 'WALK', 'RUN']
-
 /** @type {Type.Module} */
 export default function () {
   return {
