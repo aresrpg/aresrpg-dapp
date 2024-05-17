@@ -67,6 +67,7 @@ export function enoki_wallet() {
     async signAndExecuteTransactionBlock({ transaction_block }) {
       await enoki.sponsorAndExecuteTransactionBlock({
         network: NETWORK,
+        // @ts-ignore
         client: sdk.sui_client,
         transactionBlock: transaction_block,
       })
@@ -87,6 +88,7 @@ export function enoki_wallet() {
     async signTransactionBlock({ transaction_block }) {
       const { bytes } = await enoki.sponsorTransactionBlock({
         network: NETWORK,
+        // @ts-ignore
         client: sdk.sui_client,
         transactionBlock: transaction_block,
       })

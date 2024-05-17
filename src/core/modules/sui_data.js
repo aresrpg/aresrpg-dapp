@@ -32,6 +32,8 @@ export const DEFAULT_SUI_CHARACTER = () => ({
 
   kiosk_id: null,
   personal_kiosk_cap_id: null,
+
+  _type: null,
 })
 
 /** @type {Type.Module} */
