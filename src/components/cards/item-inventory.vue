@@ -22,6 +22,7 @@ import {
   is_consumable,
   is_weapon,
 } from '../../core/utils/item.js';
+import { context } from '../../core/game/game.js';
 
 const selected_item = inject('selected_item');
 const selected_character = inject('selected_character');
@@ -192,24 +193,27 @@ function select(item) {
 }
 
 function is_equipped(item) {
-  return (
-    item.id === real_equipment.weapon?.id ||
-    item.id === real_equipment.title?.id ||
-    item.id === real_equipment.amulet?.id ||
-    item.id === real_equipment.belt?.id ||
-    item.id === real_equipment.boots?.id ||
-    item.id === real_equipment.hat?.id ||
-    item.id === real_equipment.cloack?.id ||
-    item.id === real_equipment.pet?.id ||
-    item.id === real_equipment.left_ring?.id ||
-    item.id === real_equipment.right_ring?.id ||
-    item.id === real_equipment.relic_1?.id ||
-    item.id === real_equipment.relic_2?.id ||
-    item.id === real_equipment.relic_3?.id ||
-    item.id === real_equipment.relic_4?.id ||
-    item.id === real_equipment.relic_5?.id ||
-    item.id === real_equipment.relic_6?.id
-  );
+  return context
+    .get_state()
+    .sui.locked_characters.some(
+      character =>
+        item.id === character.weapon?.id ||
+        item.id === character.title?.id ||
+        item.id === character.amulet?.id ||
+        item.id === character.belt?.id ||
+        item.id === character.boots?.id ||
+        item.id === character.hat?.id ||
+        item.id === character.cloack?.id ||
+        item.id === character.pet?.id ||
+        item.id === character.left_ring?.id ||
+        item.id === character.right_ring?.id ||
+        item.id === character.relic_1?.id ||
+        item.id === character.relic_2?.id ||
+        item.id === character.relic_3?.id ||
+        item.id === character.relic_4?.id ||
+        item.id === character.relic_5?.id ||
+        item.id === character.relic_6?.id,
+    );
 }
 
 const items = computed(() => {
