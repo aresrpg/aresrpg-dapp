@@ -2,14 +2,15 @@ import { setInterval } from 'timers/promises'
 
 import { Vector3 } from 'three'
 import { aiter } from 'iterator-helper'
+import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
-import { compute_animation_state } from '../animations/animation.js'
 import { abortable } from '../utils/iterator.js'
-import { sui_get_character } from '../sui/client.js'
+import { sui_get_character, sui_get_item } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
-import { current_three_character } from '../game/game.js'
+import { context, current_three_character } from '../game/game.js'
 
-import { DEFAULT_SUI_CHARACTER } from './sui_data.js'
+import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
+import { tick_pet } from './player_pet.js'
 
 const MOVE_UPDATE_INTERVAL = 0.1
 const MAX_TITLE_VIEW_DISTANCE = 40
@@ -17,6 +18,28 @@ const MAX_ANIMATION_DISTANCE = 64
 
 /** @type {Type.Module} */
 export default function () {
+  /** @type {Map<string, Type.ThreeEntity>} */
+  const spawned_pets = new Map()
+
+  function despawn_pet(character) {
+    if (spawned_pets.has(character.id)) {
+      spawned_pets.get(character.id).remove()
+      spawned_pets.delete(character.id)
+    }
+  }
+
+  function spawn_pet(character) {
+    despawn_pet(character)
+
+    const spawned_pet = context.pool[character.pet.item_type].get({
+      id: character.pet.id,
+      name: character.pet.name,
+    })
+    spawned_pet.title.text = `${character.pet.name} (${character.pet.level})`
+    spawned_pet.move(character.position)
+    spawned_pets.set(character.id, spawned_pet)
+  }
+
   return {
     tick({ visible_characters }, __, delta) {
       // handle entities movement
@@ -36,6 +59,9 @@ export default function () {
 
           character.move(new_position)
           character.rotate(movement)
+
+          const pet = spawned_pets.get(character.id)
+          if (pet) tick_pet(character, pet, delta)
 
           if (new_position.distanceTo(character.target_position) < 0.01)
             character.target_position = null
@@ -79,6 +105,8 @@ export default function () {
                 })
                 .instanced()
 
+              if (sui_data.pet) spawn_pet(sui_data)
+
               default_three_character.apply_state(three_character)
               visible_characters.set(id, {
                 ...visible_characters.get(id),
@@ -99,6 +127,7 @@ export default function () {
         ids.forEach(id => {
           const entity = visible_characters.get(id)
           if (entity) {
+            despawn_pet(entity)
             entity.remove()
             visible_characters.delete(id)
           }
@@ -132,11 +161,13 @@ export default function () {
 
             if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
               entity.title.visible = false
+              despawn_pet(entity)
             } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
               !entity.title.visible
             ) {
               entity.title.visible = true
+              spawn_pet(entity)
             }
           }
         }
@@ -157,10 +188,12 @@ export default function () {
 
             if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
               entity.title.visible = false
+              despawn_pet(entity)
             } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
               !entity.title.visible
             ) {
+              spawn_pet(entity)
               entity.title.visible = true
             }
           })
@@ -175,6 +208,39 @@ export default function () {
           if (action === 'JUMP') entity.jump_time = 0.8
           entity.action = action
         }
+      })
+
+      SUI_EMITTER.on(
+        'ItemEquipEvent',
+        async ({ item_id, character_id, slot }) => {
+          const character = get_state().visible_characters.get(character_id)
+
+          if (!character) return
+
+          const item = await sui_get_item(item_id)
+
+          character[slot] = item
+
+          if (item.item_category === ITEM_CATEGORY.PET) {
+            spawn_pet(character)
+          }
+        },
+      )
+
+      SUI_EMITTER.on('ItemUnequipEvent', ({ character_id, slot }) => {
+        const character = get_state().visible_characters.get(character_id)
+
+        if (!character) return
+
+        // characters should be initialized with their equipment
+        // so this should never be null
+        const item = character[slot]
+
+        if (item.item_category === ITEM_CATEGORY.PET) {
+          despawn_pet(character)
+        }
+
+        character[slot] = null
       })
     },
   }
