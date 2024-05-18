@@ -1,4 +1,8 @@
 // import { N8AOPass } from 'n8ao'
+
+import { on } from 'events'
+
+import { aiter } from 'iterator-helper'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -9,7 +13,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import { state_iterator } from '../utils/iterator.js'
+import { abortable, state_iterator } from '../utils/iterator.js'
 import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 
 /** @type {Type.Module} */
@@ -73,8 +77,6 @@ export default function () {
       // n8aopass.configuration.denoiseSamples = 8
       // n8aopass.configuration.denoiseRadius = 6
 
-      // Add this after the outline pass is created
-
       const underwater_pass = new UnderwaterPass()
 
       composer.addPass(renderpass)
@@ -88,22 +90,17 @@ export default function () {
       // composer.addPass(outputpass)
 
       state_iterator().reduce(
-        (
-          { last_postprocessing_version, last_camera_is_underwater },
-          {
-            settings: {
-              postprocessing,
-              camera: { is_underwater },
-            },
-          },
-        ) => {
+        ({ last_postprocessing_version, last_camera_is_underwater }, state) => {
+          const { postprocessing } = state.settings
+          const camera_is_underwater = state.settings.camera.is_underwater
+
           const postprocessing_changed =
             postprocessing.version !== last_postprocessing_version ||
-            is_underwater !== last_camera_is_underwater
+            camera_is_underwater !== last_camera_is_underwater
 
           if (postprocessing_changed) {
-            last_camera_is_underwater = is_underwater
             last_postprocessing_version = postprocessing.version
+            last_camera_is_underwater = camera_is_underwater
             cartoon_renderpass.enabled = postprocessing.cartoon_pass.enabled
             cartoon_renderpass.enable_thick_lines =
               postprocessing.cartoon_pass.thick_lines
@@ -112,8 +109,9 @@ export default function () {
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
+
             underwater_pass.enabled =
-              postprocessing.underwater_pass.enabled && is_underwater
+              postprocessing.underwater_pass.enabled && camera_is_underwater
           }
 
           return {
