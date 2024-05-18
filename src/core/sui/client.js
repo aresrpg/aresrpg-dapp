@@ -48,11 +48,6 @@ export const error_sui = {
   },
 }
 
-export const OBJECTS_CACHE = new LRUCache({
-  max: 500,
-  ttl: 1000 * 60 * 5, // 5 minutes
-})
-
 export const sdk = await SDK({
   rpc_url: VITE_SUI_RPC,
   wss_url: VITE_SUI_WSS,
@@ -177,6 +172,10 @@ export async function sui_get_locked_items() {
 
 export async function sui_get_unlocked_items() {
   return sdk.get_unlocked_items(get_address())
+}
+
+export async function sui_get_item(id) {
+  return sdk.get_item_by_id(id)
 }
 
 export async function sui_withdraw_items_from_extension(items) {
@@ -444,9 +443,9 @@ export async function sui_subscribe({ signal }) {
   try {
     await try_reset()
     active_subscription.emitter = emitter
-    active_subscription.interval = setInterval(() => {
-      emitter.emit('update', { type: 'interval' })
-    }, 10000)
+    // active_subscription.interval = setInterval(() => {
+    //   emitter.emit('update', { type: 'interval' })
+    // }, 10000)
 
     active_subscription.unsubscribe = await sdk.subscribe(event => {
       const { type } = event
