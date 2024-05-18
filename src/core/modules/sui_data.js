@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events'
+
 import { context, disconnect_ws } from '../game/game.js'
 import {
   sui_get_locked_characters,
@@ -35,6 +37,8 @@ export const DEFAULT_SUI_CHARACTER = () => ({
 
   _type: null,
 })
+
+export const SUI_EMITTER = new EventEmitter()
 
 /** @type {Type.Module} */
 export default function () {
@@ -110,6 +114,11 @@ export default function () {
                   return kiosk_is_mine
                 }
 
+                function is_for_a_visible_character(id) {
+                  const state = context.get_state()
+                  return state.visible_characters.has(id)
+                }
+
                 emitter.on('update', () => {
                   update_user_data({
                     update_locked_characters: true,
@@ -127,6 +136,8 @@ export default function () {
                       update_locked_characters: true,
                       update_unlocked_items: true,
                     })
+                  if (is_for_a_visible_character(event.character_id))
+                    SUI_EMITTER.emit('ItemEquipEvent', event)
                 })
 
                 emitter.on('ItemUnequipEvent', event => {
@@ -135,6 +146,9 @@ export default function () {
                       update_locked_characters: true,
                       update_unlocked_items: true,
                     })
+
+                  if (is_for_a_visible_character(event.character_id))
+                    SUI_EMITTER.emit('ItemUnequipEvent', event)
                 })
 
                 emitter.on('CharacterCreateEvent', event => {
