@@ -13,7 +13,8 @@ import { play_step_sound } from './game_audio.js'
 
 const SPEED = 10
 const WALK_SPEED = 6
-const SWIM_SPEED = 8
+const SWIM_SPEED = 10
+const WATER_GRAVITY = 3
 const JUMP_FORCE = 10
 const ASCENT_GRAVITY_FACTOR = 3
 const APEX_GRAVITY_FACTOR = 0.3
@@ -169,9 +170,8 @@ export default function () {
       if (is_underwater) {
         jump_state = jump_states.NONE
 
-        velocity.y = 0
+        velocity.y = -WATER_GRAVITY
         if (inputs.jump) velocity.y += SWIM_SPEED
-        if (inputs.walk) velocity.y -= SWIM_SPEED
       }
       movement.addScaledVector(velocity, delta)
       dummy.position.copy(origin.clone().add(movement))
