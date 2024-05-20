@@ -4,7 +4,7 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import { WorldGenerator } from '@aresrpg/aresrpg-world'
+import { Heightmap } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
@@ -66,7 +66,7 @@ export default function () {
       if (player.target_position) {
         const { x, z } = player.target_position
         const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
-        const ground_block = WorldGenerator.instance.getGroundBlock(ground_pos)
+        const ground_block = Heightmap.instance.getGroundBlock(ground_pos)
         const ground_level = Math.floor(ground_block.pos.y)
         // hack: avoid player being stuck in terrain at spawning
         player.target_position.y = ground_level + 2
@@ -180,7 +180,7 @@ export default function () {
 
       const { x, z } = dummy.position
       const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
-      const ground_block = WorldGenerator.instance.getGroundBlock(ground_pos)
+      const ground_block = Heightmap.instance.getGroundBlock(ground_pos)
       const ground_height = Math.floor(ground_block.pos.y)
 
       if (!ground_height) return
