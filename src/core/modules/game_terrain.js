@@ -2,9 +2,15 @@ import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Box3, Color, Vector2, Vector3 } from 'three'
+import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
-import { ProcLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
+import {
+  Biome,
+  BlocksPatch,
+  BlockType,
+  DevHacks,
+  Heightmap,
+} from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
 import {
@@ -15,29 +21,19 @@ import {
 /** @type {Type.Module} */
 export default function () {
   /**
-   * Procedural generation
+   * Procedural generation setup
    */
-  const world_gen = WorldGenerator.instance
-  world_gen.heightmap.params.spreading = 0.42 // (1.42 - 1)
-  world_gen.heightmap.sampling.harmonicsCount = 6
-  world_gen.amplitude.sampling.seed = 'amplitude_mod'
-  // Terrain blocks mapping
-  // const sortedItems = Object.values(blocks_mapping_conf).sort(
-  //   (item1, item2) => item1.x - item2.x,
-  // )
-  world_gen.biomeMapping.setBiomeMappings(biome_mapping_conf)
-  world_gen.biomeMapping.params.seaLevel = biome_mapping_conf.temperate.beach.x
-
-  const water_material_id = 1
-  // Vegetation tree distribution
-  const tree_map = new ProcLayer('treemap')
-  tree_map.sampling.harmonicsCount = 6 + 1
-  tree_map.params.spreading = 0.25 // (1.25 - 1)
-  // amplitudeMod.next = treeMap
-  // const selection = isNaN(urlParams.layer) ? "all" : ProcGenLayer.layerIndex(urlParams.layer)
+  Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
+  Heightmap.instance.heightmap.sampling.harmonicsCount = 6
+  Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
+  // Biome (blocks mapping)
+  Biome.instance.setMappings(biome_mapping_conf)
+  Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
+  // WIP
+  BlocksPatch.updateCache()
 
   /**
-   * Engine
+   * Blocks gen
    */
   const map = {
     voxelMaterialsList: Object.values(blocks_colors).map(col => ({
@@ -65,15 +61,68 @@ export default function () {
         )
       }
 
+      const debug_mode = false
+
+      const is_edge = (row, col, h, patch_size) =>
+        row === 1 ||
+        row === patch_size - 2 ||
+        col === 1 ||
+        col === patch_size - 2 ||
+        h === 1 ||
+        h === patch_size - 2
+
       let is_empty = true
       const bbox = new Box3(block_start, block_end)
-      for (const voxel of WorldGenerator.instance.genBlocks(bbox, true)) {
-        const local_position = new Vector3().subVectors(voxel.pos, block_start)
-        const cache_index = build_index(local_position)
-        cache[cache_index] = 1 + voxel.type
+      // for (const voxel of WorldGenerator.instance.genBlocks(bbox, true)) {
+      //   const local_position = new Vector3().subVectors(voxel.pos, block_start)
+      //   const cache_index = build_index(local_position)
+      //   cache[cache_index] = 1 + voxel.type
+      //   is_empty = false
+      // }
+      const patch = BlocksPatch.cache.find(
+        patch =>
+          patch.bbox.min.x === bbox.min.x &&
+          patch.bbox.min.z === bbox.min.z &&
+          patch.bbox.max.x === bbox.max.x &&
+          patch.bbox.max.z === bbox.max.z &&
+          patch.bbox.intersectsBox(bbox),
+      )
+
+      if (patch) {
+        console.log(`matching patch`, patch.bbox)
+        // const intersection = patch.bbox.clone().intersect(bbox)
+        const patch_size = patch.dimensions.x
+        const iter = patch?.blockIterator(true)
+        let res = iter.next()
+        while (!res.done) {
+          const { pos, data } = res.value
+          const level = MathUtils.clamp(
+            data.level + data.overground.length,
+            bbox.min.y,
+            bbox.max.y,
+          )
+          let buff_index = Math.max(level - data.level, 0)
+          let h = level - bbox.min.y // local height
+          const block_type =
+            debug_mode && is_edge(pos.z, pos.x, h, patch_size)
+              ? BlockType.SAND
+              : data.type
+          const overbuffer = data.overground.map(type =>
+            type ? type + 1 : type,
+          )
+          while (h > 0) {
+            const cache_index =
+              pos.z * Math.pow(patch_size, 2) + h * patch_size + pos.x
+            cache[cache_index] =
+              buff_index > 0 ? overbuffer[buff_index] : block_type + 1
+            buff_index--
+            h--
+          }
+          res = iter.next()
+        }
+
         is_empty = false
       }
-
       return {
         data: cache,
         isEmpty: is_empty,
@@ -81,8 +130,9 @@ export default function () {
     },
     sampleHeightmap(x, z) {
       const block_pos = new Vector3(x, 0, z)
-      const ground_block = WorldGenerator.instance.getGroundBlock(
+      const ground_block = Heightmap.instance.getGroundBlock(
         block_pos,
+        undefined,
         true,
       )
       const block_color = new Color(blocks_colors[ground_block.type])
@@ -155,7 +205,7 @@ export default function () {
           )
         }
 
-        terrain.setLod(camera.position, 50, camera.far)
+        terrain.setLod(camera.position, 50, 500)
       })
     },
   }
