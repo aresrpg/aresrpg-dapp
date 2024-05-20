@@ -124,6 +124,8 @@ float ov(vec2 p, float time) {
 
 /** @type {Type.Module} */
 export default function () {
+  const base_size = 500
+
   const material = new ShaderMaterial({
     side: DoubleSide,
     uniforms: {
@@ -181,7 +183,7 @@ export default function () {
         vec3 cameraToFrag = normalize(cameraToFragRaw);
 
         const float maxFoamDistance = 700.0;
-        float foam = 2.0 * ov(250.0 * vUv, uTime);
+        float foam = 2.0 * ov(${base_size.toFixed(1)} * vUv, uTime);
         foam *= 1.0 - smoothstep(0.0, maxFoamDistance, length(cameraToFragRaw));
         foam = smoothstep(0.4, 0.9, foam);
         foam = foam * foam;
@@ -203,7 +205,6 @@ export default function () {
       }`,
   })
 
-  const base_size = 500
   const base_mesh = new Mesh(new PlaneGeometry(base_size, base_size), material)
   base_mesh.rotateX(Math.PI / 2)
   base_mesh.layers.set(CartoonRenderpass.non_outlined_layer)
