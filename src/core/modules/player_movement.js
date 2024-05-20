@@ -13,6 +13,7 @@ import { play_step_sound } from './game_audio.js'
 
 const SPEED = 10
 const WALK_SPEED = 6
+const SWIM_SPEED = 8
 const JUMP_FORCE = 10
 const ASCENT_GRAVITY_FACTOR = 3
 const APEX_GRAVITY_FACTOR = 0.3
@@ -50,6 +51,7 @@ export default function () {
 
       const { inputs } = state
       const origin = player.position.clone()
+      const is_underwater = player.position.y < state.settings.water.level
 
       const camera_forward = new Vector3(0, 0, -1)
         .applyQuaternion(camera.quaternion)
@@ -164,6 +166,13 @@ export default function () {
           else velocity.y -= GRAVITY * DESCENT_GRAVITY_FACTOR * delta
       }
 
+      if (is_underwater) {
+        jump_state = jump_states.NONE
+
+        velocity.y = 0
+        if (inputs.jump) velocity.y += SWIM_SPEED
+        if (inputs.walk) velocity.y -= SWIM_SPEED
+      }
       movement.addScaledVector(velocity, delta)
       dummy.position.copy(origin.clone().add(movement))
 
@@ -206,7 +215,8 @@ export default function () {
         if (on_ground) play_step_sound()
       }
 
-      if (!(dummy_bottom_y - 4 < ground_height)) current_action = 'FALL'
+      if (!is_underwater && !(dummy_bottom_y - 4 < ground_height))
+        current_action = 'FALL'
 
       const should_cancel_other_actions =
         is_moving_horizontally &&
