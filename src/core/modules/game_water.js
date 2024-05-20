@@ -180,8 +180,7 @@ export default function () {
       for (let d_x = -5; d_x <= 5; d_x++) {
         for (let d_z = -5; d_z <= 5; d_z++) {
           const mesh = base_mesh.clone()
-          mesh.translateX(base_size * d_x)
-          mesh.translateY(base_size * d_z)
+          mesh.position.set(base_size * d_x, 0, base_size * d_z)
           meshes.push(mesh)
           container.add(mesh)
         }
@@ -201,9 +200,9 @@ export default function () {
         }
 
         container.position.set(
-          player_position_x,
+          base_size * Math.floor(player_position_x / base_size),
           water_level,
-          player_position_z,
+          base_size * Math.floor(player_position_z / base_size),
         )
 
         material.uniforms.uColor.value = state.settings.water.color
