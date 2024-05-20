@@ -1,28 +1,46 @@
+<i18n>
+en:
+  feed: Feed
+  fed: Your pet is very happy now!
+fr:
+  feed: Nourrir
+  fed: Votre famillier est très heureux maintenant!
+</i18n>
+
 <template lang="pug">
 .inventory-container(@dragover.prevent @drop="handle_drop")
   .item(
-    draggable="true"
+    :draggable="selected_category === 'equipment'"
     v-for="item in items"
     :key="item.id"
     :class="{ selected: selected_item?.id === item.id }"
     @click="() => select(item)"
+    @click.right="on_right_click_item($event, item)"
     @dragstart="() => handle_drag_start(item)"
     @dblclick="() => equip_item(item)"
   )
     .amount(v-if="item.amount > 1") {{ item.amount }}
-    img(:src="item?.image_url")
+    img(:src="item?.image_url" :draggable="selected_category === 'equipment'")
 </template>
 
 <script setup>
-import { computed, inject, watch } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
+import ContextMenu from '@imengyu/vue3-context-menu';
+import { useI18n } from 'vue-i18n';
 
+import { sui_feed_pet } from '../../core/sui/client.js';
+import toast from '../../toast.js';
 import {
   is_resource,
   is_consumable,
   is_weapon,
 } from '../../core/utils/item.js';
 import { context } from '../../core/game/game.js';
+import {
+  decrease_loading,
+  increase_loading,
+} from '../../core/utils/loading.js';
 
 const selected_item = inject('selected_item');
 const selected_character = inject('selected_character');
@@ -34,9 +52,38 @@ const edit_mode = inject('edit_mode');
 const real_equipment = inject('equipment');
 const inventory_counter = inject('inventory_counter');
 
+const { t } = useI18n();
+
 function handle_drag_start(item) {
   edit_mode_equipment.dragged_item = item;
   edit_mode_equipment.dragg_started_from = 'equipments';
+}
+
+function on_right_click_item(event, item) {
+  event.preventDefault();
+
+  if (item.item_type === 'suifren_capy')
+    ContextMenu.showContextMenu({
+      x: event.x,
+      y: event.y,
+      theme: 'mac dark',
+      items: [
+        {
+          label: t('feed'),
+          onClick: async () => {
+            try {
+              increase_loading();
+              const fed = await sui_feed_pet(item);
+              if (fed) toast.success(t('fed'));
+            } catch (error) {
+              console.error(error);
+            } finally {
+              decrease_loading();
+            }
+          },
+        },
+      ],
+    });
 }
 
 function handle_drop(event) {

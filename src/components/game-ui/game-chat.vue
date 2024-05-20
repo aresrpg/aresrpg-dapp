@@ -40,7 +40,7 @@ import { useI18n } from 'vue-i18n';
 
 import toast from '../../toast.js';
 import { context } from '../../core/game/game.js';
-import { get_alias, sui_get_character } from '../../core/sui/client.js';
+import { get_alias, sui_get_character_name } from '../../core/sui/client.js';
 
 const history = ref([]);
 const msg_container = ref(null);
@@ -132,7 +132,7 @@ function scroll_to_bottom() {
 async function handle_message({ id, message, address }) {
   try {
     const alias = await get_alias(address);
-    const { name } = await sui_get_character(id);
+    const { name } = await sui_get_character_name(id);
     // @ts-ignore
     history.value.push({
       name,
