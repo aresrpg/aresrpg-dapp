@@ -33,6 +33,7 @@ export const error_sui = {
       'Enoki failed to deliver the transaction (salt failure). Please try again.',
     OUTDATED: `The app is outdated and can't use this feature. Please update the app.`,
     NO_GAS: 'You need Sui in your wallet to perform this action',
+    SUI_MIN_1: 'You need at least 1.1 Sui to perform this action',
     WALLET_CONFIG: 'Wallet configuration error',
   },
   fr: {
@@ -44,6 +45,8 @@ export const error_sui = {
     OUTDATED: `L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour l'application.`,
     NO_GAS:
       'Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action',
+    SUI_MIN_1:
+      "Vous avez besoin d'au moins 1,1 Sui pour effectuer cette action",
     WALLET_CONFIG: 'Erreur de configuration du portefeuille',
   },
 }
@@ -51,21 +54,23 @@ export const error_sui = {
 export const sdk = await SDK({
   rpc_url: VITE_SUI_RPC,
   wss_url: VITE_SUI_WSS,
-  network: Network[NETWORK],
+  network: Network[NETWORK.toUpperCase()],
 })
+
+const CHARACTER_NAMES = new LRUCache({ max: 1000 })
+
+export async function sui_get_character_name(id) {
+  if (CHARACTER_NAMES.has(id)) return CHARACTER_NAMES.get(id)
+
+  const character = await sdk.get_character_by_id(id)
+  CHARACTER_NAMES.set(id, character.name)
+
+  return character.name
+}
 
 /** @return {Promise<Type.SuiCharacter>} */
 export async function sui_get_character(id) {
-  const object = OBJECTS_CACHE.get(id)
-  if (object)
-    // @ts-ignore
-    return object
-
-  const fetched_object = await sdk.get_character_by_id(id)
-
-  OBJECTS_CACHE.set(id, fetched_object)
-
-  return fetched_object
+  return sdk.get_character_by_id(id)
 }
 
 function get_wallet() {
@@ -178,6 +183,43 @@ export async function sui_get_item(id) {
   return sdk.get_item_by_id(id)
 }
 
+export async function sui_feed_pet(pet) {
+  const tx = new TransactionBlock()
+
+  sdk.add_header(tx)
+
+  const balance = BN((await sui_get_sui_balance()).toString()).dividedBy(
+    MIST_PER_SUI.toString(),
+  )
+
+  if (balance.isLessThan(1.1)) {
+    toast.error(t('SUI_MIN_1'), 'Suuuuuu', MapGasStation)
+    return
+  }
+
+  const [payment] = tx.splitCoins(tx.gas, [tx.pure(sui_to_mists(1).toString())])
+
+  const { kiosks, finalize } = await sdk.get_user_kiosks({
+    address: get_address(),
+    tx,
+  })
+
+  const kiosk_cap = kiosks.get(pet.kiosk_id)
+
+  sdk.feed_suifren({
+    tx,
+    kiosk_id: pet.kiosk_id,
+    kiosk_cap,
+    suifren_id: pet.id,
+    coin: payment,
+    fren_type: pet.item_type,
+  })
+
+  finalize()
+
+  return await execute(tx, { allow_sponsor: false })
+}
+
 export async function sui_withdraw_items_from_extension(items) {
   const tx = new TransactionBlock()
 
@@ -258,6 +300,10 @@ export function mists_to_sui(balance) {
   return BN(balance).dividedBy(MIST_PER_SUI.toString()).toString()
 }
 
+function sui_to_mists(amount) {
+  return BN(amount).multipliedBy(MIST_PER_SUI.toString())
+}
+
 export async function sui_get_sui_balance() {
   return sdk.get_sui_balance(get_address())
 }
@@ -315,7 +361,7 @@ export async function sui_delete_character({
   const tx = new TransactionBlock()
 
   sdk.add_header(tx)
-  sdk.borrow_kiosk_owner_cap({
+  sdk.borrow_personal_kiosk_cap({
     personal_kiosk_cap_id,
     tx,
     handler: kiosk_cap => {
@@ -341,7 +387,7 @@ export async function sui_select_character({
   const tx = new TransactionBlock()
 
   sdk.add_header(tx)
-  sdk.borrow_kiosk_owner_cap({
+  sdk.borrow_personal_kiosk_cap({
     personal_kiosk_cap_id,
     tx,
     handler: kiosk_cap => {
@@ -365,7 +411,7 @@ export async function sui_unselect_character({
   const tx = new TransactionBlock()
 
   sdk.add_header(tx)
-  sdk.borrow_kiosk_owner_cap({
+  sdk.borrow_personal_kiosk_cap({
     personal_kiosk_cap_id,
     tx,
     handler: kiosk_cap => {
@@ -443,9 +489,9 @@ export async function sui_subscribe({ signal }) {
   try {
     await try_reset()
     active_subscription.emitter = emitter
-    // active_subscription.interval = setInterval(() => {
-    //   emitter.emit('update', { type: 'interval' })
-    // }, 10000)
+    active_subscription.interval = setInterval(() => {
+      emitter.emit('update', { type: 'interval' })
+    }, 10000)
 
     active_subscription.unsubscribe = await sdk.subscribe(event => {
       const { type } = event

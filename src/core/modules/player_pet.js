@@ -83,7 +83,7 @@ export default function () {
             pets.delete(character.id)
           }
           if (character.pet) {
-            const spawned_pet = context.pool.suifrens_bullshark.get({
+            const spawned_pet = context.pool[character.pet.item_type].get({
               id: character.pet.id,
               name: character.pet.name,
             })
