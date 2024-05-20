@@ -25,6 +25,8 @@ en:
   water_resistance: "% Water resistance"
   air_resistance: "% Air resistance"
   effects: Effects
+  stomach: Stomach
+  last_feed: Last Feed
 fr:
   set: Panoplie
   to: à
@@ -51,6 +53,8 @@ fr:
   water_resistance: "% Résistance Eau"
   air_resistance: "% Résistance Air"
   effects: Effets
+  stomach: Estomac
+  last_feed: Dernier Repas
 </i18n>
 
 <template lang="pug">
@@ -82,6 +86,10 @@ fr:
         )
           img(:src="stat.icon")
           .value +{{ stat.value }} {{ t(stat.name) }}
+        .sepa(v-if="item.last_feed")
+        .stomach(v-if="item.feed_level") {{ t('stomach') }}: {{ item.feed_level }} / 100
+        .last-feed(v-if="item.last_feed") {{ t('last_feed') }}: {{ item.last_feed }}
+
 </template>
 
 <script setup>
@@ -241,4 +249,7 @@ const stats = computed(() => {
             margin-right 5px
           .value
             opacity .9
+        .stomach, .last-feed
+          font-size .8em
+          opacity .7
 </style>

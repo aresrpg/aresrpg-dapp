@@ -10,7 +10,8 @@ import iop_female from '../../assets/models/iop_female.glb?url'
 import sram_male from '../../assets/models/sram_male.glb?url'
 import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
-import suifrens_bullshark from '../../assets/models/suifrens-bullshark.glb?url'
+import suifren_bullshark from '../../assets/models/suifrens-bullshark.glb?url'
+import afegg from '../../assets/models/afegg.glb?url'
 
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
 
@@ -88,9 +89,13 @@ export const MODELS = {
     env_map_intensity: 0.5,
     scale: 1.2,
   }),
-  suifrens_bullshark: await load(suifrens_bullshark, {
+  suifren_bullshark: await load(suifren_bullshark, {
     env_map_intensity: 0.5,
     scale: 1,
+  }),
+  afegg: await load(afegg, {
+    env_map_intensity: 0.5,
+    scale: 0.18,
   }),
 }
 
@@ -357,10 +362,16 @@ export default function create_pools(scene) {
       radius: 0.9,
       name: 'chafer',
     }),
-    suifrens_bullshark: instanciate(MODELS.suifrens_bullshark, {
+    suifren_capy: instanciate(MODELS.suifren_bullshark, {
       height: 0.9,
       radius: 0.9,
-      name: 'suifrens_bullshark',
+      name: 'suifren_bullshark',
+      offset_y: -0.5,
+    }),
+    afegg: instanciate(MODELS.afegg, {
+      height: 0.9,
+      radius: 0.9,
+      name: 'afegg',
       offset_y: -0.5,
     }),
   }
