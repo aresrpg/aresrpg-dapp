@@ -1,6 +1,5 @@
+import { Heightmap } from '@aresrpg/aresrpg-world'
 import { GUI } from 'dat.gui'
-import { WorldGenerator } from '@aresrpg/aresrpg-world'
-import { Vector2 } from 'three'
 
 import { INITIAL_STATE, current_three_character } from '../game/game.js'
 
@@ -56,9 +55,9 @@ export default function () {
               if (player?.position) {
                 // @ts-ignore
                 const { x, z } = player.position
-                const ground_height = WorldGenerator.instance.getHeight(
+                const ground_height = Heightmap.instance.getGroundBlock(
                   player.position,
-                )
+                ).pos
 
                 dispatch('packet/characterPosition', {
                   id: player.id,
