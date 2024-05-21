@@ -1,11 +1,13 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { DoubleSide, Group, Mesh, PlaneGeometry, ShaderMaterial } from 'three'
+import { DoubleSide, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, PlaneGeometry, RepeatWrapping, ShaderMaterial, TextureLoader } from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
+
+import texture_url from '../../assets/water/texture.png?url'
 
 const noise = `//	Simplex 3D Noise 
 //	by Ian McEwan, Ashima Arts
@@ -82,52 +84,18 @@ float noise(vec3 v){
                                 dot(p2,x2), dot(p3,x3) ) );
 }`
 
-const noise_voronoi = `vec2 hash2(vec2 p ) {
-  return fract(sin(vec2(dot(p, vec2(123.4, 748.6)), dot(p, vec2(547.3, 659.3))))*5232.85324);   
-}
-float hash(vec2 p) {
- return fract(sin(dot(p, vec2(43.232, 75.876)))*4526.3257);   
-}
-
-//Based off of iq's described here: https://iquilezles.org/articles/voronoilines
-float voronoi(vec2 p, float time) {
-   vec2 n = floor(p);
-   vec2 f = fract(p);
-   float md = 5.0;
-   vec2 m = vec2(0.0);
-   for (int i = -1;i<=1;i++) {
-       for (int j = -1;j<=1;j++) {
-           vec2 g = vec2(i, j);
-           vec2 o = hash2(n+g);
-           o = 0.5+0.5*sin(time+5.038*o);
-           vec2 r = g + o - f;
-           float d = dot(r, r);
-           if (d<md) {
-             md = d;
-             m = n+g+o;
-           }
-       }
-   }
-   return md;
-}
-
-float ov(vec2 p, float time) {
-   float v = 0.0;
-   float a = 0.4;
-   for (int i = 0;i<3;i++) {
-       v+= voronoi(p, time)*a;
-       p*=2.0;
-       a*=0.5;
-   }
-   return v;
-}`
-
 /** @type {Type.Module} */
 export default function () {
   const base_size = 500
+  const texture = new TextureLoader().load(texture_url);
+  texture.minFilter = LinearMipMapLinearFilter
+  texture.magFilter = LinearFilter
+  texture.wrapS = RepeatWrapping
+  texture.wrapT = RepeatWrapping
 
   const material = new ShaderMaterial({
     side: DoubleSide,
+    transparent: true,
     uniforms: {
       uColor: { value: null },
       uF0: { value: 0 },
@@ -135,6 +103,7 @@ export default function () {
       uEnvMap: { value: null },
       uTime: { value: 0 },
       uNormalSide: { value: 1 },
+      uTexture: { value: texture}
     },
     vertexShader: `
     varying vec2 vUv;
@@ -154,54 +123,71 @@ export default function () {
       uniform samplerCube uEnvMap;
       uniform float uTime;
       uniform float uNormalSide;
+      uniform sampler2D uTexture;
       
       varying vec2 vUv;
       varying vec3 vWorldPosition;
 
-      /* Fresnel factor describes the proportion of refracted and reflected.
-       * Arguments expected to be normalized. */
       float getFresnelFactor(const vec3 normal, const vec3 fromEye) {
         float rawValue = mix(pow(1.0 - dot(normal, -fromEye), 5.0), 1.0, uF0);
-        return pow(rawValue, 0.25);
+        rawValue = pow(rawValue, 0.25);
+        return smoothstep(-0.5, 1.0, rawValue);
       }
 
       ${noise}
 
-      ${noise_voronoi}
-
-      void main(void) {
+      vec3 getNormal() {
         const float normalVerticality = 0.1;
         const float normalScale = 1.0;
+
         vec3 worldNormal = vec3(
           normalVerticality * noise(vec3(normalScale * vWorldPosition.xz, uTime)),
           1,
           normalVerticality * noise(vec3(normalScale * vWorldPosition.zx, uTime))
         );
-        worldNormal = uNormalSide * normalize(worldNormal);
+        return uNormalSide * normalize(worldNormal);
+      }
+
+      float computeFoam(float cameraDistance) {
+        vec2 textureCoords = ${(base_size / 15).toFixed(1)} * vUv;
+        textureCoords += 0.2 * vec2(
+          noise(vec3(0.1 * vWorldPosition.xz, 0.2 * uTime)),
+          noise(vec3(0.1 * vWorldPosition.zx, 0.2 * uTime))
+        );
+        vec4 textureSample = texture2D(uTexture, textureCoords);
+
+        const float maxFoamDistance = 800.0;
+        float distance = smoothstep(0.0, maxFoamDistance, cameraDistance);
+        float foam = textureSample.r;
+        foam *= 1.0 - distance;
+        return foam;
+      }
+
+      void main(void) {
+        vec3 worldNormal = getNormal();
 
         vec3 cameraToFragRaw = vWorldPosition - cameraPosition;
-        vec3 cameraToFrag = normalize(cameraToFragRaw);
-
-        const float maxFoamDistance = 700.0;
-        float foam = 2.0 * ov(${base_size.toFixed(1)} * vUv, uTime);
-        foam *= 1.0 - smoothstep(0.0, maxFoamDistance, length(cameraToFragRaw));
-        foam = smoothstep(0.4, 0.9, foam);
-        foam = foam * foam;
-        foam = clamp(foam, 0.0, 1.0);
+        float cameraDistance = length(cameraToFragRaw);
+        vec3 cameraToFrag = cameraToFragRaw / cameraDistance;
 
         vec3 reflectVec = reflect(cameraToFrag, worldNormal);
         vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
 
-        vec3 envmapVec = (uNormalSide > 0.0) ? reflectVec : refractVec;
-        vec3 envColor = textureCube(uEnvMap, envmapVec).rgb * (1.0 + 1.5 * foam);
+        float foam = computeFoam(cameraDistance);
+        float isOverwater = step(0.0, uNormalSide);
+        vec3 envmapVec = mix(refractVec, reflectVec, isOverwater);
+        vec3 envColor = textureCube(uEnvMap, envmapVec).rgb * (1.0 + 1.8 * foam);
+        vec3 waterColor = 0.1 * uColor;
 
-        vec3 refractedColor = (uNormalSide > 0.0) ? 0.1 * uColor : envColor;
-        vec3 reflectedColor = (uNormalSide > 0.0) ? envColor : 0.1 * uColor;
+        vec3 refractedColor = mix(envColor, waterColor, isOverwater);
+        vec3 reflectedColor = mix(waterColor, envColor, isOverwater);
 
         float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
-        vec3 surfaceColor = mix(refractedColor, reflectedColor, fresnelFactor) + 0.05 * foam;
+        vec3 surfaceColor = mix(refractedColor, reflectedColor, fresnelFactor) + 0.1 * foam;;
 
-        gl_FragColor = vec4(surfaceColor, 1);
+        float alpha = fresnelFactor;//mix(fresnelFactor, 1.0, foam);
+        alpha = mix(1.0, alpha, isOverwater);
+        gl_FragColor = vec4(surfaceColor, alpha);
       }`,
   })
 
