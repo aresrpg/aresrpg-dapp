@@ -137,7 +137,7 @@ export const INITIAL_STATE = {
 
     water: {
       level: 76,
-      color: new Color(0x2327ff),
+      color: new Color(0x29b6f6),
     },
 
     view_distance: 100,
