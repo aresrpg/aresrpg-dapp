@@ -239,30 +239,6 @@ function select(item) {
   selected_item.value = item;
 }
 
-function is_equipped(item) {
-  return context
-    .get_state()
-    .sui.locked_characters.some(
-      character =>
-        item.id === character.weapon?.id ||
-        item.id === character.title?.id ||
-        item.id === character.amulet?.id ||
-        item.id === character.belt?.id ||
-        item.id === character.boots?.id ||
-        item.id === character.hat?.id ||
-        item.id === character.cloack?.id ||
-        item.id === character.pet?.id ||
-        item.id === character.left_ring?.id ||
-        item.id === character.right_ring?.id ||
-        item.id === character.relic_1?.id ||
-        item.id === character.relic_2?.id ||
-        item.id === character.relic_3?.id ||
-        item.id === character.relic_4?.id ||
-        item.id === character.relic_5?.id ||
-        item.id === character.relic_6?.id,
-    );
-}
-
 const items = computed(() => {
   switch (selected_category.value) {
     case 'loot':
@@ -277,12 +253,7 @@ const items = computed(() => {
 
       const equipments = owned_items.value
         .filter(item => {
-          return (
-            !!item &&
-            !is_consumable(item) &&
-            !is_resource(item) &&
-            !is_equipped(item)
-          );
+          return !!item && !is_consumable(item) && !is_resource(item);
         })
         .sort((a, b) => a.name - b.name);
       edit_mode_equipment.equipments = equipments;

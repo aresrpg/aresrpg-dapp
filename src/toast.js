@@ -6,8 +6,7 @@ import FluentEmojiHighContrastFly from '~icons/fluent-emoji-high-contrast/fly'
 export default {
   success(content, title = 'AresRPG', icon = "<i class='bx bx-check'></i>") {
     VsNotification({
-      flat: true,
-      color: 'success',
+      color: '#2ECC71',
       icon,
       title,
       duration: 7000,
@@ -16,8 +15,7 @@ export default {
   },
   error(content, title = 'Oh no!', icon = FluentEmojiHighContrastFly) {
     VsNotification({
-      flat: true,
-      color: '#E57373',
+      color: '#E74C3C',
       position: 'bottom-right',
       title,
       content,
@@ -27,8 +25,7 @@ export default {
   },
   info(content, title = 'AresRPG', icon = "<i class='bx bx-info-circle'></i>") {
     VsNotification({
-      flat: true,
-      color: 'primary',
+      color: '#3498DB',
       icon,
       position: 'bottom-right',
       title,
@@ -38,8 +35,7 @@ export default {
   },
   warn(content, title = 'Beware!', icon = "<i class='bx bx-cog'></i>") {
     VsNotification({
-      flat: true,
-      color: 'warn',
+      color: '#F1C40F',
       position: 'bottom-right',
       title,
       duration: 7000,

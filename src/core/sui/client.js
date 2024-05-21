@@ -2,7 +2,7 @@ import EventEmitter from 'events'
 
 import { TransactionBlock } from '@mysten/sui.js/transactions'
 import { BigNumber as BN } from 'bignumber.js'
-import { MIST_PER_SUI } from '@mysten/sui.js/utils'
+import { MIST_PER_SUI, fromB64, toB64 } from '@mysten/sui.js/utils'
 import { LRUCache } from 'lru-cache'
 import { Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
@@ -11,18 +11,31 @@ import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client'
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
 import toast from '../../toast.js'
-import { NETWORK, VITE_SUI_RPC, VITE_SUI_WSS } from '../../env.js'
+import {
+  NETWORK,
+  VITE_SPONSOR_URL,
+  VITE_SUI_RPC,
+  VITE_SUI_WSS,
+} from '../../env.js'
 
 // @ts-ignore
 import TwemojiSalt from '~icons/twemoji/salt'
 // @ts-ignore
 import MapGasStation from '~icons/map/gas-station'
 // @ts-ignore
+import TokenSui from '~icons/token/sui'
+// @ts-ignore
 import MaterialSymbolsLightRuleSettings from '~icons/material-symbols-light/rule-settings'
 
 const SUINS_CACHE = new LRUCache({ max: 50 })
 
 let t = null
+
+setTimeout(async () => {
+  const { i18n } = await import('../../main.js')
+  // eslint-disable-next-line prefer-destructuring
+  t = i18n.global.t
+}, 1)
 
 export const error_sui = {
   en: {
@@ -33,8 +46,10 @@ export const error_sui = {
       'Enoki failed to deliver the transaction (salt failure). Please try again.',
     OUTDATED: `The app is outdated and can't use this feature. Please update the app.`,
     NO_GAS: 'You need Sui in your wallet to perform this action',
-    SUI_MIN_1: 'You need at least 1.1 Sui to perform this action',
+    SUI_MIN_1: 'You need at least 1 Sui to perform this action',
     WALLET_CONFIG: 'Wallet configuration error',
+    SUI_SUBSCRIBE_OK: 'Connected to Sui',
+    E_PET_ALREADY_FED: 'This pet is not hungry',
   },
   fr: {
     LOGIN_AGAIN: 'Veuillez vous reconnecter',
@@ -45,9 +60,10 @@ export const error_sui = {
     OUTDATED: `L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour l'application.`,
     NO_GAS:
       'Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action',
-    SUI_MIN_1:
-      "Vous avez besoin d'au moins 1,1 Sui pour effectuer cette action",
+    SUI_MIN_1: "Vous avez besoin d'au moins 1 Sui pour effectuer cette action",
     WALLET_CONFIG: 'Erreur de configuration du portefeuille',
+    SUI_SUBSCRIBE_OK: 'Connecté à Sui',
+    E_PET_ALREADY_FED: 'Ce famillier n a pas faim',
   },
 }
 
@@ -85,13 +101,8 @@ function get_address() {
   return context.get_state().sui.selected_address
 }
 
+/** @param {TransactionBlock} transaction_block */
 const execute = async transaction_block => {
-  if (!t) {
-    const { i18n } = await import('../../main.js')
-    // eslint-disable-next-line prefer-destructuring
-    t = i18n.global.t
-  }
-
   const sender = get_address()
   if (!sender) {
     toast.error(t('LOGIN_AGAIN'), t('WALLET_NOT_FOUND'))
@@ -110,49 +121,69 @@ const execute = async transaction_block => {
       return
     }
 
-    // ? Enoki doesn't seem to support returning a signed transaction block
-    if (wallet.name === 'Enoki') {
-      return await wallet.signAndExecuteTransactionBlock({
-        transaction_block,
-        sender,
-      })
-    } else {
-      // otherwise we execute the tx through our chosen RPC
-      const { transactionBlockBytes, signature } =
-        await get_wallet().signTransactionBlock({
-          transaction_block,
-          sender,
-        })
+    transaction_block.setSender(sender)
 
-      const result = await sdk.sui_client.executeTransactionBlock({
-        transactionBlock: transactionBlockBytes,
+    const txb_kind_bytes = await transaction_block.build({
+      client: sdk.sui_client,
+      onlyTransactionKind: true,
+    })
+
+    const { bytes, digest, error } = await fetch(
+      `${VITE_SPONSOR_URL}/sponsor`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          address: sender,
+          txb: toB64(txb_kind_bytes),
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    ).then(res => res.json())
+
+    if (error) throw new Error(error)
+
+    const sponsored = TransactionBlock.from(bytes)
+
+    const { signature } = await wallet.signTransactionBlock({
+      transaction_block: sponsored,
+      sender,
+    })
+
+    const result = await fetch(`${VITE_SPONSOR_URL}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({
+        digest,
         signature,
-        options: { showEffects: true },
-      })
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
 
-      return result
-    }
+    await sdk.sui_client.waitForTransactionBlock({ digest })
+
+    return result
   } catch (error) {
-    console.dir({ error }, { depth: Infinity })
-    if (error.code === 'salt_failure') {
-      toast.error(t('ENOKI_SALT'), 'Oh no!', TwemojiSalt)
-      return
-    }
+    console.error(error)
 
-    if (error.message.includes('No valid gas coins')) {
-      toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
-      return
-    }
+    const { message, code } = error
 
-    if (
-      error.message.includes('rejection') ||
-      error.message.includes('Rejected')
-    )
-      return
+    if (code === 'salt_failure')
+      return toast.error(t('ENOKI_SALT'), 'Oh no!', TwemojiSalt)
 
-    if (error.message.includes('Some("assert_latest") }, 1')) {
+    if (message.includes('No valid gas coins'))
+      return toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
+
+    if (message === 'EAlreadyFed')
+      return toast.error(t('E_PET_ALREADY_FED'), 'Burp!')
+
+    if (message.includes('rejection') || message.includes('Rejected')) return
+
+    if (message.includes('Some("assert_latest") }, 1')) {
       toast.error(t('OUTDATED'))
-    } else toast.error(error.message, 'Transaction failed')
+    } else toast.error(message, 'Transaction failed')
     throw error
   }
 }
@@ -192,12 +223,27 @@ export async function sui_feed_pet(pet) {
     MIST_PER_SUI.toString(),
   )
 
-  if (balance.isLessThan(1.1)) {
+  if (balance.isLessThan(1)) {
     toast.error(t('SUI_MIN_1'), 'Suuuuuu', MapGasStation)
     return
   }
 
-  const [payment] = tx.splitCoins(tx.gas, [tx.pure(sui_to_mists(1).toString())])
+  const {
+    data: [first, ...rest],
+  } = await sdk.sui_client.getCoins({
+    coinType: '0x2::sui::SUI',
+    owner: get_address(),
+  })
+
+  if (rest.length)
+    tx.mergeCoins(
+      tx.object(first.coinObjectId),
+      rest.map(c => tx.object(c.coinObjectId)),
+    )
+
+  const [payment] = tx.splitCoins(tx.object(first.coinObjectId), [
+    tx.pure(sui_to_mists(1).toString()),
+  ])
 
   const { kiosks, finalize } = await sdk.get_user_kiosks({
     address: get_address(),
@@ -217,7 +263,7 @@ export async function sui_feed_pet(pet) {
 
   finalize()
 
-  return await execute(tx, { allow_sponsor: false })
+  return await execute(tx)
 }
 
 export async function sui_withdraw_items_from_extension(items) {
@@ -489,9 +535,9 @@ export async function sui_subscribe({ signal }) {
   try {
     await try_reset()
     active_subscription.emitter = emitter
-    active_subscription.interval = setInterval(() => {
-      emitter.emit('update', { type: 'interval' })
-    }, 10000)
+    // active_subscription.interval = setInterval(() => {
+    //   emitter.emit('update', { type: 'interval' })
+    // }, 10000)
 
     active_subscription.unsubscribe = await sdk.subscribe(event => {
       const { type } = event
@@ -502,6 +548,7 @@ export async function sui_subscribe({ signal }) {
         sender_is_me: event.sender === get_address(),
       })
     })
+    toast.info(t('SUI_SUBSCRIBE_OK'), null, TokenSui)
   } catch (error) {
     if (error.message.includes('Invalid params'))
       console.error(

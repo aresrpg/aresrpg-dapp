@@ -40,6 +40,19 @@ export const DEFAULT_SUI_CHARACTER = () => ({
 
 export const SUI_EMITTER = new EventEmitter()
 
+function debounce(func, wait) {
+  const timeouts = new Map()
+  return function (params) {
+    const key = JSON.stringify(params)
+    if (timeouts.has(key)) clearTimeout(timeouts.get(key))
+    const timeout = setTimeout(() => {
+      func(params)
+      timeouts.delete(key)
+    }, wait)
+    timeouts.set(key, timeout)
+  }
+}
+
 /** @type {Type.Module} */
 export default function () {
   return {
@@ -67,6 +80,7 @@ export default function () {
     },
     async observe() {
       let controller = new AbortController()
+
       async function update_user_data({
         update_locked_characters = false,
         update_unlocked_characters = false,
@@ -93,6 +107,8 @@ export default function () {
         context.dispatch('action/sui_data_update', update)
       }
 
+      const debounced_update_user_data = debounce(update_user_data, 100)
+
       state_iterator().reduce(
         async (last_address, { sui: { selected_address } }) => {
           const address_changed = last_address !== selected_address
@@ -101,7 +117,7 @@ export default function () {
             disconnect_ws()
 
             if (selected_address) {
-              increase_loading()
+              // increase_loading()
 
               // unsubscription is handled internally
               sui_subscribe(controller).then(emitter => {
@@ -132,7 +148,7 @@ export default function () {
                 // emitter.on('update', update_user_data)
                 emitter.on('ItemEquipEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_locked_characters: true,
                       update_unlocked_items: true,
                     })
@@ -142,7 +158,7 @@ export default function () {
 
                 emitter.on('ItemUnequipEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_locked_characters: true,
                       update_unlocked_items: true,
                     })
@@ -151,16 +167,24 @@ export default function () {
                     SUI_EMITTER.emit('ItemUnequipEvent', event)
                 })
 
+                emitter.on('PetFeedEvent', event => {
+                  if (event.sender_is_me)
+                    debounced_update_user_data({
+                      update_locked_characters: true,
+                      update_unlocked_items: true,
+                    })
+                })
+
                 emitter.on('CharacterCreateEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_unlocked_characters: true,
                     })
                 })
 
                 emitter.on('CharacterSelectEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_locked_characters: true,
                       update_unlocked_characters: true,
                     })
@@ -168,7 +192,7 @@ export default function () {
 
                 emitter.on('CharacterUnselectEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_locked_characters: true,
                       update_unlocked_characters: true,
                     })
@@ -176,14 +200,14 @@ export default function () {
 
                 emitter.on('CharacterDeleteEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_unlocked_characters: true,
                     })
                 })
 
                 emitter.on('StatsResetEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_locked_characters: true,
                       update_unlocked_items: true,
                     })
@@ -191,14 +215,14 @@ export default function () {
 
                 emitter.on('ItemMintEvent', event => {
                   if (is_kiosk_mine(event.kiosk_id))
-                    update_user_data({
+                    debounced_update_user_data({
                       update_locked_items: true,
                     })
                 })
 
                 emitter.on('ItemWithdrawEvent', event => {
                   if (event.sender_is_me)
-                    update_user_data({
+                    debounced_update_user_data({
                       update_locked_items: true,
                       update_unlocked_items: true,
                     })
