@@ -25,6 +25,8 @@ import MapGasStation from '~icons/map/gas-station'
 // @ts-ignore
 import TokenSui from '~icons/token/sui'
 // @ts-ignore
+import TwemojiSushi from '~icons/twemoji/sushi'
+// @ts-ignore
 import MaterialSymbolsLightRuleSettings from '~icons/material-symbols-light/rule-settings'
 
 const SUINS_CACHE = new LRUCache({ max: 50 })
@@ -50,6 +52,7 @@ export const error_sui = {
     WALLET_CONFIG: 'Wallet configuration error',
     SUI_SUBSCRIBE_OK: 'Connected to Sui',
     E_PET_ALREADY_FED: 'This pet is not hungry',
+    INV_NOT_EMPTY: 'You must unequip all items before that',
   },
   fr: {
     LOGIN_AGAIN: 'Veuillez vous reconnecter',
@@ -64,6 +67,7 @@ export const error_sui = {
     WALLET_CONFIG: 'Erreur de configuration du portefeuille',
     SUI_SUBSCRIBE_OK: 'Connecté à Sui',
     E_PET_ALREADY_FED: 'Ce famillier n a pas faim',
+    INV_NOT_EMPTY: `Vous devez déséquiper tous les objets d'abord`,
   },
 }
 
@@ -177,7 +181,9 @@ const execute = async transaction_block => {
       return toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
 
     if (message === 'EAlreadyFed')
-      return toast.error(t('E_PET_ALREADY_FED'), 'Burp!')
+      return toast.warn(t('E_PET_ALREADY_FED'), 'Burp!', TwemojiSushi)
+
+    if (message === 'EInventoryNotEmpty') return toast.error(t('INV_NOT_EMPTY'))
 
     if (message.includes('rejection') || message.includes('Rejected')) return
 
