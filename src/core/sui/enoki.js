@@ -82,24 +82,13 @@ export function enoki_wallet() {
         IntentScope.PersonalMessage,
       )
     },
-    /**
-     * @param {Object} opt
-     * @param {import("@mysten/sui.js/transactions").TransactionBlock} opt.transaction_block */
     async signTransactionBlock({ transaction_block }) {
-      const { bytes } = await enoki.sponsorTransactionBlock({
-        network: NETWORK,
-        // @ts-ignore
-        client: sdk.sui_client,
-        transactionBlock: transaction_block,
-      })
-
       const keypair = await enoki.getKeypair({ network: NETWORK })
-      const { signature } = await keypair.signTransactionBlock(fromB64(bytes))
 
-      return {
-        transactionBlockBytes: bytes,
-        signature,
-      }
+      const { signature } =
+        await keypair.signTransactionBlock(transaction_block)
+
+      return signature
     },
   }
 }
