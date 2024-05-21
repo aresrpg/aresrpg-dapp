@@ -12,7 +12,6 @@
     unlock_desc: You're about to unselect this character and retrieve it in your wallet
     lock_failed: Failed to select character, please retry shortly
     delete_failed: Failed to delete character, please retry shortly
-    unlock_failed: Failed to unselect character, please retry shortly
     send_failed: Failed to send character, please retry shortly
   fr:
     lock: Sélectionner
@@ -27,7 +26,6 @@
     unlock_desc: Vous êtes sur le point de désélectionner ce personnage et de le récupérer dans votre portefeuille
     lock_failed: Échec de sélection du personnage, veuillez réessayer ultérieurement
     delete_failed: Échec de suppression du personnage, veuillez réessayer ultérieurement
-    unlock_failed: Échec de la désélection du personnage, veuillez réessayer ultérieurement
     send_failed: Échec de l'envoi du personnage, veuillez réessayer ultérieurement
 </i18n>
 
@@ -156,8 +154,6 @@ async function unselect_character() {
 
     await sui_unselect_character(props.character);
   } catch (error) {
-    console.error(error);
-    toast.warn(t('unlock_failed'));
   } finally {
     unlock_loading.value = false;
     unlock_dialog.value = false;
