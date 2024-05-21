@@ -372,7 +372,7 @@ export default function create_pools(scene) {
       height: 0.9,
       radius: 0.9,
       name: 'afegg',
-      offset_y: -0.5,
+      offset_y: -0.52,
     }),
   }
 

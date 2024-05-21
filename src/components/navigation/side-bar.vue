@@ -1,12 +1,12 @@
 <i18n>
   fr:
-    inv: Inventaire
+    shop: Hôtel des ventes
     settings: Paramètres
     world: Monde
     characters: Personnages
     terrain-editor: Editeur de terrain
   en:
-    inv: Inventory
+    shop: Market
     settings: Settings
     lang: Choose a language
     world: World
@@ -30,7 +30,7 @@
     vs-sidebar-item(id="world" @click="router.push('/world')") {{ t('world') }}
       template(#icon)
         i.bx.bx-world
-    vs-sidebar-item(id="inventory" @click="router.push('/inventory')") {{ t('inv') }}
+    vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('shop') }}
       template(#icon)
         i.bx.bx-wallet
     vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('settings') }}
