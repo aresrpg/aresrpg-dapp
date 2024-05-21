@@ -1,8 +1,4 @@
 // import { N8AOPass } from 'n8ao'
-
-import { on } from 'events'
-
-import { aiter } from 'iterator-helper'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -13,7 +9,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import { abortable, state_iterator } from '../utils/iterator.js'
+import { state_iterator } from '../utils/iterator.js'
 import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 
 /** @type {Type.Module} */

@@ -35,7 +35,10 @@ export default function () {
             ...state,
             settings: {
               ...state.settings,
-              free_camera: payload,
+              camera: {
+                ...state.settings.camera,
+                is_free: payload,
+              },
             },
           }
       }
