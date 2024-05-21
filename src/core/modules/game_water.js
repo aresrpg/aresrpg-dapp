@@ -1,12 +1,21 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { DoubleSide, Group, LinearFilter, LinearMipMapLinearFilter, Mesh, PlaneGeometry, RepeatWrapping, ShaderMaterial, TextureLoader } from 'three'
+import {
+  DoubleSide,
+  Group,
+  LinearFilter,
+  LinearMipMapLinearFilter,
+  Mesh,
+  PlaneGeometry,
+  RepeatWrapping,
+  ShaderMaterial,
+  TextureLoader,
+} from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-
 import texture_url from '../../assets/water/texture.png?url'
 
 const noise = `//	Simplex 3D Noise 
@@ -87,7 +96,7 @@ float noise(vec3 v){
 /** @type {Type.Module} */
 export default function () {
   const base_size = 500
-  const texture = new TextureLoader().load(texture_url);
+  const texture = new TextureLoader().load(texture_url)
   texture.minFilter = LinearMipMapLinearFilter
   texture.magFilter = LinearFilter
   texture.wrapS = RepeatWrapping
@@ -103,7 +112,7 @@ export default function () {
       uEnvMap: { value: null },
       uTime: { value: 0 },
       uNormalSide: { value: 1 },
-      uTexture: { value: texture}
+      uTexture: { value: texture },
     },
     vertexShader: `
     varying vec2 vUv;
