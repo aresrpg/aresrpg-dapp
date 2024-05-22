@@ -5,7 +5,11 @@ import { aiter } from 'iterator-helper'
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
 import { abortable } from '../utils/iterator.js'
-import { sui_get_character, sui_get_item } from '../sui/client.js'
+import {
+  sui_get_character,
+  sui_get_character_name,
+  sui_get_item,
+} from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { context, current_three_character } from '../game/game.js'
 
@@ -28,6 +32,7 @@ export default function () {
     }
   }
 
+  /** @param {import("@aresrpg/aresrpg-sdk/types").SuiCharacter} character */
   function spawn_pet(character) {
     despawn_pet(character)
 
@@ -35,7 +40,11 @@ export default function () {
       id: character.pet.id,
       name: character.pet.name,
     })
-    spawned_pet.title.text = `${character.pet.name} (${character.pet.level})`
+
+    sui_get_character_name(character.id).then(name => {
+      spawned_pet.title.text = `${character.pet.name} (${name})`
+    })
+
     spawned_pet.move(character.position)
     spawned_pets.set(character.id, spawned_pet)
   }
@@ -86,6 +95,7 @@ export default function () {
             .entity(DEFAULT_SUI_CHARACTER())
             .instanced()
 
+          // @ts-ignore
           visible_characters.set(id, {
             ...DEFAULT_SUI_CHARACTER(),
             ...default_three_character,
@@ -109,6 +119,7 @@ export default function () {
 
               default_three_character.apply_state(three_character)
               visible_characters.set(id, {
+                ...sui_data,
                 ...visible_characters.get(id),
                 ...three_character,
               })
@@ -161,13 +172,13 @@ export default function () {
 
             if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
               entity.title.visible = false
-              despawn_pet(entity)
+              if (entity.pet) despawn_pet(entity)
             } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
               !entity.title.visible
             ) {
               entity.title.visible = true
-              spawn_pet(entity)
+              if (entity.pet) spawn_pet(entity)
             }
           }
         }
@@ -188,12 +199,12 @@ export default function () {
 
             if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
               entity.title.visible = false
-              despawn_pet(entity)
+              if (entity.pet) despawn_pet(entity)
             } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
               !entity.title.visible
             ) {
-              spawn_pet(entity)
+              if (entity.pet) spawn_pet(entity)
               entity.title.visible = true
             }
           })

@@ -207,7 +207,7 @@ export const INITIAL_STATE = {
   inventory: [],
 
   // represents other characters on the map
-  /** @type {Map<string, Type.ThreeEntity>} */
+  /** @type {Map<string, Type.FullCharacter>} */
   visible_characters: new Map(),
 }
 
