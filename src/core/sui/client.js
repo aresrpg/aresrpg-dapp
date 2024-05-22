@@ -170,9 +170,9 @@ const execute = async transaction_block => {
 
     return result
   } catch (error) {
-    console.error(error)
-
     const { message, code } = error
+
+    console.dir({ error })
 
     if (code === 'salt_failure')
       return toast.error(t('ENOKI_SALT'), 'Oh no!', TwemojiSalt)

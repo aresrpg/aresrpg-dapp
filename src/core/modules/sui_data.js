@@ -117,7 +117,7 @@ export default function () {
             disconnect_ws()
 
             if (selected_address) {
-              // increase_loading()
+              increase_loading()
 
               // unsubscription is handled internally
               sui_subscribe(controller).then(emitter => {
