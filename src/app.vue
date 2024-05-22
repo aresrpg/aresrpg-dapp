@@ -4,6 +4,7 @@ router-view
 
 <script setup>
 import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
+import deep_equal from 'fast-deep-equal';
 
 import {
   context,
@@ -102,8 +103,6 @@ function update_all(state) {
   const selected_account = accounts.find(
     ({ address }) => address === selected_address,
   );
-  const locked_ids = locked_items.map(c => c.id);
-  const unlocked_ids = unlocked_items.map(c => c.id);
 
   const characters_ids = locked_characters
     .map(character => character.id)
@@ -124,10 +123,10 @@ function update_all(state) {
     selected_character.value = null;
   }
 
-  if (locked_ids.join() !== extension_items.value.map(c => c.id).join())
+  if (!deep_equal(locked_items, extension_items.value))
     extension_items.value = locked_items;
 
-  if (unlocked_ids.join() !== owned_items.value.map(c => c.id).join())
+  if (!deep_equal(unlocked_items, owned_items.value))
     owned_items.value = unlocked_items;
 
   if (accounts_addresses.join() !== available_accounts_addresses.join())
