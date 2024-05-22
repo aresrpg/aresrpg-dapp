@@ -28,7 +28,7 @@ fr:
 </template>
 
 <script setup>
-import { ref, inject, provide, reactive } from 'vue';
+import { ref, inject, provide, reactive, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import itemDescription from '../cards/item-description.vue';
@@ -37,6 +37,7 @@ import itemEquipments from '../cards/item-equipments.vue';
 import { sui_withdraw_items_from_extension } from '../../core/sui/client.js';
 
 const extension_items = inject('extension_items');
+const owned_items = inject('owned_items');
 
 const selected_category = ref('equipment');
 
@@ -84,6 +85,13 @@ async function claim_all() {
     claim_loading.value = false;
   }
 }
+
+watch(owned_items, items => {
+  if (selected_item.value) {
+    const target_item = items.find(item => item.id === selected_item.value.id);
+    if (target_item) selected_item.value = target_item;
+  }
+});
 </script>
 
 <style lang="stylus" scoped>
