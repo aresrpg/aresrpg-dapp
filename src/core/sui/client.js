@@ -71,12 +71,6 @@ export const sdk = await SDK({
   network: Network[NETWORK.toUpperCase()],
 })
 
-setTimeout(async () => {
-  const { i18n } = await import('../../main.js')
-  // eslint-disable-next-line prefer-destructuring
-  t = i18n.global.t
-}, 10)
-
 const CHARACTER_NAMES = new LRUCache({ max: 1000 })
 
 export async function sui_get_character_name(id) {
@@ -107,6 +101,12 @@ function get_address() {
 
 /** @param {TransactionBlock} transaction_block */
 const execute = async transaction_block => {
+  if (!t) {
+    const { i18n } = await import('../../main.js')
+    // eslint-disable-next-line prefer-destructuring
+    t = i18n.global.t
+  }
+
   const sender = get_address()
   if (!sender) {
     toast.error(t('LOGIN_AGAIN'), t('WALLET_NOT_FOUND'))
