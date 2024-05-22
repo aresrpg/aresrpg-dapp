@@ -20,6 +20,7 @@ export const error_translations = {
     CHARACTER_UNLOCKED: 'Did you unlock your character ?',
     INVALID_CONTRACT:
       'The contract is invalid, is your app up to date ? Try to refresh the page',
+    MAX_CHARACTERS_PER_PLAYER: `You can't play with that many characters!`,
   },
   fr: {
     ALREADY_ONLINE:
@@ -35,6 +36,7 @@ export const error_translations = {
     CHARACTER_UNLOCKED: 'Avez-vous débloqué votre personnage ?',
     INVALID_CONTRACT:
       'Le contrat est invalide, votre application est-elle à jour ? Essayez de rafraîchir la page',
+    MAX_CHARACTERS_PER_PLAYER: `Vous ne pouvez pas jouer avec autant de personnages !`,
   },
 }
 
@@ -92,6 +94,9 @@ export async function handle_server_error(reason) {
       break
     case 'INVALID_CONTRACT':
       toast.error(t('INVALID_CONTRACT'))
+      break
+    case 'MAX_CHARACTERS_PER_PLAYER':
+      toast.error(t('MAX_CHARACTERS_PER_PLAYER'))
       break
     default:
       toast.error(reason)
