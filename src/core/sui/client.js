@@ -33,12 +33,6 @@ const SUINS_CACHE = new LRUCache({ max: 50 })
 
 let t = null
 
-setTimeout(async () => {
-  const { i18n } = await import('../../main.js')
-  // eslint-disable-next-line prefer-destructuring
-  t = i18n.global.t
-}, 1)
-
 export const error_sui = {
   en: {
     LOGIN_AGAIN: 'Please login again',
@@ -76,6 +70,12 @@ export const sdk = await SDK({
   wss_url: VITE_SUI_WSS,
   network: Network[NETWORK.toUpperCase()],
 })
+
+setTimeout(async () => {
+  const { i18n } = await import('../../main.js')
+  // eslint-disable-next-line prefer-destructuring
+  t = i18n.global.t
+}, 10)
 
 const CHARACTER_NAMES = new LRUCache({ max: 1000 })
 
