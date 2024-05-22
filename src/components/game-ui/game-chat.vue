@@ -132,8 +132,7 @@ function scroll_to_bottom() {
 async function handle_message({ id, message, address }) {
   try {
     const alias = await get_alias(address);
-    // @ts-ignore
-    const { name } = await sui_get_character_name(id);
+    const name = await sui_get_character_name(id);
     // @ts-ignore
     history.value.push({
       name,

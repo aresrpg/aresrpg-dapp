@@ -74,12 +74,11 @@ export const sdk = await SDK({
 const CHARACTER_NAMES = new LRUCache({ max: 1000 })
 
 export async function sui_get_character_name(id) {
-  if (CHARACTER_NAMES.has(id)) return CHARACTER_NAMES.get(id)
-
-  const character = await sdk.get_character_by_id(id)
-  CHARACTER_NAMES.set(id, character.name)
-
-  return character.name
+  if (!CHARACTER_NAMES.has(id)) {
+    const character = await sdk.get_character_by_id(id)
+    CHARACTER_NAMES.set(id, character.name)
+  }
+  return CHARACTER_NAMES.get(id)
 }
 
 /** @return {Promise<Type.SuiCharacter>} */
@@ -526,6 +525,12 @@ export async function sui_unselect_character({
 
 export async function sui_subscribe({ signal }) {
   const emitter = new EventEmitter()
+
+  if (!t) {
+    const { i18n } = await import('../../main.js')
+    // eslint-disable-next-line prefer-destructuring
+    t = i18n.global.t
+  }
 
   async function try_reset() {
     if (active_subscription.emitter) {
