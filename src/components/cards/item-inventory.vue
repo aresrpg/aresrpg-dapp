@@ -36,7 +36,6 @@ import {
   is_consumable,
   is_weapon,
 } from '../../core/utils/item.js';
-import { context } from '../../core/game/game.js';
 import {
   decrease_loading,
   increase_loading,
