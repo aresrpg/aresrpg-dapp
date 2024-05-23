@@ -86,7 +86,14 @@ export default function () {
       // composer.addPass(outputpass)
 
       state_iterator().reduce(
-        ({ last_postprocessing_version, last_camera_is_underwater }, state) => {
+        (
+          {
+            last_postprocessing_version,
+            last_camera_is_underwater,
+            last_water_color,
+          },
+          state,
+        ) => {
           const { postprocessing } = state.settings
           const camera_is_underwater = state.settings.camera.is_underwater
 
@@ -110,14 +117,22 @@ export default function () {
               postprocessing.underwater_pass.enabled && camera_is_underwater
           }
 
+          const water_color = state.settings.water.color
+          if (!last_water_color || !last_water_color.equals(water_color)) {
+            last_water_color = water_color
+            underwater_pass.color = last_water_color
+          }
+
           return {
             last_postprocessing_version,
             last_camera_is_underwater,
+            last_water_color,
           }
         },
         {
           last_postprocessing_version: 0,
           last_camera_is_underwater: false,
+          last_water_color: null,
         },
       )
 

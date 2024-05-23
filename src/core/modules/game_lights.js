@@ -72,8 +72,8 @@ export default function () {
         ambient_light.intensity = sky_lights.ambient.intensity
       }
 
-      function update_fog(camera_is_underwater, sky_lights) {
-        scene.fog.color = sky_lights.fog.color.clone()
+      function update_fog(camera_is_underwater, color) {
+        scene.fog.color = color.clone()
         if (camera_is_underwater) {
           // @ts-ignore
           scene.fog.near = 0
@@ -93,12 +93,15 @@ export default function () {
             last_sky_lights_version,
             last_camera_is_underwater,
             last_player_position,
+            last_water_color,
           },
           [state],
         ) => {
           const lights_changed =
             state.settings.sky.lights.version !== last_sky_lights_version ||
-            state.settings.camera.is_underwater !== last_camera_is_underwater
+            state.settings.camera.is_underwater !== last_camera_is_underwater ||
+            !last_water_color ||
+            !last_water_color.equals(state.settings.water.color)
 
           const player_position =
             current_three_character(state)?.position?.clone()
@@ -108,10 +111,20 @@ export default function () {
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version
             update_sky_lights_color(state.settings.sky.lights)
-            update_fog(
-              state.settings.camera.is_underwater,
-              state.settings.sky.lights,
-            )
+
+            last_water_color = state.settings.water.color
+
+            let fog_color = state.settings.sky.lights.fog.color
+            if (state.settings.camera.is_underwater) {
+              fog_color = state.settings.sky.lights.ambient.color
+                .clone()
+                .multiply(last_water_color)
+                .multiplyScalar(
+                  Math.min(1, state.settings.sky.lights.ambient.intensity),
+                )
+            }
+
+            update_fog(state.settings.camera.is_underwater, fog_color)
           }
 
           if (last_player_position && player_position) {
@@ -130,12 +143,14 @@ export default function () {
             last_sky_lights_version,
             last_camera_is_underwater,
             last_player_position: player_position,
+            last_water_color,
           }
         },
         {
           last_sky_lights_version: 0,
           last_camera_is_underwater: false,
           last_player_position: null,
+          last_water_color: null,
         },
       )
     },
