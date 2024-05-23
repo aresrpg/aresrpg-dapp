@@ -1,7 +1,9 @@
 import { setInterval } from 'timers/promises'
+import { on } from 'events'
 
 import { aiter } from 'iterator-helper'
 import {
+  Color,
   DoubleSide,
   Group,
   LinearFilter,
@@ -113,6 +115,7 @@ export default function () {
       uTime: { value: 0 },
       uNormalSide: { value: 1 },
       uTexture: { value: texture },
+      uAmbient: { value: new Color(0xffffff) },
     },
     vertexShader: `
     varying vec2 vUv;
@@ -133,14 +136,15 @@ export default function () {
       uniform float uTime;
       uniform float uNormalSide;
       uniform sampler2D uTexture;
+      uniform vec3 uAmbient;
       
       varying vec2 vUv;
       varying vec3 vWorldPosition;
 
       float getFresnelFactor(const vec3 normal, const vec3 fromEye) {
         float rawValue = mix(pow(1.0 - dot(normal, -fromEye), 5.0), 1.0, uF0);
-        rawValue = pow(rawValue, 0.25);
-        return smoothstep(-0.5, 1.0, rawValue);
+        rawValue = pow(rawValue, 0.5);
+        return rawValue;
       }
 
       ${noise}
@@ -178,23 +182,24 @@ export default function () {
         vec3 cameraToFragRaw = vWorldPosition - cameraPosition;
         float cameraDistance = length(cameraToFragRaw);
         vec3 cameraToFrag = cameraToFragRaw / cameraDistance;
+        float isOverwater = step(0.0, uNormalSide);
 
+        float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
+        fresnelFactor = mix(fresnelFactor, 0.5, smoothstep(300.0, 700.0, cameraDistance));
         vec3 reflectVec = reflect(cameraToFrag, worldNormal);
         vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
 
-        float foam = computeFoam(cameraDistance);
-        float isOverwater = step(0.0, uNormalSide);
         vec3 envmapVec = mix(refractVec, reflectVec, isOverwater);
-        vec3 envColor = textureCube(uEnvMap, envmapVec).rgb * (1.0 + 1.8 * foam);
-        vec3 waterColor = 0.1 * uColor;
+        vec3 envColor = textureCube(uEnvMap, envmapVec).rgb;
+        float env = max(envColor.r, max(envColor.g, envColor.b));
+        env *= smoothstep(0.9, 1.0, env);
 
-        vec3 refractedColor = mix(envColor, waterColor, isOverwater);
-        vec3 reflectedColor = mix(waterColor, envColor, isOverwater);
-
-        float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
-        vec3 surfaceColor = mix(refractedColor, reflectedColor, fresnelFactor) + 0.1 * foam;;
-
-        float alpha = fresnelFactor;//mix(fresnelFactor, 1.0, foam);
+        float foam = computeFoam(cameraDistance);
+        vec3 surfaceColor = clamp(uColor + foam, vec3(0), vec3(1));
+        surfaceColor *= uAmbient;
+        surfaceColor += env;
+    
+        float alpha = mix(0.2, 1.0, fresnelFactor);
         alpha = mix(1.0, alpha, isOverwater);
         gl_FragColor = vec4(surfaceColor, alpha);
       }`,
@@ -220,7 +225,7 @@ export default function () {
       material.uniforms.uF0.value = Math.pow((1 - eta) / (1 + eta), 2)
       material.uniforms.uEta.value = eta
     },
-    observe({ scene, get_state }) {
+    observe({ scene, get_state, events, signal }) {
       const container = new Group()
       container.name = 'water'
 
@@ -232,6 +237,37 @@ export default function () {
           container.add(mesh)
         }
       }
+
+      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
+        ({ last_sky_lights_version, last_water_color }, [state]) => {
+          const lights_changed =
+            state.settings.sky.lights.version !== last_sky_lights_version ||
+            !last_water_color ||
+            !last_water_color.equals(state.settings.water.color)
+
+          if (lights_changed) {
+            last_sky_lights_version = state.settings.sky.lights.version
+            last_water_color = state.settings.water.color
+
+            material.uniforms.uColor.value = state.settings.water.color
+            material.uniforms.uAmbient.value =
+              state.settings.sky.lights.ambient.color
+                .clone()
+                .multiplyScalar(
+                  Math.min(1, state.settings.sky.lights.ambient.intensity),
+                )
+          }
+
+          return {
+            last_sky_lights_version,
+            last_water_color,
+          }
+        },
+        {
+          last_sky_lights_version: 0,
+          last_water_color: null,
+        },
+      )
 
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
@@ -252,7 +288,6 @@ export default function () {
           base_size * Math.floor(player_position_z / base_size),
         )
 
-        material.uniforms.uColor.value = state.settings.water.color
         material.uniforms.uEnvMap.value = scene.environment
 
         if (!container.parent) {
