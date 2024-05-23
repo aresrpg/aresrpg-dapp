@@ -170,7 +170,11 @@ class UnderwaterPass extends Pass {
 
     renderer.setRenderTarget(this.renderToScreen ? null : write_buffer)
     this.#material.uniforms.uTexture.value = read_buffer.texture
-    this.#material.uniforms.uColor.value = this.color
+    this.#material.uniforms.uColor.value = new Color().lerpColors(
+      this.color,
+      new Color(0xffffff),
+      0.15,
+    )
     this.#material.uniforms.uTime.value = performance.now() / 3000
     this.#material.uniforms.uAspectRatio.value =
       read_buffer.width / read_buffer.height
