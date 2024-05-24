@@ -3,13 +3,13 @@ import { on } from 'events'
 
 import { aiter } from 'iterator-helper'
 import {
+  BufferGeometry,
   Color,
   DoubleSide,
-  Group,
+  Float32BufferAttribute,
   LinearFilter,
   LinearMipMapLinearFilter,
   Mesh,
-  PlaneGeometry,
   RepeatWrapping,
   ShaderMaterial,
   TextureLoader,
@@ -162,7 +162,7 @@ export default function () {
       }
 
       float computeFoam(float cameraDistance) {
-        vec2 textureCoords = ${(base_size / 15).toFixed(1)} * vUv;
+        vec2 textureCoords = ${Math.ceil(base_size / 15).toFixed(1)} * vUv;
         textureCoords += 0.2 * vec2(
           noise(vec3(0.1 * vWorldPosition.xz, 0.2 * uTime)),
           noise(vec3(0.1 * vWorldPosition.zx, 0.2 * uTime))
@@ -205,12 +205,6 @@ export default function () {
       }`,
   })
 
-  const base_mesh = new Mesh(new PlaneGeometry(base_size, base_size), material)
-  base_mesh.rotateX(Math.PI / 2)
-  base_mesh.layers.set(CartoonRenderpass.non_outlined_layer)
-
-  const meshes = []
-
   return {
     tick(state) {
       material.uniforms.uTime.value = performance.now() / 1000
@@ -226,17 +220,57 @@ export default function () {
       material.uniforms.uEta.value = eta
     },
     observe({ scene, get_state, events, signal }) {
-      const container = new Group()
-      container.name = 'water'
+      function build_geometry() {
+        const position_buffer = []
+        const uv_buffer = []
+        const index_buffer = []
 
-      for (let d_x = -5; d_x <= 5; d_x++) {
-        for (let d_z = -5; d_z <= 5; d_z++) {
-          const mesh = base_mesh.clone()
-          mesh.position.set(base_size * d_x, 0, base_size * d_z)
-          meshes.push(mesh)
-          container.add(mesh)
+        const uv_list = [
+          { x: 0, z: 0 },
+          { x: 1, z: 0 },
+          { x: 0, z: 1 },
+          { x: 1, z: 1 },
+        ]
+
+        let square_index_start = 0
+        for (let d_x = -5; d_x <= 5; d_x++) {
+          for (let d_z = -5; d_z <= 5; d_z++) {
+            for (const uv of uv_list) {
+              position_buffer.push(
+                base_size * (d_x + uv.x),
+                0,
+                base_size * (d_z + uv.z),
+              )
+              uv_buffer.push(uv.x, uv.z)
+            }
+
+            index_buffer.push(
+              square_index_start + 0,
+              square_index_start + 1,
+              square_index_start + 2,
+            )
+            index_buffer.push(
+              square_index_start + 1,
+              square_index_start + 3,
+              square_index_start + 2,
+            )
+            square_index_start += 4
+          }
         }
+
+        const geometry = new BufferGeometry()
+        geometry.setAttribute(
+          'position',
+          new Float32BufferAttribute(position_buffer, 3),
+        )
+        geometry.setAttribute('uv', new Float32BufferAttribute(uv_buffer, 2))
+        geometry.setIndex(index_buffer)
+        return geometry
       }
+
+      const mesh = new Mesh(build_geometry(), material)
+      mesh.name = 'water'
+      mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
         ({ last_sky_lights_version, last_water_color }, [state]) => {
@@ -282,7 +316,7 @@ export default function () {
           player_position_z = player.position.z
         }
 
-        container.position.set(
+        mesh.position.set(
           base_size * Math.floor(player_position_x / base_size),
           water_level,
           base_size * Math.floor(player_position_z / base_size),
@@ -290,8 +324,8 @@ export default function () {
 
         material.uniforms.uEnvMap.value = scene.environment
 
-        if (!container.parent) {
-          scene.add(container)
+        if (!mesh.parent) {
+          scene.add(mesh)
         }
       })
     },
