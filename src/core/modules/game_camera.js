@@ -135,7 +135,7 @@ export default function () {
               renderer.domElement.removeEventListener('wheel', on_mouse_wheel)
               set_camera_padding(0, 0, 0, 0)
               // @ts-ignore
-              camera_controls.mouseButtons.right = CameraControls.ACTION.OFFSET
+              camera_controls.mouseButtons.right = CameraControls.ACTION.TRUCK
               // @ts-ignore
               camera_controls.mouseButtons.wheel = CameraControls.ACTION.DOLLY
             } else {
