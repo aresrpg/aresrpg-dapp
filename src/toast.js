@@ -1,6 +1,8 @@
 import { VsNotification } from 'vuesax-alpha/es'
 
 // @ts-ignore
+import GameIconsSeagull from '~icons/game-icons/seagull'
+// @ts-ignore
 import FluentEmojiHighContrastFly from '~icons/fluent-emoji-high-contrast/fly'
 
 export default {
@@ -40,6 +42,17 @@ export default {
     VsNotification({
       flat: true,
       color: '#F39C12',
+      position: 'bottom-right',
+      title,
+      duration: 7000,
+      content,
+      icon,
+    })
+  },
+  dark(content, title = '42', icon = GameIconsSeagull) {
+    VsNotification({
+      flat: true,
+      color: '#eee',
       position: 'bottom-right',
       title,
       duration: 7000,

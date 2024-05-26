@@ -2,8 +2,11 @@ import { EventEmitter } from 'events'
 
 import { context, disconnect_ws } from '../game/game.js'
 import {
+  sui_get_kiosks_profits,
   sui_get_locked_characters,
   sui_get_locked_items,
+  sui_get_my_listings,
+  sui_get_policies_profit,
   sui_get_sui_balance,
   sui_get_unlocked_characters,
   sui_get_unlocked_items,
@@ -87,6 +90,7 @@ export default function () {
         update_balance = false,
         update_locked_items = false,
         update_unlocked_items = false,
+        update_items_for_sale = false,
       }) {
         const update = {}
 
@@ -103,6 +107,9 @@ export default function () {
 
         if (update_unlocked_items)
           update.unlocked_items = await sui_get_unlocked_items()
+
+        if (update_items_for_sale)
+          update.items_for_sale = await sui_get_my_listings()
 
         context.dispatch('action/sui_data_update', update)
       }
@@ -137,15 +144,15 @@ export default function () {
 
                 emitter.on('update', () => {
                   update_user_data({
-                    update_locked_characters: true,
-                    update_unlocked_characters: true,
+                    // update_locked_characters: true,
+                    // update_unlocked_characters: true,
                     update_balance: true,
-                    update_locked_items: true,
-                    update_unlocked_items: true,
+                    // update_locked_items: true,
+                    // update_unlocked_items: true,
+                    // update_items_for_sale: true,
                   })
                 })
 
-                // emitter.on('update', update_user_data)
                 emitter.on('ItemEquipEvent', event => {
                   if (event.sender_is_me)
                     debounced_update_user_data({
@@ -172,6 +179,7 @@ export default function () {
                     debounced_update_user_data({
                       update_locked_characters: true,
                       update_unlocked_items: true,
+                      update_balance: true,
                     })
                 })
 
@@ -227,13 +235,49 @@ export default function () {
                       update_unlocked_items: true,
                     })
                 })
+
+                emitter.on('ItemListedEvent', event => {
+                  if (event.sender_is_me)
+                    debounced_update_user_data({
+                      update_items_for_sale: true,
+                      update_unlocked_items: true,
+                    })
+                  SUI_EMITTER.emit('ItemListedEvent', event)
+                })
+
+                emitter.on('ItemPurchasedEvent', event => {
+                  if (event.sender_is_me)
+                    debounced_update_user_data({
+                      update_items_for_sale: true,
+                      update_unlocked_items: true,
+                      update_balance: true,
+                    })
+
+                  SUI_EMITTER.emit('ItemPurchasedEvent', event)
+                })
+
+                emitter.on('ItemDelistedEvent', event => {
+                  if (event.sender_is_me)
+                    debounced_update_user_data({
+                      update_items_for_sale: true,
+                      update_unlocked_items: true,
+                    })
+
+                  SUI_EMITTER.emit('ItemDelistedEvent', event)
+                })
               })
+
+              const { is_owner } = await sui_get_policies_profit()
+
+              context.dispatch('action/sui_data_update', { admin: !!is_owner })
+
               await update_user_data({
                 update_locked_characters: true,
                 update_unlocked_characters: true,
                 update_balance: true,
                 update_locked_items: true,
                 update_unlocked_items: true,
+                update_items_for_sale: true,
               })
               decrease_loading()
             } else {
@@ -245,6 +289,8 @@ export default function () {
                 unlocked_characters: [],
                 locked_items: [],
                 unlocked_items: [],
+                items_for_sale: [],
+                balance: 0n,
               })
             }
           }

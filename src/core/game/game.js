@@ -194,11 +194,13 @@ export const INITIAL_STATE = {
     locked_items: [],
     /** @type {Type.SuiItem[]} */
     unlocked_items: [],
+    /** @type {Type.SuiItem[]} */
+    items_for_sale: [],
+
     selected_wallet_name: null,
     selected_address: null,
     balance: null,
-    /** @type {Type.Receipt[]} */
-    character_lock_receipts: [],
+    admin: false,
   },
 
   // is the user connected to the websocket

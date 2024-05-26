@@ -10,21 +10,21 @@ fr:
 <template lang="pug">
 .inventory-container(@dragover.prevent @drop="handle_drop")
   .item(
-    :draggable="selected_category === 'equipment'"
+    :draggable="!props.disable_edit && selected_category === 'equipment'"
     v-for="item in items"
     :key="item.id"
-    :class="{ selected: selected_item?.id === item.id }"
+    :class="{ selected: selected_item?.id === item.id, character: item.item_type === 'character'}"
     @click="() => select(item)"
     @click.right="on_right_click_item($event, item)"
     @dragstart="() => handle_drag_start(item)"
     @dblclick="() => equip_item(item)"
   )
     .amount(v-if="item.amount > 1") {{ item.amount }}
-    img(:src="item?.image_url" :draggable="selected_category === 'equipment'")
+    img(:src="item?.image_url" :draggable="!props.disable_edit && selected_category === 'equipment'")
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue';
+import { computed, inject, onMounted } from 'vue';
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 import ContextMenu from '@imengyu/vue3-context-menu';
 import { useI18n } from 'vue-i18n';
@@ -35,18 +35,21 @@ import {
   is_resource,
   is_consumable,
   is_weapon,
+  is_character,
 } from '../../core/utils/item.js';
 import {
   decrease_loading,
   increase_loading,
 } from '../../core/utils/loading.js';
 
+const props = defineProps(['disable_edit', 'sell_mode']);
+
 const selected_item = inject('selected_item');
-const selected_character = inject('selected_character');
-const edit_mode_equipment = inject('edit_mode_equipment');
 const selected_category = inject('selected_category');
 const owned_items = inject('owned_items');
 const extension_items = inject('extension_items');
+const unlocked_characters = inject('unlocked_characters');
+const edit_mode_equipment = inject('edit_mode_equipment');
 const edit_mode = inject('edit_mode');
 const real_equipment = inject('equipment');
 const inventory_counter = inject('inventory_counter');
@@ -222,10 +225,8 @@ function equip_item(item) {
     default:
       if (is_weapon(item)) {
         if (edit_mode_equipment.weapon) {
-          console.log('unequip', edit_mode_equipment.weapon);
           edit_mode_equipment.equipments.push(edit_mode_equipment.weapon);
         }
-        console.log('equip', item);
         edit_mode_equipment.weapon = item;
         edit_mode_equipment.equipments = edit_mode_equipment.equipments.filter(
           i => i.id !== item.id,
@@ -239,7 +240,11 @@ function select(item) {
 }
 
 const items = computed(() => {
-  switch (selected_category.value) {
+  if (props.sell_mode) {
+    return owned_items.value.sort((a, b) => a.name - b.name);
+  }
+
+  switch (selected_category?.value || 'equipment') {
     case 'loot':
       return extension_items.value;
     case 'consumables':
@@ -247,15 +252,21 @@ const items = computed(() => {
     case 'misc':
       return owned_items.value.filter(is_resource);
     default: {
-      if (inventory_counter.value && edit_mode.value)
+      if (inventory_counter?.value && edit_mode?.value)
         return edit_mode_equipment.equipments.sort((a, b) => a.name - b.name);
 
       const equipments = owned_items.value
         .filter(item => {
-          return !!item && !is_consumable(item) && !is_resource(item);
+          return (
+            !!item &&
+            !is_consumable(item) &&
+            !is_resource(item) &&
+            !is_character(item)
+          );
         })
         .sort((a, b) => a.name - b.name);
-      edit_mode_equipment.equipments = equipments;
+
+      if (edit_mode_equipment) edit_mode_equipment.equipments = equipments;
       return equipments;
     }
   }
@@ -275,6 +286,9 @@ const items = computed(() => {
   .item
     position relative
     cursor pointer
+    &.character
+      img
+        border 1px solid crimson
     .amount
       position absolute
       font-size .75em
