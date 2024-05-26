@@ -6,6 +6,7 @@ import settings from './views/tab-settings.vue'
 import world from './views/tab-world.vue'
 import characters from './views/tab-characters.vue'
 import enoki from './views/enoki.vue'
+import admin from './views/tab-admin.vue'
 
 export default createRouter({
   history: createWebHistory(),
@@ -43,6 +44,11 @@ export default createRouter({
           name: 'settings',
           path: '/settings',
           component: settings,
+        },
+        {
+          name: 'admin',
+          path: '/admin',
+          component: admin,
         },
       ],
     },

@@ -1,3 +1,10 @@
+<i18n>
+en:
+  item_sold: was sold
+fr:
+  item_sold: a été vendu
+</i18n>
+
 <template lang="pug">
 router-view
 </template>
@@ -5,6 +12,7 @@ router-view
 <script setup>
 import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 import deep_equal from 'fast-deep-equal';
+import { useI18n } from 'vue-i18n';
 
 import {
   context,
@@ -12,9 +20,20 @@ import {
   current_locked_character,
 } from './core/game/game.js';
 import { enoki_address, enoki_wallet } from './core/sui/enoki.js';
+import { SUI_EMITTER } from './core/modules/sui_data.js';
+import toast from './toast.js';
+import {
+  pretty_print_mists,
+  sui_get_my_listings,
+  sui_get_policies_profit,
+} from './core/sui/client.js';
+
+import EmojioneMoneyBag from '~icons/emojione/money-bag';
 // internal vuejs
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const name = 'app';
+
+const { t } = useI18n();
 
 const sidebar_reduced = ref(false);
 const game_visible = ref(false);
@@ -59,6 +78,42 @@ const equipment = reactive({
   pet: null,
 });
 
+const selected_category = ref('equipment');
+const selected_item = ref(null);
+const edit_mode = ref(false);
+const edit_mode_equipment = reactive({
+  relic_1: null,
+  relic_2: null,
+  relic_3: null,
+  relic_4: null,
+  relic_5: null,
+  relic_6: null,
+  title: null,
+  amulet: null,
+  weapon: null,
+  left_ring: null,
+  belt: null,
+  right_ring: null,
+  boots: null,
+  hat: null,
+  cloack: null,
+  pet: null,
+  dragged_item: null,
+  dragg_started_from: null,
+  equipments: [],
+});
+
+const my_listings = ref([]);
+
+const vue_locked_characters = ref(null);
+const vue_unlocked_characters = ref(null);
+
+const admin_policies = reactive({
+  character_profits: 0n,
+  item_profits: 0n,
+  is_owner: false,
+});
+
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
 provide('available_accounts', available_accounts);
@@ -77,6 +132,16 @@ provide('inventory_counter', inventory_counter);
 
 provide('in_fight', in_fight);
 
+provide('selected_item', selected_item);
+provide('selected_category', selected_category);
+provide('edit_mode', edit_mode);
+provide('edit_mode_equipment', edit_mode_equipment);
+provide('my_listings', my_listings);
+provide('locked_characters', vue_locked_characters);
+provide('unlocked_characters', vue_unlocked_characters);
+
+provide('admin_policies', admin_policies);
+
 function update_all(state) {
   const {
     sui: {
@@ -85,8 +150,11 @@ function update_all(state) {
       balance,
       selected_address,
       locked_characters,
+      unlocked_characters,
       locked_items,
       unlocked_items,
+      admin,
+      items_for_sale,
     },
     selected_character_id,
     online: state_online,
@@ -107,12 +175,24 @@ function update_all(state) {
   const characters_ids = locked_characters
     .map(character => character.id)
     .filter(id => id !== selected_character_id);
+
   const last_characters_ids = characters.value.map(character => character.id);
 
   if (characters_ids.join() !== last_characters_ids.join())
     characters.value = locked_characters.filter(
       character => character.id !== selected_character_id,
     );
+
+  const locked_ids = locked_characters.map(c => c.id);
+  const unlocked_ids = unlocked_characters.map(c => c.id);
+
+  if (locked_ids.join() !== vue_locked_characters.value?.map(c => c.id).join())
+    vue_locked_characters.value = locked_characters;
+
+  if (
+    unlocked_ids.join() !== vue_unlocked_characters.value?.map(c => c.id).join()
+  )
+    vue_unlocked_characters.value = unlocked_characters;
 
   if (
     selected_character_id &&
@@ -129,6 +209,9 @@ function update_all(state) {
   if (!deep_equal(unlocked_items, owned_items.value))
     owned_items.value = unlocked_items;
 
+  if (!deep_equal(items_for_sale, my_listings.value))
+    my_listings.value = items_for_sale;
+
   if (accounts_addresses.join() !== available_accounts_addresses.join())
     available_accounts.value = accounts.filter(
       ({ address }) => address !== selected_address,
@@ -138,6 +221,19 @@ function update_all(state) {
   // @ts-ignore
   if (current_wallet.value?.name !== selected_wallet_name)
     current_wallet.value = selected_wallet;
+
+  if (admin_policies.is_owner !== admin) {
+    admin_policies.is_owner = admin;
+    if (admin)
+      sui_get_policies_profit().then(({ character_profits, item_profits }) => {
+        admin_policies.character_profits = character_profits;
+        admin_policies.item_profits = item_profits;
+      });
+    else {
+      admin_policies.character_profits = 0n;
+      admin_policies.item_profits = 0n;
+    }
+  }
 
   if (!selected_wallet) {
     available_accounts.value = [];
@@ -258,7 +354,22 @@ function on_server_info(event) {
   server_info.max_players = maxPlayers;
 }
 
-onMounted(() => {
+async function on_item_purchased({ id }) {
+  const my_listing = my_listings.value.find(listing => listing.id === id);
+
+  if (my_listing) {
+    toast.info(
+      `${my_listing.name} ${t('item_sold')}`,
+      `+${pretty_print_mists(my_listing.list_price)} Sui`,
+      EmojioneMoneyBag,
+    );
+    context.dispatch('action/sui_data_update', {
+      items_for_sale: await sui_get_my_listings(),
+    });
+  }
+}
+
+onMounted(async () => {
   context.events.on('STATE_UPDATED', update_all);
   update_all(context.get_state());
 
@@ -272,11 +383,14 @@ onMounted(() => {
     context.dispatch('action/select_wallet', 'Enoki');
     context.dispatch('action/select_address', address);
   }
+
+  SUI_EMITTER.on('ItemPurchasedEvent', on_item_purchased);
 });
 
 onUnmounted(() => {
   context.events.off('STATE_UPDATED', update_all);
   context.events.off('packet/serverInfo', on_server_info);
+  SUI_EMITTER.off('ItemPurchasedEvent', on_item_purchased);
 });
 </script>
 

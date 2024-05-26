@@ -14,6 +14,7 @@
   pointer-events none
   user-select none
   filter:url("#blob")
+  z-index -1
 .bubble
   position absolute
   left var(--position, 50%)

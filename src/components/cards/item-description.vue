@@ -27,6 +27,41 @@ en:
   effects: Effects
   stomach: Stomach
   last_feed: Last Feed
+
+  relic: Relic
+  rune: Rune
+  mount: Mount
+  hat: Hat
+  cloack: Cloack
+  amulet: Amulet
+  ring: Ring
+  belt: Belt
+  boots: Boots
+  title: Title
+  pet: Pet
+  character: Character
+
+  weapons: Weapons
+
+  bow: Bow
+  wand: Wand
+  staff: Staff
+  dagger: Dagger
+  shovel: Shovel
+  sword: Sword
+  scythe: Scythe
+  axe: Axe
+  hammer: Hammer
+  fishing_rod: Fishing rod
+  pickaxe: Pickaxe
+
+  misc: Misc
+
+  key: Key
+
+  consumable: Consumable
+
+  orb: Orb
 fr:
   set: Panoplie
   to: à
@@ -55,17 +90,53 @@ fr:
   effects: Effets
   stomach: Estomac
   last_feed: Dernier Repas
+
+  relic: Relique
+  rune: Rune
+  mount: Monture
+  hat: Coiffe
+  cloack: Cape
+  amulet: Amulette
+  ring: Anneau
+  belt: Ceinture
+  boots: Bottes
+  title: Titre
+  pet: Familier
+  character: Perso
+
+  weapons: Armes
+
+  bow: Arc
+  wand: Baguette
+  staff: Bâton
+  dagger: Dague
+  shovel: Pelle
+  sword: Épée
+  scythe: Faux
+  axe: Hache
+  hammer: Marteau
+  fishing_rod: Canne à pêche
+  pickaxe: Pioche
+
+  misc: Ressources
+
+  key: Clé
+
+  consumable: Consommable
+
+  orb: Orbe
 </i18n>
 
 <template lang="pug">
-.description-container
+.description-container(v-if="item")
   .header
     .name {{ item.name }}
     .set(v-if="item.item_set !== 'none'") ({{ t('set') }} {{ item.item_set }})
-    .lvl Lvl. {{ item.level }}
+    .lvl Lvl. {{ item.level || experience_to_level(item.experience) }}
   .content
     .left-content
       img.icon(:src="item?.image_url")
+      .category {{ t(item.item_category) }}
       a.id(@click="() => open_explorer(item.id)") {{ short_id(item.id) }}
       .bottom(v-if="item.critical_chance") cc: {{ item.critical_chance }} / {{ item.critical_outcomes }}
     .right-content
@@ -93,7 +164,7 @@ fr:
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { NETWORK } from '../../env.js';
@@ -108,9 +179,9 @@ import chance_icon from '../../assets/statistics/chance.png';
 import agility_icon from '../../assets/statistics/agility.png';
 import critical_icon from '../../assets/statistics/crit.png';
 import raw_damage_icon from '../../assets/statistics/raw_damage.png';
+import { experience_to_level } from '../../core/utils/game/experience.js';
 
 const { t } = useI18n();
-const props = defineProps(['item']);
 
 const short_id = id => `${id.slice(0, 3)}..${id.slice(-3)}`;
 
@@ -118,36 +189,45 @@ const open_explorer = id => {
   window.open(`https://suiscan.xyz/${NETWORK}/object/${id}`, '_blank');
 };
 
+const item = inject('selected_item');
+
 const stats = computed(() => {
-  const { item } = props;
   return [
-    { name: 'action', value: item.action, icon: action_icon },
-    { name: 'movement', value: item.movement, icon: movement_icon },
-    { name: 'range', value: item.range, icon: range_icon },
-    { name: 'vitality', value: item.vitality, icon: vitality_icon },
-    { name: 'wisdom', value: item.wisdom, icon: wisdom_icon },
-    { name: 'strength', value: item.strength, icon: strength_icon },
-    { name: 'intelligence', value: item.intelligence, icon: intelligence_icon },
-    { name: 'chance', value: item.chance, icon: chance_icon },
-    { name: 'agility', value: item.agility, icon: agility_icon },
-    { name: 'critical', value: item.critical, icon: critical_icon },
-    { name: 'raw_damage', value: item.raw_damage, icon: raw_damage_icon },
+    { name: 'action', value: item.value.action, icon: action_icon },
+    { name: 'movement', value: item.value.movement, icon: movement_icon },
+    { name: 'range', value: item.value.range, icon: range_icon },
+    { name: 'vitality', value: item.value.vitality, icon: vitality_icon },
+    { name: 'wisdom', value: item.value.wisdom, icon: wisdom_icon },
+    { name: 'strength', value: item.value.strength, icon: strength_icon },
+    {
+      name: 'intelligence',
+      value: item.value.intelligence,
+      icon: intelligence_icon,
+    },
+    { name: 'chance', value: item.value.chance, icon: chance_icon },
+    { name: 'agility', value: item.value.agility, icon: agility_icon },
+    { name: 'critical', value: item.value.critical, icon: critical_icon },
+    { name: 'raw_damage', value: item.value.raw_damage, icon: raw_damage_icon },
     {
       name: 'earth_resistance',
-      value: item.earth_resistance,
+      value: item.value.earth_resistance,
       icon: strength_icon,
     },
     {
       name: 'fire_resistance',
-      value: item.fire_resistance,
+      value: item.value.fire_resistance,
       icon: intelligence_icon,
     },
     {
       name: 'water_resistance',
-      value: item.water_resistance,
+      value: item.value.water_resistance,
       icon: chance_icon,
     },
-    { name: 'air_resistance', value: item.air_resistance, icon: agility_icon },
+    {
+      name: 'air_resistance',
+      value: item.value.air_resistance,
+      icon: agility_icon,
+    },
   ].filter(stat => stat.value);
 });
 </script>
@@ -192,8 +272,14 @@ const stats = computed(() => {
         filter drop-shadow(1px 2px 3px black)
         margin-bottom 1em
         margin-top .5em
-      a.id
+      .category
+        font-size .8em
+        opacity .7
+        font-style italic
         margin-top auto
+        border-top 1px solid rgba(white, .3)
+        border-top-right-radius 12px
+      a.id
         font-size .8em
         text-decoration underline
         font-style italic

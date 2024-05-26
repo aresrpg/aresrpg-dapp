@@ -4,7 +4,7 @@
     BxsLock.lock(v-if="!edit_mode")
     vs-button.cancel(icon color="#E74C3C" v-if="edit_mode && !accept_loading" @click="cancel_edit_equipment")
       RadixIconsCross2
-    vs-button.accept(icon color="#2ECC71" :loading="accept_loading" v-if="edit_mode" @click="accept_edit_equipment")
+    vs-button.accept(icon color="#2ECC71" v-if="edit_mode" @click="accept_edit_equipment")
       FluentCheckmark12Regular
   .name {{ selected_character.name }}
   .relics
@@ -49,6 +49,10 @@ import {
   is_weapon,
 } from '../../core/utils/item.js';
 import { sui_equip_items } from '../../core/sui/client.js';
+import {
+  decrease_loading,
+  increase_loading,
+} from '../../core/utils/loading.js';
 
 import equipmentSlot from './equipment-slot.vue';
 
@@ -99,6 +103,7 @@ async function accept_edit_equipment() {
   });
 
   accept_loading.value = true;
+  increase_loading();
 
   try {
     await sui_equip_items({
@@ -109,6 +114,7 @@ async function accept_edit_equipment() {
   } catch (error) {
     console.error(error);
   } finally {
+    decrease_loading();
     accept_loading.value = false;
   }
 

@@ -38,38 +38,8 @@ import { sui_withdraw_items_from_extension } from '../../core/sui/client.js';
 
 const extension_items = inject('extension_items');
 const owned_items = inject('owned_items');
-
-const selected_category = ref('equipment');
-
-const selected_item = ref(null);
-const edit_mode = ref(false);
-
-const edit_mode_equipment = reactive({
-  relic_1: null,
-  relic_2: null,
-  relic_3: null,
-  relic_4: null,
-  relic_5: null,
-  relic_6: null,
-  title: null,
-  amulet: null,
-  weapon: null,
-  left_ring: null,
-  belt: null,
-  right_ring: null,
-  boots: null,
-  hat: null,
-  cloack: null,
-  pet: null,
-  dragged_item: null,
-  dragg_started_from: null,
-  equipments: [],
-});
-
-provide('edit_mode', edit_mode);
-provide('selected_item', selected_item);
-provide('selected_category', selected_category);
-provide('edit_mode_equipment', edit_mode_equipment);
+const selected_category = inject('selected_category');
+const selected_item = inject('selected_item');
 
 const { t } = useI18n();
 

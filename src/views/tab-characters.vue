@@ -39,43 +39,23 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { ref, provide, onUnmounted, onMounted } from 'vue';
+import { ref, provide, onUnmounted, onMounted, inject } from 'vue';
 
-import { loading } from '../core/utils/loading.js';
 import sectionHeader from '../components/misc/section-header.vue';
 import usercharacter from '../components/cards/user-character.vue';
 import sectionContainer from '../components/misc/section-container.vue';
 import characterCreateVue from '../components/game-ui/character-create.vue';
 import { context } from '../core/game/game.js';
+import { loading } from '../core/utils/loading.js';
 
 const { t } = useI18n();
 
 const new_character_dialog = ref(false);
 
+const locked_characters = inject('locked_characters');
+const unlocked_characters = inject('unlocked_characters');
+
 provide('new_character_dialog', new_character_dialog);
-
-const locked_characters = ref(null);
-const unlocked_characters = ref(null);
-
-function update_characters({ sui }) {
-  const locked_ids = sui.locked_characters.map(c => c.id);
-  const unlocked_ids = sui.unlocked_characters.map(c => c.id);
-
-  if (locked_ids.join() !== locked_characters.value?.map(c => c.id).join())
-    locked_characters.value = sui.locked_characters;
-
-  if (unlocked_ids.join() !== unlocked_characters.value?.map(c => c.id).join())
-    unlocked_characters.value = sui.unlocked_characters;
-}
-
-onMounted(() => {
-  context.events.on('STATE_UPDATED', update_characters);
-  update_characters(context.get_state());
-});
-
-onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_characters);
-});
 </script>
 
 <template lang="pug">

@@ -4,14 +4,14 @@
     settings: Paramètres
     world: Monde
     characters: Personnages
-    terrain-editor: Editeur de terrain
+    admin: Admin
   en:
     shop: Market
     settings: Settings
     lang: Choose a language
     world: World
     characters: Characters
-    terrain-editor: Terrain Editor
+    admin: Admin
 </i18n>
 
 <template lang="pug">
@@ -36,6 +36,9 @@
     vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('settings') }}
       template(#icon)
         i.bx.bx-cog
+    vs-sidebar-item(v-if="admin_policies.is_owner" id="admin" @click="router.push('/admin')") {{ t('admin') }}
+      template(#icon)
+        i.bx.bx-pyramid
     vs-sidebar-item(id="discord" @click="open_discord") Discord
       template(#icon)
         i.bx.bxl-discord-alt
@@ -65,6 +68,7 @@ const route = useRoute();
 const active_sidebar = ref('world');
 
 const sidebar_reduced = inject('sidebar_reduced');
+const admin_policies = inject('admin_policies');
 
 watch(
   route,
