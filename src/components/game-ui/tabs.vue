@@ -1,7 +1,7 @@
 <script setup>
 // chat-gpt generated code
 import { ref, onMounted, nextTick } from 'vue';
-const props = defineProps(['tabs']);
+const props = defineProps(['tabs', 'nobg']);
 const active_tab = ref(Object.keys(props.tabs)[0]);
 const border_style = ref({});
 
@@ -37,18 +37,17 @@ onMounted(async () => {
     slot(name="before-tabs")
     .tab(
       v-for="(tab, name) in props.tabs" :key="name"
-      :class="{ 'active': active_tab === name }"
+      :class="{ active: active_tab === name }"
       @click="event => set_active_tab(name, event)"
     )
       slot(:tab="name" name="tab" @click.stop.prevent) {{ name }}
     .animated-border(:style="border_style")
-  .tab-content
+  .tab-content(:class="{ 'no-bg': props.nobg }")
     slot(name="content" :data="props.tabs[active_tab]" :tab="active_tab")
       | Content for {{ active_tab }}
 </template>
 
 <style lang="stylus" scoped>
-
 .tabs
   position: relative
   .tabs-container
@@ -65,7 +64,6 @@ onMounted(async () => {
       transition: color 0.3s ease
       &.active
         opacity: 1
-
   .animated-border
     height: 1px
     background-color #eee
@@ -78,4 +76,7 @@ onMounted(async () => {
     padding-top: 1em
     background lighten(#212121, 7%)
     border-radius 6px
+    height 100%
+    &.no-bg
+      background transparent
 </style>

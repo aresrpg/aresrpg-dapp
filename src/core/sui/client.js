@@ -2,11 +2,12 @@ import EventEmitter from 'events'
 
 import { TransactionBlock } from '@mysten/sui.js/transactions'
 import { BigNumber as BN } from 'bignumber.js'
-import { MIST_PER_SUI, fromB64, toB64 } from '@mysten/sui.js/utils'
+import { MIST_PER_SUI, normalizeSuiAddress, toB64 } from '@mysten/sui.js/utils'
 import { LRUCache } from 'lru-cache'
 import { Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
 import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client'
+import { bcs } from '@mysten/sui.js/bcs'
 
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
@@ -26,6 +27,8 @@ import MapGasStation from '~icons/map/gas-station'
 import TokenSui from '~icons/token/sui'
 // @ts-ignore
 import TwemojiSushi from '~icons/twemoji/sushi'
+// @ts-ignore
+import GameIconsBrokenBottle from '~icons/game-icons/broken-bottle'
 // @ts-ignore
 import MaterialSymbolsLightRuleSettings from '~icons/material-symbols-light/rule-settings'
 
@@ -47,6 +50,9 @@ export const error_sui = {
     SUI_SUBSCRIBE_OK: 'Connected to Sui',
     E_PET_ALREADY_FED: 'This pet is not hungry',
     INV_NOT_EMPTY: 'You must unequip all items before that',
+    SUBSCRIBE_ERROR:
+      'The Sui node refused the subscription, please refresh the page to try again',
+    FAILURE: 'Блять! This transaction failed, please try again',
   },
   fr: {
     LOGIN_AGAIN: 'Veuillez vous reconnecter',
@@ -62,6 +68,8 @@ export const error_sui = {
     SUI_SUBSCRIBE_OK: 'Connecté à Sui',
     E_PET_ALREADY_FED: 'Ce famillier n a pas faim',
     INV_NOT_EMPTY: `Vous devez déséquiper tous les objets d'abord`,
+    SUBSCRIBE_ERROR: `La node Sui a refusé la connection, veuillez rafraîchir la page pour réessayer`,
+    FAILURE: 'Блять! Cette transaction a échoué, veuillez réessayer',
   },
 }
 
@@ -171,24 +179,19 @@ const execute = async transaction_block => {
   } catch (error) {
     const { message, code } = error
 
-    console.dir({ error })
+    console.dir({ execute_error: true, error })
 
     if (code === 'salt_failure')
-      return toast.error(t('ENOKI_SALT'), 'Oh no!', TwemojiSalt)
-
-    if (message.includes('No valid gas coins'))
-      return toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
-
-    if (message === 'EAlreadyFed')
-      return toast.warn(t('E_PET_ALREADY_FED'), 'Burp!', TwemojiSushi)
-
-    if (message === 'EInventoryNotEmpty') return toast.error(t('INV_NOT_EMPTY'))
-
-    if (message.includes('rejection') || message.includes('Rejected')) return
-
-    if (message.includes('Some("assert_latest") }, 1')) {
+      toast.error(t('ENOKI_SALT'), 'Oh no!', TwemojiSalt)
+    else if (message.includes('No valid gas coins'))
+      toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
+    else if (message === 'EAlreadyFed')
+      toast.warn(t('E_PET_ALREADY_FED'), 'Burp!', TwemojiSushi)
+    else if (message === 'EInventoryNotEmpty') toast.error(t('INV_NOT_EMPTY'))
+    else if (message.includes('Some("assert_latest") }, 1'))
       toast.error(t('OUTDATED'))
-    } else toast.error(message, 'Transaction failed')
+    else if (message === 'FAILURE') toast.error(t('FAILURE'))
+    else toast.error(message, 'Transaction failed')
     throw error
   }
 }
@@ -197,6 +200,18 @@ const active_subscription = {
   unsubscribe: null,
   emitter: null,
   interval: null,
+}
+
+export async function sui_get_policies_profit() {
+  return sdk.get_policies_profit(get_address())
+}
+
+export async function sui_withdraw_policies_profit() {
+  const tx = new TransactionBlock()
+
+  sdk.add_header(tx)
+  await sdk.admin_withdraw_profit({ tx, address: get_address() })
+  await execute(tx)
 }
 
 export async function sui_get_locked_characters() {
@@ -213,6 +228,10 @@ export async function sui_get_locked_items() {
 
 export async function sui_get_unlocked_items() {
   return sdk.get_unlocked_items(get_address())
+}
+
+export async function sui_get_my_listings() {
+  return sdk.get_unlocked_items(get_address(), true)
 }
 
 export async function sui_get_item(id) {
@@ -351,8 +370,13 @@ export function mists_to_sui(balance) {
   return BN(balance).dividedBy(MIST_PER_SUI.toString()).toString()
 }
 
-function sui_to_mists(amount) {
+export function sui_to_mists(amount) {
   return BN(amount).multipliedBy(MIST_PER_SUI.toString())
+}
+
+export function pretty_print_mists(amount) {
+  const sui = +mists_to_sui(amount)
+  return sui.toFixed(3)
 }
 
 export async function sui_get_sui_balance() {
@@ -480,6 +504,197 @@ export async function sui_unselect_character({
   await execute(tx)
 }
 
+export async function sui_list_item({ item, price, amount }) {
+  const tx = new TransactionBlock()
+
+  sdk.add_header(tx)
+
+  const { kiosks, finalize } = await sdk.get_user_kiosks({
+    address: get_address(),
+    tx,
+  })
+
+  sdk.list_item({
+    tx,
+    kiosk: item.kiosk_id,
+    kiosk_cap: kiosks.get(item.kiosk_id),
+    item_id: item.id,
+    item_type: item._type,
+    price: BigInt(
+      new BN(price).multipliedBy(MIST_PER_SUI.toString()).toString(),
+    ),
+  })
+
+  finalize()
+
+  await execute(tx)
+}
+
+export async function sui_delist_item(item) {
+  const tx = new TransactionBlock()
+
+  sdk.add_header(tx)
+
+  const { kiosks, finalize } = await sdk.get_user_kiosks({
+    address: get_address(),
+    tx,
+  })
+
+  sdk.delist_item({
+    tx,
+    kiosk: item.kiosk_id,
+    kiosk_cap: kiosks.get(item.kiosk_id),
+    item_id: item.id,
+    item_type: item._type,
+  })
+
+  finalize()
+
+  await execute(tx)
+}
+
+export function get_normalize_rule(rule) {
+  const normalized_rule = rule.split('::')
+  normalized_rule[0] = normalizeSuiAddress(normalized_rule[0])
+  return normalized_rule.join('::')
+}
+
+export async function sui_get_kiosks_profits() {
+  const { kioskIds } = await sdk.kiosk_client.getOwnedKiosks({
+    address: get_address(),
+  })
+
+  const kiosks = await Promise.all(
+    kioskIds.map(async id =>
+      sdk.kiosk_client.getKiosk({
+        id,
+        options: { withKioskFields: true },
+      }),
+    ),
+  )
+
+  return kiosks
+    .map(kiosk => BigInt(kiosk.kiosk.profits))
+    .reduce((acc, profits) => acc + profits, 0n)
+}
+
+export async function sui_claim_kiosks_profits() {
+  const amount = bcs.option(bcs.u64()).serialize(null)
+  const address = get_address()
+  const tx = new TransactionBlock()
+
+  const { kiosks, finalize } = await sdk.get_user_kiosks({
+    tx,
+    address,
+  })
+
+  kiosks.forEach((kiosk_cap, kiosk_id) => {
+    const kioskcap =
+      typeof kiosk_cap === 'object' ? kiosk_cap : tx.object(kiosk_cap)
+    const [coin] = tx.moveCall({
+      target: `0x2::kiosk::withdraw`,
+      arguments: [tx.object(kiosk_id), kioskcap, amount],
+    })
+    tx.transferObjects([coin], address)
+  })
+
+  finalize()
+
+  await execute(tx)
+}
+
+/** @param {Type.SuiItem} item */
+export async function sui_buy_item(item) {
+  const tx = new TransactionBlock()
+
+  sdk.add_header(tx)
+
+  const { kiosk_tx, kiosk_cap, kiosk_id } = await sdk.enforce_personal_kiosk({
+    tx,
+    recipient: get_address(),
+  })
+
+  const seller_kiosk = tx.object(item.kiosk_id)
+
+  const [policy] = await sdk.kiosk_client.getTransferPolicies({
+    type: item._type,
+  })
+
+  if (!policy) {
+    toast.error(`No transfer policy found for the type ${item._type}`)
+    return
+  }
+
+  const {
+    data: [first, ...rest],
+  } = await sdk.sui_client.getCoins({
+    coinType: '0x2::sui::SUI',
+    owner: get_address(),
+  })
+
+  const available_coin = tx.object(first.coinObjectId)
+
+  if (rest.length)
+    tx.mergeCoins(
+      available_coin,
+      rest.map(c => tx.object(c.coinObjectId)),
+    )
+
+  const [payment] = tx.splitCoins(available_coin, [
+    tx.pure.u64(item.list_price),
+  ])
+
+  const [item_input, transfer_promise] = tx.moveCall({
+    target: `0x2::kiosk::purchase`,
+    typeArguments: [item._type],
+    arguments: [tx.object(seller_kiosk), tx.pure.id(item.id), payment],
+  })
+
+  let should_be_locked = false
+
+  for (const rule of policy.rules) {
+    const rule_definition = sdk.kiosk_client.rules.find(
+      x => get_normalize_rule(x.rule) === get_normalize_rule(rule),
+    )
+    if (!rule_definition)
+      throw new Error(`No resolver for the following rule: ${rule}.`)
+
+    if (rule_definition.hasLockingRule) should_be_locked = true
+
+    rule_definition.resolveRuleFunction({
+      packageId: rule_definition.packageId,
+      transactionBlock: tx,
+      itemType: item._type,
+      itemId: item.id,
+      price: item.list_price.toString(),
+      sellerKiosk: item.kiosk_id,
+      policyId: policy.id,
+      transferRequest: transfer_promise,
+      purchasedItem: item_input,
+      kiosk: kiosk_id,
+      kioskCap: kiosk_cap,
+      extraArgs: { available_coin },
+    })
+  }
+
+  tx.moveCall({
+    target: `0x2::transfer_policy::confirm_request`,
+    typeArguments: [item._type],
+    arguments: [tx.object(policy.id), transfer_promise],
+  })
+
+  if (!should_be_locked)
+    tx.moveCall({
+      target: `0x2::kiosk::place`,
+      typeArguments: [item._type],
+      arguments: [kiosk_id, kiosk_cap, item_input],
+    })
+
+  kiosk_tx.finalize()
+
+  await execute(tx)
+}
+
 // export async function sui_send_character(
 //   { id, kiosk_id, personal_kiosk_cap_id },
 //   to,
@@ -546,13 +761,22 @@ export async function sui_subscribe({ signal }) {
   try {
     await try_reset()
     active_subscription.emitter = emitter
-    // active_subscription.interval = setInterval(() => {
-    //   emitter.emit('update', { type: 'interval' })
-    // }, 10000)
+    active_subscription.interval = setInterval(() => {
+      emitter.emit('update', { type: 'interval' })
+    }, 10000)
 
     active_subscription.unsubscribe = await sdk.subscribe(event => {
       const { type } = event
-      const [, , event_name] = type.split('::')
+      let [, , event_name] = type.split('::')
+
+      if (event_name.startsWith('ItemListed')) event_name = 'ItemListedEvent'
+
+      if (event_name.startsWith('ItemPurchased'))
+        event_name = 'ItemPurchasedEvent'
+
+      if (event_name.startsWith('ItemDelisted'))
+        event_name = 'ItemDelistedEvent'
+
       logger.SUI(`rpc event ${event_name}`, event)
       emitter.emit(event_name, {
         ...event.parsedJson,
@@ -566,6 +790,7 @@ export async function sui_subscribe({ signal }) {
         'Unable to subscribe to the Sui node as it is too crowded. Please try again later.',
       )
     else console.error('Unable to subscribe to the Sui node', error)
+    toast.error(t('SUBSCRIBE_ERROR'), 'Damn Rpc..', GameIconsBrokenBottle)
     active_subscription.unsubscribe = null
   }
 
@@ -607,3 +832,65 @@ export async function sui_sign_payload(message) {
 
   context.send_packet('packet/signatureResponse', { bytes, signature })
 }
+
+// const floor_price_rule_package_id = sdk.kiosk_client.getRulePackageId(
+//   'floorPriceRulePackageId',
+// )
+// const lock_rule_package_id = sdk.kiosk_client.getRulePackageId(
+//   'kioskLockRulePackageId',
+// )
+// const personal_rule_package_id = sdk.kiosk_client.getRulePackageId(
+//   'kioskLockRulePackageId',
+// )
+
+// const price_floor_rule_id = `${floor_price_rule_package_id}::floor_price_rule::Rule`
+// const lock_rule_id = `${lock_rule_package_id}::kiosk_lock_rule::Rule`
+// const personal_kiosk_rule_id = `${personal_rule_package_id}::personal_kiosk_rule::Rule`
+
+function replace_rule(rule, new_rule) {
+  const rule_package_id = sdk.kiosk_client.getRulePackageId(rule)
+  const rule_index = sdk.kiosk_client.rules.findIndex(
+    ({ rule }) => rule === `${rule_package_id}${new_rule.rule}`,
+  )
+
+  if (rule_index === -1) throw new Error(`Rule ${rule} not found`)
+  sdk.kiosk_client.rules[rule_index] = {
+    ...new_rule,
+    rule: `${rule_package_id}${new_rule.rule}`,
+    packageId: rule_package_id,
+  }
+}
+
+replace_rule('royaltyRulePackageId', {
+  rule: '::royalty_rule::Rule',
+  resolveRuleFunction(params) {
+    const {
+      transactionBlock: txb,
+      itemType,
+      price,
+      packageId,
+      transferRequest,
+      policyId,
+      extraArgs: { available_coin },
+    } = params
+
+    const policy_obj = txb.object(policyId)
+
+    // calculates the amount
+    const [amount] = txb.moveCall({
+      target: `${packageId}::royalty_rule::fee_amount`,
+      typeArguments: [itemType],
+      arguments: [policy_obj, txb.pure.u64(price || '0')],
+    })
+
+    // splits the coin.
+    const fee_coin = txb.splitCoins(available_coin, [amount])
+
+    // pays the policy
+    txb.moveCall({
+      target: `${packageId}::royalty_rule::pay`,
+      typeArguments: [itemType],
+      arguments: [policy_obj, transferRequest, fee_coin],
+    })
+  },
+})

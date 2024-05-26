@@ -115,9 +115,10 @@ declare namespace Type {
       balance?: bigint
       locked_characters?: SuiCharacter[]
       unlocked_characters?: SuiCharacter[]
-      character_lock_receipts?: Receipt[]
       locked_items?: SuiItem[]
       unlocked_items?: SuiItem[]
+      items_for_sale?: SuiItem[]
+      admin?: boolean
     }
     'action/set_online': boolean
     'action/character_action': { id: string; action: string }

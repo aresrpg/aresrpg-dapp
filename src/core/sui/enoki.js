@@ -1,7 +1,4 @@
 import { EnokiFlow } from '@mysten/enoki'
-import { fromB64 } from '@mysten/sui.js/utils'
-import { bcs } from '@mysten/sui.js/bcs'
-import { IntentScope } from '@mysten/sui.js/cryptography'
 
 import { VITE_ENOKI_KEY, NETWORK } from '../../env.js'
 import enoki_logo from '../../assets/sui/google.png?url'
@@ -74,21 +71,22 @@ export function enoki_wallet() {
     },
     async signPersonalMessage(message) {
       const keypair = await enoki.getKeypair({ network: NETWORK })
-      return await keypair.signWithIntent(
-        bcs
-          .vector(bcs.u8())
-          .serialize(new TextEncoder().encode(message))
-          .toBytes(),
-        IntentScope.PersonalMessage,
+      return await keypair.signPersonalMessage(
+        new TextEncoder().encode(message),
       )
     },
+    /**
+     * @param {object} opt
+     * @param {import("@mysten/sui.js/transactions").TransactionBlock} opt.transaction_block
+     */
     async signTransactionBlock({ transaction_block }) {
       const keypair = await enoki.getKeypair({ network: NETWORK })
 
-      const { signature } =
-        await keypair.signTransactionBlock(transaction_block)
+      const { signature } = await keypair.signTransactionBlock(
+        await transaction_block.build(),
+      )
 
-      return signature
+      return { signature }
     },
   }
 }

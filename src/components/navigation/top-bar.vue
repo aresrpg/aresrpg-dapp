@@ -13,6 +13,8 @@ fr:
   testnet: Vous êtes actuellement sur un test network
   copy: Copier l'adresse
   copied: Adresse copiée dans le presse-papier
+  sales: Ventes
+  profit_claimed: C'est un bon profit que vous avez là!
 en:
   logout: Logout
   disconnect: Disconnect
@@ -27,25 +29,36 @@ en:
   testnet: You are currently on a test network
   copy: Copy address
   copied: Address copied to clipboard
+  sales: Sales
+  profit_claimed: That's a good profit you got there!
 </i18n>
 
 <script setup>
-import { ref, inject } from 'vue';
+import { ref, inject, onMounted, onUnmounted } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
 import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
 
 import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
 import { context, disconnect_ws } from '../../core/game/game.js';
-import { mists_to_sui } from '../../core/sui/client.js';
+import {
+  mists_to_sui,
+  sui_get_kiosks_profits,
+  sui_claim_kiosks_profits,
+} from '../../core/sui/client.js';
 import logger from '../../logger.js';
 import { enoki_login_url } from '../../core/sui/enoki.js';
 import { NETWORK } from '../../env.js';
-import { increase_loading } from '../../core/utils/loading.js';
+import {
+  decrease_loading,
+  increase_loading,
+} from '../../core/utils/loading.js';
 import toast from '../../toast.js';
 
 // @ts-ignore
 import PhCopy from '~icons/ph/copy';
+// @ts-ignore
+import StreamlineEmojisMoneyWithWings from '~icons/streamline-emojis/money-with-wings';
 // @ts-ignore
 import StreamlineEmojisWaterWave from '~icons/streamline-emojis/water-wave';
 
@@ -71,6 +84,8 @@ const current_address = inject('current_address');
 const current_account = inject('current_account');
 const sui_balance = inject('sui_balance');
 
+const kiosk_profits = ref(0);
+
 function address_display(account) {
   if (!account) return 'not found';
   if (account.alias?.includes('.sui')) return account.alias;
@@ -94,6 +109,34 @@ async function enoki_login() {
   increase_loading();
   window.location.href = await enoki_login_url();
 }
+
+async function refresh_kiosk_profits() {
+  const profits = await sui_get_kiosks_profits();
+  kiosk_profits.value = +mists_to_sui(profits);
+}
+
+let profit_interval = null;
+
+async function claim_kiosk_profits() {
+  increase_loading();
+  try {
+    await sui_claim_kiosks_profits();
+    toast.dark(t('profit_claimed'), '', StreamlineEmojisMoneyWithWings);
+  } catch (error) {
+    console.error(error);
+  }
+  decrease_loading();
+}
+
+onMounted(() => {
+  profit_interval = setInterval(() => {
+    refresh_kiosk_profits();
+  }, 5000);
+});
+
+onUnmounted(() => {
+  clearInterval(profit_interval);
+});
 </script>
 
 <template lang="pug">
@@ -106,8 +149,16 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       span {{ t('connect') }}
     vs-row.row(v-else justify="end")
       .sui-balance(v-if="sui_balance != null")
-        span {{ mists_to_sui(sui_balance) }}
+        span {{ (+mists_to_sui(sui_balance)).toFixed(3) }}
         img.icon(src="../../assets/sui/sui-logo.png")
+      vs-button(
+        v-if="kiosk_profits > 0"
+        type="gradient"
+        color="#76FF03"
+        size="small"
+        @click="claim_kiosk_profits"
+      )
+        span.profit {{ t('sales') }}: {{ kiosk_profits.toFixed(3) }} Sui
       .badge(:class="{ mainnet: NETWORK === 'mainnet' }") Sui {{ NETWORK }} #[img.icon(:src="current_wallet.icon")]
       // Address container with dropdown
 
@@ -164,6 +215,8 @@ nav(:class="{ small: breakpoints.mobile.matches }")
 </template>
 
 <style lang="stylus" scoped>
+.profit
+  color #212121
 .beware-tesnet
   position absolute
   top 0
