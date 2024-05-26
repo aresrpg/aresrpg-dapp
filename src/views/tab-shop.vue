@@ -34,13 +34,11 @@ sectionContainer
               vs-input.vinput(
                 type="number"
                 v-model="requested_list_price"
-                min="0.1"
-                max="1000000"
                 icon-after
               )
                 template(#icon)
                   TokenSui
-                template(#message-danger v-if="requested_list_price < 0.01 || requested_list_price > 1000000") {{ t('wrong_price') }}
+                template(#message-danger v-if="is_price_valid") {{ t('wrong_price') }}
             vs-button(
               type="gradient"
               size="small"
@@ -69,7 +67,9 @@ sectionContainer
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { inject, ref, provide, onMounted } from 'vue';
+import { inject, ref, provide, computed } from 'vue';
+import { BigNumber as BN } from 'bignumber.js';
+import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 
 import sectionContainer from '../components/misc/section-container.vue';
 import sectionHeader from '../components/misc/section-header.vue';
@@ -107,6 +107,16 @@ const requested_list_price = ref(1);
 
 provide('selected_item_type', selected_item_type);
 
+const is_price_valid = computed(() => {
+  try {
+    const price = requested_list_price.value;
+    BigInt(new BN(price).multipliedBy(MIST_PER_SUI.toString()).toString());
+    return price >= 0.01 && price <= 1000000;
+  } catch (error) {
+    return false;
+  }
+});
+
 async function sell(quantity) {
   increase_loading();
   try {
@@ -117,6 +127,7 @@ async function sell(quantity) {
         price: requested_list_price.value,
       });
   } catch (error) {
+    console.error(error);
   } finally {
     decrease_loading();
   }

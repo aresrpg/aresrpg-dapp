@@ -6,6 +6,7 @@ en:
   cancel: Cancel
   confirm: Pay now
   buy_success: Purchase successful
+  insufficient_funds: You are way to broke to afford this precious item..
 fr:
   buy: Acheter
   buy_confirm: Confirmer l'achat
@@ -13,6 +14,7 @@ fr:
   cancel: Annuler
   confirm: Payer
   buy_success: Achat réussi
+  insufficient_funds: Vous êtes trop fauché pour acheter cet objet précieux..
 </i18n>
 
 <template lang="pug">
@@ -27,7 +29,7 @@ fr:
     .name {{ listing.name }}
     .price.x1
       .amount (x1)
-      .sui {{ final_item_price(listing) }}
+      .sui {{ final_item_price(listing)?.toFixed?.(2) }}
       TokenBrandedSui.icon
       vs-button.btn(
         v-if="listing.seller !== current_address"
@@ -42,7 +44,7 @@ fr:
     template(#header) {{ t('buy_confirm') }}
     i18n-t(keypath="buy_confirm_desc")
       b.itemname {{ bought_item?.name }}
-      b.price {{ final_item_price(bought_item) }} Sui
+      b.price {{ final_item_price(bought_item)?.toFixed?.(2) }} Sui
     template(#footer)
       .dialog-footer
         vs-button(type="transparent" color="#E74C3C" @click="buy_dialog = false") {{ t('cancel') }}
@@ -53,6 +55,7 @@ fr:
 import { watch, ref, inject, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { BigNumber as BN } from 'bignumber.js';
+import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 
 import { VITE_INDEXER_URL } from '../../env.js';
 import { sui_buy_item, mists_to_sui } from '../../core/sui/client.js';
@@ -69,6 +72,7 @@ const buy_dialog = ref(false);
 const buy_loading = ref(false);
 const bought_item = ref(null);
 const current_address = inject('current_address');
+const sui_balance = inject('sui_balance');
 
 const listings = ref([]);
 const { t } = useI18n();
@@ -78,13 +82,21 @@ function select_item(item) {
 }
 
 function start_buy_item(item) {
+  if (
+    new BN(sui_balance.value)
+      .dividedBy(MIST_PER_SUI.toString())
+      .isLessThan(final_item_price(item))
+  ) {
+    toast.warn(t('insufficient_funds'), '', GameIconsPayMoney);
+    return;
+  }
   buy_dialog.value = true;
   bought_item.value = item;
 }
 
 function final_item_price(item) {
   if (!item.is_aresrpg_item && !item.is_aresrpg_character)
-    return new BN(mists_to_sui(item.list_price)).toFixed(2);
+    return new BN(mists_to_sui(item.list_price));
 
   // Convert mists to Sui and create a BN instance of the price
   const price_in_sui = new BN(mists_to_sui(item.list_price));
@@ -106,7 +118,7 @@ function final_item_price(item) {
   const final_price = price_in_sui.plus(royalty_amount);
 
   // Return the final price as a string with two decimal places
-  return final_price.isGreaterThan(0.1) ? final_price.toFixed(2) : '0.1';
+  return final_price.isGreaterThan(0.1) ? final_price : new BN(0.1);
 }
 
 async function buy_item() {

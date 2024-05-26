@@ -112,7 +112,7 @@ async function enoki_login() {
 
 async function refresh_kiosk_profits() {
   const profits = await sui_get_kiosks_profits();
-  kiosk_profits.value = +mists_to_sui(profits);
+  kiosk_profits.value = +mists_to_sui(profits).replace(/\.?0+$/, '');
 }
 
 let profit_interval = null;
@@ -158,7 +158,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
         size="small"
         @click="claim_kiosk_profits"
       )
-        span.profit {{ t('sales') }}: {{ kiosk_profits.toFixed(3) }} Sui
+        span.profit {{ t('sales') }}: {{ kiosk_profits }} Sui
       .badge(:class="{ mainnet: NETWORK === 'mainnet' }") Sui {{ NETWORK }} #[img.icon(:src="current_wallet.icon")]
       // Address container with dropdown
 
