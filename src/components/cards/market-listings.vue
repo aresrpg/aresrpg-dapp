@@ -62,7 +62,9 @@ import { sui_buy_item, mists_to_sui } from '../../core/sui/client.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 import toast from '../../toast.js';
 
+// @ts-ignore
 import TokenBrandedSui from '~icons/token-branded/sui';
+// @ts-ignore
 import GameIconsPayMoney from '~icons/game-icons/pay-money';
 
 const selected_item_type = inject('selected_item_type');
