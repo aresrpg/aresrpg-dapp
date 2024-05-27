@@ -32,6 +32,7 @@ import {
   increase_loading,
 } from '../../core/utils/loading.js';
 
+// @ts-ignore
 import TokenBrandedSui from '~icons/token-branded/sui';
 
 const { t } = useI18n();
