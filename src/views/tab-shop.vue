@@ -38,13 +38,13 @@ sectionContainer
               )
                 template(#icon)
                   TokenSui
-                template(#message-danger v-if="is_price_valid") {{ t('wrong_price') }}
+                template(#message-danger v-if="!is_price_valid") {{ t('wrong_price') }}
             vs-button(
               type="gradient"
               size="small"
               color="#A4C400"
               @click="() => sell(1)"
-              :disabled="!selected_item"
+              :disabled="!selected_item || !is_price_valid"
             ) {{ t('sell') }}
             vs-button(
               v-if="selected_item && selected_item.amount >= 10"
@@ -52,6 +52,7 @@ sectionContainer
               size="small"
               color="#60A917"
               @click="() => sell(10)"
+              :disabled="!selected_item || !is_price_valid"
             ) {{ t('sell') }} x10
             vs-button(
               v-if="selected_item && selected_item.amount >= 100"
@@ -59,6 +60,7 @@ sectionContainer
               size="small"
               color="#008A00"
               @click="() => sell(100)"
+              :disabled="!selected_item || !is_price_valid"
             ) {{ t('sell') }} x100
           .items
             itemInventory(:disable_edit="true" :sell_mode="true")
