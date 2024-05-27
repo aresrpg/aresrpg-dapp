@@ -42,6 +42,7 @@ declare namespace Type {
     jump_time: number
     action: string
     audio: import('three').PositionalAudio
+    skin: string
   }
 
   // type Entity = {
@@ -106,7 +107,7 @@ declare namespace Type {
     'action/free_camera': boolean
     'action/camera_went_underwater': boolean
     'action/sky_lights_change': State['settings']['sky_lights']
-    'action/add_character': SuiCharacter
+    'action/add_character': SuiCharacter & { skin?: string }
     'action/remove_character': string
     'action/register_wallet': Wallet
     'action/select_wallet': string
