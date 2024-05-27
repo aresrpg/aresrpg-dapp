@@ -238,6 +238,28 @@ export async function sui_get_item(id) {
   return sdk.get_item_by_id(id)
 }
 
+export async function sui_delete_item(item) {
+  const tx = new TransactionBlock()
+
+  sdk.add_header(tx)
+
+  const { finalize, kiosks } = await sdk.get_user_kiosks({
+    tx,
+    address: get_address(),
+  })
+
+  sdk.delete_item({
+    tx,
+    item_id: item.id,
+    kiosk_id: item.kiosk_id,
+    kiosk_cap: kiosks.get(item.kiosk_id),
+  })
+
+  finalize()
+
+  await execute(tx)
+}
+
 export async function sui_feed_pet(pet) {
   const tx = new TransactionBlock()
 

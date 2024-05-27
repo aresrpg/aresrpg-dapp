@@ -60,6 +60,7 @@ import game_connect from '../modules/game_connect.js'
 import player_action from '../modules/player_action.js'
 import player_health from '../modules/player_health.js'
 import player_pet from '../modules/player_pet.js'
+import player_skin from '../modules/player_skin.js'
 
 import { handle_server_error } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -272,6 +273,7 @@ const MODULES = [
   player_action,
   player_health,
   player_pet,
+  player_skin,
 
   game_sky,
   game_render,

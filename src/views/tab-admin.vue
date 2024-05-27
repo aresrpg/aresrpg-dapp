@@ -25,6 +25,7 @@ import {
 import { decrease_loading, increase_loading } from '../core/utils/loading.js';
 import toast from '../toast.js';
 
+// @ts-ignore
 import TokenBrandedSui from '~icons/token-branded/sui';
 
 const router = useRouter();

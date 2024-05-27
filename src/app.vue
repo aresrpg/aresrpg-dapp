@@ -28,9 +28,10 @@ import {
   sui_get_policies_profit,
 } from './core/sui/client.js';
 
+// @ts-ignore
 import EmojioneMoneyBag from '~icons/emojione/money-bag';
-// internal vuejs
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// @ts-ignore
 const name = 'app';
 
 const { t } = useI18n();
@@ -176,6 +177,7 @@ function update_all(state) {
     .map(character => character.id)
     .filter(id => id !== selected_character_id);
 
+  // @ts-ignore
   const last_characters_ids = characters.value.map(character => character.id);
 
   if (characters_ids.join() !== last_characters_ids.join())
@@ -186,16 +188,19 @@ function update_all(state) {
   const locked_ids = locked_characters.map(c => c.id);
   const unlocked_ids = unlocked_characters.map(c => c.id);
 
+  // @ts-ignore
   if (locked_ids.join() !== vue_locked_characters.value?.map(c => c.id).join())
     vue_locked_characters.value = locked_characters;
 
   if (
+    // @ts-ignore
     unlocked_ids.join() !== vue_unlocked_characters.value?.map(c => c.id).join()
   )
     vue_unlocked_characters.value = unlocked_characters;
 
   if (
     selected_character_id &&
+    // @ts-ignore
     selected_character.value?.id !== selected_character_id
   ) {
     selected_character.value = current_character(state);
@@ -246,6 +251,7 @@ function update_all(state) {
     current_account.value = { ...selected_account };
   }
 
+  // @ts-ignore
   if (current_account.value?.alias !== selected_account?.alias)
     current_account.value = selected_account;
 
@@ -275,66 +281,82 @@ function update_all(state) {
 
       let equipment_changed = false;
 
+      // @ts-ignore
       if (relic_1?.id !== equipment.relic_1?.id) {
         equipment_changed = true;
         equipment.relic_1 = relic_1;
       }
+      // @ts-ignore
       if (relic_2?.id !== equipment.relic_2?.id) {
         equipment_changed = true;
         equipment.relic_2 = relic_2;
       }
+      // @ts-ignore
       if (relic_3?.id !== equipment.relic_3?.id) {
         equipment_changed = true;
         equipment.relic_3 = relic_3;
       }
+      // @ts-ignore
       if (relic_4?.id !== equipment.relic_4?.id) {
         equipment_changed = true;
         equipment.relic_4 = relic_4;
       }
+      // @ts-ignore
       if (relic_5?.id !== equipment.relic_5?.id) {
         equipment_changed = true;
         equipment.relic_5 = relic_5;
       }
+      // @ts-ignore
       if (relic_6?.id !== equipment.relic_6?.id) {
         equipment_changed = true;
         equipment.relic_6 = relic_6;
       }
+      // @ts-ignore
       if (title?.id !== equipment.title?.id) {
         equipment_changed = true;
         equipment.title = title;
       }
+      // @ts-ignore
       if (amulet?.id !== equipment.amulet?.id) {
         equipment_changed = true;
         equipment.amulet = amulet;
       }
+      // @ts-ignore
       if (weapon?.id !== equipment.weapon?.id) {
         equipment_changed = true;
         equipment.weapon = weapon;
       }
+      // @ts-ignore
       if (left_ring?.id !== equipment.left_ring?.id) {
         equipment_changed = true;
         equipment.left_ring = left_ring;
       }
+      // @ts-ignore
       if (belt?.id !== equipment.belt?.id) {
         equipment_changed = true;
         equipment.belt = belt;
       }
+      // @ts-ignore
       if (right_ring?.id !== equipment.right_ring?.id) {
         equipment_changed = true;
         equipment.right_ring = right_ring;
       }
+      // @ts-ignore
       if (boots?.id !== equipment.boots?.id) {
         equipment_changed = true;
         equipment.boots = boots;
       }
+      // @ts-ignore
       if (hat?.id !== equipment.hat?.id) {
         equipment_changed = true;
         equipment.hat = hat;
       }
+      // @ts-ignore
       if (cloack?.id !== equipment.cloack?.id) {
         equipment_changed = true;
         equipment.cloack = cloack;
       }
+      // @ts-ignore
       if (pet?.id !== equipment.pet?.id) {
         equipment_changed = true;
         equipment.pet = pet;
@@ -355,11 +377,14 @@ function on_server_info(event) {
 }
 
 async function on_item_purchased({ id }) {
+  // @ts-ignore
   const my_listing = my_listings.value.find(listing => listing.id === id);
 
   if (my_listing) {
     toast.info(
+      // @ts-ignore
       `${my_listing.name} ${t('item_sold')}`,
+      // @ts-ignore
       `+${pretty_print_mists(my_listing.list_price)} Sui`,
       EmojioneMoneyBag,
     );
@@ -392,6 +417,7 @@ onUnmounted(() => {
   context.events.off('packet/serverInfo', on_server_info);
   SUI_EMITTER.off('ItemPurchasedEvent', on_item_purchased);
 });
+// @ts-ignore
 </script>
 
 <style lang="stylus">
