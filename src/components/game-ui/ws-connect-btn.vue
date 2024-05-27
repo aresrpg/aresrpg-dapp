@@ -1,20 +1,20 @@
 <i18n>
-fr:
-  disconnect: Déconnexion
-  connect: Connexion
-  offline_ws: Hors ligne
-  online_ws: En ligne
-  connecting_ws: Connexion..
-  login_first: Vous devez vous authentifier avant de vous connecter au serveur
-  wrong_network: Aucun serveur {network} disponible
 en:
-  disconnect: Disconnect
-  connect: Connect
-  offline_ws: Offline
-  online_ws: Online
-  connecting_ws: Connecting..
+  disconnect: Leave multiplayer
+  connect: Join multiplayer
+  offline_ws: You are playing solo
+  online_ws: You are connected to the server
+  connecting_ws: Joining server..
   login_first: You need to login before connecting to the server
   wrong_network: No {network} server available
+fr:
+  disconnect: Quitter le multijoueur
+  connect: Rejoindre le multijoueur
+  offline_ws: Vous jouez en solo
+  online_ws: Vous êtes connecté au serveur
+  connecting_ws: Connexion au serveur..
+  login_first: Vous devez vous connecter avant de rejoindre le serveur
+  wrong_network: Aucun serveur {network} disponible
 </i18n>
 
 <template lang="pug">
@@ -29,7 +29,7 @@ vs-button.btn(
   @click="toggle_ws"
 )
   i.bx(:class="{ 'bx-wifi-off': !is_online, 'bx-wifi': is_online }")
-  span(v-if="VITE_SERVER_URL") {{ is_online ? t('online_ws') : t('offline_ws') }}
+  span.shadowed(v-if="VITE_SERVER_URL") {{ is_online ? t('online_ws') : t('offline_ws') }}
   i18n-t(v-else keypath="wrong_network" tag="span")
     template(#network) {{ NETWORK }}
   template(#animate)

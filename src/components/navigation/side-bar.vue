@@ -2,14 +2,14 @@
   fr:
     shop: Hôtel des ventes
     settings: Paramètres
-    world: Monde
+    world: Jouer
     characters: Personnages
     admin: Admin
   en:
     shop: Market
     settings: Settings
     lang: Choose a language
-    world: World
+    world: Play
     characters: Characters
     admin: Admin
 </i18n>
@@ -27,7 +27,7 @@
     vs-sidebar-item(id="characters" @click="router.push('/characters')") {{ t('characters') }}
       template(#icon)
         i.bx.bxs-user-account
-    vs-sidebar-item(id="world" @click="router.push('/world')") {{ t('world') }}
+    vs-sidebar-item.play(id="world" @click="router.push('/world')") {{ t('world') }}
       template(#icon)
         i.bx.bx-world
     vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('shop') }}
