@@ -433,6 +433,10 @@ sc-disableScollBar()
 .vs-sidebar-item__icon
   background none
 
+.vs-sidebar-item.play
+  text-shadow 1px 2px 3px black
+  background linear-gradient(to right, #FBC02D, #EF6C00)
+
 .vs-sidebar.is-reduce
   .vs-sidebar-item__text
     margin-left 0 !important
