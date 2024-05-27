@@ -33,15 +33,25 @@ import { inject, computed, ref, onMounted } from 'vue';
 // @ts-ignore
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 
+// @ts-ignore
 import slot_relic from '../../assets/ui/slot_relic.png';
+// @ts-ignore
 import slot_title from '../../assets/ui/slot_title.png';
+// @ts-ignore
 import slot_amulet from '../../assets/ui/slot_amulet.png';
+// @ts-ignore
 import slot_weapon from '../../assets/ui/slot_weapon.png';
+// @ts-ignore
 import slot_ring from '../../assets/ui/slot_ring.png';
+// @ts-ignore
 import slot_belt from '../../assets/ui/slot_belt.png';
+// @ts-ignore
 import slot_boots from '../../assets/ui/slot_boots.png';
+// @ts-ignore
 import slot_hat from '../../assets/ui/slot_hat.png';
+// @ts-ignore
 import slot_cloack from '../../assets/ui/slot_cloack.png';
+// @ts-ignore
 import slot_pet from '../../assets/ui/slot_pet.png';
 import {
   is_consumable,

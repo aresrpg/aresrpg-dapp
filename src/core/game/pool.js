@@ -12,6 +12,7 @@ import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
 import suifren_bullshark from '../../assets/models/suifrens-bullshark.glb?url'
 import afegg from '../../assets/models/afegg.glb?url'
+import primemachin from '../../assets/models/primemachin.glb?url'
 
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
 
@@ -97,6 +98,10 @@ export const MODELS = {
     env_map_intensity: 0.5,
     scale: 0.18,
   }),
+  primemachin: await load(primemachin, {
+    env_map_intensity: 0.5,
+    scale: 0.046,
+  }),
 }
 
 function fade_to_animation(from, to, duration = 0.3) {
@@ -171,8 +176,8 @@ export default function create_pools(scene) {
 
     return {
       instanced_entity: instance,
-      /** @type {(param: {id: string, name: string}) => Type.ThreeEntity} */
-      get({ id, name }) {
+      /** @type {(param: {id: string, name: string, skin: string}) => Type.ThreeEntity} */
+      get({ id, name, skin }) {
         if (!id) throw new Error('id is required')
 
         const success = instance.entity.add_entity(id)
@@ -211,6 +216,7 @@ export default function create_pools(scene) {
           height,
           radius,
           jump_time: 0,
+          skin,
           audio: null,
           action: 'IDLE',
           apply_state(entity) {
@@ -261,8 +267,8 @@ export default function create_pools(scene) {
           target_position: null,
         }
       },
-      /** @type {(param: {id: string, name: string}) => Type.ThreeEntity} */
-      get_non_instanced({ id, name }) {
+      /** @type {(param: {id: string, name: string, skin: string}) => Type.ThreeEntity} */
+      get_non_instanced({ id, name, skin }) {
         const { model, compute_animations } = clone_model()
         const { mixer, actions } = compute_animations()
 
@@ -297,6 +303,7 @@ export default function create_pools(scene) {
           title,
           height,
           radius,
+          skin,
           mixer,
           object3d: origin,
           jump_time: 0,
@@ -374,14 +381,11 @@ export default function create_pools(scene) {
       name: 'afegg',
       offset_y: -0.52,
     }),
-  }
-
-  function find_target_entity(classe, sex) {
-    if (classe.toLowerCase() === 'iop')
-      return sex === 'male' ? instances.iop_male : instances.iop_female
-    if (classe.toLowerCase() === 'sram')
-      return sex === 'male' ? instances.sram_male : instances.sram_female
-    return instances.chafer
+    primemachin: instanciate(MODELS.primemachin, {
+      height: 1.9,
+      radius: 0.9,
+      name: 'primemachin',
+    }),
   }
 
   return {
@@ -392,13 +396,19 @@ export default function create_pools(scene) {
       instances.iop_female.instanced_entity.dispose()
 
       instances.chafer.instanced_entity.dispose()
+      instances.suifren_capy.instanced_entity.dispose()
+      instances.afegg.instanced_entity.dispose()
+      instances.primemachin.instanced_entity.dispose()
     },
-    /** @param {Type.SuiCharacter} character */
-    entity({ id, name, classe, sex = 'male' }) {
-      const target_entity = find_target_entity(classe, sex)
+    /** @param {Type.SuiCharacter & { skin?: string }} character */
+    entity({ id, name, classe, sex = 'male', skin = null }) {
+      const target_skin = skin ?? `${classe.toLowerCase()}_${sex}`
+      const target_entity = instances[target_skin] ?? instances.chafer
+
       return {
-        instanced: () => target_entity.get({ id, name }),
-        non_instanced: () => target_entity.get_non_instanced({ id, name }),
+        instanced: () => target_entity.get({ id, name, skin: target_skin }),
+        non_instanced: () =>
+          target_entity.get_non_instanced({ id, name, skin: target_skin }),
       }
     },
     ...instances,

@@ -84,6 +84,7 @@ import marketMyListings from '../components/cards/market-my-listings.vue';
 import { sui_list_item } from '../core/sui/client.js';
 import { decrease_loading, increase_loading } from '../core/utils/loading.js';
 
+// @ts-ignore
 import TokenSui from '~icons/token/sui';
 
 const { t } = useI18n();
