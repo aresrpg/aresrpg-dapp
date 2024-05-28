@@ -23,7 +23,7 @@ fr:
 </template>
 
 <script setup>
-import { onMounted, inject } from 'vue';
+import { inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { mists_to_sui, sui_delist_item } from '../../core/sui/client.js';
