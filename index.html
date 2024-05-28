@@ -1,5 +1,10 @@
 <!doctype html>
 <html lang="en" class="dark">
+  <script>
+    window.addEventListener('vite:preloadError', event => {
+      window.location.reload()
+    })
+  </script>
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
