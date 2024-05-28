@@ -139,7 +139,7 @@ const artic = {
   mountains: {
     id: 5,
     x: 0.71,
-    y: 0.44,
+    y: 0.52,
     blockType: BlockType.SNOW,
     amplitude: {
       low: 0,
@@ -150,15 +150,15 @@ const artic = {
   mountains_top: {
     id: 6,
     x: 0.9,
-    y: 0.6,
+    y: 0.76,
     blockType: BlockType.SNOW,
     amplitude: {
       low: 0,
       high: 0,
     },
   },
-  mountains_top_2: { x: 0.95, y: 0.7 },
-  mountains_top_3: { x: 1, y: 0.8 },
+  mountains_top_2: { x: 0.95, y: 0.92 },
+  mountains_top_3: { x: 1, y: 0.9 },
 }
 
 const desert = {
@@ -195,8 +195,8 @@ const desert = {
   },
   dunes: {
     id: 4,
-    x: 0.35,
-    y: 0.3,
+    x: 0.48,
+    y: 0.42,
     blockType: BlockType.SAND,
     amplitude: {
       low: 0,
@@ -206,80 +206,13 @@ const desert = {
   dunes_end: {
     id: 5,
     x: 1,
-    y: 0.45,
-    blockType: BlockType.SAND,
-    amplitude: {
-      low: 0,
-      high: 25,
-    },
-  },
-}
-
-const tropical = {
-  sea: {
-    id: 0,
-    x: 0,
-    y: 0,
-    blockType: BlockType.WATER,
-    amplitude: {
-      low: 0,
-      high: 0,
-    },
-  },
-  sea_2: { x: 0.18, y: 0.05 },
-  beach: {
-    id: 2,
-    x: 0.26,
-    y: 0.21,
-    blockType: BlockType.SAND,
-    amplitude: {
-      low: 0,
-      high: 5,
-    },
-  },
-  cliff: {
-    id: 3,
-    x: 0.33,
-    y: 0.23,
-    blockType: BlockType.ROCK,
-    amplitude: {
-      low: 0,
-      high: 0,
-    },
-  },
-  cliff_2: { x: 0.48, y: 0.42 },
-  lands: {
-    id: 4,
-    x: 0.48,
-    y: 0.42,
-    blockType: BlockType.GRASS,
-    amplitude: {
-      low: 0,
-      high: 0.2,
-    },
-  },
-  mountains: {
-    id: 5,
-    x: 0.71,
     y: 0.52,
-    blockType: BlockType.ROCK,
+    blockType: BlockType.SAND,
     amplitude: {
       low: 0,
       high: 25,
     },
   },
-  mountains_top: {
-    id: 6,
-    x: 0.9,
-    y: 0.76,
-    blockType: BlockType.SNOW,
-    amplitude: {
-      low: 0,
-      high: 0,
-    },
-  },
-  mountains_top_2: { x: 0.95, y: 0.92 },
-  mountains_top_3: { x: 1, y: 0.9 },
 }
 
-export const biome_mapping_conf = { temperate, desert, tropical, artic }
+export const biome_mapping_conf = { temperate, desert, artic }
