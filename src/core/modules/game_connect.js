@@ -1,5 +1,6 @@
 import { sui_sign_payload } from '../sui/client.js'
 import { ares_client, context } from '../game/game.js'
+import { i18n } from '../../i18n.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -15,10 +16,8 @@ export default function () {
     },
     async observe({ events }) {
       const {
-        i18n: {
-          global: { t },
-        },
-      } = await import('../../main.js')
+        global: { t },
+      } = i18n
 
       events.on('packet/signatureRequest', async ({ payload }) => {
         const message = `${t('sign_message')}\n\n::${payload}`
