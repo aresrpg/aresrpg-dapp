@@ -1,5 +1,5 @@
+import { Heightmap } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
-import { WorldGenerator } from '@aresrpg/aresrpg-world'
 
 import {
   context,

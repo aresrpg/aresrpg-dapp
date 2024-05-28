@@ -16,6 +16,7 @@ import {
   blocks_colors,
   biome_mapping_conf,
 } from '../utils/terrain/world_settings.js'
+import { current_three_character } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -29,7 +30,7 @@ export default function () {
   Biome.instance.setMappings(biome_mapping_conf)
   Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
   // TODO update while player moves
-  BlocksPatch.gridRadius = 14
+  BlocksPatch.gridRadius = 18
   BlocksPatch.updateCache()
 
   /**
