@@ -18,6 +18,8 @@ import {
   VITE_SUI_RPC,
   VITE_SUI_WSS,
 } from '../../env.js'
+// @ts-ignore
+import { i18n } from '../../i18n.js'
 
 // @ts-ignore
 import TwemojiSalt from '~icons/twemoji/salt'
@@ -34,44 +36,7 @@ import MaterialSymbolsLightRuleSettings from '~icons/material-symbols-light/rule
 
 const SUINS_CACHE = new LRUCache({ max: 50 })
 
-let t = null
-
-export const error_sui = {
-  en: {
-    LOGIN_AGAIN: 'Please login again',
-    WALLET_NOT_FOUND: 'Wallet not found',
-    PLEASE_SWITCH_NETWORK: 'Please switch to the Sui',
-    ENOKI_SALT:
-      'Enoki failed to deliver the transaction (salt failure). Please try again.',
-    OUTDATED: `The app is outdated and can't use this feature. Please update the app.`,
-    NO_GAS: 'You need Sui in your wallet to perform this action',
-    SUI_MIN_1: 'You need at least 1 Sui to perform this action',
-    WALLET_CONFIG: 'Wallet configuration error',
-    SUI_SUBSCRIBE_OK: 'Connected to Sui',
-    E_PET_ALREADY_FED: 'This pet is not hungry',
-    INV_NOT_EMPTY: 'You must unequip all items before that',
-    SUBSCRIBE_ERROR:
-      'The Sui node refused the subscription, please refresh the page to try again',
-    FAILURE: 'Блять! This transaction failed, please try again',
-  },
-  fr: {
-    LOGIN_AGAIN: 'Veuillez vous reconnecter',
-    WALLET_NOT_FOUND: 'Portefeuille introuvable',
-    PLEASE_SWITCH_NETWORK: 'Veuillez passer sur le Sui',
-    ENOKI_SALT:
-      "Enoki n'a pas pu livrer la transaction (échec du salt). Veuillez réessayer.",
-    OUTDATED: `L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour l'application.`,
-    NO_GAS:
-      'Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action',
-    SUI_MIN_1: "Vous avez besoin d'au moins 1 Sui pour effectuer cette action",
-    WALLET_CONFIG: 'Erreur de configuration du portefeuille',
-    SUI_SUBSCRIBE_OK: 'Connecté à Sui',
-    E_PET_ALREADY_FED: 'Ce famillier n a pas faim',
-    INV_NOT_EMPTY: `Vous devez déséquiper tous les objets d'abord`,
-    SUBSCRIBE_ERROR: `La node Sui a refusé la connection, veuillez rafraîchir la page pour réessayer`,
-    FAILURE: 'Блять! Cette transaction a échoué, veuillez réessayer',
-  },
-}
+const { t } = i18n.global
 
 export const sdk = await SDK({
   rpc_url: VITE_SUI_RPC,
@@ -108,12 +73,6 @@ function get_address() {
 
 /** @param {TransactionBlock} transaction_block */
 const execute = async transaction_block => {
-  if (!t) {
-    const { i18n } = await import('../../main.js')
-    // eslint-disable-next-line prefer-destructuring
-    t = i18n.global.t
-  }
-
   const sender = get_address()
   if (!sender) {
     toast.error(t('LOGIN_AGAIN'), t('WALLET_NOT_FOUND'))
@@ -762,13 +721,6 @@ export async function sui_buy_item(item) {
 
 export async function sui_subscribe({ signal }) {
   const emitter = new EventEmitter()
-
-  if (!t) {
-    const { i18n } = await import('../../main.js')
-    // eslint-disable-next-line prefer-destructuring
-    t = i18n.global.t
-  }
-
   async function try_reset() {
     if (active_subscription.emitter) {
       active_subscription.emitter.removeAllListeners()
