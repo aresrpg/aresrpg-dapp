@@ -27,6 +27,7 @@ en:
   effects: Effects
   stomach: Stomach
   last_feed: Last Feed
+  appearance_change: Changes player's appearance
 
   relic: Relic
   rune: Rune
@@ -90,6 +91,7 @@ fr:
   effects: Effets
   stomach: Estomac
   last_feed: Dernier Repas
+  appearance_change: Change l'apparence du joueur
 
   relic: Relique
   rune: Rune
@@ -139,6 +141,7 @@ fr:
       .category {{ t(item.item_category) }}
       a.id(@click="() => open_explorer(item.id)") {{ short_id(item.id) }}
       .bottom(v-if="item.critical_chance") cc: {{ item.critical_chance }} / {{ item.critical_outcomes }}
+      .appearance-change(v-if="item.item_type === 'primemachin'") {{ t('appearance_change') }}
     .right-content
       .scroll-container
         .eff {{ t('effects') }}:
