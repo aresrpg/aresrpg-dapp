@@ -1,10 +1,5 @@
 <!doctype html>
 <html lang="en" class="dark">
-  <script>
-    window.addEventListener('vite:preloadError', event => {
-      window.location.reload()
-    })
-  </script>
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
@@ -69,6 +64,11 @@
     />
   </head>
   <body>
+    <script>
+      window.addEventListener('vite:preloadError', event => {
+        window.location.reload()
+      })
+    </script>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
