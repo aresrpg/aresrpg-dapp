@@ -1,5 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import home from './views/home.vue'
+import shop from './views/tab-shop.vue'
+import settings from './views/tab-settings.vue'
+import world from './views/tab-world.vue'
+import characters from './views/tab-characters.vue'
+import enoki from './views/enoki.vue'
+import admin from './views/tab-admin.vue'
+
 export default createRouter({
   history: createWebHistory(),
   routes: [
@@ -9,38 +17,38 @@ export default createRouter({
     },
     {
       path: '/enoki',
-      component: () => import('./views/enoki.vue'),
+      component: enoki,
     },
     {
       path: '/',
-      component: () => import('./views/home.vue'),
+      component: home,
       redirect: '/characters',
       children: [
         {
           name: 'characters',
           path: '/characters',
-          component: () => import('./views/tab-characters.vue'),
+          component: characters,
         },
         {
           name: 'world',
           path: '/world',
-          component: () => import('./views/tab-world.vue'),
+          component: world,
           meta: { keepAlive: true },
         },
         {
           name: 'shop',
           path: '/shop',
-          component: () => import('./views/tab-shop.vue'),
+          component: shop,
         },
         {
           name: 'settings',
           path: '/settings',
-          component: () => import('./views/tab-settings.vue'),
+          component: settings,
         },
         {
           name: 'admin',
           path: '/admin',
-          component: () => import('./views/tab-admin.vue'),
+          component: admin,
         },
       ],
     },
