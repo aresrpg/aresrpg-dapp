@@ -46,10 +46,4 @@ export const i18n = createI18n({
   },
 })
 
-router.onError(error => {
-  if (error.message.includes('Failed to load module script')) {
-    window.location.reload()
-  }
-})
-
 vue_app.use(router).use(Vuesax, {}).use(i18n).mount('#app')
