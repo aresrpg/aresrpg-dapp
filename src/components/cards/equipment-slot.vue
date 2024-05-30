@@ -9,6 +9,9 @@
   )
   img.slot-img(draggable="false" v-else :src="background")
   .slot(:class="{ highlighted: props.highlighted }")
+  .appearance-indicator(v-if="item_changes_appearance(props.slot)")
+    .hanger-icon
+      | 🧥
 </template>
 
 <script setup>
@@ -32,6 +35,12 @@ const shown_equipment = computed(() => {
 const shown_item = computed(() => {
   return shown_equipment.value[props.slot];
 });
+
+function item_changes_appearance(slot) {
+  // Assuming slots like boots, hat, etc., change the appearance
+  const appearance_changing_slots = ['boots', 'hat', 'cloack', 'amulet', 'weapon'];
+  return appearance_changing_slots.includes(slot);
+}
 
 function unequip() {
   if (!edit_mode.value) {
@@ -136,6 +145,7 @@ function is_slot_valid(slot, item) {
 <style lang="stylus" scoped>
 .equipment-slot
   user-select none
+  position relative
 
 img.slot-img
   width 100%
@@ -163,4 +173,22 @@ img.equipped-img
   &.highlighted
     box-shadow: inset 0 0 15px 0 #F9A825
     border 1px solid #F9A825
+
+.appearance-indicator
+  position absolute
+  top 0
+  right 0
+  width 20px
+  height 20px
+  display flex
+  justify-content center
+  align-items center
+  background-color rgba(0, 0, 0, 0.5)
+  border-radius 50%
+  color white
+
+.hanger-icon
+  font-size 14px
 </style>
+
+

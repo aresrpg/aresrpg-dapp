@@ -1,7 +1,7 @@
 <template lang="pug">
 .item-equipments
   .edit
-    //- BxsLock.lock(v-if="!edit_mode")
+    BxsLock.lock(v-if="!edit_mode")
     vs-button.cancel(icon color="#E74C3C" v-if="edit_mode && !accept_loading" @click="cancel_edit_equipment")
       RadixIconsCross2
     vs-button.accept(icon color="#2ECC71" v-if="edit_mode" @click="accept_edit_equipment")
@@ -22,9 +22,6 @@
     equipmentSlot.belt(:slot="'belt'" :background="slot_belt" :highlighted="is_dragging_belt")
     equipmentSlot.right_ring(:slot="'right_ring'" :background="slot_ring" :highlighted="is_dragging_ring")
     equipmentSlot.boots(:slot="'boots'" :background="slot_boots" :highlighted="is_dragging_boots")
-      .appearance-indicator(v-if="item_changes_appearance('boots')")
-        svg(width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-star")
-          polygon(points="12 2 15 10 23 10 17 14 19 22 12 18 5 22 7 14 1 10 9 10 12 2")
   .right
     equipmentSlot.hat(:slot="'hat'" :background="slot_hat" :highlighted="is_dragging_hat")
     equipmentSlot.cloack(:slot="'cloack'" :background="slot_cloack" :highlighted="is_dragging_cloack")
@@ -83,7 +80,7 @@ const edit_mode = inject('edit_mode');
 const owned_items = inject('owned_items');
 const real_equipment = inject('equipment');
 
-const accept_loading = ref(true);
+const accept_loading = ref(false);
 
 function start_edit_equipment() {
   edit_mode.value = true;
@@ -131,7 +128,7 @@ async function accept_edit_equipment() {
     accept_loading.value = false;
   }
 
-  edit_mode.value = true;
+  edit_mode.value = false;
 }
 
 function is_equipped(item) {
@@ -207,13 +204,6 @@ const is_dragging_cloack = computed(() => {
 const is_dragging_pet = computed(() => {
   return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.PET;
 });
-
-function item_changes_appearance(slot) {
-  // Assuming slots like boots, hat, etc., change the appearance
-  const appearance_changing_slots = ['boots', 'hat', 'cloack', 'amulet', 'weapon'];
-  return appearance_changing_slots.includes(slot);
-}
-
 </script>
 
 <style lang="stylus" scoped>
