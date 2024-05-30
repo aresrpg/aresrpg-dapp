@@ -498,7 +498,7 @@ export default function create_pools(scene) {
     /** @param {Type.SuiCharacter & { skin?: string }} character */
     entity({ id, name, classe, sex = 'male', skin = null }) {
       const target_skin = skin ?? `${classe.toLowerCase()}_${sex}`
-      const target_entity = instances[target_skin] ?? instances.sram_female
+      const target_entity = instances[target_skin] ?? instances.chafer
 
       return {
         instanced: () => target_entity.get({ id, name, skin: target_skin }),
