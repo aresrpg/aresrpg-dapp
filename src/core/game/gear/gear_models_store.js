@@ -50,7 +50,7 @@ class GearModelsStore {
     model.applyMatrix4(new Matrix4().makeRotationX(transform.rotation[0]))
     model.applyMatrix4(new Matrix4().makeRotationY(transform.rotation[1]))
     model.applyMatrix4(new Matrix4().makeRotationZ(transform.rotation[2]))
-    model.applyMatrix4(new Matrix4().setPosition(0, -600, 300))
+    model.applyMatrix4(new Matrix4().setPosition(...transform.position))
 
     return model
   }
