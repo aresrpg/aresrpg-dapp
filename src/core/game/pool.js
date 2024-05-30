@@ -408,7 +408,7 @@ export default function create_pools(scene) {
         const head_bone = find_head_bone(base.object3d)
 
         const /** @type Type.PlayerModel */ result = Object.assign(base, {
-            setHeadGear: (/** @type string */ gear_name) => {
+            set_head_gear: (/** @type string */ gear_name) => {
               head_bone.clear()
 
               const gear_model = gear_head_models_store.get_model(
@@ -419,7 +419,7 @@ export default function create_pools(scene) {
               set_bones_visibility(base.object3d, true)
             },
 
-            removeHeadGear: () => {
+            remove_head_gear: () => {
               head_bone.clear()
               set_bones_visibility(base.object3d, false)
             },

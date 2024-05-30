@@ -46,8 +46,8 @@ declare namespace Type {
   }
 
   type PlayerModel = ThreeEntity & {
-    setHeadGear(name: string): void
-    removeHeadGear(): void
+    set_head_gear(name: string): void
+    remove_head_gear(): void
   }
 
   // type Entity = {
