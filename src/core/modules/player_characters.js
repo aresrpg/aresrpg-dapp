@@ -21,7 +21,13 @@ export default function () {
           characters: state.characters.filter(({ id }) => id !== payload),
         }
       if (type === 'action/add_character') {
-        const three_character = context.pool.entity(payload).non_instanced()
+        const three_character = context.pool
+          .entity(payload)
+          .instanciate_character()
+
+        // below, an example of gear usage
+        // three_character.setHeadGear('pug')
+        // three_character.removeHeadGear()
 
         const level = experience_to_level(payload.experience)
 

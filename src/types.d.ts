@@ -45,6 +45,11 @@ declare namespace Type {
     skin: string
   }
 
+  type PlayerModel = ThreeEntity & {
+    setHeadGear(name: string): void
+    removeHeadGear(): void
+  }
+
   // type Entity = {
   //   level: number
   //   siblings: { name: string; level: number }[]
@@ -174,4 +179,28 @@ declare namespace Type {
   type Action = {
     [K in keyof Actions]: { type: K; payload: Actions[K] }
   }[keyof Actions]
+
+  type CharacterName =
+    | 'chafer'
+    | 'iop_male'
+    | 'iop_female'
+    | 'sram_male'
+    | 'sram_female'
+
+  namespace Gear {
+    type Transform = {
+      scale: number
+      rotation: [number, number, number]
+      position: [number, number, number]
+    }
+
+    type Definition = {
+      model_url: string
+      transforms: Record<CharacterName, Transform>
+    }
+
+    type GearDefinitions = {
+      head: Record<string, Definition>
+    }
+  }
 }

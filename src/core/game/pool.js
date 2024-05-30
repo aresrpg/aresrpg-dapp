@@ -1,4 +1,12 @@
-import { Group, LoopOnce, MeshBasicMaterial, Quaternion, Vector3 } from 'three'
+import {
+  Bone,
+  Group,
+  LoopOnce,
+  MeshBasicMaterial,
+  Object3D,
+  Quaternion,
+  Vector3,
+} from 'three'
 import { Text } from 'troika-three-text'
 import { createDerivedMaterial } from 'troika-three-utils'
 
@@ -16,6 +24,7 @@ import afegg from '../../assets/models/afegg.glb?url'
 import primemachin from '../../assets/models/primemachin.glb?url'
 
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
+import { gear_head_models_store } from './gear/gear_models_store.js'
 
 function create_billboard_material(base_material, keep_aspect) {
   return createDerivedMaterial(base_material, {
@@ -108,6 +117,8 @@ export const MODELS = {
     scale: 0.046,
   }),
 }
+
+await gear_head_models_store.load()
 
 function fade_to_animation(from, to, duration = 0.3) {
   if (from !== to) {
@@ -349,28 +360,100 @@ export default function create_pools(scene) {
     }
   }
 
+  function character_factory(
+    /** @type Type.CharacterName */ character_model_name,
+    { height, radius, name, offset_y = 0 },
+  ) {
+    const model = MODELS[character_model_name]
+    if (!model) {
+      throw new Error(`Unknown character model "${character_model_name}".`)
+    }
+    const model_factory = instanciate(model, { height, radius, name, offset_y })
+
+    function find_head_bone(/** @type Object3D */ object3d) {
+      let /** @type Bone | null */ head_bone = null
+      object3d.traverse((/** @type Bone */ child) => {
+        if (child.isBone && child.name.includes('Head')) {
+          head_bone = child
+        }
+      })
+
+      if (!head_bone) {
+        throw new Error(
+          `Cannot find head bone on character "${character_model_name}".`,
+        )
+      }
+      return head_bone
+    }
+
+    function set_bones_visibility(
+      /** @type Object3D */ object3d,
+      /** @type boolean */ visible,
+    ) {
+      object3d.traverse((/** @type Bone */ child) => {
+        if (child.isBone) {
+          child.visible = visible
+        }
+      })
+    }
+
+    return {
+      dispose: () => {
+        model_factory.instanced_entity.dispose()
+      },
+
+      instanciate: ({ id, name, skin }) => {
+        const base = model_factory.get_non_instanced({ id, name, skin })
+
+        const head_bone = find_head_bone(base.object3d)
+
+        const /** @type Type.PlayerModel */ result = Object.assign(base, {
+            setHeadGear: (/** @type string */ gear_name) => {
+              head_bone.clear()
+
+              const gear_model = gear_head_models_store.get_model(
+                gear_name,
+                character_model_name,
+              )
+              head_bone.add(gear_model)
+              set_bones_visibility(base.object3d, true)
+            },
+
+            removeHeadGear: () => {
+              head_bone.clear()
+              set_bones_visibility(base.object3d, false)
+            },
+          })
+
+        return result
+      },
+
+      instanced_entity: model_factory.instanced_entity,
+    }
+  }
+
   const instances = {
-    iop_male: instanciate(MODELS.iop_male, {
+    iop_male: character_factory('iop_male', {
       height: 1.7,
       radius: 0.9,
       name: 'iop_male',
     }),
-    iop_female: instanciate(MODELS.iop_female, {
+    iop_female: character_factory('iop_female', {
       height: 1.7,
       radius: 0.9,
       name: 'iop_female',
     }),
-    sram_male: instanciate(MODELS.sram_male, {
+    sram_male: character_factory('sram_male', {
       height: 1.7,
       radius: 0.9,
       name: 'sram_male',
     }),
-    sram_female: instanciate(MODELS.sram_female, {
+    sram_female: character_factory('sram_female', {
       height: 1.7,
       radius: 0.9,
       name: 'sram_female',
     }),
-    chafer: instanciate(MODELS.chafer, {
+    chafer: character_factory('chafer', {
       height: 2.1,
       radius: 0.9,
       name: 'chafer',
@@ -415,12 +498,14 @@ export default function create_pools(scene) {
     /** @param {Type.SuiCharacter & { skin?: string }} character */
     entity({ id, name, classe, sex = 'male', skin = null }) {
       const target_skin = skin ?? `${classe.toLowerCase()}_${sex}`
-      const target_entity = instances[target_skin] ?? instances.chafer
+      const target_entity = instances[target_skin] ?? instances.sram_female
 
       return {
         instanced: () => target_entity.get({ id, name, skin: target_skin }),
         non_instanced: () =>
           target_entity.get_non_instanced({ id, name, skin: target_skin }),
+        instanciate_character: /** @type {() => Type.PlayerModel} */ () =>
+          target_entity.instanciate({ id, name, skin: target_skin }),
       }
     },
     ...instances,
