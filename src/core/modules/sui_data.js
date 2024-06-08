@@ -2,12 +2,14 @@ import { EventEmitter } from 'events'
 
 import { context, disconnect_ws } from '../game/game.js'
 import {
-  sui_get_kiosks_profits,
+  sdk,
+  sui_get_admin_caps,
+  sui_get_finished_crafts,
   sui_get_locked_characters,
   sui_get_locked_items,
   sui_get_my_listings,
-  sui_get_policies_profit,
   sui_get_sui_balance,
+  sui_get_supported_tokens,
   sui_get_unlocked_characters,
   sui_get_unlocked_items,
   sui_subscribe,
@@ -79,6 +81,47 @@ export default function () {
           },
         }
       }
+      if (type === 'action/sui_add_unlocked_item') {
+        console.dir({ sui_add_unlocked_item: payload })
+        return {
+          ...state,
+          sui: {
+            ...state.sui,
+            unlocked_items: [...state.sui.unlocked_items, payload],
+          },
+        }
+      }
+      if (type === 'action/sui_add_locked_item') {
+        return {
+          ...state,
+          sui: {
+            ...state.sui,
+            locked_items: [...state.sui.locked_items, payload],
+          },
+        }
+      }
+      if (type === 'action/sui_remove_locked_item') {
+        return {
+          ...state,
+          sui: {
+            ...state.sui,
+            locked_items: state.sui.locked_items.filter(
+              item => item.id !== payload,
+            ),
+          },
+        }
+      }
+      if (type === 'action/sui_update_item') {
+        return {
+          ...state,
+          sui: {
+            ...state.sui,
+            unlocked_items: state.sui.unlocked_items.map(item =>
+              item.id === payload.id ? payload : item,
+            ),
+          },
+        }
+      }
       return state
     },
     async observe() {
@@ -88,9 +131,11 @@ export default function () {
         update_locked_characters = false,
         update_unlocked_characters = false,
         update_balance = false,
+        update_tokens = false,
         update_locked_items = false,
         update_unlocked_items = false,
         update_items_for_sale = false,
+        update_finished_crafts = false,
       }) {
         const update = {}
 
@@ -110,6 +155,11 @@ export default function () {
 
         if (update_items_for_sale)
           update.items_for_sale = await sui_get_my_listings()
+
+        if (update_tokens) update.tokens = await sui_get_supported_tokens()
+
+        if (update_finished_crafts)
+          update.finished_crafts = await await sui_get_finished_crafts()
 
         context.dispatch('action/sui_data_update', update)
       }
@@ -137,9 +187,18 @@ export default function () {
                   return kiosk_is_mine
                 }
 
+                function forward_event(name) {
+                  emitter.on(name, event => SUI_EMITTER.emit(name, event))
+                }
+
                 function is_for_a_visible_character(id) {
                   const state = context.get_state()
                   return state.visible_characters.has(id)
+                }
+
+                function is_owned_item(id) {
+                  const state = context.get_state()
+                  return state.sui.unlocked_items.some(item => item.id === id)
                 }
 
                 emitter.on('update', () => {
@@ -147,10 +206,32 @@ export default function () {
                     // update_locked_characters: true,
                     // update_unlocked_characters: true,
                     update_balance: true,
+                    update_tokens: true,
                     // update_locked_items: true,
                     // update_unlocked_items: true,
                     // update_items_for_sale: true,
                   })
+                })
+                ;['RecipeCreateEvent', 'RecipeDeleteEvent'].forEach(
+                  forward_event,
+                )
+
+                emitter.on('ItemMergeEvent', async event => {
+                  if (is_owned_item(event.item_id)) {
+                    debounced_update_user_data({
+                      update_unlocked_items: true,
+                    })
+                    SUI_EMITTER.emit('ItemMergeEvent', event)
+                  }
+                })
+
+                emitter.on('ItemSplitEvent', async event => {
+                  if (is_owned_item(event.item_id)) {
+                    debounced_update_user_data({
+                      update_unlocked_items: true,
+                    })
+                    SUI_EMITTER.emit('ItemSplitEvent', event)
+                  }
                 })
 
                 emitter.on('ItemEquipEvent', event => {
@@ -221,19 +302,36 @@ export default function () {
                     })
                 })
 
-                emitter.on('ItemMintEvent', event => {
-                  if (is_kiosk_mine(event.kiosk_id))
-                    debounced_update_user_data({
-                      update_locked_items: true,
-                    })
+                emitter.on('ItemMintEvent', async event => {
+                  try {
+                    if (is_kiosk_mine(event.kiosk_id)) {
+                      const item = await sdk.get_item_by_id(event.item_id)
+                      context.dispatch('action/sui_add_locked_item', {
+                        ...item,
+                        kiosk_id: event.kiosk_id,
+                      })
+                    }
+                  } catch (error) {
+                    console.error(error)
+                  }
                 })
 
-                emitter.on('ItemWithdrawEvent', event => {
-                  if (event.sender_is_me)
-                    debounced_update_user_data({
-                      update_locked_items: true,
-                      update_unlocked_items: true,
-                    })
+                emitter.on('ItemWithdrawEvent', async event => {
+                  try {
+                    if (event.sender_is_me) {
+                      const item = await sdk.get_item_by_id(event.item_id)
+                      context.dispatch('action/sui_add_unlocked_item', {
+                        ...item,
+                        kiosk_id: event.kiosk_id,
+                      })
+                      context.dispatch(
+                        'action/sui_remove_locked_item',
+                        event.item_id,
+                      )
+                    }
+                  } catch (error) {
+                    console.error(error)
+                  }
                 })
 
                 emitter.on('ItemListedEvent', event => {
@@ -265,11 +363,20 @@ export default function () {
 
                   SUI_EMITTER.emit('ItemDelistedEvent', event)
                 })
+
+                emitter.on('FinishedCraftEvent', event => {
+                  if (event.sender_is_me)
+                    debounced_update_user_data({
+                      update_finished_crafts: true,
+                    })
+                })
               })
 
-              const { is_owner } = await sui_get_policies_profit()
+              const result = await sui_get_admin_caps()
 
-              context.dispatch('action/sui_data_update', { admin: !!is_owner })
+              context.dispatch('action/sui_data_update', {
+                admin_caps: result,
+              })
 
               await update_user_data({
                 update_locked_characters: true,
@@ -278,6 +385,8 @@ export default function () {
                 update_locked_items: true,
                 update_unlocked_items: true,
                 update_items_for_sale: true,
+                update_tokens: true,
+                update_finished_crafts: true,
               })
               decrease_loading()
             } else {
@@ -291,6 +400,7 @@ export default function () {
                 unlocked_items: [],
                 items_for_sale: [],
                 balance: 0n,
+                admin_caps: [],
               })
             }
           }

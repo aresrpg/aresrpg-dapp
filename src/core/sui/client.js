@@ -1,13 +1,13 @@
 import EventEmitter from 'events'
 
-import { TransactionBlock } from '@mysten/sui.js/transactions'
+import { Transaction } from '@mysten/sui/transactions'
 import { BigNumber as BN } from 'bignumber.js'
-import { MIST_PER_SUI, normalizeSuiAddress, toB64 } from '@mysten/sui.js/utils'
+import { MIST_PER_SUI, normalizeSuiAddress, toB64 } from '@mysten/sui/utils'
 import { LRUCache } from 'lru-cache'
 import { Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
-import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client'
-import { bcs } from '@mysten/sui.js/bcs'
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client'
+import { bcs } from '@mysten/sui/bcs'
 
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
@@ -44,6 +44,19 @@ export const sdk = await SDK({
   network: Network[NETWORK.toUpperCase()],
 })
 
+sdk.kiosk_client.addRuleResolver({
+  rule: `${sdk.PACKAGE_ID}::amount_rule::Rule`,
+  packageId: sdk.LATEST_PACKAGE_ID,
+  resolveRuleFunction: params => {
+    const { transaction, transferRequest, packageId, purchasedItem } = params
+
+    transaction.moveCall({
+      target: `${packageId}::amount_rule::prove`,
+      arguments: [transferRequest, purchasedItem],
+    })
+  },
+})
+
 const CHARACTER_NAMES = new LRUCache({ max: 1000 })
 
 export async function sui_get_character_name(id) {
@@ -71,8 +84,117 @@ function get_address() {
   return context.get_state().sui.selected_address
 }
 
-/** @param {TransactionBlock} transaction_block */
-const execute = async transaction_block => {
+async function needs_sponsor() {
+  const balance = await get_bn_sui_balance()
+  return balance.isLessThan(0.1)
+}
+
+async function get_all_coins({ type, cursor = null, result = [] }) {
+  const { data, hasNextPage, nextCursor } = await sdk.sui_client.getCoins({
+    owner: get_address(),
+    coinType: type,
+    cursor,
+  })
+  result.push(data)
+  if (hasNextPage)
+    return get_all_coins({
+      type,
+      result,
+      cursor: nextCursor,
+    })
+  return result.flat(Infinity)
+}
+
+async function get_base_sui_coin(tx) {
+  const brokie = await needs_sponsor()
+
+  if (!brokie) return tx.gas
+
+  const [first, ...rest] = await get_all_coins({ type: '0x2::sui::SUI' })
+
+  if (first) {
+    const coin = tx.object(first.coinObjectId)
+
+    if (rest.length)
+      tx.mergeCoins(
+        coin,
+        rest.map(c => tx.object(c.coinObjectId)),
+      )
+
+    return coin
+  }
+}
+
+async function get_coin_with_balance({ tx, type, balance }) {
+  const [first, ...rest] = await get_all_coins({ type })
+
+  if (first) {
+    const coin = tx.object(first.coinObjectId)
+
+    if (rest.length)
+      tx.mergeCoins(
+        coin,
+        rest.map(c => tx.object(c.coinObjectId)),
+      )
+
+    return tx.splitCoins(coin, [tx.pure.u64(balance)])
+  }
+}
+
+async function execute_sponsored({ transaction, sender, wallet }) {
+  const txb_kind_bytes = await transaction.build({
+    client: sdk.sui_client,
+    onlyTransactionKind: true,
+  })
+
+  const { bytes, digest, error } = await fetch(`${VITE_SPONSOR_URL}/sponsor`, {
+    method: 'POST',
+    body: JSON.stringify({
+      address: sender,
+      txb: toB64(txb_kind_bytes),
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(res => res.json())
+
+  if (error) throw new Error(error)
+
+  const sponsored = Transaction.from(bytes)
+
+  const { signature } = await wallet.signTransaction({
+    transaction: sponsored,
+    sender,
+  })
+
+  await fetch(`${VITE_SPONSOR_URL}/submit`, {
+    method: 'POST',
+    body: JSON.stringify({
+      digest,
+      signature,
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  return { digest }
+}
+
+async function execute_unsponsored({ transaction, sender, wallet }) {
+  const { bytes, signature } = await wallet.signTransaction({
+    transaction,
+    sender,
+  })
+
+  return await sdk.sui_client.executeTransactionBlock({
+    transactionBlock: bytes,
+    signature,
+  })
+}
+
+/** @param {Transaction} transaction */
+const execute = async transaction => {
   const sender = get_address()
   if (!sender) {
     toast.error(t('LOGIN_AGAIN'), t('WALLET_NOT_FOUND'))
@@ -91,50 +213,19 @@ const execute = async transaction_block => {
       return
     }
 
-    transaction_block.setSender(sender)
+    transaction.setSender(sender)
 
-    const txb_kind_bytes = await transaction_block.build({
-      client: sdk.sui_client,
-      onlyTransactionKind: true,
-    })
+    const is_an_absolute_brokie = await needs_sponsor()
 
-    const { bytes, digest, error } = await fetch(
-      `${VITE_SPONSOR_URL}/sponsor`,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          address: sender,
-          txb: toB64(txb_kind_bytes),
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    ).then(res => res.json())
+    console.log('needs sponsor:', is_an_absolute_brokie)
 
-    if (error) throw new Error(error)
+    const { digest } = is_an_absolute_brokie
+      ? await execute_sponsored({ transaction, sender, wallet })
+      : await execute_unsponsored({ transaction, sender, wallet })
 
-    const sponsored = TransactionBlock.from(bytes)
+    await sdk.sui_client.waitForTransaction({ digest })
 
-    const { signature } = await wallet.signTransactionBlock({
-      transaction_block: sponsored,
-      sender,
-    })
-
-    const result = await fetch(`${VITE_SPONSOR_URL}/submit`, {
-      method: 'POST',
-      body: JSON.stringify({
-        digest,
-        signature,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    await sdk.sui_client.waitForTransactionBlock({ digest })
-
-    return result
+    return digest
   } catch (error) {
     const { message, code } = error
 
@@ -165,8 +256,34 @@ export async function sui_get_policies_profit() {
   return sdk.get_policies_profit(get_address())
 }
 
+export async function sui_get_admin_caps() {
+  return sdk.get_owned_admin_cap(get_address())
+}
+
+export async function sui_delete_admin_cap(id) {
+  const tx = new Transaction()
+
+  sdk.add_header(tx)
+  sdk.admin_delete_admin_cap({ tx, admin_cap: id })
+
+  await execute(tx)
+}
+
+export async function sui_get_supported_tokens() {
+  return sdk.get_supported_tokens(get_address())
+}
+
+export async function sui_delete_recipe({ admin_cap, recipe_id }) {
+  const tx = new Transaction()
+
+  sdk.add_header(tx)
+  sdk.admin_delete_recipe({ tx, admin_cap, recipe: recipe_id })
+
+  await execute(tx)
+}
+
 export async function sui_withdraw_policies_profit() {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
   await sdk.admin_withdraw_profit({ tx, address: get_address() })
@@ -197,8 +314,114 @@ export async function sui_get_item(id) {
   return sdk.get_item_by_id(id)
 }
 
+export async function sui_get_finished_crafts() {
+  const address = get_address()
+  if (!address) return []
+
+  return sdk.get_finished_crafts(address)
+}
+
+function find_item_or_token(type) {
+  const { sui } = context.get_state()
+  const mixed_inventory = [...sui.unlocked_items, ...sui.tokens]
+  return mixed_inventory.find(item => item.item_type === type)
+}
+
+export async function sui_craft_item(recipe) {
+  const tx = new Transaction()
+
+  sdk.add_header(tx)
+
+  const [craft] = sdk.craft_start({ tx, recipe: recipe.id })
+
+  const { kiosks, finalize } = await sdk.get_user_kiosks({
+    tx,
+    address: get_address(),
+  })
+
+  await Promise.all(
+    recipe.ingredients.map(async ({ item_type, amount }) => {
+      const item = find_item_or_token(item_type)
+
+      if (!item) throw new Error(`Item not found, ${item_type}`)
+
+      // @ts-ignore
+      if (item.is_token) {
+        const [coin] = await get_coin_with_balance({
+          tx,
+          type: item_type,
+          balance: amount,
+        })
+
+        sdk.craft_use_token_ingredient({
+          tx,
+          craft,
+          coin,
+          coin_type: item_type,
+        })
+      } else {
+        const available = get_item_with_amount({
+          tx,
+          item,
+          amount,
+          kiosks,
+        })
+
+        sdk.craft_use_item_ingredient({
+          tx,
+          craft,
+          // @ts-ignore
+          kiosk: item.kiosk_id,
+          // @ts-ignore
+          kiosk_cap: kiosks.get(item.kiosk_id),
+          item_id: available,
+        })
+      }
+    }),
+  )
+
+  sdk.craft_prove_ingredients_used({ tx, craft })
+
+  finalize()
+
+  await execute(tx)
+}
+
+export async function sui_reveal_craft(finished_craft) {
+  if (!finished_craft) throw new Error('No craft id')
+
+  const tx = new Transaction()
+
+  sdk.add_header(tx)
+
+  const { kioskOwnerCaps } = await sdk.kiosk_client.getOwnedKiosks({
+    address: get_address(),
+  })
+
+  const first_personal_kiosk = kioskOwnerCaps.find(
+    ({ isPersonal }) => !!isPersonal,
+  )
+
+  if (!first_personal_kiosk) {
+    toast.error(t('NO_PERSONAL_KIOSK'))
+    return
+  }
+
+  sdk.craft_item({
+    tx,
+    recipe: finished_craft.recipe_id,
+    finished_craft: finished_craft.id,
+    kiosk: first_personal_kiosk.kioskId,
+    kiosk_cap: first_personal_kiosk.objectId,
+  })
+
+  tx.setSender(get_address())
+
+  await execute(tx)
+}
+
 export async function sui_delete_item(item) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
@@ -220,34 +443,21 @@ export async function sui_delete_item(item) {
 }
 
 export async function sui_feed_pet(pet) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
-  const balance = BN((await sui_get_sui_balance()).toString()).dividedBy(
-    MIST_PER_SUI.toString(),
-  )
+  const balance = await get_bn_sui_balance()
 
   if (balance.isLessThan(1)) {
     toast.error(t('SUI_MIN_1'), 'Suuuuuu', MapGasStation)
     return
   }
 
-  const {
-    data: [first, ...rest],
-  } = await sdk.sui_client.getCoins({
-    coinType: '0x2::sui::SUI',
-    owner: get_address(),
-  })
+  const coin = await get_base_sui_coin(tx)
 
-  if (rest.length)
-    tx.mergeCoins(
-      tx.object(first.coinObjectId),
-      rest.map(c => tx.object(c.coinObjectId)),
-    )
-
-  const [payment] = tx.splitCoins(tx.object(first.coinObjectId), [
-    tx.pure(sui_to_mists(1).toString()),
+  const [payment] = tx.splitCoins(coin, [
+    tx.pure.u64(sui_to_mists(1).toString()),
   ])
 
   const { kiosks, finalize } = await sdk.get_user_kiosks({
@@ -271,8 +481,42 @@ export async function sui_feed_pet(pet) {
   return await execute(tx)
 }
 
+async function sui_merge_stackable_items({
+  tx,
+  state,
+  kiosks,
+  additional_items = [],
+}) {
+  const visited = new Set()
+
+  const items = [...state.sui.unlocked_items, ...additional_items]
+
+  items.forEach(item => {
+    const same_type = items
+      .filter(({ id }) => !visited.has(id))
+      .filter(({ stackable }) => !!stackable)
+      .filter(({ item_type }) => item.item_type === item_type)
+      .filter(({ id }) => id !== item.id)
+
+    visited.add(item.id)
+
+    same_type.forEach(({ id, kiosk_id }) => {
+      visited.add(id)
+      sdk.merge_items({
+        tx,
+        target_item_id: item.id,
+        target_kiosk: item.kiosk_id,
+        target_kiosk_cap: kiosks.get(item.kiosk_id),
+        item_id: id,
+        item_kiosk: kiosk_id,
+        item_kiosk_cap: kiosks.get(kiosk_id),
+      })
+    })
+  })
+}
+
 export async function sui_withdraw_items_from_extension(items) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
@@ -297,13 +541,22 @@ export async function sui_withdraw_items_from_extension(items) {
     })
   })
 
+  const state = context.get_state()
+
+  await sui_merge_stackable_items({
+    tx,
+    state,
+    kiosks,
+    additional_items: items,
+  })
+
   finalize()
 
   await execute(tx)
 }
 
 export async function sui_equip_items({ character, to_equip, to_unequip }) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
@@ -364,8 +617,13 @@ export async function sui_get_sui_balance() {
   return sdk.get_sui_balance(get_address())
 }
 
+async function get_bn_sui_balance() {
+  const mists = await sui_get_sui_balance()
+  return new BN(mists.toString()).dividedBy(MIST_PER_SUI.toString())
+}
+
 export async function sui_create_character({ name, type, sex = 'male' }) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
@@ -414,7 +672,7 @@ export async function sui_delete_character({
   personal_kiosk_cap_id,
   id,
 }) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
   sdk.borrow_personal_kiosk_cap({
@@ -440,7 +698,7 @@ export async function sui_select_character({
   personal_kiosk_cap_id,
   id,
 }) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
   sdk.borrow_personal_kiosk_cap({
@@ -464,7 +722,7 @@ export async function sui_unselect_character({
   personal_kiosk_cap_id,
   id,
 }) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
   sdk.borrow_personal_kiosk_cap({
@@ -485,8 +743,54 @@ export async function sui_unselect_character({
   await execute(tx)
 }
 
+function merge_all_items({ tx, item, kiosks, items }) {
+  items
+    .filter(({ stackable }) => !!stackable)
+    .forEach(({ id, item_type, kiosk_id }) => {
+      if (item.id !== id && item.item_type === item_type)
+        sdk.merge_items({
+          tx,
+          target_kiosk: item.kiosk_id,
+          target_item_id: item.id,
+          target_kiosk_cap: kiosks.get(item.kiosk_id),
+          item_id: id,
+          item_kiosk: kiosk_id,
+          item_kiosk_cap: kiosks.get(kiosk_id),
+        })
+    })
+}
+
+function get_item_with_amount({ tx, item, amount, kiosks }) {
+  if (!item.is_aresrpg_item || !item.stackable) return tx.pure.id(item.id)
+
+  const {
+    sui: { unlocked_items },
+  } = context.get_state()
+
+  const total_amount =
+    item.amount +
+    unlocked_items.reduce((acc, { id, item_type, amount }) => {
+      if (item.id !== id && item.item_type === item_type) return acc + amount
+      return acc
+    }, 0)
+
+  if (total_amount < amount) throw new Error('Not enough items')
+
+  merge_all_items({ tx, item, kiosks, items: unlocked_items })
+
+  if (total_amount === amount) return tx.pure.id(item.id)
+
+  return sdk.split_item({
+    tx,
+    kiosk: item.kiosk_id,
+    kiosk_cap: kiosks.get(item.kiosk_id),
+    item_id: item.id,
+    amount,
+  })
+}
+
 export async function sui_list_item({ item, price, amount }) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
@@ -495,11 +799,13 @@ export async function sui_list_item({ item, price, amount }) {
     tx,
   })
 
+  const item_id = get_item_with_amount({ tx, item, amount, kiosks })
+
   sdk.list_item({
     tx,
     kiosk: item.kiosk_id,
     kiosk_cap: kiosks.get(item.kiosk_id),
-    item_id: item.id,
+    item_id,
     item_type: item._type,
     price: BigInt(
       new BN(price).multipliedBy(MIST_PER_SUI.toString()).toString(),
@@ -512,7 +818,7 @@ export async function sui_list_item({ item, price, amount }) {
 }
 
 export async function sui_delist_item(item) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
@@ -527,6 +833,13 @@ export async function sui_delist_item(item) {
     kiosk_cap: kiosks.get(item.kiosk_id),
     item_id: item.id,
     item_type: item._type,
+  })
+
+  merge_all_items({
+    tx,
+    item,
+    kiosks,
+    items: context.get_state().sui.unlocked_items,
   })
 
   finalize()
@@ -562,7 +875,7 @@ export async function sui_get_kiosks_profits() {
 export async function sui_claim_kiosks_profits() {
   const amount = bcs.option(bcs.u64()).serialize(null)
   const address = get_address()
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   const { kiosks, finalize } = await sdk.get_user_kiosks({
     tx,
@@ -586,7 +899,7 @@ export async function sui_claim_kiosks_profits() {
 
 /** @param {Type.SuiItem} item */
 export async function sui_buy_item(item) {
-  const tx = new TransactionBlock()
+  const tx = new Transaction()
 
   sdk.add_header(tx)
 
@@ -606,20 +919,7 @@ export async function sui_buy_item(item) {
     return
   }
 
-  const {
-    data: [first, ...rest],
-  } = await sdk.sui_client.getCoins({
-    coinType: '0x2::sui::SUI',
-    owner: get_address(),
-  })
-
-  const available_coin = tx.object(first.coinObjectId)
-
-  if (rest.length)
-    tx.mergeCoins(
-      available_coin,
-      rest.map(c => tx.object(c.coinObjectId)),
-    )
+  const available_coin = await get_base_sui_coin(tx)
 
   const [payment] = tx.splitCoins(available_coin, [
     tx.pure.u64(item.list_price),
@@ -644,7 +944,7 @@ export async function sui_buy_item(item) {
 
     rule_definition.resolveRuleFunction({
       packageId: rule_definition.packageId,
-      transactionBlock: tx,
+      transaction: tx,
       itemType: item._type,
       itemId: item.id,
       price: item.list_price.toString(),
@@ -692,7 +992,7 @@ export async function sui_buy_item(item) {
 //   const personal_kiosk_cap = my_kiosk_caps.find(
 //     ({ objectId }) => objectId === personal_kiosk_cap_id,
 //   )
-//   const tx = new TransactionBlock()
+//   const tx = new Transaction()
 //   const source_kiosk_tx = new KioskTransaction({
 //     transactionBlock: tx,
 //     kioskClient: sdk.kiosk_client,
@@ -839,7 +1139,7 @@ replace_rule('royaltyRulePackageId', {
   rule: '::royalty_rule::Rule',
   resolveRuleFunction(params) {
     const {
-      transactionBlock: txb,
+      transaction: txb,
       itemType,
       price,
       packageId,

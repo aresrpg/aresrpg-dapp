@@ -61,12 +61,12 @@ export function enoki_wallet() {
       enoki.logout()
       wallet_emitter.emit('switch_wallet', null)
     },
-    async signAndExecuteTransactionBlock({ transaction_block }) {
-      await enoki.sponsorAndExecuteTransactionBlock({
+    async signAndExecuteTransaction({ transaction }) {
+      await enoki.sponsorAndExecuteTransaction({
         network: NETWORK,
         // @ts-ignore
         client: sdk.sui_client,
-        transactionBlock: transaction_block,
+        transaction,
       })
     },
     async signPersonalMessage(message) {
@@ -77,16 +77,16 @@ export function enoki_wallet() {
     },
     /**
      * @param {object} opt
-     * @param {import("@mysten/sui.js/transactions").TransactionBlock} opt.transaction_block
+     * @param {import("@mysten/sui/transactions").Transaction} opt.transaction
      */
-    async signTransactionBlock({ transaction_block }) {
+    async signTransaction({ transaction }) {
       const keypair = await enoki.getKeypair({ network: NETWORK })
 
-      const { signature } = await keypair.signTransactionBlock(
-        await transaction_block.build(),
+      const { bytes, signature } = await keypair.signTransaction(
+        await transaction.build(),
       )
 
-      return { signature }
+      return { signature, transactionBlockBytes: bytes }
     },
   }
 }

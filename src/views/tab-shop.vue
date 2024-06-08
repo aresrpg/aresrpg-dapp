@@ -47,7 +47,7 @@ sectionContainer
               :disabled="!selected_item || !is_price_valid"
             ) {{ t('sell') }}
             vs-button(
-              v-if="selected_item && selected_item.amount >= 10"
+              v-if="selected_item && get_item_total_amount(selected_item) >= 10"
               type="gradient"
               size="small"
               color="#60A917"
@@ -55,7 +55,7 @@ sectionContainer
               :disabled="!selected_item || !is_price_valid"
             ) {{ t('sell') }} x10
             vs-button(
-              v-if="selected_item && selected_item.amount >= 100"
+              v-if="selected_item && get_item_total_amount(selected_item) >= 100"
               type="gradient"
               size="small"
               color="#008A00"
@@ -63,6 +63,7 @@ sectionContainer
               :disabled="!selected_item || !is_price_valid"
             ) {{ t('sell') }} x100
           .items
+            advancedToast
             itemInventory(:disable_edit="true" :sell_mode="true")
 </template>
 
@@ -71,7 +72,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { inject, ref, provide, computed } from 'vue';
 import { BigNumber as BN } from 'bignumber.js';
-import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import sectionContainer from '../components/misc/section-container.vue';
 import sectionHeader from '../components/misc/section-header.vue';
@@ -83,6 +84,7 @@ import marketListings from '../components/cards/market-listings.vue';
 import marketMyListings from '../components/cards/market-my-listings.vue';
 import { sui_list_item } from '../core/sui/client.js';
 import { decrease_loading, increase_loading } from '../core/utils/loading.js';
+import { context } from '../core/game/game.js';
 
 // @ts-ignore
 import TokenSui from '~icons/token/sui';
@@ -109,6 +111,18 @@ const selected_item_type = ref(null);
 const requested_list_price = ref(1);
 
 provide('selected_item_type', selected_item_type);
+
+function get_item_total_amount(item) {
+  return (
+    item.amount +
+    context
+      .get_state()
+      .sui.unlocked_items.reduce((acc, { id, item_type, amount }) => {
+        if (item.id !== id && item.item_type === item_type) return acc + amount;
+        return acc;
+      }, 0)
+  );
+}
 
 const is_price_valid = computed(() => {
   try {

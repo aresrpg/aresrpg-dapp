@@ -80,7 +80,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isValidSuiAddress } from '@mysten/sui.js/utils';
+import { isValidSuiAddress } from '@mysten/sui/utils';
 
 import { experience_to_level } from '../../core/utils/game/experience.js';
 import { context } from '../../core/game/game.js';

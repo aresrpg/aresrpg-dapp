@@ -109,11 +109,16 @@ const my_listings = ref([]);
 const vue_locked_characters = ref(null);
 const vue_unlocked_characters = ref(null);
 
-const admin_policies = reactive({
+const admin = reactive({
   character_profits: 0n,
   item_profits: 0n,
-  is_owner: false,
+  admin_caps: [],
 });
+
+// thoses are only filled in the workshop tab
+const recipes = ref([]);
+const owned_tokens = ref([]);
+const finished_crafts = ref([]);
 
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
@@ -140,8 +145,11 @@ provide('edit_mode_equipment', edit_mode_equipment);
 provide('my_listings', my_listings);
 provide('locked_characters', vue_locked_characters);
 provide('unlocked_characters', vue_unlocked_characters);
+provide('owned_tokens', owned_tokens);
 
-provide('admin_policies', admin_policies);
+provide('admin', admin);
+provide('recipes', recipes);
+provide('finished_crafts', finished_crafts);
 
 function update_all(state) {
   const {
@@ -149,14 +157,15 @@ function update_all(state) {
       selected_wallet_name,
       wallets,
       balance,
+      tokens,
       selected_address,
       locked_characters,
       unlocked_characters,
       locked_items,
       unlocked_items,
-      admin,
       items_for_sale,
     },
+    sui,
     selected_character_id,
     online: state_online,
   } = state;
@@ -184,6 +193,9 @@ function update_all(state) {
     characters.value = locked_characters.filter(
       character => character.id !== selected_character_id,
     );
+
+  if (sui.finished_crafts.length !== finished_crafts.value.length)
+    finished_crafts.value = sui.finished_crafts;
 
   const locked_ids = locked_characters.map(c => c.id);
   const unlocked_ids = unlocked_characters.map(c => c.id);
@@ -223,20 +235,30 @@ function update_all(state) {
     );
 
   if (balance !== sui_balance.value) sui_balance.value = balance;
-  // @ts-ignore
+
+  if (
+    tokens.map(({ amount }) => amount.toString()).join() !==
+    owned_tokens.value
+      // @ts-ignore
+      .map(({ amount }) => amount.toString())
+      .join()
+  )
+    owned_tokens.value = tokens;
+
   if (current_wallet.value?.name !== selected_wallet_name)
+    // @ts-ignore
     current_wallet.value = selected_wallet;
 
-  if (admin_policies.is_owner !== admin) {
-    admin_policies.is_owner = admin;
-    if (admin)
+  if (admin.admin_caps.length !== sui.admin_caps.length) {
+    admin.admin_caps = sui.admin_caps;
+    if (sui.admin_caps.length)
       sui_get_policies_profit().then(({ character_profits, item_profits }) => {
-        admin_policies.character_profits = character_profits;
-        admin_policies.item_profits = item_profits;
+        admin.character_profits = character_profits;
+        admin.item_profits = item_profits;
       });
     else {
-      admin_policies.character_profits = 0n;
-      admin_policies.item_profits = 0n;
+      admin.character_profits = 0n;
+      admin.item_profits = 0n;
     }
   }
 

@@ -19,25 +19,25 @@ fr:
 
 <template lang="pug">
 .listings-container
-  .listing(
-    v-for="(listing, index) in listings"
-    :key="listing.id"
-    @click="() => select_item(listing)"
-    :class="{ stripped: index % 2, selected: selected_item.id === listing.id }"
-  )
-    img.icon(:src="listing.image_url" alt="listing image")
-    .name {{ listing.name }}
-    .price.x1
-      .amount (x1)
-      .sui {{ final_item_price(listing)?.toFixed?.(2) }}
-      TokenBrandedSui.icon
-      vs-button.btn(
-        v-if="listing.seller !== current_address"
-        type="gradient" color="#43A047" size="small" @click="() => start_buy_item(listing)") {{ t('buy') }}
-    .price.x10(v-if="listing.amount === 10")
-      .amount (x10)
-    .price.x100(v-if="listing.amount === 100")
-      .amount (x100)
+  tabs.quantity-selector(v-if="listings.length" :tabs="listings[0].stackable ? quantity_tabs : { x1: 1 }" :spaced="true" :nobg="true")
+    template(#tab="{ tab }")
+      .tab-name {{ tab }}
+    template(#content="{ data, tab }")
+      .listing(
+        v-for="(listing, index) in filter_listings(data)"
+        :key="listing.id"
+        @click="() => select_item(listing)"
+        :class="{ stripped: index % 2, selected: selected_item.id === listing.id }"
+      )
+        img.icon(:src="listing.image_url" alt="listing image")
+        .name {{ listing.name }}
+        .price
+          .amount (x{{ listing.amount }})
+          .sui {{ final_item_price(listing)?.toFixed?.(2) }}
+          TokenBrandedSui.icon
+          vs-button.btn(
+            v-if="listing.seller !== current_address"
+            type="gradient" color="#43A047" size="small" @click="() => start_buy_item(listing)") {{ t('buy') }}
 
   /// buy dialog
   vs-dialog(v-model="buy_dialog" :loading="buy_loading")
@@ -52,23 +52,26 @@ fr:
 </template>
 
 <script setup>
-import { watch, ref, inject, onMounted, onUnmounted } from 'vue';
+import { watch, ref, inject, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { BigNumber as BN } from 'bignumber.js';
-import { MIST_PER_SUI } from '@mysten/sui.js/utils';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { VITE_INDEXER_URL } from '../../env.js';
 import { sui_buy_item, mists_to_sui } from '../../core/sui/client.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 import toast from '../../toast.js';
-
+import tabs from '../../components/game-ui/tabs.vue';
 // @ts-ignore
+import { context } from '../../core/game/game.js';
+
 import TokenBrandedSui from '~icons/token-branded/sui';
 // @ts-ignore
 import GameIconsPayMoney from '~icons/game-icons/pay-money';
 
 const selected_item_type = inject('selected_item_type');
 const selected_item = inject('selected_item');
+const filtered_category = inject('filtered_category');
 
 const buy_dialog = ref(false);
 const buy_loading = ref(false);
@@ -78,6 +81,16 @@ const sui_balance = inject('sui_balance');
 
 const listings = ref([]);
 const { t } = useI18n();
+
+function filter_listings(quantity) {
+  return listings.value.filter(({ amount }) => amount === quantity);
+}
+
+const quantity_tabs = {
+  x1: 1,
+  x10: 10,
+  x100: 100,
+};
 
 function select_item(item) {
   selected_item.value = item;
@@ -104,11 +117,8 @@ function final_item_price(item) {
   const price_in_sui = new BN(mists_to_sui(item.list_price));
 
   // Determine the royalty rate
-  const royalty_rate = item.is_aresrpg_character
-    ? 0.1
-    : item.is_aresrpg_item
-      ? 0.05
-      : 0;
+  const royalty_rate =
+    item.is_aresrpg_character || item.is_aresrpg_item ? 0.1 : 0;
 
   // Calculate the royalty amount
   const calculated_royalty = price_in_sui.times(royalty_rate);
@@ -150,16 +160,28 @@ watch(
   selected_item_type,
   async (type, last_type) => {
     if (type === last_type) return;
+    listings.value = [];
     await fetch_listings();
   },
   { immediate: true },
 );
+
+watch(filtered_category, () => {
+  if (filtered_category.value !== listings.value[0]?.item_category) {
+    listings.value = [];
+    // fetch_listings();
+  }
+});
 
 function on_item_purchased({ id }) {
   const listing_index = listings.value.findIndex(listing => listing.id === id);
 
   if (listing_index !== -1) {
     listings.value.splice(listing_index, 1);
+    if (!listings.value.length) {
+      selected_item.value = null;
+      listings.value = [];
+    }
   }
 }
 
@@ -167,25 +189,42 @@ function on_item_delisted(item) {
   on_item_purchased(item);
 }
 
+function on_item_listed(item) {
+  setTimeout(() => {
+    fetch_listings();
+  }, 7000);
+}
+
 onMounted(async () => {
   SUI_EMITTER.on('ItemPurchasedEvent', on_item_purchased);
   SUI_EMITTER.on('ItemDelistedEvent', on_item_delisted);
+  SUI_EMITTER.on('ItemListedEvent', on_item_listed);
 });
 
 onUnmounted(() => {
   SUI_EMITTER.off('ItemPurchasedEvent', on_item_purchased);
   SUI_EMITTER.off('ItemDelistedEvent', on_item_delisted);
+  SUI_EMITTER.off('ItemListedEvent', on_item_listed);
 });
 </script>
 
 <style lang="stylus" scoped>
+
+.quantity-selector
+  .tab-name
+    font-size .8em
+    font-weight bold
+    width 40px
+    text-align center
+    background rgba(#6A1B9A, .5)
+
 .listings-container
   display flex
   flex-flow column nowrap
   margin-top 1em
   .listing
     display grid
-    grid "icon name x1 x10 x100" auto / 50px 1fr max-content max-content max-content
+    grid "icon name price" auto / 50px 1fr max-content
     align-items center
     cursor pointer
     &.stripped
@@ -214,7 +253,8 @@ onUnmounted(() => {
       .amount
         font-size .7em
         opacity .7
-        width 30px
+        width max-content
+        margin-right 5px
       .sui
         margin-left auto
 

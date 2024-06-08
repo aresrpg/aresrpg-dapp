@@ -21,7 +21,7 @@ fr:
 vs-button.btn(
   v-if="selected_character"
   :disabled="!VITE_SERVER_URL"
-  type="transparent"
+  :type="is_online ? 'transparent' : 'gradient'"
   :loading="is_connecting"
   :color="ws_color"
   :animate-inactive="is_online"
