@@ -4,17 +4,18 @@ import { aiter } from 'iterator-helper'
 import {
   getWallets,
   isWalletWithRequiredFeatureSet,
+  signTransaction,
 } from '@mysten/wallet-standard'
+
+import { sdk } from './client.js'
 
 export const wallet_emitter = new EventEmitter()
 const internal_emitter = new EventEmitter()
 
 const is_sui_wallet = wallet =>
-  isWalletWithRequiredFeatureSet(wallet, [
-    'sui:signAndExecuteTransactionBlock',
-    'sui:signPersonalMessage',
-    'sui:signTransactionBlock',
-  ])
+  isWalletWithRequiredFeatureSet(wallet, ['sui:signPersonalMessage']) &&
+  ('sui:signTransaction' in wallet.features ||
+    'sui:signTransactionBlock' in wallet.features)
 
 export async function initialize_wallets(last_selected_wallet_name) {
   aiter(on(internal_emitter, 'update'))
@@ -71,14 +72,8 @@ export async function initialize_wallets(last_selected_wallet_name) {
         await features['standard:disconnect']?.disconnect()
         wallet_emitter.emit('switch_wallet', null)
       },
-      signAndExecuteTransactionBlock({ transaction_block, sender }) {
-        return features[
-          'sui:signAndExecuteTransactionBlock'
-          // @ts-ignore
-        ].signAndExecuteTransactionBlock({
-          account: { address: sender },
-          transactionBlock: transaction_block,
-        })
+      signAndExecuteTransaction({ transaction, sender }) {
+        throw new Error('Not implemented')
       },
       signPersonalMessage(msg, address) {
         // @ts-ignore
@@ -88,12 +83,27 @@ export async function initialize_wallets(last_selected_wallet_name) {
           message: new TextEncoder().encode(msg),
         })
       },
-      signTransactionBlock({ transaction_block, sender }) {
-        // @ts-ignore
-        return features['sui:signTransactionBlock'].signTransactionBlock({
-          account: { address: sender },
-          transactionBlock: transaction_block,
-        })
+      /**
+       * @param {object} opt
+       * @param {import("@mysten/sui/transactions").Transaction} opt.transaction
+       * @param {string} opt.sender
+       *
+       */
+      signTransaction({ transaction, sender }) {
+        return signTransaction(
+          // @ts-ignore
+          { features },
+          {
+            account: { address: sender },
+            transaction: {
+              toJSON: () =>
+                transaction.toJSON({
+                  supportedIntents: [],
+                  client: sdk.sui_client,
+                }),
+            },
+          },
+        )
       },
     }))
 
@@ -107,9 +117,9 @@ export async function initialize_wallets(last_selected_wallet_name) {
       features,
       connect,
       disconnect,
-      signAndExecuteTransactionBlock,
+      signAndExecuteTransaction,
       signPersonalMessage,
-      signTransactionBlock,
+      signTransaction,
     }) => {
       internal_emitter.emit('update', {
         accounts,
@@ -119,9 +129,9 @@ export async function initialize_wallets(last_selected_wallet_name) {
         version,
         connect,
         disconnect,
-        signAndExecuteTransactionBlock,
+        signAndExecuteTransaction,
         signPersonalMessage,
-        signTransactionBlock,
+        signTransaction,
       })
 
       // @ts-ignore

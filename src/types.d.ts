@@ -52,6 +52,7 @@ declare namespace Type {
 
   type SuiCharacter = import('@aresrpg/aresrpg-sdk/types').SuiCharacter
   type SuiItem = import('@aresrpg/aresrpg-sdk/types').SuiItem
+  type SuiToken = import('@aresrpg/aresrpg-sdk/types').SuiToken
 
   type Spell = { name: string; icon: string }
   type FullCharacter = ThreeEntity &
@@ -65,8 +66,8 @@ declare namespace Type {
     character_id: string
   }
 
-  type sigTransactionBlockParams = {
-    transaction_block: import('@mysten/sui.js/transactions').TransactionBlock
+  type sigTransactionParams = {
+    transaction_block: import('@mysten/sui/transactions').Transaction
     sender: string
   }
 
@@ -82,14 +83,12 @@ declare namespace Type {
     version: string
     connect: () => Promise
     disconnect: () => Promise
-    signAndExecuteTransactionBlock: (
-      param: sigTransactionBlockParams,
-    ) => Promise
+    signAndExecuteTransaction: (param: sigTransactionParams) => Promise
     signPersonalMessage: (
       message: string,
       address: string,
     ) => Promise<{ bytes: string; signature: string }>
-    signTransactionBlock: (param: sigTransactionBlockParams) => Promise
+    signTransaction: (param: sigTransactionParams) => Promise
   }
 
   // Distributed actions which can be dispatched and then reduced
@@ -119,8 +118,13 @@ declare namespace Type {
       locked_items?: SuiItem[]
       unlocked_items?: SuiItem[]
       items_for_sale?: SuiItem[]
-      admin?: boolean
+      admin_caps?: string[]
+      tokens?: SuiToken[]
     }
+    'action/sui_add_unlocked_item': SuiItem
+    'action/sui_add_locked_item': SuiItem
+    'action/sui_update_item': SuiItem
+    'action/sui_remove_locked_item': string
     'action/set_online': boolean
     'action/character_action': { id: string; action: string }
   } & Packets

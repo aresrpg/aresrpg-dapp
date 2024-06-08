@@ -34,7 +34,8 @@ export default function () {
           context.dispatch('action/remove_character', character.id)
           context.dispatch('action/add_character', {
             ...character,
-            position: three_character.position,
+            position:
+              three_character.target_position ?? three_character.position,
             skin: item_skin,
           })
         }

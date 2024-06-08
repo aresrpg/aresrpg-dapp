@@ -27,7 +27,7 @@ fr:
     @dragstart="() => handle_drag_start(item)"
     @dblclick="() => equip_item(item)"
   )
-    .amount(v-if="item.amount > 1") {{ item.amount }}
+    .amount(v-if="item.amount > 1") {{ pretty_amount(item) }}
     img(:src="item?.image_url" :draggable="!props.disable_edit && selected_category === 'equipment'")
 
   /// delete dialog
@@ -46,6 +46,7 @@ import { computed, inject, onMounted, ref } from 'vue';
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 import ContextMenu from '@imengyu/vue3-context-menu';
 import { useI18n } from 'vue-i18n';
+import { BigNumber as BN } from 'bignumber.js';
 
 import { sui_feed_pet, sui_delete_item } from '../../core/sui/client.js';
 import toast from '../../toast.js';
@@ -59,12 +60,14 @@ import {
   decrease_loading,
   increase_loading,
 } from '../../core/utils/loading.js';
+import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 
-const props = defineProps(['disable_edit', 'sell_mode']);
+const props = defineProps(['disable_edit', 'sell_mode', 'tokens']);
 
 const selected_item = inject('selected_item');
 const selected_category = inject('selected_category');
 const owned_items = inject('owned_items');
+const owned_tokens = inject('owned_tokens');
 const extension_items = inject('extension_items');
 const unlocked_characters = inject('unlocked_characters');
 const edit_mode_equipment = inject('edit_mode_equipment');
@@ -79,6 +82,14 @@ const { t } = useI18n();
 function handle_drag_start(item) {
   edit_mode_equipment.dragged_item = item;
   edit_mode_equipment.dragg_started_from = 'equipments';
+}
+
+function pretty_amount(item) {
+  if (item.is_token)
+    return new BN(item.amount.toString())
+      .dividedBy(new BN(10).pow(item.decimal))
+      .toFixed(2);
+  return item.amount;
 }
 
 const feed_context = {
@@ -129,12 +140,13 @@ function on_right_click_item(event, item) {
 
   if (item.is_aresrpg_item) context.push(delete_context);
 
-  ContextMenu.showContextMenu({
-    x: event.x,
-    y: event.y,
-    theme: 'mac dark',
-    items: context,
-  });
+  if (context.length)
+    ContextMenu.showContextMenu({
+      x: event.x,
+      y: event.y,
+      theme: 'mac dark',
+      items: context,
+    });
 }
 
 function handle_drop(event) {
@@ -290,7 +302,9 @@ function select(item) {
 
 const items = computed(() => {
   if (props.sell_mode) {
-    return owned_items.value.sort((a, b) => a.name - b.name);
+    const base = [...owned_items.value];
+    if (props.tokens) base.push(...owned_tokens.value);
+    return base.sort((a, b) => a.item_type - b.item_type);
   }
 
   switch (selected_category?.value || 'equipment') {
@@ -299,7 +313,7 @@ const items = computed(() => {
     case 'consumables':
       return owned_items.value.filter(is_consumable);
     case 'misc':
-      return owned_items.value.filter(is_resource);
+      return [...owned_items.value.filter(is_resource), ...owned_tokens.value];
     default: {
       if (inventory_counter?.value && edit_mode?.value)
         return edit_mode_equipment.equipments.sort((a, b) => a.name - b.name);

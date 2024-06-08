@@ -5,13 +5,15 @@
     world: Jouer
     characters: Personnages
     admin: Admin
+    workshop: Atelier
   en:
     shop: Market
     settings: Settings
     lang: Choose a language
-    world: Play
+    world: Open World
     characters: Characters
     admin: Admin
+    workshop: Workshop
 </i18n>
 
 <template lang="pug">
@@ -27,16 +29,19 @@
     vs-sidebar-item(id="characters" @click="router.push('/characters')") {{ t('characters') }}
       template(#icon)
         i.bx.bxs-user-account
-    vs-sidebar-item.play(id="world" @click="router.push('/world')") {{ t('world') }}
+    vs-sidebar-item(id="world" @click="router.push('/world')") {{ t('world') }}
       template(#icon)
         i.bx.bx-world
     vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('shop') }}
       template(#icon)
-        i.bx.bx-wallet
+        i.bx.bxs-store
+    vs-sidebar-item(id="workshop" @click="router.push('/workshop')") {{ t('workshop') }}
+      template(#icon)
+        i.bx.bx-cut
     vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('settings') }}
       template(#icon)
         i.bx.bx-cog
-    vs-sidebar-item(v-if="admin_policies.is_owner" id="admin" @click="router.push('/admin')") {{ t('admin') }}
+    vs-sidebar-item(v-if="admin_policies.admin_caps.length" id="admin" @click="router.push('/admin')") {{ t('admin') }}
       template(#icon)
         i.bx.bx-pyramid
     vs-sidebar-item(id="discord" @click="open_discord") Discord
@@ -68,7 +73,7 @@ const route = useRoute();
 const active_sidebar = ref('world');
 
 const sidebar_reduced = inject('sidebar_reduced');
-const admin_policies = inject('admin_policies');
+const admin_policies = inject('admin');
 
 watch(
   route,

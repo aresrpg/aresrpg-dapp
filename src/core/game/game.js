@@ -201,7 +201,11 @@ export const INITIAL_STATE = {
     selected_wallet_name: null,
     selected_address: null,
     balance: null,
-    admin: false,
+    /** @type {Type.SuiToken[]} */
+    tokens: [],
+    admin_caps: [],
+
+    finished_crafts: [],
   },
 
   // is the user connected to the websocket

@@ -52,6 +52,7 @@ const error_sui = {
     SUBSCRIBE_ERROR:
       'The Sui node refused the subscription, please refresh the page to try again',
     FAILURE: 'Блять! This transaction failed, please try again',
+    NO_PERSONAL_KIOSK: 'This action requires to create a character first',
   },
   fr: {
     LOGIN_AGAIN: 'Veuillez vous reconnecter',
@@ -69,6 +70,7 @@ const error_sui = {
     INV_NOT_EMPTY: `Vous devez déséquiper tous les objets d'abord`,
     SUBSCRIBE_ERROR: `La node Sui a refusé la connection, veuillez rafraîchir la page pour réessayer`,
     FAILURE: 'Блять! Cette transaction a échoué, veuillez réessayer',
+    NO_PERSONAL_KIOSK: `Cette action nécessite de créer un personnage d'abord`,
   },
 }
 

@@ -87,6 +87,8 @@ async function delist_item(item) {
     .amount
       font-size .8em
       opacity .7
+      margin-right 5px
+      place-self center end
     .price
       display flex
       flex-flow row nowrap
