@@ -7,6 +7,7 @@ import world from './views/tab-world.vue'
 import characters from './views/tab-characters.vue'
 import enoki from './views/enoki.vue'
 import admin from './views/tab-admin.vue'
+import workshop from './views/tab-workshop.vue'
 
 export default createRouter({
   history: createWebHistory(),
@@ -49,6 +50,11 @@ export default createRouter({
           name: 'admin',
           path: '/admin',
           component: admin,
+        },
+        {
+          name: 'workshop',
+          path: '/workshop',
+          component: workshop,
         },
       ],
     },

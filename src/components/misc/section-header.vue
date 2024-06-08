@@ -2,12 +2,12 @@
 section.section-header
   .title {{ props.title }}
   vs-alert.desc(:color="props.color || '#2196F3'" v-if="props.desc") {{ props.desc }}
-  .content
+  .content(:class="{ rows }")
     slot
 </template>
 
 <script setup>
-const props = defineProps(['title', 'desc', 'color']);
+const props = defineProps(['title', 'desc', 'color', 'rows']);
 </script>
 
 <style lang="stylus" scoped>
@@ -21,6 +21,9 @@ section.section-header
     display flex
     flex-flow column nowrap
     padding 1em 0
+    justify-content space-evenly
+    &.rows
+      flex-flow row wrap
   >.title
     color #eee
     font-size .9em

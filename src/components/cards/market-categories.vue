@@ -32,6 +32,7 @@ en:
   fishing_rod: Fishing rod
   pickaxe: Pickaxe
 
+  resource: Resource
   misc: Misc
 
   key: Key
@@ -72,7 +73,8 @@ fr:
   fishing_rod: Canne à pêche
   pickaxe: Pioche
 
-  misc: Ressources
+  resource: Ressource
+  misc: Divers
 
   key: Clé
 
@@ -108,7 +110,7 @@ fr:
         )
   .all
     .none(v-if="!available_types.length") {{ t('no_items') }}
-    .type(v-else v-for="available_type in available_types" :key="available_type.name" @click="() => select_item(available_type)")
+    .type.material-1(v-else v-for="available_type in available_types" :key="available_type.name" @click="() => select_item(available_type)")
       img.icon(:src="available_type.image_url" alt="listing image")
       span {{ available_type.name }}
 </template>
@@ -128,10 +130,12 @@ import { VITE_INDEXER_URL } from '../../env.js';
 const { t } = useI18n();
 const filtered_category = inject('filtered_category');
 const selected_item_type = inject('selected_item_type');
+const selected_item = inject('selected_item');
 
 const available_types = ref([]);
 
 function select_item(item) {
+  if (selected_item_type.value !== item.item_type) selected_item.value = null;
   selected_item_type.value = item.item_type;
 }
 
@@ -139,6 +143,7 @@ watch(
   filtered_category,
   async (category, last_category) => {
     if (category === last_category) return;
+    selected_item.value = null;
     const types = await fetch(
       `${VITE_INDEXER_URL}/item-types/${category}`,
     ).then(res => res.json());
@@ -176,11 +181,9 @@ watch(
       align-items center
       padding .5em 1em
       margin-bottom .2em
-      border-radius 12px
       border 1px solid rgba(white, .3)
+      background rgba(#eee, .1)
       cursor pointer
-      &:hover
-        background-color rgba(black, .1)
       span
         font-size .7em
         opacity .7

@@ -28,6 +28,7 @@ import {
   sui_create_character,
   sui_is_character_name_taken,
 } from '../../core/sui/client.js';
+import toast from '../../toast.js';
 
 import characterCanvasDisplay from './character-canvas-display.vue';
 import SpellDisplay from './menu_spell_display.vue';
@@ -36,7 +37,6 @@ const name_error = ref('');
 const selected_class_type = ref('IOP_MALE');
 
 const new_character_name = ref('');
-const character_creation_loading = ref(false);
 
 const new_character_dialog = inject('new_character_dialog');
 
@@ -162,28 +162,26 @@ watch(new_character_name, value => {
 });
 
 async function create_character() {
-  character_creation_loading.value = true;
   const female = selected_class_type.value.includes('FEMALE');
   const classe = selected_class_type.value.includes('IOP') ? 'iop' : 'sram';
 
   if (await sui_is_character_name_taken(new_character_name.value)) {
     name_error.value = t('name_taken');
-    character_creation_loading.value = false;
     return;
   }
 
   try {
+    const tx = toast.tx();
+    cancel();
     await sui_create_character({
       name: new_character_name.value,
       type: classe,
       sex: female ? 'female' : 'male',
     });
+    tx.update('success', 'Confirmed!');
+    new_character_name.value = '';
   } catch (error) {
     console.error(error);
-  } finally {
-    character_creation_loading.value = false;
-    new_character_name.value = '';
-    cancel();
   }
 }
 
@@ -200,7 +198,7 @@ function cancel() {
 </script>
 
 <template lang="pug">
-vs-dialog(v-model="new_character_dialog" :loading="character_creation_loading" full-screen)
+vs-dialog(v-model="new_character_dialog" full-screen)
   .create_character
     .class_name {{ selected_class_data.name }}
     .slider

@@ -10,7 +10,8 @@ import iop_female from '../../assets/models/iop_female.glb?url'
 import sram_male from '../../assets/models/sram_male.glb?url'
 import sram_female from '../../assets/models/sram_female.glb?url'
 import chafer from '../../assets/models/chafer.glb?url'
-import suifren_bullshark from '../../assets/models/suifrens-bullshark.glb?url'
+import suifren_bullshark from '../../assets/models/suifren_bullshark.glb?url'
+import suifren_capy from '../../assets/models/suifren_capy.glb?url'
 import afegg from '../../assets/models/afegg.glb?url'
 import primemachin from '../../assets/models/primemachin.glb?url'
 
@@ -92,7 +93,11 @@ export const MODELS = {
   }),
   suifren_bullshark: await load(suifren_bullshark, {
     env_map_intensity: 0.5,
-    scale: 1,
+    scale: 1.5,
+  }),
+  suifren_capy: await load(suifren_capy, {
+    env_map_intensity: 0.2,
+    scale: 1.5,
   }),
   afegg: await load(afegg, {
     env_map_intensity: 0.5,
@@ -314,6 +319,7 @@ export default function create_pools(scene) {
           },
           move(position) {
             origin.position.copy(position)
+            origin.position.y = position.y + offset_y
           },
           rotate(movement) {
             // Normalize the movement vector in the horizontal plane (x-z)
@@ -369,7 +375,13 @@ export default function create_pools(scene) {
       radius: 0.9,
       name: 'chafer',
     }),
-    suifren_capy: instanciate(MODELS.suifren_bullshark, {
+    suifren_capy: instanciate(MODELS.suifren_capy, {
+      height: 0.9,
+      radius: 0.9,
+      name: 'suifren_capy',
+      offset_y: -0.5,
+    }),
+    sui_bullshark: instanciate(MODELS.suifren_bullshark, {
       height: 0.9,
       radius: 0.9,
       name: 'suifren_bullshark',
@@ -382,7 +394,7 @@ export default function create_pools(scene) {
       offset_y: -0.52,
     }),
     primemachin: instanciate(MODELS.primemachin, {
-      height: 1.9,
+      height: 1.8,
       radius: 0.9,
       name: 'primemachin',
     }),

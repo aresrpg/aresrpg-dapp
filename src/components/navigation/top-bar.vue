@@ -148,6 +148,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       i.bx.bx-droplet
       span {{ t('connect') }}
     vs-row.row(v-else justify="end")
+
       .sui-balance(v-if="sui_balance != null")
         span {{ (+mists_to_sui(sui_balance)).toFixed(3) }}
         img.icon(src="../../assets/sui/sui-logo.png")

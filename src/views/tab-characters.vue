@@ -47,6 +47,7 @@ import sectionContainer from '../components/misc/section-container.vue';
 import characterCreateVue from '../components/game-ui/character-create.vue';
 import { context } from '../core/game/game.js';
 import { loading } from '../core/utils/loading.js';
+import toast from '../toast.js';
 
 const { t } = useI18n();
 
@@ -56,6 +57,17 @@ const locked_characters = inject('locked_characters');
 const unlocked_characters = inject('unlocked_characters');
 
 provide('new_character_dialog', new_character_dialog);
+
+onMounted(() => {
+  const { update } = toast.tx();
+  setTimeout(() => {
+    update('success');
+  }, 3000);
+
+  setTimeout(() => {
+    update('error');
+  }, 6000);
+});
 </script>
 
 <template lang="pug">

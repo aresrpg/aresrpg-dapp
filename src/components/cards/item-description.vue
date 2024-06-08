@@ -55,7 +55,7 @@ en:
   fishing_rod: Fishing rod
   pickaxe: Pickaxe
 
-  misc: Misc
+  resource: Resource
 
   key: Key
 
@@ -118,7 +118,7 @@ fr:
   fishing_rod: Canne à pêche
   pickaxe: Pioche
 
-  misc: Ressources
+  resource: Ressource
 
   key: Clé
 
@@ -136,8 +136,8 @@ fr:
   .content
     .left-content
       img.icon(:src="item?.image_url")
-      .category {{ t(item.item_category) }}
-      a.id(@click="() => open_explorer(item.id)") {{ short_id(item.id) }}
+      .category {{ t(item.item_category || 'not found') }}
+      a.id(v-if="item.id" @click="() => open_explorer(item.id)") {{ short_id(item.id) }}
       .bottom(v-if="item.critical_chance") cc: {{ item.critical_chance }} / {{ item.critical_outcomes }}
     .right-content
       .scroll-container
@@ -163,8 +163,19 @@ fr:
 
 </template>
 
+<!-- export type SuiToken = {
+  item_category: string
+  item_set: string
+  item_type: string
+  amount: bigint
+  decimal: number
+  image_url: string
+  ids: string[]
+  is_token: true
+} -->
+
 <script setup>
-import { computed, inject } from 'vue';
+import { computed, inject, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { NETWORK } from '../../env.js';
