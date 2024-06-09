@@ -121,10 +121,20 @@ declare namespace Type {
       admin_caps?: string[]
       tokens?: SuiToken[]
     }
+
     'action/sui_add_unlocked_item': SuiItem
     'action/sui_add_locked_item': SuiItem
+    'action/sui_add_item_for_sale': SuiItem
+    'action/sui_add_unlocked_character': SuiCharacter
     'action/sui_update_item': SuiItem
     'action/sui_remove_locked_item': string
+    'action/sui_remove_unlocked_item': string
+    'action/sui_remove_item_for_sale': string
+    'action/sui_remove_unlocked_character': string
+    'action/sui_split_item': { id: string; amount: number; new_id: string }
+    'action/sui_merge_item': { id: string; merged_id: string }
+    'action/sui_remove_finished_craft': string
+
     'action/set_online': boolean
     'action/character_action': { id: string; action: string }
   } & Packets

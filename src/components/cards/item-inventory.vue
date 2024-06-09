@@ -292,7 +292,7 @@ function equip_item(item) {
         edit_mode_equipment.equipments = edit_mode_equipment.equipments.filter(
           i => i.id !== item.id,
         );
-      } else throw new Error('Unknown item category');
+      } else edit_mode.value = false;
   }
 }
 

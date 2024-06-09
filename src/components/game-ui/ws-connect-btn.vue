@@ -19,7 +19,7 @@ fr:
 
 <template lang="pug">
 vs-button.btn(
-  v-if="selected_character"
+  v-if="selected_character?.id && selected_character.id !== 'default'"
   :disabled="!VITE_SERVER_URL"
   :type="is_online ? 'transparent' : 'gradient'"
   :loading="is_connecting"
@@ -38,7 +38,7 @@ vs-button.btn(
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted, inject } from 'vue';
+import { computed, ref, onMounted, onUnmounted, inject, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { context, disconnect_ws } from '../../core/game/game.js';

@@ -4,11 +4,29 @@ en:
   tailor: Tailor
   craft: Craft
   reveal: Reveal
+  craft_title: Craft item
+  craft_desc: Are you sure you want to craft {0} ?
+  cancel: Cancel
+  crafting: Crafting item
+  crafted: Item crafted
+  crafted_failed: Failed to craft item
+  revealing: Revealing item
+  revealed: Item revealed
+  revealed_failed: Failed to reveal item
 fr:
   required: Requis
   tailor: Tailleur
   craft: Fabriquer
   reveal: Révéler
+  craft_title: Fabriquer l'objet
+  craft_desc: Êtes-vous sûr de vouloir fabriquer {0} ?
+  cancel: Annuler
+  crafting: Fabrication de l'objet
+  crafted: Objet fabriqué
+  crafted_failed: Échec de la fabrication de l'objet
+  revealing: Révélation de l'objet
+  revealed: Objet révélé
+  revealed_failed: Échec de la révélation de l'objet
 </i18n>
 
 <template lang="pug">
@@ -28,13 +46,23 @@ fr:
           span x{{ pretty_amount(ingredient) }}
       .btns
         vs-button(v-if="admin.admin_caps.length" type="gradient" size="small" color="#F4511E" @click="delete_recipe") Delete
-        vs-button(v-if="is_finished" type="gradient" size="small" color="#76FF03" @click="reveal_craft")
+        vs-button(v-if="is_finished" type="gradient" size="small" color="#76FF03" @click="reveal_craft" :disabled="currently_revealing")
           span.title {{ t('reveal') }}
-        vs-button(v-else :disabled="!has_required_ingredients" type="gradient" size="small" color="#FFB300" @click="craft_item") {{ t('craft') }}
+        vs-button(v-else :disabled="!has_required_ingredients" type="gradient" size="small" color="#FFB300" @click="craft_dialog = true") {{ t('craft') }}
+
+  /// craft dialog
+  vs-dialog(v-model="craft_dialog")
+    template(#header) {{ t('craft_title') }}
+    i18n-t(keypath="craft_desc")
+      b.itemname {{ recipe.template.name }} (Lvl. {{ recipe.template.level }})
+    template(#footer)
+      .dialog-footer
+        vs-button(type="transparent" color="#E74C3C" @click="craft_dialog = false") {{ t('cancel') }}
+        vs-button(type="transparent" color="#2ECC71" @click="craft_item") {{ t('craft') }}
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
+import { inject, computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { SUPPORTED_TOKENS } from '@aresrpg/aresrpg-sdk/sui';
 import { BigNumber as BN } from 'bignumber.js';
@@ -44,6 +72,8 @@ import {
   sui_delete_recipe,
   sui_reveal_craft,
 } from '../../core/sui/client.js';
+import toast from '../../toast.js';
+import { context } from '../../core/game/game.js';
 
 const { t } = useI18n();
 const props = defineProps(['recipe']);
@@ -51,20 +81,43 @@ const owned_items = inject('owned_items');
 const owned_tokens = inject('owned_tokens');
 const finished_crafts = inject('finished_crafts');
 
+const craft_dialog = ref(false);
+const currently_revealing = ref(false);
+
 const is_finished = computed(() => {
   return finished_crafts.value.some(
     craft => craft.recipe_id === props.recipe.id,
   );
 });
 
-function craft_item() {
-  return sui_craft_item(props.recipe);
+async function craft_item() {
+  const tx = toast.tx(t('crafting'), props.recipe.template.name);
+  try {
+    craft_dialog.value = false;
+    await sui_craft_item(props.recipe);
+    tx.update('success', t('crafted'));
+  } catch (error) {
+    console.error(error);
+    tx.update('error', t('crafted_failed'));
+  }
 }
 
-function reveal_craft() {
-  return sui_reveal_craft(
-    finished_crafts.value.find(craft => craft.recipe_id === props.recipe.id),
-  );
+async function reveal_craft() {
+  const tx = toast.tx(t('revealing'), props.recipe.template.name);
+  try {
+    currently_revealing.value = true;
+    const finished_craft = finished_crafts.value.find(
+      craft => craft.recipe_id === props.recipe.id,
+    );
+    await sui_reveal_craft(finished_craft);
+    tx.update('success', t('revealed'));
+    // @ts-ignore
+    context.dispatch('action/sui_remove_finished_craft', finished_craft.id);
+  } catch (error) {
+    console.error(error);
+    tx.update('error', t('revealed_failed'));
+  }
+  currently_revealing.value = false;
 }
 
 function pretty_amount(ingredient) {
@@ -95,9 +148,9 @@ const has_required_ingredients = computed(() => {
   );
 
   return props.recipe.ingredients.every(ingredient => {
-    return new BN(items_by_type[ingredient.item_type] ?? 0).isGreaterThan(
-      ingredient.amount,
-    );
+    return new BN(
+      items_by_type[ingredient.item_type] ?? 0,
+    ).isGreaterThanOrEqualTo(ingredient.amount);
   });
 });
 
@@ -186,4 +239,16 @@ span.title
         span
           font-size .8em
           opacity .8
+
+.dialog-content
+  display flex
+  align-items center
+  justify-content center
+.dialog-footer
+  display flex
+  justify-content flex-end
+
+b.itemname
+  font-style italic
+  color #9575CD
 </style>

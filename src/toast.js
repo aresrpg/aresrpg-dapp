@@ -10,9 +10,11 @@ import FluentEmojiHighContrastFly from '~icons/fluent-emoji-high-contrast/fly'
 
 function create_notification(
   initial_status = 'loading',
-  initial_text = 'Loading...',
+  initial_text = '',
   initial_title = '',
 ) {
+  let removed = false
+
   const vnode = createVNode(toastVue, {
     status: initial_status,
     text: initial_text,
@@ -22,17 +24,35 @@ function create_notification(
   const notification_instance = VsNotification({
     duration: 'none',
     content: vnode,
+    showClose: false,
+    notPadding: true,
+    square: true,
+    width: 'auto',
   })
+
+  function remove() {
+    if (removed) return
+
+    removed = true
+    notification_instance.close()
+  }
 
   return {
     update(status, text, title) {
+      if (removed) return
+
       if (status != null) vnode.component.props.status = status
-      if (title != null) vnode.component.props.text = text
+      if (text != null) vnode.component.props.text = text
       if (title != null) vnode.component.props.title = title
+
+      if (status !== 'loading') {
+        const duration = status === 'success' ? 2000 : 7000
+        setTimeout(() => {
+          remove()
+        }, duration)
+      }
     },
-    remove() {
-      notification_instance.close()
-    },
+    remove,
   }
 }
 

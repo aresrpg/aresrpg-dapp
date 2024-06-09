@@ -35,7 +35,6 @@ export async function handle_server_error(reason) {
       toast.info(t('MAX_PLAYERS'), 'Suuuuu', "<i class='bx bxs-hot'/>")
       break
     case 'SIGNATURE_TIMEOUT':
-      console.log('ws_status', ws_status.value)
       if (ws_status.value === 'CLOSED')
         toast.error(
           t('SIGNATURE_TIMEOUT'),

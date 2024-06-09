@@ -57,17 +57,6 @@ const locked_characters = inject('locked_characters');
 const unlocked_characters = inject('unlocked_characters');
 
 provide('new_character_dialog', new_character_dialog);
-
-onMounted(() => {
-  const { update } = toast.tx();
-  setTimeout(() => {
-    update('success');
-  }, 3000);
-
-  setTimeout(() => {
-    update('error');
-  }, 6000);
-});
 </script>
 
 <template lang="pug">
@@ -82,7 +71,7 @@ sectionContainer
   // Locked characters
   sectionHeader(:title="t('locked_characters')" :desc="locked_characters ? t('locked_characters_desc') : null" color="#00C853")
     .character-container
-      div.nothing(v-if="loading")
+      div.nothing(v-if="locked_characters[0]?.id === 'default'")
       usercharacter(v-else v-for="character in locked_characters" :key="character.id" :locked="true" :character="character")
 
   // Unlocked characters
@@ -156,4 +145,3 @@ b.sui
     &:hover
       box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
 </style>
-../components/game-ui/character-canvas-display.vue

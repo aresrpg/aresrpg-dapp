@@ -1,8 +1,14 @@
 <i18n>
 en:
   withdraw: Withdraw
+  delisting: Delisting item
+  delisted: Item delisted
+  failed_to_delist: Failed to delist item
 fr:
   withdraw: Retirer
+  delisting: Retrait de l'objet
+  delisted: Objet retiré
+  failed_to_delist: Échec du retrait de l'objet
 </i18n>
 
 <template lang="pug">
@@ -19,18 +25,15 @@ fr:
     .price
       .sui {{ mists_to_sui(listing.list_price) }}
       TokenBrandedSui.icon
-      vs-button.btn(type="gradient" color="#0277BD" size="small" @click="() => delist_item(listing)") {{ t('withdraw') }}
+      vs-button.btn(type="gradient" color="#0277BD" size="small" @click="() => delist_item(listing)" :disabled="delisting_items.includes(listing.id)") {{ t('withdraw') }}
 </template>
 
 <script setup>
-import { inject } from 'vue';
+import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { mists_to_sui, sui_delist_item } from '../../core/sui/client.js';
-import {
-  decrease_loading,
-  increase_loading,
-} from '../../core/utils/loading.js';
+import toast from '../../toast.js';
 
 // @ts-ignore
 import TokenBrandedSui from '~icons/token-branded/sui';
@@ -43,14 +46,19 @@ function select_item(item) {
   selected_item.value = item;
 }
 
+const delisting_items = ref([]);
+
 async function delist_item(item) {
-  increase_loading();
+  const tx = toast.tx(t('delisting'), item.name);
+  delisting_items.value.push(item.id);
   try {
     await sui_delist_item(item);
+    tx.update('success', t('delisted'));
   } catch (error) {
     console.error(error);
+    tx.update('error', t('failed_to_delist'));
   }
-  decrease_loading();
+  delisting_items.value = delisting_items.value.filter(id => id !== item.id);
 }
 </script>
 
