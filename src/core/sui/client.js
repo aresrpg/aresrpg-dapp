@@ -2,7 +2,12 @@ import EventEmitter from 'events'
 
 import { Transaction } from '@mysten/sui/transactions'
 import { BigNumber as BN } from 'bignumber.js'
-import { MIST_PER_SUI, normalizeSuiAddress, toB64 } from '@mysten/sui/utils'
+import {
+  MIST_PER_SUI,
+  fromB64,
+  normalizeSuiAddress,
+  toB64,
+} from '@mysten/sui/utils'
 import { LRUCache } from 'lru-cache'
 import { Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
@@ -167,7 +172,7 @@ async function execute_sponsored({ transaction, sender, wallet }) {
     sender,
   })
 
-  await fetch(`${VITE_SPONSOR_URL}/submit`, {
+  const submit_result = await fetch(`${VITE_SPONSOR_URL}/submit`, {
     method: 'POST',
     body: JSON.stringify({
       digest,
@@ -176,7 +181,9 @@ async function execute_sponsored({ transaction, sender, wallet }) {
     headers: {
       'Content-Type': 'application/json',
     },
-  })
+  }).then(res => res.json())
+
+  if (submit_result.error) throw new Error(submit_result.error)
 
   return { digest }
 }
@@ -240,8 +247,10 @@ const execute = async transaction => {
     else if (message === 'EInventoryNotEmpty') toast.error(t('INV_NOT_EMPTY'))
     else if (message.includes('Some("assert_latest") }, 1'))
       toast.error(t('OUTDATED'))
-    else if (message === 'FAILURE') toast.error(t('FAILURE'))
-    else toast.error(message, 'Transaction failed')
+    else if (message === 'FAILURE') {
+      // let upstream handle the error
+      // toast.error(t('FAILURE'))
+    } else toast.error(message, 'Transaction failed')
     throw error
   }
 }
@@ -650,7 +659,7 @@ export async function sui_create_character({ name, type, sex = 'male' }) {
 
   kiosk_tx.finalize()
 
-  await execute(tx)
+  return await execute(tx)
 }
 
 export async function sui_is_character_name_taken(name) {
@@ -683,7 +692,7 @@ export async function sui_delete_character({
         tx,
         kiosk_id,
         kiosk_cap,
-        character_id: tx.pure.id(id),
+        character_id: id,
       })
     },
   })
@@ -774,11 +783,11 @@ function get_item_with_amount({ tx, item, amount, kiosks }) {
       return acc
     }, 0)
 
-  if (total_amount < amount) throw new Error('Not enough items')
+  if (total_amount < +amount) throw new Error('Not enough items')
 
   merge_all_items({ tx, item, kiosks, items: unlocked_items })
 
-  if (total_amount === amount) return tx.pure.id(item.id)
+  if (total_amount === +amount) return tx.pure.id(item.id)
 
   return sdk.split_item({
     tx,
@@ -791,6 +800,8 @@ function get_item_with_amount({ tx, item, amount, kiosks }) {
 
 export async function sui_list_item({ item, price, amount }) {
   const tx = new Transaction()
+
+  console.log('listing', { item, price, amount })
 
   sdk.add_header(tx)
 
@@ -945,6 +956,7 @@ export async function sui_buy_item(item) {
     rule_definition.resolveRuleFunction({
       packageId: rule_definition.packageId,
       transaction: tx,
+      transactionBlock: tx,
       itemType: item._type,
       itemId: item.id,
       price: item.list_price.toString(),
@@ -1032,6 +1044,8 @@ export async function sui_subscribe({ signal }) {
 
   signal.addEventListener('abort', try_reset, { once: true })
 
+  const tx_toast = toast.tx(t('SUBSCRIBE_START'))
+
   try {
     await try_reset()
     active_subscription.emitter = emitter
@@ -1057,14 +1071,14 @@ export async function sui_subscribe({ signal }) {
         sender_is_me: event.sender === get_address(),
       })
     })
-    toast.info(t('SUI_SUBSCRIBE_OK'), null, TokenSui)
+    tx_toast.update('success', t('SUI_SUBSCRIBE_OK'))
   } catch (error) {
     if (error.message.includes('Invalid params'))
       console.error(
         'Unable to subscribe to the Sui node as it is too crowded. Please try again later.',
       )
     else console.error('Unable to subscribe to the Sui node', error)
-    toast.error(t('SUBSCRIBE_ERROR'), 'Damn Rpc..', GameIconsBrokenBottle)
+    tx_toast.update('error', t('SUBSCRIBE_ERROR'))
     active_subscription.unsubscribe = null
   }
 

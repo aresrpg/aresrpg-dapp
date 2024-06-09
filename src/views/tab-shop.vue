@@ -4,11 +4,17 @@
     sell: Sell
     buy: Buy
     wrong_price: Invalid price
+    listing: Listing in the market
+    listed: Listed
+    failed_to_list: Failed to list item
   fr:
     shop: 🥐 Hôtel des Ventes
     sell: Vendre
     buy: Acheter
     wrong_price: Prix invalide
+    listing: Mise en vente
+    listed: Listé avec succès
+    failed_to_list: Échec de la mise en vente
 </i18n>
 
 <template lang="pug">
@@ -44,7 +50,7 @@ sectionContainer
               size="small"
               color="#A4C400"
               @click="() => sell(1)"
-              :disabled="!selected_item || !is_price_valid"
+              :disabled="!selected_item || !is_price_valid || selected_currently_listing"
             ) {{ t('sell') }}
             vs-button(
               v-if="selected_item && get_item_total_amount(selected_item) >= 10"
@@ -52,7 +58,7 @@ sectionContainer
               size="small"
               color="#60A917"
               @click="() => sell(10)"
-              :disabled="!selected_item || !is_price_valid"
+              :disabled="!selected_item || !is_price_valid || selected_currently_listing"
             ) {{ t('sell') }} x10
             vs-button(
               v-if="selected_item && get_item_total_amount(selected_item) >= 100"
@@ -60,10 +66,9 @@ sectionContainer
               size="small"
               color="#008A00"
               @click="() => sell(100)"
-              :disabled="!selected_item || !is_price_valid"
+              :disabled="!selected_item || !is_price_valid || selected_currently_listing"
             ) {{ t('sell') }} x100
           .items
-            advancedToast
             itemInventory(:disable_edit="true" :sell_mode="true")
 </template>
 
@@ -83,8 +88,8 @@ import marketCategories from '../components/cards/market-categories.vue';
 import marketListings from '../components/cards/market-listings.vue';
 import marketMyListings from '../components/cards/market-my-listings.vue';
 import { sui_list_item } from '../core/sui/client.js';
-import { decrease_loading, increase_loading } from '../core/utils/loading.js';
 import { context } from '../core/game/game.js';
+import toast from '../toast.js';
 
 // @ts-ignore
 import TokenSui from '~icons/token/sui';
@@ -106,7 +111,6 @@ const shop_tabs = {
 
 const owned_items = inject('owned_items');
 
-const sell_loading = ref(false);
 const selected_item_type = ref(null);
 const requested_list_price = ref(1);
 
@@ -134,19 +138,33 @@ const is_price_valid = computed(() => {
   }
 });
 
+const currently_listing = ref([]);
+
+const selected_currently_listing = computed(() =>
+  currently_listing.value.includes(selected_item.value?.id),
+);
+
 async function sell(quantity) {
-  increase_loading();
+  if (!selected_item.value) return;
+
+  const listed_id = selected_item.value.id;
+
+  const tx = toast.tx(t('listing'), selected_item.value.name);
+  currently_listing.value.push(selected_item.value.id);
   try {
-    if (selected_item.value)
-      await sui_list_item({
-        item: selected_item.value,
-        amount: quantity,
-        price: requested_list_price.value,
-      });
+    await sui_list_item({
+      item: selected_item.value,
+      amount: quantity,
+      price: requested_list_price.value,
+    });
+    tx.update('success', t('listed'));
   } catch (error) {
+    tx.update('error', t('failed_to_list'));
     console.error(error);
   } finally {
-    decrease_loading();
+    currently_listing.value = currently_listing.value.filter(
+      id => id !== listed_id,
+    );
   }
 }
 </script>

@@ -1,4 +1,6 @@
 import { EnokiFlow } from '@mysten/enoki'
+import { verifyPersonalMessageSignature } from '@mysten/sui/verify'
+import { fromB64 } from '@mysten/sui/utils'
 
 import { VITE_ENOKI_KEY, NETWORK } from '../../env.js'
 import enoki_logo from '../../assets/sui/google.png?url'
@@ -71,6 +73,7 @@ export function enoki_wallet() {
     },
     async signPersonalMessage(message) {
       const keypair = await enoki.getKeypair({ network: NETWORK })
+
       return await keypair.signPersonalMessage(
         new TextEncoder().encode(message),
       )
@@ -83,10 +86,10 @@ export function enoki_wallet() {
       const keypair = await enoki.getKeypair({ network: NETWORK })
 
       const { bytes, signature } = await keypair.signTransaction(
-        await transaction.build(),
+        await transaction.build({ client: sdk.sui_client }),
       )
 
-      return { signature, transactionBlockBytes: bytes }
+      return { signature, bytes }
     },
   }
 }

@@ -7,6 +7,7 @@ en:
   confirm: Pay now
   buy_success: Purchase successful
   insufficient_funds: You are way to broke to afford this precious item..
+  no_listings: No listings available
 fr:
   buy: Acheter
   buy_confirm: Confirmer l'achat
@@ -15,6 +16,7 @@ fr:
   confirm: Payer
   buy_success: Achat réussi
   insufficient_funds: Vous êtes trop fauché pour acheter cet objet précieux..
+  no_listings: Aucune annonce disponible
 </i18n>
 
 <template lang="pug">
@@ -23,6 +25,7 @@ fr:
     template(#tab="{ tab }")
       .tab-name {{ tab }}
     template(#content="{ data, tab }")
+      .none(v-if="!filter_listings(data).length") {{ t('no_listings') }}
       .listing(
         v-for="(listing, index) in filter_listings(data)"
         :key="listing.id"
@@ -62,9 +65,9 @@ import { sui_buy_item, mists_to_sui } from '../../core/sui/client.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 import toast from '../../toast.js';
 import tabs from '../../components/game-ui/tabs.vue';
-// @ts-ignore
 import { context } from '../../core/game/game.js';
 
+// @ts-ignore
 import TokenBrandedSui from '~icons/token-branded/sui';
 // @ts-ignore
 import GameIconsPayMoney from '~icons/game-icons/pay-money';
@@ -209,6 +212,14 @@ onUnmounted(() => {
 </script>
 
 <style lang="stylus" scoped>
+.none
+  display flex
+  justify-content center
+  align-items center
+  height 100%
+  font-style italic
+  opacity .7
+  font-size .8em
 
 .quantity-selector
   .tab-name

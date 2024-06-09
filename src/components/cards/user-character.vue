@@ -11,8 +11,14 @@
     lock_desc: You're about to select this character to access it in game, you can unselect it at anytime when you're done playing
     unlock_desc: You're about to unselect this character and retrieve it in your wallet
     lock_failed: Failed to select character, please retry shortly
+    unlock_failed: Failed to unselect character, please retry shortly
     delete_failed: Failed to delete character, please retry shortly
-    send_failed: Failed to send character, please retry shortly
+    deleting: Deleting character
+    deleting_ok: Character deleted
+    selecting: Selecting character
+    selecting_ok: Character selected
+    unselecting: Unselecting character
+    unselecting_ok: Character unselected
   fr:
     lock: Sélectionner
     unlock: Désélectionner
@@ -25,8 +31,14 @@
     lock_desc: Vous êtes sur le point de sélectionner ce personnage pour y accéder en jeu, vous pouvez le désélectionner à tout moment lorsque vous avez fini de jouer
     unlock_desc: Vous êtes sur le point de désélectionner ce personnage et de le récupérer dans votre portefeuille
     lock_failed: Échec de sélection du personnage, veuillez réessayer ultérieurement
+    unlock_failed: Échec de désélection du personnage, veuillez réessayer ultérieurement
     delete_failed: Échec de suppression du personnage, veuillez réessayer ultérieurement
-    send_failed: Échec de l'envoi du personnage, veuillez réessayer ultérieurement
+    deleting: Suppression du personnage
+    deleting_ok: Personnage supprimé
+    selecting: Sélection du personnage
+    selecting_ok: Personnage sélectionné
+    unselecting: Désélection du personnage
+    unselecting_ok: Personnage désélectionné
 </i18n>
 
 <template lang="pug">
@@ -45,12 +57,13 @@
       type="transparent"
       size="small"
       color="#EF5350"
+      :disabled="delete_loading"
       @click="delete_dialog = true") {{ t('delete') }}
-    vs-button(v-if="!props.locked" type="transparent" size="small" color="#4CAF50" @click="lock_dialog = true") {{ t('lock') }}
-    vs-button(v-else type="transparent" size="small" color="#4CAF50" @click="unlock_dialog = true") {{ t('unlock') }}
+    vs-button(v-if="!props.locked" type="transparent" size="small" color="#4CAF50" @click="lock_dialog = true" :disabled="lock_loading") {{ t('lock') }}
+    vs-button(v-else type="transparent" size="small" color="#4CAF50" @click="unlock_dialog = true" :disabled="unlock_loading") {{ t('unlock') }}
 
     /// deletion dialog
-    vs-dialog(v-model="delete_dialog" :loading="delete_loading")
+    vs-dialog(v-model="delete_dialog")
       template(#header) {{ t('delete') }}
       span {{ t('delete_desc') }}
       template(#footer)
@@ -59,7 +72,7 @@
           vs-button(type="transparent" color="#2ECC71" @click="delete_character") {{ t('confirm') }}
 
     /// lock dialog
-    vs-dialog(v-model="lock_dialog" :loading="lock_loading")
+    vs-dialog(v-model="lock_dialog")
       template(#header) {{ t('lock') }}
       span {{ t('lock_desc') }}
       template(#footer)
@@ -68,7 +81,7 @@
           vs-button(type="transparent" color="#2ECC71" @click="select_character") {{ t('confirm') }}
 
     /// unlock dialog
-    vs-dialog(v-model="unlock_dialog" :loading="unlock_loading")
+    vs-dialog(v-model="unlock_dialog")
       template(#header) {{ t('unlock') }}
       span {{ t('unlock_desc') }}
       template(#footer)
@@ -123,40 +136,49 @@ const unlock_dialog = ref(false);
 const unlock_loading = ref(false);
 
 async function delete_character() {
+  const { update } = toast.tx(t('deleting'), props.character.name);
   try {
     delete_loading.value = true;
+    delete_dialog.value = false;
     await sui_delete_character(props.character);
+    update('success', t('deleting_ok'));
   } catch (error) {
     console.error(error);
-    toast.warn(t('delete_failed'));
+    update('error', t('delete_failed'));
   } finally {
     delete_loading.value = false;
-    delete_dialog.value = false;
   }
 }
 
 async function select_character() {
+  const { update } = toast.tx(t('selecting'), props.character.name);
   try {
     lock_loading.value = true;
+    lock_dialog.value = false;
     await sui_select_character(props.character);
+    update('success', t('selecting_ok'));
   } catch (error) {
+    console.log('====== OH NO');
     console.error(error);
-    toast.warn(t('lock_failed'));
+    update('error', t('lock_failed'));
   } finally {
     lock_loading.value = false;
-    lock_dialog.value = false;
   }
 }
 
 async function unselect_character() {
+  const { update } = toast.tx(t('unselecting'), props.character.name);
   try {
     unlock_loading.value = true;
-
+    unlock_dialog.value = false;
     await sui_unselect_character(props.character);
+    update('success', t('unselecting_ok'));
   } catch (error) {
+    console.log('====== OH NO');
+    console.error(error);
+    update('error', t('unlock_failed'));
   } finally {
     unlock_loading.value = false;
-    unlock_dialog.value = false;
   }
 }
 </script>

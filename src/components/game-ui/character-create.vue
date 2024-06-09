@@ -8,6 +8,8 @@ fr:
   name_invalid: Le nom est invalide
   name_white_space: Le nom ne peut pas contenir d'espaces blancs
   name_taken: Ce nom est déjà pris
+  create_tx: Enregistrement du personnage sur Sui 💧
+  create_ok: Character created!
 en:
   character_name: character name
   character_name_valid: The character name must be between 3 and 20 chars
@@ -17,6 +19,8 @@ en:
   name_invalid: Name is invalid
   name_white_space: Name cannot contain white spaces
   name_taken: This name is already taken
+  create_tx: Saving character on Sui 💧
+  create_ok: Character created!
 </i18n>
 
 <script setup>
@@ -35,6 +39,7 @@ import SpellDisplay from './menu_spell_display.vue';
 
 const name_error = ref('');
 const selected_class_type = ref('IOP_MALE');
+const create_button_disabled = ref(false);
 
 const new_character_name = ref('');
 
@@ -162,27 +167,33 @@ watch(new_character_name, value => {
 });
 
 async function create_character() {
+  create_button_disabled.value = true;
   const female = selected_class_type.value.includes('FEMALE');
   const classe = selected_class_type.value.includes('IOP') ? 'iop' : 'sram';
 
   if (await sui_is_character_name_taken(new_character_name.value)) {
     name_error.value = t('name_taken');
+    create_button_disabled.value = false;
     return;
   }
 
+  const tx = toast.tx(t('create_tx'), new_character_name.value);
+
   try {
-    const tx = toast.tx();
     cancel();
     await sui_create_character({
       name: new_character_name.value,
       type: classe,
       sex: female ? 'female' : 'male',
     });
-    tx.update('success', 'Confirmed!');
+    tx.update('success', t('create_ok'));
+
     new_character_name.value = '';
   } catch (error) {
+    tx.update('error', error.message);
     console.error(error);
   }
+  create_button_disabled.value = false;
 }
 
 const is_character_name_valid = computed(
@@ -221,7 +232,7 @@ vs-dialog(v-model="new_character_dialog" full-screen)
       size="xl"
       color="#2ECC71"
       @click="create_character"
-      :disabled="!is_character_name_valid"
+      :disabled="!is_character_name_valid || create_button_disabled"
     ) {{ t('create_button') }}
 </template>
 

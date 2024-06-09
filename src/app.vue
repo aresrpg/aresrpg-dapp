@@ -28,8 +28,6 @@ import {
   sui_get_policies_profit,
 } from './core/sui/client.js';
 
-// @ts-ignore
-import EmojioneMoneyBag from '~icons/emojione/money-bag';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore
 const name = 'app';
@@ -398,24 +396,6 @@ function on_server_info(event) {
   server_info.max_players = maxPlayers;
 }
 
-async function on_item_purchased({ id }) {
-  // @ts-ignore
-  const my_listing = my_listings.value.find(listing => listing.id === id);
-
-  if (my_listing) {
-    toast.info(
-      // @ts-ignore
-      `${my_listing.name} ${t('item_sold')}`,
-      // @ts-ignore
-      `+${pretty_print_mists(my_listing.list_price)} Sui`,
-      EmojioneMoneyBag,
-    );
-    context.dispatch('action/sui_data_update', {
-      items_for_sale: await sui_get_my_listings(),
-    });
-  }
-}
-
 onMounted(async () => {
   context.events.on('STATE_UPDATED', update_all);
   update_all(context.get_state());
@@ -430,14 +410,11 @@ onMounted(async () => {
     context.dispatch('action/select_wallet', 'Enoki');
     context.dispatch('action/select_address', address);
   }
-
-  SUI_EMITTER.on('ItemPurchasedEvent', on_item_purchased);
 });
 
 onUnmounted(() => {
   context.events.off('STATE_UPDATED', update_all);
   context.events.off('packet/serverInfo', on_server_info);
-  SUI_EMITTER.off('ItemPurchasedEvent', on_item_purchased);
 });
 // @ts-ignore
 </script>
