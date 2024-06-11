@@ -48,10 +48,15 @@ export default function () {
             // if there is no selected character but there are three characters
             (!selected_character_id && ids.length) ||
             // or if the selected character is not in the locked characters list
-            (selected_character_id && !ids.includes(selected_character_id))
+            (ids.length &&
+              selected_character_id &&
+              !ids.includes(selected_character_id))
           ) {
-            // we select the first one, or null if there are none
-            context.dispatch('action/select_character', ids[0])
+            const [should_select] = ids
+            if (selected_character_id !== should_select) {
+              // we select the first one, or null if there are none
+              context.dispatch('action/select_character', ids[0])
+            }
           }
 
           // characters that were unlocked

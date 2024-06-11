@@ -250,7 +250,9 @@ const execute = async transaction => {
     else if (message === 'FAILURE') {
       // let upstream handle the error
       // toast.error(t('FAILURE'))
-    } else toast.error(message, 'Transaction failed')
+    } else {
+      // toast.error(message, 'Transaction failed')
+    }
     throw error
   }
 }
@@ -305,6 +307,10 @@ export async function sui_get_locked_characters() {
 
 export async function sui_get_unlocked_characters() {
   return sdk.get_unlocked_characters(get_address())
+}
+
+export async function sui_get_kiosk_cap(kiosk_id) {
+  return sdk.get_kiosk_owner_cap({ address: get_address(), kiosk_id })
 }
 
 export async function sui_get_locked_items() {
@@ -733,6 +739,12 @@ export async function sui_unselect_character({
 }) {
   const tx = new Transaction()
 
+  console.log('unselect==', {
+    kiosk_id,
+    personal_kiosk_cap_id,
+    id,
+  })
+
   sdk.add_header(tx)
   sdk.borrow_personal_kiosk_cap({
     personal_kiosk_cap_id,
@@ -788,6 +800,14 @@ function get_item_with_amount({ tx, item, amount, kiosks }) {
   merge_all_items({ tx, item, kiosks, items: unlocked_items })
 
   if (total_amount === +amount) return tx.pure.id(item.id)
+
+  console.log({
+    tx,
+    kiosk: item.kiosk_id,
+    kiosk_cap: kiosks.get(item.kiosk_id),
+    item_id: item.id,
+    amount,
+  })
 
   return sdk.split_item({
     tx,
@@ -881,6 +901,10 @@ export async function sui_get_kiosks_profits() {
   return kiosks
     .map(kiosk => BigInt(kiosk.kiosk.profits))
     .reduce((acc, profits) => acc + profits, 0n)
+}
+
+export async function sui_get_aresrpg_kiosk() {
+  return sdk.get_aresrpg_kiosk(get_address())
 }
 
 export async function sui_claim_kiosks_profits() {
@@ -1066,9 +1090,12 @@ export async function sui_subscribe({ signal }) {
         event_name = 'ItemDelistedEvent'
 
       logger.SUI(`rpc event ${event_name}`, event)
-      emitter.emit(event_name, {
-        ...event.parsedJson,
-        sender_is_me: event.sender === get_address(),
+      emitter.emit('update', {
+        type: event_name,
+        payload: {
+          ...event.parsedJson,
+          sender_is_me: event.sender === get_address(),
+        },
       })
     })
     tx_toast.update('success', t('SUI_SUBSCRIBE_OK'))

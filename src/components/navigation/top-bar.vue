@@ -14,7 +14,9 @@ fr:
   copy: Copier l'adresse
   copied: Adresse copiée dans le presse-papier
   sales: Ventes
-  profit_claimed: C'est un bon profit que vous avez là!
+  claiming_profit: Retrait des profits de vente
+  profit_claimed: Wow! C'est un bon billet que vous avez là!
+  claiming_error: Erreur lors du retrait des profits de vente
 en:
   logout: Logout
   disconnect: Disconnect
@@ -30,11 +32,13 @@ en:
   copy: Copy address
   copied: Address copied to clipboard
   sales: Sales
-  profit_claimed: That's a good profit you got there!
+  claiming_profit: Claiming sales profits
+  profit_claimed: Wow! that's a good chunk you got there!
+  claiming_error: Error claiming sales profits
 </i18n>
 
 <script setup>
-import { ref, inject, onMounted, onUnmounted } from 'vue';
+import { ref, inject, onMounted, onUnmounted, watch } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
 import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
@@ -54,6 +58,7 @@ import {
   increase_loading,
 } from '../../core/utils/loading.js';
 import toast from '../../toast.js';
+import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 
 // @ts-ignore
 import PhCopy from '~icons/ph/copy';
@@ -115,27 +120,27 @@ async function refresh_kiosk_profits() {
   kiosk_profits.value = +mists_to_sui(profits).replace(/\.?0+$/, '');
 }
 
-let profit_interval = null;
-
 async function claim_kiosk_profits() {
-  increase_loading();
+  const tx = toast.tx(t('claiming_profit'), `${kiosk_profits.value} Sui`);
   try {
     await sui_claim_kiosks_profits();
-    toast.dark(t('profit_claimed'), '', StreamlineEmojisMoneyWithWings);
+    tx.update('success', t('profit_claimed'));
+    kiosk_profits.value = 0;
   } catch (error) {
+    tx.update('error', t('claiming_error'));
     console.error(error);
   }
-  decrease_loading();
 }
 
+watch(current_address, refresh_kiosk_profits);
+
 onMounted(() => {
-  profit_interval = setInterval(() => {
-    refresh_kiosk_profits();
-  }, 5000);
+  refresh_kiosk_profits();
+  SUI_EMITTER.on('ItemSoldEvent', refresh_kiosk_profits);
 });
 
 onUnmounted(() => {
-  clearInterval(profit_interval);
+  SUI_EMITTER.off('ItemSoldEvent', refresh_kiosk_profits);
 });
 </script>
 
