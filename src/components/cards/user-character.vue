@@ -19,6 +19,7 @@
     selecting_ok: Character selected
     unselecting: Unselecting character
     unselecting_ok: Character unselected
+    unselecting_stuff: You must unequip all items before unselecting this character
   fr:
     lock: Sélectionner
     unlock: Désélectionner
@@ -39,6 +40,7 @@
     selecting_ok: Personnage sélectionné
     unselecting: Désélection du personnage
     unselecting_ok: Personnage désélectionné
+    unselecting_stuff: Vous devez déséquiper tous les objets avant de désélectionner ce personnage
 </i18n>
 
 <template lang="pug">
@@ -158,7 +160,6 @@ async function select_character() {
     await sui_select_character(props.character);
     update('success', t('selecting_ok'));
   } catch (error) {
-    console.log('====== OH NO');
     console.error(error);
     update('error', t('lock_failed'));
   } finally {
@@ -174,9 +175,10 @@ async function unselect_character() {
     await sui_unselect_character(props.character);
     update('success', t('unselecting_ok'));
   } catch (error) {
-    console.log('====== OH NO');
     console.error(error);
-    update('error', t('unlock_failed'));
+    if (error.message.includes('Some("unselect_character") }, 101)')) {
+      update('error', t('unselecting_stuff'));
+    } else update('error', t('unlock_failed'));
   } finally {
     unlock_loading.value = false;
   }

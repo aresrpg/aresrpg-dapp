@@ -313,7 +313,10 @@ const items = computed(() => {
     case 'consumables':
       return owned_items.value.filter(is_consumable);
     case 'misc':
-      return [...owned_items.value.filter(is_resource), ...owned_tokens.value];
+      return [
+        ...owned_items.value.filter(is_resource),
+        ...owned_tokens.value,
+      ].filter(item => !is_character(item));
     default: {
       if (inventory_counter?.value && edit_mode?.value)
         return edit_mode_equipment.equipments.sort((a, b) => a.name - b.name);

@@ -75,7 +75,7 @@ sectionContainer
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { inject, ref, provide, computed } from 'vue';
+import { inject, ref, provide, computed, onMounted } from 'vue';
 import { BigNumber as BN } from 'bignumber.js';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
@@ -115,6 +115,16 @@ const selected_item_type = ref(null);
 const requested_list_price = ref(1);
 
 provide('selected_item_type', selected_item_type);
+
+onMounted(() => {
+  setInterval(() => {
+    console.dir({
+      selected_item: selected_item.value,
+      is_price_valid: is_price_valid.value,
+      selected_currently_listing: selected_currently_listing.value,
+    });
+  }, 3000);
+});
 
 function get_item_total_amount(item) {
   return (
