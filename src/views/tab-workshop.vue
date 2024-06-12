@@ -20,7 +20,7 @@ sectionContainer
   sectionHeader(:title="t('workshop')" :desc="t('desc')" color="#673AB7" rows="true")
     .recipes
       .recipe-name {{ t('recipes') }}:
-      recipe(v-for="recipe in indexed_recipes" :recipe="recipe" :key="recipe.id")
+      recipeVue(v-for="recipe in indexed_recipes" :recipe="recipe" :key="recipe.id")
     .right
       .desc
         itemDescription
@@ -40,7 +40,7 @@ import { useI18n } from 'vue-i18n';
 
 import sectionContainer from '../components/misc/section-container.vue';
 import sectionHeader from '../components/misc/section-header.vue';
-import recipe from '../components/cards/recipe.vue';
+import recipeVue from '../components/cards/recipe.vue';
 import itemInventory from '../components/cards/item-inventory.vue';
 import itemDescription from '../components/cards/item-description.vue';
 import { VITE_INDEXER_URL } from '../env.js';
@@ -69,11 +69,6 @@ async function refresh_recipes() {
   const result = await fetch(`${VITE_INDEXER_URL}/recipes`);
   const { recipes, cursor } = await result.json();
   indexed_recipes.value = recipes;
-  console.log('found recipes', indexed_recipes.value);
-  setTimeout(() => {
-    indexed_recipes.value = recipes;
-    console.log('updated again');
-  }, 5000);
 }
 
 function on_recipe_create() {
