@@ -1,0 +1,42 @@
+import {
+  context,
+  current_locked_character,
+  current_three_character,
+} from '../game/game.js'
+import { state_iterator } from '../utils/iterator.js'
+
+/** @type {Type.Module} */
+export default function () {
+  /** @type {Map<string, object>} */
+  const current_equipments = new Map() // <character, { hat, ... }>
+
+  return {
+    observe() {
+      // when a character is removed, remove its equipment
+      context.events.on('action/remove_character', character_id => {
+        current_equipments.delete(character_id)
+      })
+
+      state_iterator().forEach(state => {
+        const character = current_locked_character(state)
+        const three_character = current_three_character(state)
+
+        if (!character || !three_character) return
+        if (!current_equipments.has(character.id))
+          current_equipments.set(character.id, {})
+
+        const { hat } = character
+        const current_equipment = current_equipments.get(character.id)
+
+        if (hat?.id !== current_equipment.hat?.id) {
+          // remove current hat
+          if (current_equipment.hat) three_character.equip_hat(null)
+          // if new hat, equip it
+          if (hat) three_character.equip_hat(hat)
+
+          current_equipments.set(character.id, { ...current_equipment, hat })
+        }
+      })
+    },
+  }
+}

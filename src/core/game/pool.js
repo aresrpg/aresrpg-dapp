@@ -1,21 +1,19 @@
-import { Group, LoopOnce, MeshBasicMaterial, Quaternion, Vector3 } from 'three'
+import {
+  Group,
+  LoopOnce,
+  Matrix4,
+  MeshBasicMaterial,
+  Quaternion,
+  Vector3,
+} from 'three'
 import { Text } from 'troika-three-text'
 import { createDerivedMaterial } from 'troika-three-utils'
 
-import { load } from '../utils/three/load_model.js'
 import InstancedEntity from '../entity/InstancedEntity.js'
 import dispose from '../utils/three/dispose.js'
-import iop_male from '../../assets/models/iop_male.glb?url'
-import iop_female from '../../assets/models/iop_female.glb?url'
-import sram_male from '../../assets/models/sram_male.glb?url'
-import sram_female from '../../assets/models/sram_female.glb?url'
-import chafer from '../../assets/models/chafer.glb?url'
-import suifren_bullshark from '../../assets/models/suifren_bullshark.glb?url'
-import suifren_capy from '../../assets/models/suifren_capy.glb?url'
-import afegg from '../../assets/models/afegg.glb?url'
-import primemachin from '../../assets/models/primemachin.glb?url'
 
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
+import { MATRIX, MODELS, find_head_bone } from './models.js'
 
 function create_billboard_material(base_material, keep_aspect) {
   return createDerivedMaterial(base_material, {
@@ -69,45 +67,6 @@ const MODEL_FORWARD = new Vector3(0, 0, 1)
 //   'SIT',
 //   'WALK',
 // ]
-
-export const MODELS = {
-  iop_male: await load(iop_male, {
-    env_map_intensity: 0.5,
-    scale: 0.9,
-  }),
-  iop_female: await load(iop_female, {
-    env_map_intensity: 0.5,
-    // scale: 1.2,
-  }),
-  sram_male: await load(sram_male, {
-    env_map_intensity: 0.5,
-    // scale: 1.2,
-  }),
-  sram_female: await load(sram_female, {
-    env_map_intensity: 0.5,
-    scale: 0.043,
-  }),
-  chafer: await load(chafer, {
-    env_map_intensity: 0.5,
-    scale: 1.2,
-  }),
-  suifren_bullshark: await load(suifren_bullshark, {
-    env_map_intensity: 0.5,
-    scale: 1.5,
-  }),
-  suifren_capy: await load(suifren_capy, {
-    env_map_intensity: 0.2,
-    scale: 1.5,
-  }),
-  afegg: await load(afegg, {
-    env_map_intensity: 0.5,
-    scale: 0.18,
-  }),
-  primemachin: await load(primemachin, {
-    env_map_intensity: 0.5,
-    scale: 0.046,
-  }),
-}
 
 function fade_to_animation(from, to, duration = 0.3) {
   if (from !== to) {
@@ -270,6 +229,10 @@ export default function create_pools(scene) {
           },
           position: current_position,
           target_position: null,
+
+          equip_hat(hat) {
+            throw new Error('Not supported')
+          },
         }
       },
       /** @type {(param: {id: string, name: string, skin: string}) => Type.ThreeEntity} */
@@ -344,6 +307,22 @@ export default function create_pools(scene) {
           },
           position: origin.position,
           target_position: null,
+
+          equip_hat(hat) {
+            const head = find_head_bone(model)
+
+            if (!hat) {
+              head.clear()
+              return
+            }
+
+            const { model: hat_model } = MODELS[hat.item_type]()
+            const apply_matrix = MATRIX[hat.item_type][skin]
+
+            apply_matrix(hat_model)
+
+            head.add(hat_model)
+          },
         }
       },
     }

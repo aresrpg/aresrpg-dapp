@@ -28,7 +28,7 @@ export async function load(
 
   scene.traverse(child => {
     // @ts-ignore
-    if (child.isBone) child.visible = false
+    // if (child.isBone) child.visible = false
 
     // @ts-ignore
     if (child.isMesh) {
