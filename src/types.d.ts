@@ -24,6 +24,11 @@ declare namespace Type {
   type Await<T> = T extends Promise<infer U> ? U : T
   type Position = { x: number; y: number; z: number }
 
+  type Object3D = import('three').Group<import('three').Object3DEventMap>
+  type SuiCharacter = import('@aresrpg/aresrpg-sdk/types').SuiCharacter
+  type SuiItem = import('@aresrpg/aresrpg-sdk/types').SuiItem
+  type SuiToken = import('@aresrpg/aresrpg-sdk/types').SuiToken
+
   type ThreeEntity = {
     id: string
     height: number
@@ -43,16 +48,14 @@ declare namespace Type {
     action: string
     audio: import('three').PositionalAudio
     skin: string
+
+    equip_hat(hat: SuiItem): void
   }
 
   // type Entity = {
   //   level: number
   //   siblings: { name: string; level: number }[]
   // }
-
-  type SuiCharacter = import('@aresrpg/aresrpg-sdk/types').SuiCharacter
-  type SuiItem = import('@aresrpg/aresrpg-sdk/types').SuiItem
-  type SuiToken = import('@aresrpg/aresrpg-sdk/types').SuiToken
 
   type Spell = { name: string; icon: string }
   type FullCharacter = ThreeEntity &
