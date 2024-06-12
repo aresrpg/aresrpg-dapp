@@ -130,7 +130,7 @@ declare namespace Type {
     'action/add_finished_craft': { id: string; recipe_id: string }
     'action/sui_remove_locked_item': string
     'action/sui_remove_unlocked_item': string
-    'action/sui_remove_item_for_sale': string
+    'action/sui_remove_item_for_sale': { id: string; keep: boolean }
     'action/sui_remove_unlocked_character': string
     'action/sui_remove_locked_character': string
     'action/sui_remove_finished_craft': string
