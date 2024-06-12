@@ -194,7 +194,6 @@ nav(:class="{ small: breakpoints.mobile.matches }")
         img(:src="avatar")
 
   // First login dialog to choose between google (ZkLogin) and Sui Wallet
-
   vs-dialog(v-model="login_dialog" overlay-blur)
     template(#header)
       img.logo(src="../../assets/logo.png")
@@ -321,4 +320,6 @@ nav
   backdrop-filter blur(10px)
   background rgba(0, 0, 0, .5)
   max-width 200px
+.btn
+  margin-top .5em
 </style>
