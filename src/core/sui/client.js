@@ -807,8 +807,6 @@ function get_item_with_amount({ tx, item, amount, kiosks }) {
 export async function sui_list_item({ item, price, amount }) {
   const tx = new Transaction()
 
-  console.log('listing', { item, price, amount })
-
   sdk.add_header(tx)
 
   const { kiosks, finalize } = await sdk.get_user_kiosks({
