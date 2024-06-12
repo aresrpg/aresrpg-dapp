@@ -250,6 +250,7 @@ span.title
         display flex
         flex-flow column nowrap
         margin-left auto
+        justify-content center
       .ingredient
         display flex
         flex-flow row nowrap
