@@ -1,10 +1,3 @@
-<i18n>
-en:
-  item_sold: was sold
-fr:
-  item_sold: a été vendu
-</i18n>
-
 <template lang="pug">
 router-view
 </template>
@@ -20,13 +13,7 @@ import {
   current_locked_character,
 } from './core/game/game.js';
 import { enoki_address, enoki_wallet } from './core/sui/enoki.js';
-import { SUI_EMITTER } from './core/modules/sui_data.js';
-import toast from './toast.js';
-import {
-  pretty_print_mists,
-  sui_get_my_listings,
-  sui_get_policies_profit,
-} from './core/sui/client.js';
+import { sui_get_policies_profit } from './core/sui/client.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore

@@ -1,4 +1,3 @@
-// import { N8AOPass } from 'n8ao'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -32,12 +31,6 @@ export default function () {
 
     observe({ scene, signal, composer, camera, pool, events }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
-      // const n8aopass = new N8AOPass(
-      //   scene,
-      //   camera,
-      //   window.innerWidth,
-      //   window.innerHeight,
-      // )
 
       const gtaopass = new GTAOPass(
         scene,

@@ -7,6 +7,7 @@ import { aiter } from 'iterator-helper'
 import { i18n } from '../../i18n.js'
 import { context, disconnect_ws } from '../game/game.js'
 import {
+  pretty_print_mists,
   sdk,
   sui_get_admin_caps,
   sui_get_aresrpg_kiosk,
@@ -179,23 +180,27 @@ export default function () {
         }
       }
       if (type === 'action/sui_remove_item_for_sale') {
-        const item = state.sui.items_for_sale.find(item => item.id === payload)
+        const item = state.sui.items_for_sale.find(
+          item => item.id === payload.id,
+        )
 
         delete item.list_price
 
-        if (item.is_aresrpg_character) {
-          // @ts-ignore
-          state.sui.unlocked_characters.push(item)
-        }
+        if (payload.keep) {
+          if (item.is_aresrpg_character) {
+            // @ts-ignore
+            state.sui.unlocked_characters.push(item)
+          }
 
-        state.sui.unlocked_items.push(item)
+          state.sui.unlocked_items.push(item)
+        }
 
         return {
           ...state,
           sui: {
             ...state.sui,
             items_for_sale: state.sui.items_for_sale.filter(
-              item => item.id !== payload,
+              item => item.id !== payload.id,
             ),
           },
         }
@@ -388,7 +393,6 @@ export default function () {
 
         if (update_items_for_sale) {
           update.items_for_sale = await sui_get_my_listings()
-          console.log('for sale', update.items_for_sale)
         }
 
         if (update_tokens) update.tokens = await sui_get_supported_tokens()
@@ -415,13 +419,10 @@ export default function () {
 
               // unsubscription is handled internally
               sui_subscribe(controller).then(emitter => {
-                function is_kiosk_mine(id) {
-                  const state = context.get_state()
-                  const kiosk_is_mine = state.sui.locked_characters.some(
-                    ({ kiosk_id }) => kiosk_id === id,
-                  )
+                async function is_kiosk_mine(id) {
+                  const kiosk = await sui_get_kiosk_cap(id)
 
-                  return kiosk_is_mine
+                  return !!kiosk
                 }
 
                 function forward_event(name) {
@@ -599,7 +600,7 @@ export default function () {
 
                 async function handle_item_mint_event(event) {
                   try {
-                    if (is_kiosk_mine(event.kiosk_id)) {
+                    if (await is_kiosk_mine(event.kiosk_id)) {
                       const item = await find_item_or_retry(event.item_id)
                       const cap = await sui_get_kiosk_cap(event.kiosk_id)
 
@@ -685,7 +686,7 @@ export default function () {
                 async function handle_item_purchased_event(event) {
                   if (+event.price === 0) return
                   // If I'm the seller
-                  if (is_kiosk_mine(event.kiosk)) {
+                  if (await is_kiosk_mine(event.kiosk)) {
                     const my_listing = context
                       .get_state()
                       .sui.items_for_sale.find(
@@ -700,10 +701,10 @@ export default function () {
                       `+${pretty_print_mists(my_listing.list_price)} Sui`,
                       EmojioneMoneyBag,
                     )
-                    context.dispatch(
-                      'action/sui_remove_item_for_sale',
-                      event.id,
-                    )
+                    context.dispatch('action/sui_remove_item_for_sale', {
+                      id: event.id,
+                      keep: false,
+                    })
 
                     SUI_EMITTER.emit('ItemSoldEvent', my_listing)
                   }
@@ -759,10 +760,10 @@ export default function () {
 
                 async function handle_item_delisted_event(event) {
                   if (event.sender_is_me) {
-                    context.dispatch(
-                      'action/sui_remove_item_for_sale',
-                      event.id,
-                    )
+                    context.dispatch('action/sui_remove_item_for_sale', {
+                      id: event.id,
+                      keep: true,
+                    })
                   }
                   SUI_EMITTER.emit('ItemDelistedEvent', event)
                 }
