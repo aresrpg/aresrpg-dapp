@@ -55,7 +55,7 @@ fr:
 </template>
 
 <script setup>
-import { watch, ref, inject, onMounted, onUnmounted, computed } from 'vue';
+import { watch, ref, inject, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { BigNumber as BN } from 'bignumber.js';
 import { MIST_PER_SUI } from '@mysten/sui/utils';

@@ -65,20 +65,19 @@ async function find_character_or_retry(id) {
   return character
 }
 
-export const SUI_EMITTER = new EventEmitter()
+async function find_item_or_retry(id) {
+  const item = await sdk.get_item_by_id(id)
 
-function debounce(func, wait) {
-  const timeouts = new Map()
-  return function (params) {
-    const key = JSON.stringify(params)
-    if (timeouts.has(key)) clearTimeout(timeouts.get(key))
-    const timeout = setTimeout(() => {
-      func(params)
-      timeouts.delete(key)
-    }, wait)
-    timeouts.set(key, timeout)
+  if (!item) {
+    console.warn('Item not found, retrying in 1s')
+    await setTimeout(1000)
+    return find_item_or_retry(id)
   }
+
+  return item
 }
+
+export const SUI_EMITTER = new EventEmitter()
 
 /** @type {Type.Module} */
 export default function () {
@@ -139,7 +138,12 @@ export default function () {
           sui: {
             ...state.sui,
             unlocked_items: state.sui.unlocked_items.map(item =>
-              item.id === payload.id ? payload : item,
+              item.id === payload.id
+                ? {
+                    ...item,
+                    ...payload,
+                  }
+                : item,
             ),
           },
         }
@@ -179,9 +183,12 @@ export default function () {
 
         delete item.list_price
 
-        // @ts-ignore
-        if (item.is_aresrpg_character) state.sui.unlocked_characters.push(item)
-        else state.sui.unlocked_items.push(item)
+        if (item.is_aresrpg_character) {
+          // @ts-ignore
+          state.sui.unlocked_characters.push(item)
+        }
+
+        state.sui.unlocked_items.push(item)
 
         return {
           ...state,
@@ -330,6 +337,21 @@ export default function () {
           },
         }
       }
+      if (type === 'action/add_finished_craft') {
+        return {
+          ...state,
+          sui: {
+            ...state.sui,
+            finished_crafts: [
+              ...state.sui.finished_crafts,
+              {
+                id: payload.id,
+                recipe_id: payload.recipe_id,
+              },
+            ],
+          },
+        }
+      }
 
       return state
     },
@@ -364,8 +386,10 @@ export default function () {
         if (update_unlocked_items)
           update.unlocked_items = await sui_get_unlocked_items()
 
-        if (update_items_for_sale)
+        if (update_items_for_sale) {
           update.items_for_sale = await sui_get_my_listings()
+          console.log('for sale', update.items_for_sale)
+        }
 
         if (update_tokens) update.tokens = await sui_get_supported_tokens()
 
@@ -374,8 +398,6 @@ export default function () {
 
         context.dispatch('action/sui_data_update', update)
       }
-
-      const debounced_update_user_data = debounce(update_user_data, 100)
 
       let tx = null
 
@@ -470,13 +492,18 @@ export default function () {
                     SUI_EMITTER.emit('ItemUnequipEvent', event)
                 }
 
-                async function handle_pet_feed_event(event) {
-                  if (event.sender_is_me)
-                    debounced_update_user_data({
-                      update_locked_characters: true,
-                      update_unlocked_items: true,
-                      update_balance: true,
-                    })
+                async function handle_pet_feed_event({ pet_id, sender_is_me }) {
+                  if (sender_is_me) {
+                    try {
+                      const pet = await sdk.get_item_by_id(pet_id)
+                      context.dispatch('action/sui_update_item', pet)
+                      // update stats and Sui
+                      update_user_data({
+                        update_locked_characters: true,
+                        update_balance: true,
+                      })
+                    } catch (error) {}
+                  }
                 }
 
                 async function handle_character_create_event(event) {
@@ -564,7 +591,7 @@ export default function () {
 
                 async function handle_stats_reset_event(event) {
                   if (event.sender_is_me)
-                    debounced_update_user_data({
+                    update_user_data({
                       update_locked_characters: true,
                       update_unlocked_items: true,
                     })
@@ -573,19 +600,24 @@ export default function () {
                 async function handle_item_mint_event(event) {
                   try {
                     if (is_kiosk_mine(event.kiosk_id)) {
-                      const item = await sdk.get_item_by_id(event.item_id)
+                      const item = await find_item_or_retry(event.item_id)
                       const cap = await sui_get_kiosk_cap(event.kiosk_id)
 
                       assert(item, 'Item not found')
 
-                      if (event.sender_is_me)
-                        context.dispatch('action/sui_add_unlocked_item', {
+                      if (event.sender_is_me) {
+                        const final_item = {
                           ...item,
                           kiosk_id: event.kiosk_id,
                           personal_kiosk_cap_id: cap.id,
                           is_kiosk_personal: cap.personal,
-                        })
-                      else
+                        }
+                        context.dispatch(
+                          'action/sui_add_unlocked_item',
+                          final_item,
+                        )
+                        SUI_EMITTER.emit('ItemRevealedEvent', final_item)
+                      } else
                         context.dispatch('action/sui_add_locked_item', {
                           ...item,
                           kiosk_id: event.kiosk_id,
@@ -737,8 +769,9 @@ export default function () {
 
                 async function handle_finished_craft_event(event) {
                   if (event.sender_is_me)
-                    debounced_update_user_data({
-                      update_finished_crafts: true,
+                    context.dispatch('action/add_finished_craft', {
+                      id: event.id,
+                      recipe_id: event.recipe_id,
                     })
                 }
 

@@ -1,18 +1,30 @@
 <i18n>
 en:
   feed: Feed
+  feeding: Feeding your small friend
   fed: Your pet is very happy now!
+  pet_full: Your pet is not hungry
+  feed_failed: Failed to feed your pet
   delete: Destroy item
   delete_confirm: Delete
   cancel: Cancel
   delete_desc: Are you sure you want to delete {0} ? This action is irreversible.
+  deleting: Deleting item
+  deleted: Item deleted!
+  failed_to_delete: Failed to delete item
 fr:
   feed: Nourrir
+  feeding: Nourrir votre familier
   fed: Votre famillier est très heureux maintenant!
+  pet_full: Votre familier n'a pas faim
+  feed_failed: Échec du nourrissage de votre familier
   delete: Détruire l'objet
   delete_confirm: Supprimer
   cancel: Annuler
   delete_desc: Êtes-vous sûr de vouloir supprimer {0} ? Cette action est irréversible.
+  deleting: Suppression de l'objet
+  deleted: Objet supprimé!
+  failed_to_delete: Échec de la suppression de l'objet
 </i18n>
 
 <template lang="pug">
@@ -42,7 +54,7 @@ fr:
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 import ContextMenu from '@imengyu/vue3-context-menu';
 import { useI18n } from 'vue-i18n';
@@ -95,14 +107,14 @@ function pretty_amount(item) {
 const feed_context = {
   label: t('feed'),
   onClick: async () => {
+    const tx = toast.tx(t('feeding'), selected_item.value.name);
     try {
-      increase_loading();
       const fed = await sui_feed_pet(selected_item.value);
-      if (fed) toast.success(t('fed'));
+      if (fed) tx.update('success', t('fed'));
+      else tx.update('error', t('pet_full'));
     } catch (error) {
       console.error(error);
-    } finally {
-      decrease_loading();
+      tx.update('error', t('feed_failed'));
     }
   },
 };
@@ -115,14 +127,14 @@ const delete_context = {
 };
 
 async function delete_item() {
+  const tx = toast.tx(t('deleting'), selected_item.value.name);
   try {
-    increase_loading();
+    deletion_dialog.value = false;
     await sui_delete_item(selected_item.value);
+    tx.update('success', t('deleted'));
   } catch (error) {
     console.error(error);
-  } finally {
-    decrease_loading();
-    deletion_dialog.value = false;
+    tx.update('error', t('failed_to_delete'));
   }
 }
 
@@ -301,27 +313,37 @@ function select(item) {
 }
 
 const items = computed(() => {
-  if (props.sell_mode) {
-    const base = [...owned_items.value];
-    if (props.tokens) base.push(...owned_tokens.value);
-    return base.sort((a, b) => a.item_type - b.item_type);
+  const { sell_mode, tokens } = props;
+  const owned_items_value = [...owned_items.value];
+  const owned_tokens_value = [
+    ...owned_tokens.value.filter(({ amount }) => amount > 0n),
+  ];
+  const selected_category_value = selected_category?.value;
+  const extension_items_value = extension_items.value;
+  const inventory_counter_value = inventory_counter?.value;
+  const edit_mode_value = edit_mode?.value;
+  const edit_mode_equipments = edit_mode_equipment?.equipments;
+
+  if (sell_mode) {
+    if (tokens) owned_items_value.push(...owned_tokens_value);
+    return owned_items_value.sort((a, b) => a.item_type - b.item_type);
   }
 
-  switch (selected_category?.value || 'equipment') {
+  switch (selected_category_value || 'equipment') {
     case 'loot':
-      return extension_items.value;
+      return extension_items_value;
     case 'consumables':
-      return owned_items.value.filter(is_consumable);
+      return owned_items_value.filter(is_consumable);
     case 'misc':
       return [
-        ...owned_items.value.filter(is_resource),
-        ...owned_tokens.value,
+        ...owned_items_value.filter(is_resource),
+        ...owned_tokens_value,
       ].filter(item => !is_character(item));
     default: {
-      if (inventory_counter?.value && edit_mode?.value)
-        return edit_mode_equipment.equipments.sort((a, b) => a.name - b.name);
+      if (inventory_counter_value && edit_mode_value)
+        return edit_mode_equipments.sort((a, b) => a.name - b.name);
 
-      const equipments = owned_items.value
+      const equipments = owned_items_value
         .filter(item => {
           return (
             !!item &&

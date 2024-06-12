@@ -739,12 +739,6 @@ export async function sui_unselect_character({
 }) {
   const tx = new Transaction()
 
-  console.log('unselect==', {
-    kiosk_id,
-    personal_kiosk_cap_id,
-    id,
-  })
-
   sdk.add_header(tx)
   sdk.borrow_personal_kiosk_cap({
     personal_kiosk_cap_id,
@@ -800,14 +794,6 @@ function get_item_with_amount({ tx, item, amount, kiosks }) {
   merge_all_items({ tx, item, kiosks, items: unlocked_items })
 
   if (total_amount === +amount) return tx.pure.id(item.id)
-
-  console.log({
-    tx,
-    kiosk: item.kiosk_id,
-    kiosk_cap: kiosks.get(item.kiosk_id),
-    item_id: item.id,
-    amount,
-  })
 
   return sdk.split_item({
     tx,
