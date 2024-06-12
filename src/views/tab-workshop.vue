@@ -35,7 +35,7 @@ sectionContainer
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted } from 'vue';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import sectionContainer from '../components/misc/section-container.vue';

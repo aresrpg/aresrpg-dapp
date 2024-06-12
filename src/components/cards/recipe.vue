@@ -13,6 +13,7 @@ en:
   revealing: Revealing item
   revealed: Item revealed
   revealed_failed: Failed to reveal item
+  close: Close
 fr:
   required: Requis
   tailor: Tailleur
@@ -27,6 +28,7 @@ fr:
   revealing: Révélation de l'objet
   revealed: Objet révélé
   revealed_failed: Échec de la révélation de l'objet
+  close: Fermer
 </i18n>
 
 <template lang="pug">
@@ -59,10 +61,18 @@ fr:
       .dialog-footer
         vs-button(type="transparent" color="#E74C3C" @click="craft_dialog = false") {{ t('cancel') }}
         vs-button(type="transparent" color="#2ECC71" @click="craft_item") {{ t('craft') }}
+
+  /// revealed dialog
+  vs-dialog(v-model="reveal_dialog" :loading="!selected_item")
+    template(#header) Wow!!!
+    itemDescription
+    template(#footer)
+      .dialog-footer
+        vs-button(type="transparent" color="#2ECC71" @click="(reveal_dialog = false, select_item.value = null)") {{ t('close') }}
 </template>
 
 <script setup>
-import { inject, computed, ref } from 'vue';
+import { inject, computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { SUPPORTED_TOKENS } from '@aresrpg/aresrpg-sdk/sui';
 import { BigNumber as BN } from 'bignumber.js';
@@ -74,12 +84,17 @@ import {
 } from '../../core/sui/client.js';
 import toast from '../../toast.js';
 import { context } from '../../core/game/game.js';
+import { SUI_EMITTER } from '../../core/modules/sui_data.js';
+
+import itemDescription from './item-description.vue';
 
 const { t } = useI18n();
 const props = defineProps(['recipe']);
 const owned_items = inject('owned_items');
 const owned_tokens = inject('owned_tokens');
 const finished_crafts = inject('finished_crafts');
+const selected_item = inject('selected_item');
+const reveal_dialog = ref(false);
 
 const craft_dialog = ref(false);
 const currently_revealing = ref(false);
@@ -106,6 +121,7 @@ async function reveal_craft() {
   const tx = toast.tx(t('revealing'), props.recipe.template.name);
   try {
     currently_revealing.value = true;
+    selected_item.value = null;
     const finished_craft = finished_crafts.value.find(
       craft => craft.recipe_id === props.recipe.id,
     );
@@ -118,7 +134,20 @@ async function reveal_craft() {
     tx.update('error', t('revealed_failed'));
   }
   currently_revealing.value = false;
+  reveal_dialog.value = true;
 }
+
+function on_item_reveal(item) {
+  selected_item.value = item;
+}
+
+onMounted(() => {
+  SUI_EMITTER.on('ItemRevealedEvent', on_item_reveal);
+});
+
+onUnmounted(() => {
+  SUI_EMITTER.off('ItemRevealedEvent', on_item_reveal);
+});
 
 function pretty_amount(ingredient) {
   const token = SUPPORTED_TOKENS[ingredient.item_type];
