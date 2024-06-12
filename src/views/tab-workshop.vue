@@ -68,6 +68,7 @@ function item_icon(item_type) {
 async function refresh_recipes() {
   const result = await fetch(`${VITE_INDEXER_URL}/recipes`);
   const { recipes, cursor } = await result.json();
+  console.log('found recipes', recipes);
   indexed_recipes.value = recipes;
 }
 
