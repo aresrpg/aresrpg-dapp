@@ -35,7 +35,7 @@ sectionContainer
         .inv
           .desc
             itemDescription
-          .buttons(v-if="selected_item && !selected_item.list_price")
+          .buttons(v-if="show_sell_buttons")
             .input
               vs-input.vinput(
                 type="number"
@@ -109,21 +109,13 @@ const shop_tabs = {
   sell: {},
 };
 
-const owned_items = inject('owned_items');
-
 const selected_item_type = ref(null);
 const requested_list_price = ref(1);
 
 provide('selected_item_type', selected_item_type);
 
-onMounted(() => {
-  setInterval(() => {
-    console.dir({
-      selected_item: selected_item.value,
-      is_price_valid: is_price_valid.value,
-      selected_currently_listing: selected_currently_listing.value,
-    });
-  }, 3000);
+const show_sell_buttons = computed(() => {
+  return selected_item && !selected_item.value?.list_price;
 });
 
 function get_item_total_amount(item) {

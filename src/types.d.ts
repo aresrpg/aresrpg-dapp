@@ -127,12 +127,14 @@ declare namespace Type {
     'action/sui_add_item_for_sale': { id: string; list_price: bigint }
     'action/sui_add_unlocked_character': SuiCharacter
     'action/sui_add_locked_character': SuiCharacter
-    'action/sui_update_item': SuiItem
+    'action/add_finished_craft': { id: string; recipe_id: string }
     'action/sui_remove_locked_item': string
     'action/sui_remove_unlocked_item': string
     'action/sui_remove_item_for_sale': string
     'action/sui_remove_unlocked_character': string
     'action/sui_remove_locked_character': string
+    'action/sui_remove_finished_craft': string
+    'action/sui_update_item': SuiItem
     'action/sui_split_item': {
       item_id: string
       new_item_id: string
@@ -143,7 +145,6 @@ declare namespace Type {
       target_item_id: string
       final_amount: number
     }
-    'action/sui_remove_finished_craft': string
     'action/sui_equip_item': {
       slot: string
       item_id: string

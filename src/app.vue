@@ -219,10 +219,19 @@ function update_all(state) {
   }
 
   if (!deep_equal(locked_items, extension_items.value))
-    extension_items.value = locked_items;
+    extension_items.value = [...locked_items];
 
-  if (!deep_equal(unlocked_items, owned_items.value))
-    owned_items.value = unlocked_items;
+  if (!deep_equal(unlocked_items, owned_items.value)) {
+    owned_items.value = [...unlocked_items];
+
+    const unlocked_selected = unlocked_items.find(
+      item => item.id === selected_item.value?.id,
+    );
+
+    if (unlocked_selected) {
+      selected_item.value = unlocked_selected;
+    }
+  }
 
   if (!deep_equal(items_for_sale, my_listings.value))
     my_listings.value = items_for_sale;

@@ -25,8 +25,8 @@ en:
   water_resistance: "% Water resistance"
   air_resistance: "% Air resistance"
   effects: Effects
-  stomach: Stomach
-  last_feed: Last Feed
+  stomach: Sui in stomach
+  last_feed: Last fed
 
   relic: Relic
   rune: Rune
@@ -88,8 +88,8 @@ fr:
   water_resistance: "% Résistance Eau"
   air_resistance: "% Résistance Air"
   effects: Effets
-  stomach: Estomac
-  last_feed: Dernier Repas
+  stomach: Sui dans l'estomac
+  last_feed: Dernier repas
 
   relic: Relique
   rune: Rune
@@ -349,4 +349,5 @@ const stats = computed(() => {
         .stomach, .last-feed
           font-size .8em
           opacity .7
+          font-style italic
 </style>
