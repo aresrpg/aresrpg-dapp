@@ -4,7 +4,7 @@ import { Vector3 } from 'three'
 import { aiter } from 'iterator-helper'
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
-import { abortable } from '../utils/iterator.js'
+import { abortable, state_iterator } from '../utils/iterator.js'
 import {
   sui_get_character,
   sui_get_character_name,
@@ -15,6 +15,7 @@ import { context, current_three_character } from '../game/game.js'
 
 import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
 import { tick_pet } from './player_pet.js'
+import { get_item_skin } from './player_skin.js'
 
 const MOVE_UPDATE_INTERVAL = 0.1
 const MAX_TITLE_VIEW_DISTANCE = 40
@@ -42,7 +43,7 @@ export default function () {
     })
 
     sui_get_character_name(character.id).then(name => {
-      spawned_pet.title.text = `${character.pet.name} (${name})`
+      spawned_pet.floating_title.text = `${character.pet.name} (${name})`
     })
 
     spawned_pet.move(character.position)
@@ -95,6 +96,8 @@ export default function () {
             .entity(DEFAULT_SUI_CHARACTER())
             .instanced()
 
+          // it's okay to manipulate visible_characters without dispatching action
+          // because it's a map and never changed, and as it manages others players, it's accessed very often and needed sequentially
           // @ts-ignore
           visible_characters.set(id, {
             ...DEFAULT_SUI_CHARACTER(),
@@ -107,11 +110,13 @@ export default function () {
             .then(sui_data => {
               default_three_character.remove()
 
+              const skin = get_item_skin(sui_data)
               const level = experience_to_level(sui_data.experience)
               const three_character = pool
                 .entity({
                   ...sui_data,
                   name: `${sui_data.name} (${level})`,
+                  skin,
                 })
                 .instanced()
 
@@ -119,8 +124,8 @@ export default function () {
 
               default_three_character.apply_state(three_character)
               visible_characters.set(id, {
-                ...sui_data,
                 ...visible_characters.get(id),
+                ...sui_data,
                 ...three_character,
               })
             })
@@ -170,14 +175,17 @@ export default function () {
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 
-            if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
-              entity.title.visible = false
+            if (
+              distance > MAX_TITLE_VIEW_DISTANCE &&
+              entity.floating_title.visible
+            ) {
+              entity.floating_title.visible = false
               if (entity.pet) despawn_pet(entity)
             } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
-              !entity.title.visible
+              !entity.floating_title.visible
             ) {
-              entity.title.visible = true
+              entity.floating_title.visible = true
               if (entity.pet) spawn_pet(entity)
             }
           }
@@ -197,15 +205,18 @@ export default function () {
 
             entity.set_low_priority(distance > MAX_ANIMATION_DISTANCE)
 
-            if (distance > MAX_TITLE_VIEW_DISTANCE && entity.title.visible) {
-              entity.title.visible = false
+            if (
+              distance > MAX_TITLE_VIEW_DISTANCE &&
+              entity.floating_title.visible
+            ) {
+              entity.floating_title.visible = false
               if (entity.pet) despawn_pet(entity)
             } else if (
               distance <= MAX_TITLE_VIEW_DISTANCE &&
-              !entity.title.visible
+              !entity.floating_title.visible
             ) {
               if (entity.pet) spawn_pet(entity)
-              entity.title.visible = true
+              entity.floating_title.visible = true
             }
           })
         }
@@ -221,10 +232,32 @@ export default function () {
         }
       })
 
+      function update_skin({ visible_characters, character, skin }) {
+        character.remove()
+
+        const level = experience_to_level(character.experience)
+        const three_character = pool
+          .entity({
+            ...character,
+            name: `${character.name} (${level})`,
+            skin,
+          })
+          .instanced()
+
+        character.apply_state(three_character)
+
+        visible_characters.set(character.id, {
+          ...character,
+          ...three_character,
+          skin,
+        })
+      }
+
       SUI_EMITTER.on(
         'ItemEquipEvent',
         async ({ item_id, character_id, slot }) => {
-          const character = get_state().visible_characters.get(character_id)
+          const { visible_characters } = get_state()
+          const character = visible_characters.get(character_id)
 
           if (!character) return
 
@@ -235,11 +268,17 @@ export default function () {
           if (item.item_category === ITEM_CATEGORY.PET) {
             spawn_pet(character)
           }
+
+          const skin = get_item_skin(character)
+
+          if (skin !== character.skin)
+            update_skin({ visible_characters, character, skin })
         },
       )
 
       SUI_EMITTER.on('ItemUnequipEvent', ({ character_id, slot }) => {
-        const character = get_state().visible_characters.get(character_id)
+        const { visible_characters } = get_state()
+        const character = visible_characters.get(character_id)
 
         if (!character) return
 
@@ -252,6 +291,11 @@ export default function () {
         }
 
         character[slot] = null
+
+        const skin = get_item_skin(character)
+
+        if (skin !== character.skin)
+          update_skin({ visible_characters, character, skin })
       })
     },
   }

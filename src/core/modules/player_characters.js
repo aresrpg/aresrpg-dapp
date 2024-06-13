@@ -25,7 +25,7 @@ export default function () {
 
         const level = experience_to_level(payload.experience)
 
-        three_character.title.text = `${payload.name} (${level})`
+        three_character.floating_title.text = `${payload.name} (${level})`
 
         three_character.target_position = payload.position
 
