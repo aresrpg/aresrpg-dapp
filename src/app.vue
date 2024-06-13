@@ -90,6 +90,7 @@ const edit_mode_equipment = reactive({
 });
 
 const my_listings = ref([]);
+const message_history = ref([]);
 
 const vue_locked_characters = ref(null);
 const vue_unlocked_characters = ref(null);
@@ -135,6 +136,7 @@ provide('owned_tokens', owned_tokens);
 provide('admin', admin);
 provide('recipes', recipes);
 provide('finished_crafts', finished_crafts);
+provide('message_history', message_history);
 
 function update_all(state) {
   const {
