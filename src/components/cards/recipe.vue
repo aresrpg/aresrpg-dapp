@@ -129,12 +129,12 @@ async function reveal_craft() {
     tx.update('success', t('revealed'));
     // @ts-ignore
     context.dispatch('action/sui_remove_finished_craft', finished_craft.id);
+    reveal_dialog.value = true;
   } catch (error) {
     console.error(error);
     tx.update('error', t('revealed_failed'));
   }
   currently_revealing.value = false;
-  reveal_dialog.value = true;
 }
 
 function on_item_reveal(item) {
