@@ -21,7 +21,7 @@ fr:
     @click.right="on_right_click"
     @scroll="on_scroll"
   )
-    .message(v-if="!hidden" v-for="({name, message, alias}) in history" :key="message")
+    .message(v-if="!hidden" v-for="({name, message, alias, me}) in history" :key="message" :class="{ me }")
       .alias(
         :class="{ suins: alias.includes('.sui') }"
         @click.right="event => on_right_click_id(event, alias)"
@@ -42,7 +42,7 @@ import toast from '../../toast.js';
 import { context } from '../../core/game/game.js';
 import { get_alias, sui_get_character_name } from '../../core/sui/client.js';
 
-const history = ref([]);
+const history = inject('message_history');
 const msg_container = ref(null);
 const auto_scroll = ref(true);
 const hidden = ref(false);
@@ -138,6 +138,7 @@ async function handle_message({ id, message, address }) {
       name,
       message,
       alias: address_display(alias),
+      me: address === context.get_state().sui.selected_address,
     });
     if (history.value.length > 100) {
       history.value.shift();
@@ -152,6 +153,7 @@ async function handle_message({ id, message, address }) {
 
 onMounted(() => {
   context.events.on('packet/chatMessage', handle_message);
+  scroll_to_bottom();
 });
 
 onUnmounted(() => {
@@ -206,7 +208,13 @@ i
     .message
       display flex
       flex-flow row nowrap
-      font-size .8em
+      font-size .7em
+      &.me
+        background rgba(#eee, .1)
+        .alias
+          color white
+          &.suins
+            color #eee
       .alias
         color #ECF0F1
         font-weight bold
@@ -228,6 +236,7 @@ i
     display flex
     flex-flow row nowrap
     border-top 1px solid rgba(#eee, .2)
+    height 30px
     .canal
       color #212121
       font-size .7em
