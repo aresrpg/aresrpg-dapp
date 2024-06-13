@@ -5,14 +5,14 @@ import {
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
 
+export function get_item_skin(sui_character) {
+  if (sui_character.title?.item_type === 'primemachin') return 'primemachin'
+}
+
 /** @type {Type.Module} */
 export default function () {
   /** @type {Map<string, string>} */
   const original_skins = new Map()
-
-  function get_item_skin(sui_character) {
-    if (sui_character.title?.item_type === 'primemachin') return 'primemachin'
-  }
 
   return {
     observe() {

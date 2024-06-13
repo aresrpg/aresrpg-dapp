@@ -176,7 +176,7 @@ export default function create_pools(scene) {
 
         return {
           id,
-          title,
+          floating_title: title,
           height,
           radius,
           jump_time: 0,
@@ -268,7 +268,7 @@ export default function create_pools(scene) {
 
         return {
           id,
-          title,
+          floating_title: title,
           height,
           radius,
           skin,

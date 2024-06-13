@@ -70,6 +70,13 @@ export default function () {
       if (pet) tick_pet(character, pet, delta)
     },
     observe() {
+      state_iterator().reduce((last_address, { sui: { selected_address } }) => {
+        if (last_address !== selected_address) {
+          pets.forEach(pet => pet.remove())
+          pets.clear()
+        }
+        return selected_address
+      })
       state_iterator().forEach(state => {
         const character = current_locked_character(state)
 
@@ -87,7 +94,7 @@ export default function () {
               id: character.pet.id,
               name: character.pet.name,
             })
-            spawned_pet.title.text = `${character.pet.name} (${character.pet.level})`
+            spawned_pet.floating_title.text = `${character.pet.name} (${character.pet.level})`
             pets.set(character.id, spawned_pet)
           }
         }

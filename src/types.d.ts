@@ -33,7 +33,7 @@ declare namespace Type {
     id: string
     height: number
     radius: number
-    title: import('troika-three-text').Text
+    floating_title: import('troika-three-text').Text
     position: import('three').Vector3
     target_position: Position | null
     object3d?: import('three').Object3D
@@ -110,6 +110,8 @@ declare namespace Type {
     'action/camera_went_underwater': boolean
     'action/sky_lights_change': State['settings']['sky_lights']
     'action/add_character': SuiCharacter & { skin?: string }
+    'action/add_visible_character': FullCharacter
+    'action/remove_visible_character': string
     'action/remove_character': string
     'action/register_wallet': Wallet
     'action/select_wallet': string
