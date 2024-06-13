@@ -223,6 +223,8 @@ async function sell(quantity) {
       display flex
       flex-flow row nowrap
       justify-content flex-end
+      >*
+        margin-right .5em
       .input
         margin-right .5em
     .items
