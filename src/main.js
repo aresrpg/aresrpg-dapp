@@ -3,14 +3,16 @@ import { inject } from '@vercel/analytics'
 import 'vuesax-alpha/dist/index.css'
 import 'vuesax-alpha/theme-chalk/dark/css-vars.css'
 import Vuesax from 'vuesax-alpha'
-
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 // patch kiosk rules
+import { registerStashedWallet } from '@mysten/zksend'
+
 import app from './app.vue'
 import router from './router.js'
 import { i18n } from './i18n.js'
 
 inject()
+registerStashedWallet('AresRPG', { origin: 'https://getstashed.com' })
 
 console.log(
   "%c You're curious, I like you 🤭🍑",
