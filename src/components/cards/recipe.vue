@@ -46,11 +46,11 @@ fr:
         .ingredient
           img(:src="item_icon(ingredient.item_type)" :alt="ingredient.item_type" :class="{ token: ingredient.item_type.length > 20 }")
           span x{{ pretty_amount(ingredient) }}
-      .btns
-        vs-button(v-if="admin.admin_caps.length" type="gradient" size="small" color="#F4511E" @click="delete_recipe") Delete
-        vs-button(v-if="is_finished" type="gradient" size="small" color="#76FF03" @click="reveal_craft" :disabled="currently_revealing")
-          span.title {{ t('reveal') }}
-        vs-button(v-else :disabled="!has_required_ingredients" type="gradient" size="small" color="#FFB300" @click="craft_dialog = true") {{ t('craft') }}
+    .btns
+      vs-button(v-if="admin.admin_caps.length" type="gradient" size="small" color="#F4511E" @click="delete_recipe") Delete
+      vs-button(v-if="is_finished" type="gradient" size="small" color="#76FF03" @click="reveal_craft" :disabled="currently_revealing || currently_crafting")
+        span.title {{ t('reveal') }}
+      vs-button(v-else :disabled="!has_required_ingredients || currently_revealing || currently_crafting" type="gradient" size="small" color="#FFB300" @click="craft_dialog = true") {{ t('craft') }}
 
   /// craft dialog
   vs-dialog(v-model="craft_dialog")
@@ -98,6 +98,7 @@ const reveal_dialog = ref(false);
 
 const craft_dialog = ref(false);
 const currently_revealing = ref(false);
+const currently_crafting = ref(false);
 
 const is_finished = computed(() => {
   return finished_crafts.value.some(
@@ -108,6 +109,7 @@ const is_finished = computed(() => {
 async function craft_item() {
   const tx = toast.tx(t('crafting'), props.recipe.template.name);
   try {
+    currently_crafting.value = true;
     craft_dialog.value = false;
     await sui_craft_item(props.recipe);
     tx.update('success', t('crafted'));
@@ -115,6 +117,7 @@ async function craft_item() {
     console.error(error);
     tx.update('error', t('crafted_failed'));
   }
+  currently_crafting.value = false;
 }
 
 async function reveal_craft() {
@@ -209,6 +212,7 @@ span.title
   flex-flow column nowrap
   background rgba(#eee, .1)
   padding .5em
+  padding-bottom 0
   border 1px solid black
   .top
     display flex
@@ -241,22 +245,23 @@ span.title
   .bottom
     display flex
     flex-flow row nowrap
+    .btns
+      display flex
+      flex-flow column nowrap
+      margin-left auto
+      justify-content center
     .ingredients
       display flex
       flex-flow row wrap
       padding .5em 0
       width 100%
-      .btns
-        display flex
-        flex-flow column nowrap
-        margin-left auto
-        justify-content center
       .ingredient
         display flex
         flex-flow row nowrap
         align-items center
         padding .25em .5em
         margin 0 .25em
+        margin-bottom .5em
         border 1px solid #212121
         background linear-gradient(90deg, rgba(#546E7A, .3), rgba(#263238, .3))
         img

@@ -68,11 +68,6 @@ import {
   is_weapon,
   is_character,
 } from '../../core/utils/item.js';
-import {
-  decrease_loading,
-  increase_loading,
-} from '../../core/utils/loading.js';
-import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 
 const props = defineProps(['disable_edit', 'sell_mode', 'tokens']);
 
@@ -111,10 +106,12 @@ const feed_context = {
     try {
       const fed = await sui_feed_pet(selected_item.value);
       if (fed) tx.update('success', t('fed'));
-      else tx.update('error', t('pet_full'));
+      else tx.update('error', t('SUI_MIN_1'));
     } catch (error) {
+      if (error.message.includes('101)')) {
+        tx.update('error', t('pet_full'));
+      } else tx.update('error', t('feed_failed'));
       console.error(error);
-      tx.update('error', t('feed_failed'));
     }
   },
 };
@@ -318,6 +315,7 @@ const items = computed(() => {
   const owned_tokens_value = [
     ...owned_tokens.value.filter(({ amount }) => amount > 0n),
   ];
+
   const selected_category_value = selected_category?.value;
   const extension_items_value = extension_items.value;
   const inventory_counter_value = inventory_counter?.value;

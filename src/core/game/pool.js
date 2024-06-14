@@ -360,7 +360,7 @@ export default function create_pools(scene) {
       name: 'suifren_capy',
       offset_y: -0.5,
     }),
-    sui_bullshark: instanciate(MODELS.suifren_bullshark, {
+    suifren_bullshark: instanciate(MODELS.suifren_bullshark, {
       height: 0.9,
       radius: 0.9,
       name: 'suifren_bullshark',
@@ -386,10 +386,12 @@ export default function create_pools(scene) {
       instances.sram_male.instanced_entity.dispose()
       instances.iop_female.instanced_entity.dispose()
 
+      instances.primemachin.instanced_entity.dispose()
+
       instances.chafer.instanced_entity.dispose()
       instances.suifren_capy.instanced_entity.dispose()
+      instances.suifren_bullshark.instanced_entity.dispose()
       instances.afegg.instanced_entity.dispose()
-      instances.primemachin.instanced_entity.dispose()
     },
     /** @param {Type.SuiCharacter & { skin?: string }} character */
     entity({ id, name, classe, sex = 'male', skin = null }) {

@@ -12,6 +12,7 @@ import suifren_capy from '../../assets/models/suifren_capy.glb?url'
 import afegg from '../../assets/models/afegg.glb?url'
 import primemachin from '../../assets/models/primemachin.glb?url'
 import pug_hat from '../../assets/models/equipment/pug_hat.glb?url'
+import suicune_hat from '../../assets/models/equipment/suicune_hat.glb?url'
 import { load } from '../utils/three/load_model.js'
 
 export const MODELS = {
@@ -55,6 +56,10 @@ export const MODELS = {
     env_map_intensity: 0.5,
     scale: 1,
   }),
+  suicunio: await load(suicune_hat, {
+    env_map_intensity: 1,
+    scale: 1,
+  }),
 }
 
 function apply_matrix({ scale = 1, position = [0, 0, 0] }) {
@@ -67,6 +72,13 @@ function apply_matrix({ scale = 1, position = [0, 0, 0] }) {
 export const MATRIX = {
   fud_hat: {
     sram_male: apply_matrix({ scale: 0.045, position: [0, -0.3, -0.05] }),
+    sram_female: apply_matrix({ scale: 90, position: [0, -600, 300] }),
+    iop_male: apply_matrix({ scale: 0.055, position: [0, -0.3, 0.2] }),
+    iop_female: apply_matrix({ scale: 4.1, position: [0, -65, 35] }),
+    primemachin: apply_matrix({ scale: 110, position: [0, -650, 400] }),
+  },
+  suicunio: {
+    sram_male: apply_matrix({ scale: 0.045, position: [0, -0.05, -0.35] }),
     sram_female: apply_matrix({ scale: 90, position: [0, -600, 300] }),
     iop_male: apply_matrix({ scale: 0.055, position: [0, -0.3, 0.2] }),
     iop_female: apply_matrix({ scale: 4.1, position: [0, -65, 35] }),

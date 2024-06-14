@@ -271,6 +271,38 @@ export async function sui_get_admin_caps() {
   return sdk.get_owned_admin_cap(get_address())
 }
 
+const last_mint = new Map()
+
+export async function sui_faucet_mint(ticker) {
+  const tx = new Transaction()
+
+  if (last_mint.has(ticker)) {
+    const last = last_mint.get(ticker)
+    if (Date.now() - last < 60000) {
+      toast.warn(t('WAIT_A_MINUTE'))
+      return 'WAIT_A_MINUTE'
+    }
+  }
+
+  last_mint.set(ticker, Date.now())
+
+  const REGISTRY = {
+    fud: '0xe4606306dd5128869a5a91a64127c93b66a69d604f4251044e5f225f029efbc8',
+    afsui: '0x0f97b302865e71f5801e0cd744fc725b123d3e3d0f9098c9fb831918c4dc1eba',
+    hsui: '0x5560cb112985a74e3c9df3f47f2b3dda3aad6d0593522a25f1c88b82eea18fa1',
+    kares: '0xcb6cb2767c753f790bb506d3e9f4c10e7166adb22ff067a719817f36bf814583',
+  }
+
+  sdk.add_header(tx)
+
+  tx.moveCall({
+    target: `0x02a56d35041b2974ec23aff7889d8f7390b53b08e8d8bb91aa55207a0d5dd723::${ticker}::mint`,
+    arguments: [tx.object(REGISTRY[ticker]), tx.pure.u64(10n * MIST_PER_SUI)],
+  })
+
+  await execute(tx)
+}
+
 export async function sui_delete_admin_cap(id) {
   const tx = new Transaction()
 
@@ -464,10 +496,7 @@ export async function sui_feed_pet(pet) {
 
   const balance = await get_bn_sui_balance()
 
-  if (balance.isLessThan(1)) {
-    toast.error(t('SUI_MIN_1'), 'Suuuuuu', MapGasStation)
-    return
-  }
+  if (balance.isLessThan(1)) return
 
   const coin = await get_base_sui_coin(tx)
 

@@ -3,6 +3,7 @@
     shop: 🥐 Market
     sell: Sell
     buy: Buy
+    faucet: Faucet
     wrong_price: Invalid price
     listing: Listing in the market
     listed: Listed
@@ -11,6 +12,7 @@
     shop: 🥐 Hôtel des Ventes
     sell: Vendre
     buy: Acheter
+    faucet: Faucet
     wrong_price: Prix invalide
     listing: Mise en vente
     listed: Listé avec succès
@@ -29,6 +31,8 @@ sectionContainer
         .right
           itemDescription
           marketListings
+      .faucet-page(v-else-if="tab === 'faucet'")
+        faucetCard(v-for="token in faucet_tokens" :token="token")
       .sell-page(v-else-if="tab === 'sell'")
         .selling
           marketMyListings
@@ -78,6 +82,7 @@ import { useRouter } from 'vue-router';
 import { inject, ref, provide, computed, onMounted } from 'vue';
 import { BigNumber as BN } from 'bignumber.js';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
+import { SUPPORTED_TOKENS } from '@aresrpg/aresrpg-sdk/sui';
 
 import sectionContainer from '../components/misc/section-container.vue';
 import sectionHeader from '../components/misc/section-header.vue';
@@ -89,6 +94,7 @@ import marketListings from '../components/cards/market-listings.vue';
 import marketMyListings from '../components/cards/market-my-listings.vue';
 import { sui_list_item } from '../core/sui/client.js';
 import { context } from '../core/game/game.js';
+import faucetCard from '../components/cards/faucet-card.vue';
 import toast from '../toast.js';
 
 // @ts-ignore
@@ -107,7 +113,10 @@ const selected_category = inject('selected_category');
 const shop_tabs = {
   buy: {},
   sell: {},
+  faucet: {},
 };
+
+const faucet_tokens = Object.values(SUPPORTED_TOKENS);
 
 const selected_item_type = ref(null);
 const requested_list_price = ref(1);
@@ -199,6 +208,9 @@ async function sell(quantity) {
     background linear-gradient(to bottom, rgba(#212121, .6), transparent 50%)
     display flex
     flex-flow column nowrap
+.faucet-page
+  display flex
+  padding 1em
 .sell-page
   display flex
   flex-flow row nowrap
