@@ -34,9 +34,10 @@ export async function load(
     if (child.isMesh) {
       child.castShadow = true
       child.receiveShadow = true
-
       // @ts-ignore
-      Object.assign(child.material, { envMapIntensity: env_map_intensity })
+      Object.assign(child.material, {
+        envMapIntensity: env_map_intensity,
+      })
     }
   })
 
