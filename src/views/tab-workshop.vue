@@ -69,7 +69,7 @@ async function refresh_recipes() {
   const result = await fetch(`${VITE_INDEXER_URL}/recipes`);
   const { recipes, cursor } = await result.json();
 
-  recipes.forEach(recipe => recipe.ingredients.reverse());
+  recipes.forEach(recipe => recipe.ingredients);
 
   indexed_recipes.value = recipes;
 }
