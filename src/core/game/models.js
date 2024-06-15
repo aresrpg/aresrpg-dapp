@@ -79,10 +79,10 @@ export const MATRIX = {
   },
   suicunio: {
     sram_male: apply_matrix({ scale: 0.045, position: [0, -0.05, -0.35] }),
-    sram_female: apply_matrix({ scale: 90, position: [0, -600, 300] }),
-    iop_male: apply_matrix({ scale: 0.055, position: [0, -0.3, 0.2] }),
-    iop_female: apply_matrix({ scale: 4.1, position: [0, -65, 35] }),
-    primemachin: apply_matrix({ scale: 110, position: [0, -650, 400] }),
+    sram_female: apply_matrix({ scale: 90, position: [0, -300, -600] }),
+    iop_male: apply_matrix({ scale: 0.055, position: [0, -0.1, -0.1] }),
+    iop_female: apply_matrix({ scale: 4.1, position: [0, -50, 10] }),
+    primemachin: apply_matrix({ scale: 120, position: [0, -250, -300] }),
   },
 }
 
