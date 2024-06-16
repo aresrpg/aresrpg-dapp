@@ -2,12 +2,7 @@ import EventEmitter from 'events'
 
 import { Transaction } from '@mysten/sui/transactions'
 import { BigNumber as BN } from 'bignumber.js'
-import {
-  MIST_PER_SUI,
-  fromB64,
-  normalizeSuiAddress,
-  toB64,
-} from '@mysten/sui/utils'
+import { MIST_PER_SUI, normalizeSuiAddress, toB64 } from '@mysten/sui/utils'
 import { LRUCache } from 'lru-cache'
 import { Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
