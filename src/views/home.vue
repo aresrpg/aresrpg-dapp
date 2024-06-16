@@ -8,16 +8,18 @@ en:
 </i18n>
 
 <script setup>
-import { onMounted, inject, ref, provide } from 'vue';
+import { onMounted, inject, ref, provide, defineAsyncComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 import useBreakpoints from 'vue-next-breakpoints';
 
-import TopBar from '../components/navigation/top-bar.vue';
 import bubbles from '../components/misc/floating-bubbles.vue';
 import SideBar from '../components/navigation/side-bar.vue';
 import serverInfo from '../components/cards/server-info.vue';
 import { i18n } from '../i18n.js';
 
+const TopBar = defineAsyncComponent(
+  () => import('../components/navigation/top-bar.vue'),
+);
 const { t, locale } = useI18n();
 
 const breakpoints = useBreakpoints({

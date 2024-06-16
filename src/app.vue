@@ -7,13 +7,7 @@ import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 import deep_equal from 'fast-deep-equal';
 import { useI18n } from 'vue-i18n';
 
-import {
-  context,
-  current_character,
-  current_locked_character,
-} from './core/game/game.js';
-import { enoki_address, enoki_wallet } from './core/sui/enoki.js';
-import { sui_get_policies_profit } from './core/sui/client.js';
+import { decrease_loading, increase_loading } from './core/utils/loading.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore
@@ -138,7 +132,10 @@ provide('recipes', recipes);
 provide('finished_crafts', finished_crafts);
 provide('message_history', message_history);
 
-function update_all(state) {
+function update_all(
+  state,
+  { current_character, current_locked_character, sui_get_policies_profit },
+) {
   const {
     sui: {
       selected_wallet_name,
@@ -208,9 +205,11 @@ function update_all(state) {
   }
 
   if (!deep_equal(locked_items, extension_items.value))
+    // @ts-ignore
     extension_items.value = [...locked_items];
 
   if (!deep_equal(unlocked_items, owned_items.value)) {
+    // @ts-ignore
     owned_items.value = [...unlocked_items];
 
     const unlocked_selected = unlocked_items.find(
@@ -394,9 +393,42 @@ function on_server_info(event) {
   server_info.max_players = maxPlayers;
 }
 
+let game_module = null;
+
+function update_all_(state) {
+  if (game_module) update_all(state, game_module);
+}
+
 onMounted(async () => {
-  context.events.on('STATE_UPDATED', update_all);
-  update_all(context.get_state());
+  increase_loading();
+
+  const interval = setInterval(() => {
+    const el = document.querySelector('.vs-loading__load');
+    if (el.style.transform === 'scale(1)') return;
+
+    el.style.transform = 'scale(1)';
+  }, 100);
+
+  const { context, current_character, current_locked_character } = await import(
+    './core/game/game.js'
+  );
+
+  const { enoki_address, enoki_wallet } = await import('./core/sui/enoki.js');
+  const { sui_get_policies_profit } = await import('./core/sui/client.js');
+
+  game_module = {
+    context,
+    current_character,
+    current_locked_character,
+    sui_get_policies_profit,
+  };
+
+  decrease_loading();
+
+  clearInterval(interval);
+
+  context.events.on('STATE_UPDATED', update_all_);
+  update_all_(context.get_state());
 
   context.events.on('packet/serverInfo', on_server_info);
 
@@ -411,8 +443,10 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_all);
-  context.events.off('packet/serverInfo', on_server_info);
+  if (game_module) {
+    game_module.context.events.off('STATE_UPDATED', update_all_);
+    game_module.context.events.off('packet/serverInfo', on_server_info);
+  }
 });
 // @ts-ignore
 </script>
