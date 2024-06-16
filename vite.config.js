@@ -30,6 +30,9 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'robots.txt', '*.png', '*.jpg', '*.svg'],
       registerType: 'autoUpdate',
       workbox: {
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/\.html$/, /\/api\//],
+        // Exclude HTML files from being cached
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
