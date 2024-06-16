@@ -17,6 +17,10 @@ fr:
   claiming_profit: Retrait des profits de vente
   profit_claimed: Wow! C'est un bon billet que vous avez là!
   claiming_error: Erreur lors du retrait des profits de vente
+  faucet_claim: Impression de quelques Sui de test
+  faucet: Obtenir des Sui
+  faucet_claimed: Sui réclamé
+  faucet_error: Erreur lors de la réclamation de Sui
 en:
   logout: Logout
   disconnect: Disconnect
@@ -35,6 +39,11 @@ en:
   claiming_profit: Claiming sales profits
   profit_claimed: Wow! that's a good chunk you got there!
   claiming_error: Error claiming sales profits
+  faucet_claim: Printing some test Sui
+  faucet_claimed: Sui claimed
+  faucet_error: Error claiming Sui
+  faucet: Get some Sui
+
 </i18n>
 
 <script setup>
@@ -104,7 +113,7 @@ function disconnect_wallet() {
 
 function copy_address() {
   navigator.clipboard.writeText(current_account.value.address);
-  toast.success(t('copied'), 'Brrrrrrrr', StreamlineEmojisWaterWave);
+  toast.success(t('copied'), 'Woooosh', StreamlineEmojisWaterWave);
   dropdown.value.close();
 }
 
@@ -132,6 +141,36 @@ async function claim_kiosk_profits() {
   }
 }
 
+const claiming_faucet = ref(false);
+
+async function claim_faucet() {
+  const tx = toast.tx(t('faucet_claim'), 'Brrrrrr');
+  claiming_faucet.value = true;
+
+  try {
+    await fetch('https://faucet.testnet.sui.io/gas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        FixedAmountRequest: {
+          recipient: current_account.value.address,
+        },
+      }),
+    });
+
+    tx.update('success', t('faucet_claimed'));
+  } catch (error) {
+    tx.update('error', t('faucet_error'));
+    console.error(error);
+  }
+
+  setTimeout(() => {
+    claiming_faucet.value = false;
+  }, 1000);
+}
+
 watch(current_address, refresh_kiosk_profits);
 
 onMounted(() => {
@@ -153,10 +192,11 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       i.bx.bx-droplet
       span {{ t('connect') }}
     vs-row.row(v-else justify="end")
-
       .sui-balance(v-if="sui_balance != null")
         span {{ (+mists_to_sui(sui_balance)).toFixed(3) }}
         img.icon(src="../../assets/sui/sui-logo.png")
+      vs-button.sui-faucet(v-if="NETWORK === 'testnet'" type="gradient" size="small" color="#64B5F6" @click="claim_faucet" :disabled="claiming_faucet")
+        span.profit {{ t('faucet') }}
       vs-button(
         v-if="kiosk_profits > 0"
         type="gradient"
@@ -265,6 +305,9 @@ span.alt
     transform translateY(-2px)
     width 15px
     object-fit contain
+
+.sui-faucet
+  margin-right .25em
 
 nav
   padding 1em
