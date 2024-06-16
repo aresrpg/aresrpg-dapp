@@ -1,6 +1,4 @@
 import { EnokiFlow } from '@mysten/enoki'
-import { verifyPersonalMessageSignature } from '@mysten/sui/verify'
-import { fromB64 } from '@mysten/sui/utils'
 
 import { VITE_ENOKI_KEY, NETWORK } from '../../env.js'
 import enoki_logo from '../../assets/sui/google.png?url'

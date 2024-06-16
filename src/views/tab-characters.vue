@@ -39,16 +39,17 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { ref, provide, onUnmounted, onMounted, inject } from 'vue';
+import { ref, provide, inject, defineAsyncComponent } from 'vue';
 
 import sectionHeader from '../components/misc/section-header.vue';
-import usercharacter from '../components/cards/user-character.vue';
 import sectionContainer from '../components/misc/section-container.vue';
-import characterCreateVue from '../components/game-ui/character-create.vue';
-import { context } from '../core/game/game.js';
-import { loading } from '../core/utils/loading.js';
-import toast from '../toast.js';
 
+const UserCharacter = defineAsyncComponent(
+  () => import('../components/cards/user-character.vue'),
+);
+const CharacterCreateVue = defineAsyncComponent(
+  () => import('../components/game-ui/character-create.vue'),
+);
 const { t } = useI18n();
 
 const new_character_dialog = ref(false);
@@ -72,16 +73,16 @@ sectionContainer
   sectionHeader(:title="t('locked_characters')" :desc="locked_characters ? t('locked_characters_desc') : null" color="#00C853")
     .character-container
       div.nothing(v-if="locked_characters[0]?.id === 'default'")
-      usercharacter(v-else v-for="character in locked_characters" :key="character.id" :locked="true" :character="character")
+      UserCharacter(v-else v-for="character in locked_characters" :key="character.id" :locked="true" :character="character")
 
   // Unlocked characters
   sectionHeader(:title="t('unlocked_characters')" :desc="t('unlocked_characters_desc')" color="#212121")
     .character-container
-      usercharacter(v-if="unlocked_characters" v-for="character in unlocked_characters" :key="character.id" :character="character")
+      UserCharacter(v-if="unlocked_characters" v-for="character in unlocked_characters" :key="character.id" :character="character")
       .new(@click="new_character_dialog = true") {{ t('new') }}
 
   // Create a new character
-  characterCreateVue(@cancel="new_character_dialog = false")
+  CharacterCreateVue(@cancel="new_character_dialog = false")
 </template>
 
 <style lang="stylus" scoped>

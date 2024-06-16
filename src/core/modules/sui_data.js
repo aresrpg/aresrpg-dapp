@@ -375,30 +375,35 @@ export default function () {
         update_items_for_sale = false,
         update_finished_crafts = false,
       }) {
-        const update = {}
+        const tasks = [
+          update_locked_characters &&
+            sui_get_locked_characters().then(result => ({
+              locked_characters: result,
+            })),
+          update_unlocked_characters &&
+            sui_get_unlocked_characters().then(result => ({
+              unlocked_characters: result,
+            })),
+          update_balance &&
+            sui_get_sui_balance().then(result => ({ balance: result })),
+          update_locked_items &&
+            sui_get_locked_items().then(result => ({ locked_items: result })),
+          update_unlocked_items &&
+            sui_get_unlocked_items().then(result => ({
+              unlocked_items: result,
+            })),
+          update_items_for_sale &&
+            sui_get_my_listings().then(result => ({ items_for_sale: result })),
+          update_tokens &&
+            sui_get_supported_tokens().then(result => ({ tokens: result })),
+          update_finished_crafts &&
+            sui_get_finished_crafts().then(result => ({
+              finished_crafts: result,
+            })),
+        ].filter(Boolean)
 
-        if (update_locked_characters)
-          update.locked_characters = await sui_get_locked_characters()
-
-        if (update_unlocked_characters)
-          update.unlocked_characters = await sui_get_unlocked_characters()
-
-        if (update_balance) update.balance = await sui_get_sui_balance()
-
-        if (update_locked_items)
-          update.locked_items = await sui_get_locked_items()
-
-        if (update_unlocked_items)
-          update.unlocked_items = await sui_get_unlocked_items()
-
-        if (update_items_for_sale) {
-          update.items_for_sale = await sui_get_my_listings()
-        }
-
-        if (update_tokens) update.tokens = await sui_get_supported_tokens()
-
-        if (update_finished_crafts)
-          update.finished_crafts = await await sui_get_finished_crafts()
+        const results = await Promise.all(tasks)
+        const update = Object.assign({}, ...results)
 
         context.dispatch('action/sui_data_update', update)
       }
