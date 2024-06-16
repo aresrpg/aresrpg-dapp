@@ -404,8 +404,10 @@ onMounted(async () => {
 
   const interval = setInterval(() => {
     const el = document.querySelector('.vs-loading__load');
+    // @ts-ignore
     if (el.style.transform === 'scale(1)') return;
 
+    // @ts-ignore
     el.style.transform = 'scale(1)';
   }, 100);
 
