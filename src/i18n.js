@@ -56,7 +56,7 @@ const error_sui = {
     SUBSCRIBE_START: 'Subscribing to Sui node...',
     FETCHING_DATA: 'Fetching characters and items..',
     DATA_FETCHED: 'Successfully fetched characters and items',
-    WAIT_A_MINUTE: 'Please wait a minute before trying again',
+    WAIT_A_MINUTE: 'Please wait before trying again',
   },
   fr: {
     LOGIN_AGAIN: 'Veuillez vous reconnecter',
@@ -78,7 +78,7 @@ const error_sui = {
     SUBSCRIBE_START: 'Connexion à la node Sui...',
     FETCHING_DATA: 'Récupération des personnages et objets..',
     DATA_FETCHED: 'Personnages et objets récupérés avec succès',
-    WAIT_A_MINUTE: 'Veuillez attendre une minute avant de réessayer',
+    WAIT_A_MINUTE: 'Veuillez attendre avant de réessayer',
   },
 }
 

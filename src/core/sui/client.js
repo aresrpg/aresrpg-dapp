@@ -278,7 +278,7 @@ export async function sui_faucet_mint(ticker) {
 
   if (last_mint.has(ticker)) {
     const last = last_mint.get(ticker)
-    if (Date.now() - last < 60000) {
+    if (Date.now() - last < 5000) {
       toast.warn(t('WAIT_A_MINUTE'))
       return 'WAIT_A_MINUTE'
     }
