@@ -167,8 +167,33 @@ async function select_character() {
   }
 }
 
+function has_equipment(character) {
+  return (
+    character.weapon ||
+    character.title ||
+    character.amulet ||
+    character.belt ||
+    character.boots ||
+    character.hat ||
+    character.cloack ||
+    character.pet ||
+    character.left_ring ||
+    character.right_ring ||
+    character.relic_1 ||
+    character.relic_2 ||
+    character.relic_3 ||
+    character.relic_4 ||
+    character.relic_5 ||
+    character.relic_6
+  );
+}
+
 async function unselect_character() {
   const { update } = toast.tx(t('unselecting'), props.character.name);
+  if (has_equipment(props.character)) {
+    update('error', t('unselecting_stuff'));
+    return;
+  }
   try {
     unlock_loading.value = true;
     unlock_dialog.value = false;
