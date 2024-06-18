@@ -19,7 +19,7 @@ const temperate = {
     id: 0,
     x: 0,
     y: 0,
-    blockType: BlockType.WATER,
+    grounds: [BlockType.WATER],
     amplitude: {
       low: 0,
       high: 0,
@@ -30,7 +30,7 @@ const temperate = {
     id: 2,
     x: 0.26,
     y: 0.21,
-    blockType: BlockType.SAND,
+    grounds: [BlockType.SAND],
     amplitude: {
       low: 0,
       high: 5,
@@ -40,7 +40,7 @@ const temperate = {
     id: 3,
     x: 0.33,
     y: 0.23,
-    blockType: BlockType.ROCK,
+    grounds: [BlockType.ROCK],
     amplitude: {
       low: 0,
       high: 0,
@@ -51,38 +51,29 @@ const temperate = {
     id: 4,
     x: 0.48,
     y: 0.42,
-    blockType: {
-      primary: BlockType.GRASS,
-      secondary: BlockType.MUD,
-    },
+    grounds: [BlockType.GRASS, BlockType.MUD],
+    entities: ['apple_tree'],
     amplitude: {
       low: 0,
       high: 0.2,
     },
-    vegetation: ['apple_tree'],
   },
   mountains: {
     id: 5,
     x: 0.71,
     y: 0.52,
-    blockType: {
-      primary: BlockType.ROCK,
-      secondary: BlockType.GRASS,
-    },
+    grounds: [BlockType.ROCK, BlockType.GRASS],
+    entities: ['pine_tree'],
     amplitude: {
       low: 0,
       high: 25,
     },
-    vegetation: ['pine_tree'],
   },
   mountains_top: {
     id: 6,
     x: 0.9,
     y: 0.76,
-    blockType: {
-      primary: BlockType.SNOW,
-      secondary: BlockType.ROCK,
-    },
+    grounds: [BlockType.SNOW, BlockType.ROCK],
     amplitude: {
       low: 0,
       high: 0,
@@ -97,7 +88,7 @@ const artic = {
     id: 0,
     x: 0,
     y: 0,
-    blockType: BlockType.WATER,
+    grounds: [BlockType.WATER],
     amplitude: {
       low: 0,
       high: 0,
@@ -108,7 +99,7 @@ const artic = {
     id: 2,
     x: 0.26,
     y: 0.21,
-    blockType: BlockType.ICE,
+    grounds: [BlockType.ICE],
     amplitude: {
       low: 0,
       high: 5,
@@ -118,7 +109,7 @@ const artic = {
     id: 3,
     x: 0.33,
     y: 0.23,
-    blockType: BlockType.ICE,
+    grounds: [BlockType.ICE],
     amplitude: {
       low: 0,
       high: 0,
@@ -129,29 +120,29 @@ const artic = {
     id: 4,
     x: 0.48,
     y: 0.42,
-    blockType: BlockType.SNOW,
+    grounds: [BlockType.SNOW],
+    entities: ['pine_tree'],
     amplitude: {
       low: 0,
       high: 0.2,
     },
-    vegetation: ['pine_tree'],
   },
   mountains: {
     id: 5,
     x: 0.71,
     y: 0.52,
-    blockType: BlockType.SNOW,
+    grounds: [BlockType.SNOW, BlockType.ROCK],
+    entities: ['pine_tree'],
     amplitude: {
       low: 0,
       high: 25,
     },
-    vegetation: ['pine_tree'],
   },
   mountains_top: {
     id: 6,
     x: 0.9,
     y: 0.76,
-    blockType: BlockType.SNOW,
+    grounds: [BlockType.SNOW],
     amplitude: {
       low: 0,
       high: 0,
@@ -166,7 +157,7 @@ const desert = {
     id: 0,
     x: 0,
     y: 0,
-    blockType: BlockType.WATER,
+    grounds: [BlockType.WATER],
     amplitude: {
       low: 0,
       high: 0,
@@ -177,7 +168,7 @@ const desert = {
     id: 2,
     x: 0.26,
     y: 0.21,
-    blockType: BlockType.SAND,
+    grounds: [BlockType.SAND],
     amplitude: {
       low: 0,
       high: 5,
@@ -187,7 +178,7 @@ const desert = {
     id: 3,
     x: 0.33,
     y: 0.23,
-    blockType: BlockType.ROCK,
+    grounds: [BlockType.ROCK],
     amplitude: {
       low: 0,
       high: 0,
@@ -197,7 +188,7 @@ const desert = {
     id: 4,
     x: 0.48,
     y: 0.42,
-    blockType: BlockType.SAND,
+    grounds: [BlockType.SAND],
     amplitude: {
       low: 0,
       high: 0,
@@ -207,7 +198,7 @@ const desert = {
     id: 5,
     x: 1,
     y: 0.52,
-    blockType: BlockType.SAND,
+    grounds: [BlockType.SAND],
     amplitude: {
       low: 0,
       high: 25,
