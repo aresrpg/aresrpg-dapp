@@ -4,12 +4,7 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Box3, Color, MathUtils, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
-import {
-  Biome,
-  BlocksPatch,
-  BlockType,
-  Heightmap,
-} from '@aresrpg/aresrpg-world'
+import { Biome, PatchCache, BlockType, Heightmap } from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
 import {
@@ -29,12 +24,13 @@ export default function () {
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
   Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
-  // TODO update while player moves
-  BlocksPatch.gridRadius = 18
-  BlocksPatch.updateCache()
+  // init blocks patch cache
+  PatchCache.patchSize = Math.pow(2, 6)
+  const cache_size = PatchCache.patchSize * 50
+  PatchCache.updateCache(new Vector3(), cache_size, true)
 
   /**
-   * Blocks gen
+   * Data struct filling from blocks cache
    */
   const map = {
     voxelMaterialsList: Object.values(blocks_colors).map(col => ({
@@ -55,90 +51,91 @@ export default function () {
 
       let is_empty = true
 
-      // const highlight_global_x = (
-      //   xrow = patch_size,
-      //   blockType = BlockType.MUD,
-      // ) => {
-      //   // fill extra blocks at edges from adjacent patches
-      //   for (let i = 0; i <= 63; i++) {
-      //     const edge_x = new Vector3(xrow, 0, bbox.min.z + i)
-      //     const blockCache = BlocksPatch.getBlock(edge_x)
-      //     blockCache.type = blockType
-      //   }
-      // }
-
-      // const highlight_local_x = (
-      //   patch,
-      //   xrow = patch_size,
-      //   blockType = BlockType.MUD,
-      // ) => {
-      //   for (let i = 0; i <= 63; i++) {
-      //     const local_x = new Vector3(xrow, 0, i)
-      //     const blockCache = patch.getBlock(local_x)
-      //     blockCache.type = blockType
-      //   }
-      // }
-
-      const fill_struct = (block_cache, local_pos) => {
+      const fill_blocks_struct = (block_pos, ground_type, buffer_over = []) => {
         const level = MathUtils.clamp(
-          block_cache.level + block_cache.overground.length,
+          block_pos.y + buffer_over.length,
           bbox.min.y,
           bbox.max.y,
         )
-        let buff_index = Math.max(level - block_cache.level, 0)
+        let buff_index = Math.max(level - block_pos.y, 0)
         let h = level - bbox.min.y // local height
-        const block_type = block_cache.type
+        // block_type = local_pos.x === 1 ? BlockType.MUD : block_type
+        // block_type = local_pos.z === 1 ? BlockType.MUD : block_type
         // debug_mode && is_edge(local_pos.z, local_pos.x, h, patch_size - 2)
         //   ? BlockType.SAND
         //   : block_cache.type
-        const overbuffer = block_cache.overground.map(type =>
-          type ? type + 1 : type,
-        )
-        // if (h > 0 && overbuffer > 0) {
-        //   local_pos.y = block_cache.level
-        //   console.log(local_pos, h)
-        //   tree_blocks++
-        // }
-        // blocks_count += h > 0 ? 1 : 0
 
         while (h >= 0) {
           const cache_index =
-            local_pos.z * Math.pow(patch_size, 2) + h * patch_size + local_pos.x
-          cache[cache_index] =
-            buff_index > 0 ? overbuffer[buff_index] : block_type + 1
+            block_pos.z * Math.pow(patch_size, 2) + h * patch_size + block_pos.x
+          const block_type =
+            buff_index > 0 ? buffer_over[buff_index] : ground_type
+          const skip =
+            buff_index > 0 &&
+            cache[cache_index] !== undefined &&
+            !buffer_over[buff_index]
+          if (!skip) {
+            cache[cache_index] = block_type ? block_type + 1 : BlockType.NONE
+          }
           buff_index--
           h--
         }
       }
 
-      const fill_extra_edges = () => {
+      const add_ground_blocks = patch => {
+        const iter = patch?.blockIterator(true)
+        let res = iter.next()
+        while (!res.done) {
+          const block_data = res.value
+          const block_pos = block_data.pos.clone()
+          block_pos.x += 1
+          block_pos.z += 1
+          const block_type = block_data.type
+          fill_blocks_struct(block_pos, block_type)
+          res = iter.next()
+        }
+      }
+
+      const add_entities_blocks = patch => {
+        // patch.spawned
+        const buff_iter = patch.overBlocksIter()
+        for (const blk of buff_iter) {
+          blk.localPos.x += 1
+          blk.localPos.z += 1
+          fill_blocks_struct(blk.localPos, blk.type, blk.buffer)
+        }
+      }
+
+      const add_edges_blocks = () => {
         for (let i = 0; i < patch_size; i++) {
           const xmin = {
-            src_global: new Vector3(bbox.min.x, 0, bbox.min.z + i),
-            dst_local: new Vector3(0, 0, i),
+            global_pos: new Vector3(bbox.min.x, 0, bbox.min.z + i),
+            local_pos: new Vector3(0, 0, i),
           }
           const xmax = {
-            src_global: new Vector3(bbox.max.x, 0, bbox.min.z + i),
-            dst_local: new Vector3(patch_size - 1, 0, i),
+            global_pos: new Vector3(bbox.max.x, 0, bbox.min.z + i),
+            local_pos: new Vector3(patch_size - 1, 0, i),
           }
           const zmin = {
-            src_global: new Vector3(bbox.min.x + i, 0, bbox.min.z),
-            dst_local: new Vector3(i, 0, 0),
+            global_pos: new Vector3(bbox.min.x + i, 0, bbox.min.z),
+            local_pos: new Vector3(i, 0, 0),
           }
           const zmax = {
-            src_global: new Vector3(bbox.min.x + i, 0, bbox.max.z),
-            dst_local: new Vector3(i, 0, patch_size - 1),
+            global_pos: new Vector3(bbox.min.x + i, 0, bbox.max.z),
+            local_pos: new Vector3(i, 0, patch_size - 1),
           }
-          const edges = [xmin, xmax, zmin, zmax]
+          const edges = [xmin, zmin, xmax, zmax]
           edges.forEach(edge => {
-            const block_cache = BlocksPatch.getBlock(edge.src_global)
-            if (block_cache) fill_struct(block_cache, edge.dst_local)
+            const block_data = PatchCache.getBlock(edge.global_pos)
+            const block_local_pos = edge.local_pos.clone()
+            block_local_pos.y = block_data.level
+            fill_blocks_struct(block_local_pos, block_data.type)
             // else console.log('missing block: ', edge.pos)
           })
         }
       }
 
-      const patch = BlocksPatch.cache.find(
+      const patch = PatchCache.cache.find(
         patch =>
           patch.bbox.min.x === bbox.min.x + 1 &&
           patch.bbox.min.z === bbox.min.z + 1 &&
@@ -148,24 +145,11 @@ export default function () {
       )
 
       if (patch) {
-        // highlight_global_x(bbox.min.x + 1, BlockType.MUD)
-        // highlight_local_x(patch, 64, BlockType.SNOW)
-        const iter = patch?.blockIterator(true)
-        const blocks_count = 0
-        const tree_blocks = 0
-        let res = iter.next()
-        while (!res.done) {
-          const { pos: local_pos, cache: block_cache } = res.value
-          fill_struct(block_cache, local_pos.clone().addScalar(1))
-          res = iter.next()
-        }
+        add_ground_blocks(patch)
+        // process entities
+        add_entities_blocks(patch)
         // fill extra blocks at edges from adjacent patches
-        fill_extra_edges()
-
-        console.log(
-          `${blocks_count} blocks (${tree_blocks} trees) on patch`,
-          patch.bbox,
-        )
+        add_edges_blocks()
         is_empty = false
       }
       return {
@@ -177,34 +161,19 @@ export default function () {
       const block_pos = new Vector3(x, 128, z)
       let block_level = 0
       let block_type = BlockType.WATER
-      if (
-        BlocksPatch.bbox.containsPoint(block_pos) &&
-        block_pos.x !== BlocksPatch.bbox.max.x &&
-        block_pos.z !== BlocksPatch.bbox.max.z
-      ) {
-        const ground_block = BlocksPatch.getBlock(block_pos)
-        // Heightmap.instance.getGroundBlock(
-        //   block_pos,
-        //   undefined,
-        //   true,
-        // )
-        if (ground_block) {
-          const block_index = ground_block.overground.findLastIndex(
-            type => type !== BlockType.NONE,
-          )
-          block_level = ground_block.level
-          block_level += block_index !== -1 ? block_index : 0
-          block_type =
-            block_index !== -1
-              ? ground_block.overground.at(block_index)
-              : ground_block.type
-        } else {
-          // console.log("missing ground block: ", block_pos)
-          BlocksPatch.getBlock(block_pos)
-        }
-        // else if (x > -range && x < range && z > -range && z < range) {
-        //   console.log(block_pos)
-        // }
+
+      const ground_block = PatchCache.getBlock(block_pos)
+
+      if (ground_block) {
+        const buff_index = ground_block.buffer.findLastIndex(
+          type => type !== BlockType.NONE,
+        )
+        block_level = ground_block.pos.y
+        block_level += buff_index !== -1 ? buff_index : 0
+        block_type =
+          buff_index !== -1
+            ? ground_block.buffer.at(buff_index)
+            : ground_block.type
       }
       const block_color = new Color(blocks_colors[block_type])
       return {
@@ -220,18 +189,7 @@ export default function () {
   // let last_regen = 0
   // const regen_delay = 1000
   return {
-    tick() {
-      // if (WorldGenerator.instance.needsRegen) {
-      //   const current_time = Date.now()
-      //   if (current_time - last_regen >= regen_delay) {
-      //     console.log(`regen terrain`)
-      //     last_regen = current_time
-      //     WorldGenerator.instance.needsRegen = false
-      //     terrain.clear()
-      //   }
-      // }
-      terrain.update()
-    },
+    tick() {},
     observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -270,13 +228,18 @@ export default function () {
           current_three_character(state)?.position?.clone()
 
         if (player_position) {
+          // bbox.expandByScalar(2)
+          // if (PatchCache.ready) {
+          if (PatchCache.updateCache(player_position, cache_size))
+            terrain.update()
+          // }
           terrain.showMapAroundPosition(
             player_position,
             state.settings.view_distance,
           )
+          terrain.setLod(camera.position, 50, camera.far)
+          // }
         }
-
-        terrain.setLod(camera.position, 50, camera.far)
       })
     },
   }
