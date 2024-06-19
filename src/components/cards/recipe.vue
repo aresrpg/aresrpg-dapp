@@ -74,10 +74,10 @@ fr:
 <script setup>
 import { inject, computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { SUPPORTED_TOKENS } from '@aresrpg/aresrpg-sdk/sui';
 import { BigNumber as BN } from 'bignumber.js';
 
 import {
+  sdk,
   sui_craft_item,
   sui_delete_recipe,
   sui_reveal_craft,
@@ -85,6 +85,7 @@ import {
 import toast from '../../toast.js';
 import { context } from '../../core/game/game.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
+import { NETWORK } from '../../env.js';
 
 import itemDescription from './item-description.vue';
 
@@ -153,11 +154,15 @@ onUnmounted(() => {
 });
 
 function pretty_amount(ingredient) {
-  const token = SUPPORTED_TOKENS[ingredient.item_type];
+  const token = sdk.SUPPORTED_TOKENS[ingredient.item_type];
+  // @ts-ignore
   if (token?.decimal)
-    return new BN(ingredient.amount.toString())
-      .dividedBy(new BN(10).pow(token.decimal))
-      .toFixed(2);
+    return (
+      new BN(ingredient.amount.toString())
+        // @ts-ignore
+        .dividedBy(new BN(10).pow(token.decimal))
+        .toFixed(2)
+    );
 
   return ingredient.amount;
 }
@@ -195,8 +200,9 @@ async function delete_recipe() {
 }
 
 function item_icon(item_type) {
-  const known_token = SUPPORTED_TOKENS[item_type];
+  const known_token = sdk.SUPPORTED_TOKENS[item_type];
 
+  // @ts-ignore
   if (known_token) return known_token.image_url;
   return `https://assets.aresrpg.world/item/${item_type}.png`;
 }

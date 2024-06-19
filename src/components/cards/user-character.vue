@@ -118,7 +118,7 @@ const character_explorer_link = computed(
 );
 
 const is_valid_sui_address = computed(() => {
-  const is_alias = send_to.value.endsWith('.sui');
+  const is_alias = send_to.value.includes('@');
   return is_alias || isValidSuiAddress(send_to.value);
 });
 

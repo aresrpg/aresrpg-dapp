@@ -2,17 +2,19 @@ import assert from 'assert'
 
 import { Matrix4, Vector3 } from 'three'
 
-import iop_male from '../../assets/models/iop_male.glb?url'
-import iop_female from '../../assets/models/iop_female.glb?url'
-import sram_male from '../../assets/models/sram_male.glb?url'
-import sram_female from '../../assets/models/sram_female.glb?url'
-import chafer from '../../assets/models/chafer.glb?url'
-import suifren_bullshark from '../../assets/models/suifren_bullshark.glb?url'
-import suifren_capy from '../../assets/models/suifren_capy.glb?url'
-import afegg from '../../assets/models/afegg.glb?url'
-import primemachin from '../../assets/models/primemachin.glb?url'
+import iop_male from '../../assets/models/characters/iop_male.glb?url'
+import iop_female from '../../assets/models/characters/iop_female.glb?url'
+import sram_male from '../../assets/models/characters/sram_male.glb?url'
+import sram_female from '../../assets/models/characters/sram_female.glb?url'
+import primemachin from '../../assets/models/characters/primemachin.glb?url'
+import suifren_bullshark from '../../assets/models/pets/suifren_bullshark.glb?url'
+import suifren_capy from '../../assets/models/pets/suifren_capy.glb?url'
+import afegg from '../../assets/models/pets/afegg.glb?url'
+import vaporeon from '../../assets/models/pets/vaporeon.glb?url'
+import suicune from '../../assets/models/pets/suicune.glb?url'
 import pug_hat from '../../assets/models/equipment/pug_hat.glb?url'
 import suicune_hat from '../../assets/models/equipment/suicune_hat.glb?url'
+import chafer from '../../assets/models/mobs/chafer.glb?url'
 import { load } from '../utils/three/load_model.js'
 
 export const MODELS = {
@@ -57,8 +59,16 @@ export const MODELS = {
     scale: 1,
   }),
   suicunio: await load(suicune_hat, {
-    env_map_intensity: 1,
+    env_map_intensity: 0.5,
     scale: 1,
+  }),
+  vaporeon: await load(vaporeon, {
+    env_map_intensity: 0.5,
+    scale: 0.25,
+  }),
+  suicune: await load(suicune, {
+    env_map_intensity: 0.5,
+    scale: 0.25,
   }),
 }
 

@@ -547,6 +547,7 @@ export default function () {
                       context.dispatch('action/sui_add_locked_character', {
                         ...character,
                         kiosk_id: event.kiosk_id,
+                        // @ts-ignore
                         personal_kiosk_cap_id: cap.id,
                       })
                       context.dispatch(
@@ -575,6 +576,7 @@ export default function () {
                       context.dispatch('action/sui_add_unlocked_character', {
                         ...character,
                         kiosk_id: event.kiosk_id,
+                        // @ts-ignore
                         personal_kiosk_cap_id: cap.id,
                       })
                       context.dispatch(
@@ -615,7 +617,9 @@ export default function () {
                         const final_item = {
                           ...item,
                           kiosk_id: event.kiosk_id,
+                          // @ts-ignore
                           personal_kiosk_cap_id: cap.id,
+                          // @ts-ignore
                           is_kiosk_personal: cap.personal,
                         }
                         context.dispatch(
@@ -846,17 +850,22 @@ export default function () {
                 admin_caps: result,
               })
 
-              await update_user_data({
-                update_locked_characters: true,
-                update_unlocked_characters: true,
-                update_balance: true,
-                update_locked_items: true,
-                update_unlocked_items: true,
-                update_items_for_sale: true,
-                update_tokens: true,
-                update_finished_crafts: true,
-              })
-              tx.update('success', t('DATA_FETCHED'))
+              try {
+                await update_user_data({
+                  update_locked_characters: true,
+                  update_unlocked_characters: true,
+                  update_balance: true,
+                  update_locked_items: true,
+                  update_unlocked_items: true,
+                  update_items_for_sale: true,
+                  update_tokens: true,
+                  update_finished_crafts: true,
+                })
+                tx.update('success', t('DATA_FETCHED'))
+              } catch (error) {
+                console.error(error)
+                tx.remove()
+              }
             } else {
               if (tx) tx.update('error', t('LOGIN_AGAIN'))
               controller.abort()

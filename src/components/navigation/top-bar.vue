@@ -11,6 +11,7 @@ fr:
   offline_ws: Hors ligne
   online_ws: En ligne
   testnet: Vous êtes actuellement sur un test network
+  mainnet: AresRPG n'est pas encore lancé sur le mainnet! Essayez {0}
   copy: Copier l'adresse
   copied: Adresse copiée dans le presse-papier
   sales: Ventes
@@ -33,6 +34,7 @@ en:
   offline_ws: Offline
   online_ws: Online
   testnet: You are currently on a test network
+  mainnet: AresRPG is not yet launched on the mainnet! Try out {0}
   copy: Copy address
   copied: Address copied to clipboard
   sales: Sales
@@ -98,11 +100,11 @@ const current_address = inject('current_address');
 const current_account = inject('current_account');
 const sui_balance = inject('sui_balance');
 
-const kiosk_profits = ref(0);
+const kiosk_profits = ref('');
 
 function address_display(account) {
   if (!account) return 'not found';
-  if (account.alias?.includes('.sui')) return account.alias;
+  if (account.alias?.includes('@')) return account.alias;
   return `${account.address.slice(0, 6)}...${account.address.slice(-4)}`;
 }
 
@@ -126,7 +128,8 @@ async function enoki_login() {
 
 async function refresh_kiosk_profits() {
   const profits = await sui_get_kiosks_profits();
-  kiosk_profits.value = +mists_to_sui(profits).replace(/\.?0+$/, '');
+  kiosk_profits.value = (+mists_to_sui(profits)).toFixed(2);
+  kiosk_profits.value = kiosk_profits.value.replace(/\.?0+$/, '');
 }
 
 async function claim_kiosk_profits() {
@@ -134,7 +137,7 @@ async function claim_kiosk_profits() {
   try {
     await sui_claim_kiosks_profits();
     tx.update('success', t('profit_claimed'));
-    kiosk_profits.value = 0;
+    kiosk_profits.value = '';
   } catch (error) {
     tx.update('error', t('claiming_error'));
     console.error(error);
@@ -186,6 +189,7 @@ onUnmounted(() => {
 <template lang="pug">
 nav(:class="{ small: breakpoints.mobile.matches }")
   .beware-tesnet(v-if="NETWORK !== 'mainnet'") {{ t('testnet') }}
+  .beware-mainnet(v-if="NETWORK === 'mainnet'") {{ t('mainnet') }} #[a(href="https://testnet.aresrpg.world") https://testnet.aresrpg.world]
   vs-row(justify="end")
     // ======
     vs-button.btn(v-if="!current_wallet" type="border" color="#eee" @click="login_dialog = true")
@@ -262,7 +266,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
 <style lang="stylus" scoped>
 .profit
   color #212121
-.beware-tesnet
+.beware-tesnet, .beware-mainnet
   position absolute
   top 0
   left 0
@@ -275,6 +279,17 @@ nav(:class="{ small: breakpoints.mobile.matches }")
   font-weight bold
   text-transform uppercase
   background linear-gradient(100deg, crimson, #EE5A24)
+  &.beware-mainnet
+    background linear-gradient(100deg, #009688, #2ECC71)
+    text-transform none
+    a
+      color white
+      text-decoration underline
+      cursor pointer
+      margin-left .5em
+      &:hover
+        text-decoration none
+        color #F1C40F
 
 .logo
   width 200px

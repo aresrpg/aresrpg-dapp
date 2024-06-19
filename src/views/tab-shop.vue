@@ -82,7 +82,6 @@ import { useRouter } from 'vue-router';
 import { inject, ref, provide, computed, onMounted } from 'vue';
 import { BigNumber as BN } from 'bignumber.js';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
-import { SUPPORTED_TOKENS } from '@aresrpg/aresrpg-sdk/sui';
 
 import sectionContainer from '../components/misc/section-container.vue';
 import sectionHeader from '../components/misc/section-header.vue';
@@ -92,10 +91,11 @@ import tabs from '../components/game-ui/tabs.vue';
 import marketCategories from '../components/cards/market-categories.vue';
 import marketListings from '../components/cards/market-listings.vue';
 import marketMyListings from '../components/cards/market-my-listings.vue';
-import { sui_list_item } from '../core/sui/client.js';
+import { sdk, sui_list_item } from '../core/sui/client.js';
 import { context } from '../core/game/game.js';
 import faucetCard from '../components/cards/faucet-card.vue';
 import toast from '../toast.js';
+import { NETWORK } from '../env.js';
 
 // @ts-ignore
 import TokenSui from '~icons/token/sui';
@@ -113,10 +113,10 @@ const selected_category = inject('selected_category');
 const shop_tabs = {
   buy: {},
   sell: {},
-  faucet: {},
+  ...(NETWORK === 'testnet' && { faucet: {} }),
 };
 
-const faucet_tokens = Object.values(SUPPORTED_TOKENS);
+const faucet_tokens = Object.values(sdk.SUPPORTED_TOKENS);
 
 const selected_item_type = ref(null);
 const requested_list_price = ref(1);

@@ -16,7 +16,7 @@ fr:
 </i18n>
 
 <template lang="pug">
-sectionContainer
+sectionContainer(v-if="NETWORK === 'testnet'")
   sectionHeader(:title="t('workshop')" :desc="t('desc')" color="#673AB7" rows="true")
     .recipes
       .recipe-name {{ t('recipes') }}:
@@ -35,7 +35,7 @@ sectionContainer
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted, ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import sectionContainer from '../components/misc/section-container.vue';
@@ -43,27 +43,19 @@ import sectionHeader from '../components/misc/section-header.vue';
 import recipeVue from '../components/cards/recipe.vue';
 import itemInventory from '../components/cards/item-inventory.vue';
 import itemDescription from '../components/cards/item-description.vue';
-import { VITE_INDEXER_URL } from '../env.js';
+import { VITE_INDEXER_URL, NETWORK } from '../env.js';
 import tailor_icon from '../assets/jobs/tailor.png';
 import woodcutter_icon from '../assets/jobs/woodcutter.png';
 import { SUI_EMITTER } from '../core/modules/sui_data.js';
 
 const { t } = useI18n();
 const indexed_recipes = inject('recipes');
+const current_wallet = inject('current_wallet');
 
 const jobs = [
   { name: 'Tailor', level: 1, icon: tailor_icon },
   { name: 'Woodcutter', level: 1, icon: woodcutter_icon },
 ];
-
-const AFSUI =
-  '0x02264251ff808fbf55c06f60fd1174814fd787bd32dc539531894deb497029c7::afsui::AFSUI';
-
-function item_icon(item_type) {
-  if (item_type === AFSUI)
-    return 'https://strapi-dev.scand.app/uploads/FUD_Logo_46c0468f49.jpg';
-  return `https://assets.aresrpg.world/item/${item_type}.png`;
-}
 
 async function refresh_recipes() {
   const result = await fetch(`${VITE_INDEXER_URL}/recipes`);
@@ -86,12 +78,21 @@ function on_recipe_delete() {
   }, 7000);
 }
 
-onMounted(() => {
-  refresh_recipes();
+watch(
+  current_wallet,
+  () => {
+    SUI_EMITTER.off('RecipeCreateEvent', on_recipe_create);
+    SUI_EMITTER.off('RecipeDeleteEvent', on_recipe_delete);
 
-  SUI_EMITTER.on('RecipeCreateEvent', on_recipe_create);
-  SUI_EMITTER.on('RecipeDeleteEvent', on_recipe_delete);
-});
+    if (current_wallet.value) {
+      refresh_recipes();
+
+      SUI_EMITTER.on('RecipeCreateEvent', on_recipe_create);
+      SUI_EMITTER.on('RecipeDeleteEvent', on_recipe_delete);
+    }
+  },
+  { immediate: true },
+);
 
 onUnmounted(() => {
   SUI_EMITTER.off('RecipeCreateEvent', on_recipe_create);
