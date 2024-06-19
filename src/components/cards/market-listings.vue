@@ -21,10 +21,10 @@ fr:
 
 <template lang="pug">
 .listings-container
-  tabs.quantity-selector(v-if="listings.length" :tabs="listings[0].stackable ? quantity_tabs : { x1: 1 }" :spaced="true" :nobg="true")
+  tabs.quantity-selector(v-if="listings.length" :tabs="listings[0].stackable ? quantity_tabs : { x1: 1 }" :spaced="true" :nobg="true" :scroll="true")
     template(#tab="{ tab }")
       .tab-name {{ tab }}
-    template(#content="{ data, tab }")
+    template.testo(#content="{ data, tab }")
       .none(v-if="!filter_listings(data).length") {{ t('no_listings') }}
       .listing(
         v-for="(listing, index) in filter_listings(data)"
@@ -222,6 +222,7 @@ onUnmounted(() => {
   font-size .8em
 
 .quantity-selector
+  height 100%
   .tab-name
     font-size .8em
     font-weight bold
@@ -233,6 +234,7 @@ onUnmounted(() => {
   display flex
   flex-flow column nowrap
   margin-top 1em
+  height calc(100% - 260px)
   .listing
     display grid
     grid "icon name price" auto / 50px 1fr max-content

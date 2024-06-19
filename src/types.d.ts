@@ -90,7 +90,7 @@ declare namespace Type {
     signPersonalMessage: (
       message: string,
       address: string,
-    ) => Promise<{ bytes: string; signature: string }>
+    ) => Promise<{ bytes: string; signature: string; zk?: boolean }>
     signTransaction: (param: sigTransactionParams) => Promise
   }
 

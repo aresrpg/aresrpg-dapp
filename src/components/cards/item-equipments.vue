@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { inject, computed, ref, onMounted } from 'vue';
+import { inject, computed, ref, onMounted, watch } from 'vue';
 // @ts-ignore
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 

@@ -377,6 +377,18 @@ export default function create_pools(scene) {
       radius: 0.9,
       name: 'primemachin',
     }),
+    vaporeon: instanciate(MODELS.vaporeon, {
+      height: 0.9,
+      radius: 0.9,
+      name: 'vaporeon',
+      offset_y: -0.52,
+    }),
+    suicune: instanciate(MODELS.suicune, {
+      height: 0.9,
+      radius: 0.9,
+      name: 'suicune',
+      offset_y: -0.52,
+    }),
   }
 
   return {

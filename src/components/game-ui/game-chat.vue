@@ -23,7 +23,7 @@ fr:
   )
     .message(v-if="!hidden" v-for="({name, message, alias, me}) in history" :key="message" :class="{ me }")
       .alias(
-        :class="{ suins: alias.includes('.sui') }"
+        :class="{ suins: alias.includes('@') }"
         @click.right="event => on_right_click_id(event, alias)"
       ) {{ alias }}
       .name ({{ name }})
@@ -103,8 +103,8 @@ function send_message() {
 }
 
 function address_display(address) {
-  if (address.includes('.sui')) {
-    if (address.length > 15) return `${address.slice(-5)}..sui`;
+  if (address.includes('@')) {
+    if (address.length > 15) return `${address.slice(-5)}..`;
     return address;
   }
   return `${address.slice(0, 4)}...${address.slice(-2)}`;

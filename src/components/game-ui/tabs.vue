@@ -1,7 +1,7 @@
 <script setup>
 // chat-gpt generated code
 import { ref, onMounted, nextTick } from 'vue';
-const props = defineProps(['tabs', 'nobg']);
+const props = defineProps(['tabs', 'nobg', 'scroll']);
 const active_tab = ref(Object.keys(props.tabs)[0]);
 const border_style = ref({});
 
@@ -42,7 +42,7 @@ onMounted(async () => {
     )
       slot(:tab="name" name="tab" @click.stop.prevent) {{ name }}
     .animated-border(:style="border_style")
-  .tab-content(:class="{ 'no-bg': props.nobg }")
+  .tab-content(:class="{ 'no-bg': props.nobg, 'scroll': !!props.scroll }")
     slot(name="content" :data="props.tabs[active_tab]" :tab="active_tab")
       | Content for {{ active_tab }}
 </template>
@@ -79,4 +79,8 @@ onMounted(async () => {
     height 100%
     &.no-bg
       background transparent
+    &.scroll
+      // height 100%
+      overflow hidden
+      overflow-y auto
 </style>

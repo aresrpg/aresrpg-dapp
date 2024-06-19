@@ -1135,6 +1135,7 @@ export async function get_alias(address) {
   const {
     data: [name],
   } = await suins_client.resolveNameServiceNames({
+    format: 'at',
     address,
     limit: 1,
   })
@@ -1148,12 +1149,16 @@ export async function get_alias(address) {
 
 export async function sui_sign_payload(message) {
   const address = get_address()
-  const { bytes, signature } = await get_wallet().signPersonalMessage(
+  const { bytes, signature, zk } = await get_wallet().signPersonalMessage(
     message,
     address,
   )
 
-  context.send_packet('packet/signatureResponse', { bytes, signature })
+  context.send_packet('packet/signatureResponse', {
+    bytes,
+    signature,
+    zk: !!zk,
+  })
 }
 
 // const floor_price_rule_package_id = sdk.kiosk_client.getRulePackageId(

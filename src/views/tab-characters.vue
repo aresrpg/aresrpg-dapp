@@ -43,6 +43,7 @@ import { ref, provide, inject, defineAsyncComponent } from 'vue';
 
 import sectionHeader from '../components/misc/section-header.vue';
 import sectionContainer from '../components/misc/section-container.vue';
+import { NETWORK } from '../env.js';
 
 const UserCharacter = defineAsyncComponent(
   () => import('../components/cards/user-character.vue'),
@@ -61,7 +62,7 @@ provide('new_character_dialog', new_character_dialog);
 </script>
 
 <template lang="pug">
-sectionContainer
+sectionContainer(v-if="NETWORK === 'testnet'")
   vs-alert(type="relief" color="#0D47A1")
     template(#title) {{ t('welcome') }}
     .alert-content

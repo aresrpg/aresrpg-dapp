@@ -72,9 +72,12 @@ export function enoki_wallet() {
     async signPersonalMessage(message) {
       const keypair = await enoki.getKeypair({ network: NETWORK })
 
-      return await keypair.signPersonalMessage(
-        new TextEncoder().encode(message),
-      )
+      return {
+        ...(await keypair.signPersonalMessage(
+          new TextEncoder().encode(message),
+        )),
+        zk: true,
+      }
     },
     /**
      * @param {object} opt
