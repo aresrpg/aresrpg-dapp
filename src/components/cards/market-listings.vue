@@ -141,8 +141,8 @@ async function buy_item() {
   buy_loading.value = true;
   try {
     select_item(bought_item.value);
-    await sui_buy_item(bought_item.value);
-    toast.success(t('buy_success'), '', GameIconsPayMoney);
+    if (await sui_buy_item(bought_item.value))
+      toast.success(t('buy_success'), '', GameIconsPayMoney);
   } catch (error) {
     console.error(error);
   }

@@ -8,6 +8,7 @@ import deep_equal from 'fast-deep-equal';
 import { useI18n } from 'vue-i18n';
 
 import { decrease_loading, increase_loading } from './core/utils/loading.js';
+import { VITE_INDEXER_URL } from './env.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore
@@ -99,6 +100,7 @@ const admin = reactive({
 const recipes = ref([]);
 const owned_tokens = ref([]);
 const finished_crafts = ref([]);
+const currently_listed_items_names = ref({});
 
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
@@ -131,6 +133,7 @@ provide('admin', admin);
 provide('recipes', recipes);
 provide('finished_crafts', finished_crafts);
 provide('message_history', message_history);
+provide('currently_listed_items_names', currently_listed_items_names);
 
 function update_all(
   state,
@@ -399,6 +402,18 @@ function update_all_(state) {
   if (game_module) update_all(state, game_module);
 }
 
+async function refresh_listed_item_names() {
+  try {
+    // fetch names of item listed (to allow search)
+    const result = await fetch(`${VITE_INDEXER_URL}/items/category-map`);
+    currently_listed_items_names.value = await result.json();
+  } catch (error) {
+    console.error('Failed to fetch listed items names', error);
+  }
+}
+
+let listed_item_names_interval = null;
+
 onMounted(async () => {
   increase_loading();
 
@@ -442,6 +457,13 @@ onMounted(async () => {
     context.dispatch('action/select_wallet', 'Enoki');
     context.dispatch('action/select_address', address);
   }
+
+  listed_item_names_interval = setInterval(
+    refresh_listed_item_names,
+    1000 * 60,
+  );
+
+  await refresh_listed_item_names();
 });
 
 onUnmounted(() => {
@@ -449,6 +471,8 @@ onUnmounted(() => {
     game_module.context.events.off('STATE_UPDATED', update_all_);
     game_module.context.events.off('packet/serverInfo', on_server_info);
   }
+
+  clearInterval(listed_item_names_interval);
 });
 // @ts-ignore
 </script>
