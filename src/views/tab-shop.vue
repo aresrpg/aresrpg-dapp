@@ -21,9 +21,9 @@
 
 <template lang="pug">
 sectionContainer
-  tabs.tabs_(:tabs="shop_tabs" :spaced="true" :nobg="true")
-    template(#tab="{ tab }")
-      .name {{ t(tab) }}
+  tabs.tabs_(:tabs="shop_tabs" :spaced="true" :nobg="true" :noborder="true")
+    template(#tab="{ tab, active }")
+      vs-button(type="transparent" size="small" color="#90CAF9" :active="active").name {{ t(tab) }}
     template(#content="{ data, tab }")
       .buy-page(v-if="tab === 'buy'")
         .left
