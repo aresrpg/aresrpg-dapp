@@ -26,8 +26,9 @@ export default function () {
   Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
   // init blocks patch cache
   PatchCache.patchSize = Math.pow(2, 6)
-  const cache_size = PatchCache.patchSize * 50
-  PatchCache.updateCache(new Vector3(), cache_size, true)
+  const cache_size = PatchCache.patchSize * 80
+  PatchCache.updateCache(new Vector3(), cache_size / 4, true)
+  while (PatchCache.buildNextBatch());
 
   /**
    * Data struct filling from blocks cache
@@ -128,7 +129,7 @@ export default function () {
           edges.forEach(edge => {
             const block_data = PatchCache.getBlock(edge.global_pos)
             const block_local_pos = edge.local_pos.clone()
-            block_local_pos.y = block_data.level
+            block_local_pos.y = block_data.pos.y
             fill_blocks_struct(block_local_pos, block_data.type)
             // else console.log('missing block: ', edge.pos)
           })
@@ -186,10 +187,19 @@ export default function () {
   const terrain = new Terrain(map)
   terrain.parameters.voxels.map.minAltitude = 0
   terrain.parameters.voxels.map.maxAltitude = 400
+
   // let last_regen = 0
   // const regen_delay = 1000
   return {
-    tick() {},
+    tick() {
+      if (!PatchCache.buildNextBatch(10, 80) && PatchCache.updated) {
+        PatchCache.updated = false
+        PatchCache.cacheExtEntities()
+        console.log(`[DAPP] refresh terrain`)
+        terrain.update()
+        // setTimeout(() => (PatchCache.updated = true), 1000)
+      }
+    },
     observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -228,11 +238,7 @@ export default function () {
           current_three_character(state)?.position?.clone()
 
         if (player_position) {
-          // bbox.expandByScalar(2)
-          // if (PatchCache.ready) {
-          if (PatchCache.updateCache(player_position, cache_size))
-            terrain.update()
-          // }
+          PatchCache.updateCache(player_position, cache_size)
           terrain.showMapAroundPosition(
             player_position,
             state.settings.view_distance,
