@@ -57,6 +57,8 @@ const error_sui = {
     FETCHING_DATA: 'Fetching characters and items..',
     DATA_FETCHED: 'Successfully fetched characters and items',
     WAIT_A_MINUTE: 'Please wait before trying again',
+    ENOKI_DOWN:
+      'The sponsoring service seems to be malfunctioning, please try again later.',
   },
   fr: {
     LOGIN_AGAIN: 'Veuillez vous reconnecter',
@@ -79,6 +81,8 @@ const error_sui = {
     FETCHING_DATA: 'Récupération des personnages et objets..',
     DATA_FETCHED: 'Personnages et objets récupérés avec succès',
     WAIT_A_MINUTE: 'Veuillez attendre avant de réessayer',
+    ENOKI_DOWN:
+      'Le service de sponsoring semble dysfonctionner, veuillez réessayer plus tard.',
   },
 }
 
