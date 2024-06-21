@@ -1,4 +1,4 @@
-import { Heightmap } from '@aresrpg/aresrpg-world'
+import { Heightmap, PatchCache } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
 
 import {

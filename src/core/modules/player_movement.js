@@ -4,7 +4,7 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import { Heightmap } from '@aresrpg/aresrpg-world'
+import { PatchCache } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
