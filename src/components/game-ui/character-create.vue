@@ -10,6 +10,7 @@ fr:
   name_taken: Ce nom est déjà pris
   create_tx: Enregistrement du personnage sur Sui 💧
   create_ok: Character created!
+  create_error: Erreur lors de la création du personnage
 en:
   character_name: character name
   character_name_valid: The character name must be between 3 and 20 chars
@@ -21,6 +22,7 @@ en:
   name_taken: This name is already taken
   create_tx: Saving character on Sui 💧
   create_ok: Character created!
+  create_error: Error while creating character
 </i18n>
 
 <script setup>
@@ -190,7 +192,7 @@ async function create_character() {
 
     new_character_name.value = '';
   } catch (error) {
-    tx.update('error', error.message);
+    tx.update('error', t('create_error'));
     console.error(error);
   }
   create_button_disabled.value = false;

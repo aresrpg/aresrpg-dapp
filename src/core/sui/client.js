@@ -158,6 +158,9 @@ async function execute_sponsored({ transaction, sender, wallet }) {
     },
   }).then(res => res.json())
 
+  if (error === 'FAILURE')
+    toast.warn(t('ENOKI_DOWN'), 'Beeb boop', GameIconsBrokenBottle)
+
   if (error) throw new Error(error)
 
   const sponsored = Transaction.from(bytes)
