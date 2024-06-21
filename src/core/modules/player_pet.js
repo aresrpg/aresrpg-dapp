@@ -1,4 +1,4 @@
-import { Heightmap } from '@aresrpg/aresrpg-world'
+import { Heightmap, PatchCache } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
 
 import {
@@ -36,13 +36,9 @@ export function tick_pet(character, pet, delta) {
 
     const new_position = pet.position.clone().add(movement)
 
-    const ground_pos = new Vector2(
-      Math.floor(new_position.x),
-      Math.floor(new_position.z),
-    )
-    const height = Math.floor(Heightmap.instance.getGroundPos(ground_pos).y)
+    const ground_height = PatchCache.getBlock(new_position).y
 
-    new_position.setY(height + pet.height * 2 + 0.2)
+    new_position.setY(ground_height + pet.height * 2 + 0.2)
 
     pet.move(new_position)
     pet.rotate(movement)
