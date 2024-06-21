@@ -1,5 +1,5 @@
+import { Heightmap } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
-import { WorldGenerator } from '@aresrpg/aresrpg-world'
 
 import {
   context,
@@ -36,11 +36,11 @@ export function tick_pet(character, pet, delta) {
 
     const new_position = pet.position.clone().add(movement)
 
-    const height = Math.floor(
-      WorldGenerator.instance.getRawHeight(
-        new Vector2(Math.floor(new_position.x), Math.floor(new_position.z)),
-      ),
+    const ground_pos = new Vector2(
+      Math.floor(new_position.x),
+      Math.floor(new_position.z),
     )
+    const height = Math.floor(Heightmap.instance.getGroundPos(ground_pos).y)
 
     new_position.setY(height + pet.height * 2 + 0.2)
 

@@ -4,7 +4,7 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import { WorldGenerator } from '@aresrpg/aresrpg-world'
+import { Heightmap } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
@@ -65,9 +65,11 @@ export default function () {
 
       if (player.target_position) {
         const { x, z } = player.target_position
-        const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
-        const raw_height = WorldGenerator.instance.getRawHeight(ground_pos) + 2 // add player height
-        player.target_position.y = Math.floor(raw_height)
+        const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
+        Heightmap.instance.getGroundLevel(ground_pos)
+        const ground_level = Math.floor(ground_pos.y)
+        // hack: avoid player being stuck in terrain at spawning
+        player.target_position.y = ground_level + 2
         player.move(player.target_position)
         player.target_position = null
         return
@@ -177,9 +179,9 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       const { x, z } = dummy.position
-      const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
-      const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
-      const ground_height = Math.floor(raw_height)
+      const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z)) // .subScalar(0.5)
+      Heightmap.instance.getGroundLevel(ground_pos)
+      const ground_height = Math.floor(ground_pos.y)
 
       if (!ground_height) return
 
