@@ -199,7 +199,7 @@ async function execute_unsponsored({ transaction, sender, wallet }) {
 }
 
 /** @param {Transaction} transaction */
-const execute = async transaction => {
+export const execute = async transaction => {
   const sender = get_address()
   if (!sender) {
     toast.error(t('LOGIN_AGAIN'), t('WALLET_NOT_FOUND'))
@@ -492,16 +492,6 @@ export async function sui_feed_pet(pet) {
 
   sdk.add_header(tx)
 
-  const balance = await get_bn_sui_balance()
-
-  if (balance.isLessThan(1)) return
-
-  const coin = await get_base_sui_coin(tx)
-
-  const [payment] = tx.splitCoins(coin, [
-    tx.pure.u64(sui_to_mists(1).toString()),
-  ])
-
   const { kiosks, finalize } = await sdk.get_user_kiosks({
     address: get_address(),
     tx,
@@ -509,14 +499,57 @@ export async function sui_feed_pet(pet) {
 
   const kiosk_cap = kiosks.get(pet.kiosk_id)
 
-  sdk.feed_suifren({
-    tx,
-    kiosk_id: pet.kiosk_id,
-    kiosk_cap,
-    suifren_id: pet.id,
-    coin: payment,
-    fren_type: pet.item_type,
-  })
+  switch (pet.item_type) {
+    case 'suifren_capy':
+    case 'suifren_bullshark':
+      {
+        const balance = await get_bn_sui_balance()
+
+        if (balance.isLessThan(1)) return
+
+        const coin = await get_base_sui_coin(tx)
+
+        const [payment] = tx.splitCoins(coin, [
+          tx.pure.u64(sui_to_mists(1).toString()),
+        ])
+
+        sdk.feed_suifren({
+          tx,
+          kiosk_id: pet.kiosk_id,
+          kiosk_cap,
+          suifren_id: pet.id,
+          coin: payment,
+          fren_type: pet.item_type,
+        })
+      }
+      break
+    case 'vaporeon':
+      {
+        const balance = await sdk.sui_client.getBalance({
+          coinType: sdk.HSUI,
+          owner: get_address(),
+        })
+
+        if (new BN(balance.totalBalance).isLessThan(5000000000)) return
+
+        const [payment] = await get_coin_with_balance({
+          tx,
+          type: sdk.HSUI,
+          balance: 5000000000,
+        })
+
+        sdk.feed_vaporeon({
+          tx,
+          kiosk_id: pet.kiosk_id,
+          kiosk_cap,
+          vaporeon_id: pet.id,
+          coin: payment,
+        })
+      }
+      break
+    default:
+      throw new Error('Unknown pet type')
+  }
 
   finalize()
 

@@ -8,6 +8,11 @@
     listing: Listing in the market
     listed: Listed
     failed_to_list: Failed to list item
+    mint: Shop
+    mint_title: AresRPG limited editions items
+    mint_header: In this section you have access to special limited edition items, they can appear during events or special occasions.
+    close: Close
+    revealed: Impressive, you got a new Item!
   fr:
     shop: 🥐 Hôtel des Ventes
     sell: Vendre
@@ -17,6 +22,11 @@
     listing: Mise en vente
     listed: Listé avec succès
     failed_to_list: Échec de la mise en vente
+    mint: Boutique
+    mint_title: Objets en édition limitée AresRPG
+    mint_header: Dans cette section, vous avez accès à des objets spéciaux en édition limitée, ils peuvent apparaître lors d'événements ou d'occasions spéciales.
+    close: Fermer
+    revealed: Impressionnant, vous avez un nouvel objet!
 </i18n>
 
 <template lang="pug">
@@ -33,6 +43,10 @@ sectionContainer
           marketListings
       .faucet-page(v-else-if="tab === 'faucet'")
         faucetCard(v-for="token in faucet_tokens" :token="token")
+      .mint-page(v-else-if="tab === 'mint'")
+        sectionHeader(:title="t('mint_title')" :desc="t('mint_header')" color="#FFC107")
+        .mints
+          mintCard(v-for="mint in mints" :mint="mint" :has_key="false")
       .sell-page(v-else-if="tab === 'sell'")
         .selling
           marketMyListings
@@ -74,12 +88,21 @@ sectionContainer
             ) {{ t('sell') }} x100
           .items
             itemInventory(:disable_edit="true" :sell_mode="true")
+
+  /// revealed dialog
+  vs-dialog(v-model="reveal_dialog")
+    template(#header)
+      span.dialog-header(:class="{ reveal_shiny }") {{ t('revealed') }}
+    itemDescription
+    template(#footer)
+      .dialog-footer
+        vs-button(type="transparent" color="#2ECC71" @click="(reveal_dialog = false, reveal_shiny = false)") {{ t('close') }}
 </template>
 
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { inject, ref, provide, computed, onMounted } from 'vue';
+import { inject, ref, provide, computed, onMounted, onUnmounted } from 'vue';
 import { BigNumber as BN } from 'bignumber.js';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
@@ -91,11 +114,14 @@ import tabs from '../components/game-ui/tabs.vue';
 import marketCategories from '../components/cards/market-categories.vue';
 import marketListings from '../components/cards/market-listings.vue';
 import marketMyListings from '../components/cards/market-my-listings.vue';
+import mintCard from '../components/cards/mint-card.vue';
 import { sdk, sui_list_item } from '../core/sui/client.js';
 import { context } from '../core/game/game.js';
 import faucetCard from '../components/cards/faucet-card.vue';
 import toast from '../toast.js';
 import { NETWORK } from '../env.js';
+import { sui_get_vaporeon_mint } from '../core/sui/temp_vaporeon_mint.js';
+import { SUI_EMITTER } from '../core/modules/sui_data.js';
 
 // @ts-ignore
 import TokenSui from '~icons/token/sui';
@@ -110,10 +136,41 @@ provide('filtered_category', filtered_category);
 const selected_item = inject('selected_item');
 const selected_category = inject('selected_category');
 
+const mints = ref([]);
+const reveal_dialog = ref(false);
+const reveal_shiny = ref(false);
+
+function reveal_mint({ item, shiny }) {
+  selected_item.value = item;
+  reveal_dialog.value = true;
+  reveal_shiny.value = shiny;
+}
+
+onMounted(async () => {
+  const minted = await sui_get_vaporeon_mint();
+  // @ts-ignore
+  mints.value.push({
+    name: 'Vaporeon',
+    image_url: 'https://assets.aresrpg.world/item/vaporeon.png',
+    price: 60 * 1000000000,
+    contract:
+      '0x73923978074ff5c625d827f8d59531c3e331d3218bf854e413c354636112cc6f',
+    minted,
+    max_mint: 1000,
+  });
+
+  SUI_EMITTER.on('VaporeonMintEvent', reveal_mint);
+});
+
+onUnmounted(() => {
+  SUI_EMITTER.off('VaporeonMintEvent', reveal_mint);
+});
+
 const shop_tabs = {
   buy: {},
   sell: {},
   ...(NETWORK === 'testnet' && { faucet: {} }),
+  mint: {},
 };
 
 const faucet_tokens = Object.values(sdk.SUPPORTED_TOKENS);
@@ -244,4 +301,8 @@ async function sell(quantity) {
       padding .5em
       margin-top 1em
       border-radius 12px
+.reveal_shiny
+  color gold
+  text-shadow 1px 2px 1px black
+  background linear-gradient(to bottom, #212121, #455A64)
 </style>

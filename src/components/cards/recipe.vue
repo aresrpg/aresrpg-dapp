@@ -68,7 +68,7 @@ fr:
     itemDescription
     template(#footer)
       .dialog-footer
-        vs-button(type="transparent" color="#2ECC71" @click="(reveal_dialog = false, select_item.value = null)") {{ t('close') }}
+        vs-button(type="transparent" color="#2ECC71" @click="reveal_dialog = false") {{ t('close') }}
 </template>
 
 <script setup>

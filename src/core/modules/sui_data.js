@@ -785,6 +785,20 @@ export default function () {
                     })
                 }
 
+                async function handle_vaporeon_mint_event(event) {
+                  if (event.sender_is_me) {
+                    const item = await sdk.get_item_by_id(event.id)
+                    SUI_EMITTER.emit('VaporeonMintEvent', {
+                      item,
+                      shiny: event.shiny,
+                    })
+                    context.dispatch('action/sui_add_unlocked_item', {
+                      ...item,
+                      kiosk_id: event.kiosk_id,
+                    })
+                  }
+                }
+
                 return aiter(on(emitter, 'update')).forEach(
                   async ([{ type, payload }]) => {
                     switch (type) {
@@ -836,6 +850,8 @@ export default function () {
                         return handle_item_delisted_event(payload)
                       case 'FinishedCraftEvent':
                         return handle_finished_craft_event(payload)
+                      case 'VaporeonMintEvent':
+                        return handle_vaporeon_mint_event(payload)
                       default:
                         console.warn('Unhandled event', type, payload)
                         break
