@@ -1,6 +1,6 @@
 <i18n>
 en:
-  feed: Feed
+  feed: Feed with
   feeding: Feeding your small friend
   fed: Your pet is very happy now!
   pet_full: Your pet is not hungry
@@ -13,7 +13,7 @@ en:
   deleted: Item deleted!
   failed_to_delete: Failed to delete item
 fr:
-  feed: Nourrir
+  feed: Nourrir avec
   feeding: Nourrir votre familier
   fed: Votre famillier est très heureux maintenant!
   pet_full: Votre familier n'a pas faim
@@ -99,23 +99,6 @@ function pretty_amount(item) {
   return item.amount;
 }
 
-const feed_context = {
-  label: t('feed'),
-  onClick: async () => {
-    const tx = toast.tx(t('feeding'), selected_item.value.name);
-    try {
-      const fed = await sui_feed_pet(selected_item.value);
-      if (fed) tx.update('success', t('fed'));
-      else tx.update('error', t('SUI_MIN_1'));
-    } catch (error) {
-      if (error.message.includes('101)')) {
-        tx.update('error', t('pet_full'));
-      } else tx.update('error', t('feed_failed'));
-      console.error(error);
-    }
-  },
-};
-
 const delete_context = {
   label: t('delete'),
   onClick: () => {
@@ -143,9 +126,25 @@ function on_right_click_item(event, item) {
 
   if (
     item.item_type === 'suifren_capy' ||
-    item.item_type === 'suifren_bullshark'
+    item.item_type === 'suifren_bullshark' ||
+    item.item_type === 'vaporeon'
   )
-    context.push(feed_context);
+    context.push({
+      label: `${t('feed')} ${selected_item.value?.required_food} ${selected_item.value?.food_name}`,
+      onClick: async () => {
+        const tx = toast.tx(t('feeding'), selected_item.value.name);
+        try {
+          const fed = await sui_feed_pet(selected_item.value);
+          if (fed) tx.update('success', t('fed'));
+          else tx.update('error', t('NOT_ENOUGH_FOOD'));
+        } catch (error) {
+          if (error.message.includes('101)')) {
+            tx.update('error', t('pet_full'));
+          } else tx.update('error', t('feed_failed'));
+          console.error(error);
+        }
+      },
+    });
 
   if (item.is_aresrpg_item) context.push(delete_context);
 

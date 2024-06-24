@@ -44,7 +44,7 @@ const error_sui = {
       'Enoki failed to deliver the transaction (salt failure). Please try again.',
     OUTDATED: `The app is outdated and can't use this feature. Please update the app.`,
     NO_GAS: 'You need Sui in your wallet to perform this action',
-    SUI_MIN_1: 'You need at least 1 Sui to perform this action',
+    NOT_ENOUGH_FOOD: `You do not have enough food!`,
     WALLET_CONFIG: 'Wallet configuration error',
     SUI_SUBSCRIBE_OK: 'Connected to Sui',
     E_PET_ALREADY_FED: 'This pet is not hungry',
@@ -69,7 +69,7 @@ const error_sui = {
     OUTDATED: `L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour l'application.`,
     NO_GAS:
       'Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action',
-    SUI_MIN_1: "Vous avez besoin d'au moins 1 Sui pour effectuer cette action",
+    NOT_ENOUGH_FOOD: `Vous n'avez pas assez de nourriture!`,
     WALLET_CONFIG: 'Erreur de configuration du portefeuille',
     SUI_SUBSCRIBE_OK: 'Connecté à Sui',
     E_PET_ALREADY_FED: 'Ce famillier n a pas faim',

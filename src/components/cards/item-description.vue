@@ -25,7 +25,7 @@ en:
   water_resistance: "% Water resistance"
   air_resistance: "% Air resistance"
   effects: Effects
-  stomach: Sui in stomach
+  stomach: in stomach
   last_feed: Last fed
 
   relic: Relic
@@ -88,7 +88,7 @@ fr:
   water_resistance: "% Résistance Eau"
   air_resistance: "% Résistance Air"
   effects: Effets
-  stomach: Sui dans l'estomac
+  stomach: dans l'estomac
   last_feed: Dernier repas
 
   relic: Relique
@@ -158,7 +158,7 @@ fr:
           img(:src="stat.icon")
           .value +{{ stat.value }} {{ t(stat.name) }}
         .sepa(v-if="item.last_feed")
-        .stomach(v-if="item.feed_level") {{ t('stomach') }}: {{ item.feed_level }} / 100
+        .stomach(v-if="item.feed_level") #[b {{ item.food_name }}] {{ t('stomach') }}: {{ item.feed_level }} / {{ item.max_feed_level }}
         .last-feed(v-if="item.last_feed") {{ t('last_feed') }}: {{ item.last_feed }}
 
 </template>
@@ -350,4 +350,7 @@ const stats = computed(() => {
           font-size .8em
           opacity .7
           font-style italic
+          >b
+            margin-right .25em
+            color #64B5F6
 </style>
