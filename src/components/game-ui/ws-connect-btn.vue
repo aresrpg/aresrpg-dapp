@@ -41,7 +41,7 @@ vs-button.btn(
 import { computed, ref, onMounted, onUnmounted, inject, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { context, disconnect_ws } from '../../core/game/game.js';
+import { context, disconnect_ws, ws_status } from '../../core/game/game.js';
 import toast from '../../toast.js';
 import logger from '../../logger.js';
 import { VITE_SERVER_URL, NETWORK } from '../../env.js';
@@ -67,7 +67,18 @@ function update_online({ online }) {
   else if (status === 'ONLINE' && !online) connection_status.value = 'CLOSED';
 }
 
+watch(ws_status, () => {
+  update_online({ online: ws_status.value });
+});
+
 onMounted(() => {
+  if (
+    selected_character.value &&
+    selected_character.value?.id !== 'default' &&
+    connection_status.value !== 'ONLINE'
+  )
+    connect_to_server();
+
   context.events.on('STATE_UPDATED', update_online);
 });
 
@@ -99,6 +110,18 @@ async function connect_to_server() {
     connection_status.value = 'CLOSED';
   }
 }
+
+watch(
+  selected_character,
+  (selected, old_selected) => {
+    const had_nothing = old_selected && old_selected.id === 'default';
+    const has_selected = selected && selected.id !== 'default';
+
+    if (has_selected && had_nothing && connection_status.value !== 'ONLINE')
+      connect_to_server();
+  },
+  { immediate: true },
+);
 
 function disconnect_from_server() {
   connection_status.value = 'CLOSED';
