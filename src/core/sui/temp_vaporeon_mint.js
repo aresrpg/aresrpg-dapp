@@ -18,13 +18,13 @@ function get_vaporeon_package_id() {
 function vaporeon_registry_id() {
   return NETWORK === 'testnet'
     ? '0x70cfed46e3ae7b4d465ddcdda34edac155cdb070fb05b6b7f31da16fb9f6bd94'
-    : ''
+    : '0x73e3db6d08a2ef8d84ff0a61c3b43a416635e64c0170a456f1747a60c71e96af'
 }
 
 function vaporeon_transfer_policy() {
   return NETWORK === 'testnet'
     ? '0xe09afd8f6204162b5e612847f5ab34cab8ab78dbeccc374c661cf2e4a647f93f'
-    : ''
+    : '0x24a4a87a6127b60d05b79bcbae1f52719c2f4f97956c0692f325773764afc39e'
 }
 
 export async function sui_get_vaporeon_mint() {

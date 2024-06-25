@@ -153,8 +153,7 @@ onMounted(async () => {
     name: 'Vaporeon',
     image_url: 'https://assets.aresrpg.world/item/vaporeon.png',
     price: 60 * 1000000000,
-    contract:
-      '0x73923978074ff5c625d827f8d59531c3e331d3218bf854e413c354636112cc6f',
+    contract: sdk.VAPOREON.split('::')[0],
     minted,
     max_mint: 1000,
   });

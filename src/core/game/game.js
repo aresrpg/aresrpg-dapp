@@ -304,6 +304,7 @@ function last_event_value(emitter, event, default_value = null) {
 let ares_client = null
 
 const ws_status = ref('')
+
 const game_visible_emitter = new EventEmitter()
 
 const scene = new Scene()
@@ -363,7 +364,6 @@ composer.setSize(window.innerWidth, window.innerHeight)
 function connect_ws() {
   return new Promise((resolve, reject) => {
     const { selected_address } = get_state().sui
-    console.log('selected_address', selected_address)
     const server_url = VITE_SERVER_URL.replaceAll('http', 'ws')
     const { status } = useWebSocket(
       `${server_url}?address=${selected_address}`,

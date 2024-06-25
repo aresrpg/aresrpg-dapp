@@ -389,11 +389,20 @@ function update_all(
   }
 }
 
+let server_info_timeout = null;
+
 function on_server_info(event) {
   const { playerCount, maxPlayers } = event;
 
+  clearTimeout(server_info_timeout);
+
   server_info.online_players = playerCount;
   server_info.max_players = maxPlayers;
+
+  server_info_timeout = setTimeout(() => {
+    server_info.online_players = 0;
+    server_info.max_players = 0;
+  }, 1000 * 10);
 }
 
 let game_module = null;
