@@ -5,8 +5,10 @@
     zoneVue
     characterSelectVue
     wsConnectBtnVue
+  .left
   .middle
     gameInventory(v-if="inventory_opened")
+    gameStats(v-if="stats_opened")
   .bottom_panel
     gameChat
     gameHealth(
@@ -27,6 +29,7 @@ import gameChat from './game-chat.vue';
 import gameHealth from './game-health.vue';
 import gameSpellbar from './game-spellbar.vue';
 import gameInventory from './game-inventory.vue';
+import gameStats from './game-stats.vue';
 
 const stats_opened = ref(false);
 const spells_opened = ref(false);
@@ -71,6 +74,9 @@ function open_spells() {
     .server
       font-size .8em
       color #EEEEEE
+    align-items center
+    > *
+      pointer-events all
   .middle
     pointer-events none
     width calc(100vw - 50px)
