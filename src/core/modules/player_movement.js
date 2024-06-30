@@ -4,13 +4,13 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import { PatchCache } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { get_terrain_height } from '../utils/terrain/heightmap.js'
 
 import { play_step_sound } from './game_audio.js'
+import { CacheWorker } from './game_terrain.js'
 
 const SPEED = 10
 const WALK_SPEED = 6
@@ -170,65 +170,72 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       const { x, z } = dummy.position
-      const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
-      const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
-      const ground_height = Math.ceil(raw_height) // + 0.22
+      CacheWorker.instance
+        .callApi('getBlock', [Math.floor(x), Math.floor(z)])
+        .then(res => {
+          const block = res.data
+          // const ground_height = LocalCache.getBlockLevel(
+          //   new Vector3(Math.floor(x), 0, Math.floor(z)),
+          // )
+          const ground_height = block.ground_level
+          if (!ground_height) return
 
-      if (!ground_height) return
+          const target_y = ground_height + player.height + 0.2
+          const dummy_bottom_y = dummy.position.y - player.height - 0.2
+          const ground_height_distance = ground_height - dummy_bottom_y
 
-      const target_y = ground_height + player.height * 0.5
-      const dummy_bottom_y = dummy.position.y - player.height * 0.5
-      const ground_height_distance = ground_height - dummy_bottom_y
+          if (dummy_bottom_y <= ground_height) {
+            dummy.position.y = lerp(dummy.position.y, target_y, 0.2)
+            velocity.y = 0
+            on_ground = true
+          } else {
+            on_ground = false
+          }
 
-      if (dummy_bottom_y <= ground_height) {
-        dummy.position.y = lerp(dummy.position.y, target_y, 0.2)
-        velocity.y = 0
-        on_ground = true
-      } else {
-        on_ground = false
-      }
+          if (ground_height_distance > 2) dummy.position.copy(origin)
 
-      if (ground_height_distance > 2) dummy.position.copy(origin)
+          if (player.position.distanceTo(dummy.position) > 0.01) {
+            player.move(dummy.position)
+          }
 
-      if (player.position.distanceTo(dummy.position) > 0.01) {
-        player.move(dummy.position)
-      }
+          const is_moving_horizontally = movement.x !== 0 || movement.z !== 0
 
-      const is_moving_horizontally = movement.x !== 0 || movement.z !== 0
+          if (is_moving_horizontally) {
+            player.rotate(movement)
+            current_action = 'RUN'
 
-      if (is_moving_horizontally) {
-        player.rotate(movement)
-        current_action = 'RUN'
+            if (on_ground) {
+              if (inputs.walk) current_action = 'WALK'
+            } else if (jump_state === jump_states.ASCENT)
+              current_action = 'JUMP_RUN'
 
-        if (on_ground) {
-          if (inputs.walk) current_action = 'WALK'
-        } else if (jump_state === jump_states.ASCENT)
-          current_action = 'JUMP_RUN'
+            if (on_ground) play_step_sound()
+          }
 
-        if (on_ground) play_step_sound()
-      }
+          if (!is_underwater && !(dummy_bottom_y - 4 < ground_height))
+            current_action = 'FALL'
 
-      if (!is_underwater && !(dummy_bottom_y - 4 < ground_height))
-        current_action = 'FALL'
+          const should_cancel_other_actions =
+            is_moving_horizontally &&
+            !['RUN', 'WALK', 'JUMP', 'JUMP_RUN', 'FALL'].includes(
+              player.action,
+            ) &&
+            !already_cancelled
 
-      const should_cancel_other_actions =
-        is_moving_horizontally &&
-        !['RUN', 'WALK', 'JUMP', 'JUMP_RUN', 'FALL'].includes(player.action) &&
-        !already_cancelled
+          if (current_action !== last_action || should_cancel_other_actions) {
+            context.dispatch('action/character_action', {
+              id: player.id,
+              action: current_action,
+            })
+            already_cancelled = true
+          }
 
-      if (current_action !== last_action || should_cancel_other_actions) {
-        context.dispatch('action/character_action', {
-          id: player.id,
-          action: current_action,
+          if (player.action === current_action) already_cancelled = false
+
+          last_action = current_action
+
+          player.animate(player.action)
         })
-        already_cancelled = true
-      }
-
-      if (player.action === current_action) already_cancelled = false
-
-      last_action = current_action
-
-      player.animate(player.action)
     },
     reduce(state, { type, payload }) {
       // if the character is mine
