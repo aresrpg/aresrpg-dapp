@@ -1,5 +1,9 @@
 import { BlockType } from '@aresrpg/aresrpg-world'
 
+// constants
+export const world_patch_size = Math.pow(2, 6)
+export const world_cache_size = world_patch_size * 80
+
 export const blocks_colors = {
   [BlockType.NONE]: 0x000000,
   [BlockType.WATER]: 0x74ccf4,
@@ -130,7 +134,7 @@ const artic = {
   mountains: {
     id: 5,
     x: 0.71,
-    y: 0.52,
+    y: 0.45,
     grounds: [BlockType.SNOW, BlockType.ROCK],
     entities: ['pine_tree'],
     amplitude: {
@@ -141,15 +145,15 @@ const artic = {
   mountains_top: {
     id: 6,
     x: 0.9,
-    y: 0.76,
+    y: 0.65,
     grounds: [BlockType.SNOW],
     amplitude: {
       low: 0,
       high: 0,
     },
   },
-  mountains_top_2: { x: 0.95, y: 0.92 },
-  mountains_top_3: { x: 1, y: 0.9 },
+  mountains_top_2: { x: 0.95, y: 0.7 },
+  mountains_top_3: { x: 1, y: 0.7 },
 }
 
 const desert = {

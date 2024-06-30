@@ -2,33 +2,50 @@ import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Box3, Color, MathUtils, Vector3 } from 'three'
+import { Color, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
-import { Biome, PatchCache, BlockType, Heightmap } from '@aresrpg/aresrpg-world'
+import { PatchCache } from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
 import {
   blocks_colors,
-  biome_mapping_conf,
+  world_cache_size,
+  world_patch_size,
 } from '../utils/terrain/world_settings.js'
 import { current_three_character } from '../game/game.js'
 
+const worker_url = new URL('./world_cache_worker', import.meta.url)
+
+export class CacheWorker {
+  static singleton
+  cache_worker
+  count = 0
+  resolvers = {}
+
+  constructor() {
+    this.cache_worker = new Worker(worker_url, { type: 'module' })
+    this.cache_worker.onmessage = ({ data }) => {
+      this.resolvers[data.id](data)
+      delete this.resolvers[data.id] // Prevent memory leak
+    }
+  }
+
+  static get instance() {
+    CacheWorker.singleton = CacheWorker.singleton || new CacheWorker()
+    return CacheWorker.singleton
+  }
+
+  callApi(api, args) {
+    const id = this.count++
+    this.cache_worker.postMessage({ id, api, args })
+    // Send id and task to WebWorker
+    return new Promise(resolve => (this.resolvers[id] = resolve))
+  }
+}
+
 /** @type {Type.Module} */
 export default function () {
-  /**
-   * Procedural generation setup
-   */
-  Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
-  Heightmap.instance.heightmap.sampling.harmonicsCount = 6
-  Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
-  // Biome (blocks mapping)
-  Biome.instance.setMappings(biome_mapping_conf)
-  Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
-  // init blocks patch cache
-  PatchCache.patchSize = Math.pow(2, 6)
-  const cache_size = PatchCache.patchSize * 80
-  PatchCache.updateCache(new Vector3(), cache_size / 4, true)
-  while (PatchCache.buildNextBatch());
+  PatchCache.patchSize = world_patch_size
 
   /**
    * Data struct filling from blocks cache
@@ -38,152 +55,30 @@ export default function () {
       color: new Color(col),
     })),
     getLocalMapData: async (block_start, block_end) => {
-      // TODO make this function run in another thread
-      const bbox = new Box3(block_start, block_end)
-      const dimensions = bbox.getSize(new Vector3())
-      const patch_size = dimensions.x
-      const cache = new Uint16Array(dimensions.x * dimensions.y * dimensions.z)
-      // const debug_mode = true
-
-      // const is_edge = (row, col, h, patch_size) =>
-      //   row === 1 || row === patch_size || col === 1 || col === patch_size
-      // || h === 1
-      // || h === patch_size - 2
-
-      let is_empty = true
-
-      const fill_blocks_struct = (block_pos, ground_type, buffer_over = []) => {
-        const level = MathUtils.clamp(
-          block_pos.y + buffer_over.length,
-          bbox.min.y,
-          bbox.max.y,
-        )
-        let buff_index = Math.max(level - block_pos.y, 0)
-        let h = level - bbox.min.y // local height
-        // block_type = local_pos.x === 1 ? BlockType.MUD : block_type
-        // block_type = local_pos.z === 1 ? BlockType.MUD : block_type
-        // debug_mode && is_edge(local_pos.z, local_pos.x, h, patch_size - 2)
-        //   ? BlockType.SAND
-        //   : block_cache.type
-
-        while (h >= 0) {
-          const cache_index =
-            block_pos.z * Math.pow(patch_size, 2) + h * patch_size + block_pos.x
-          const block_type =
-            buff_index > 0 ? buffer_over[buff_index] : ground_type
-          const skip =
-            buff_index > 0 &&
-            cache[cache_index] !== undefined &&
-            !buffer_over[buff_index]
-          if (!skip) {
-            cache[cache_index] = block_type ? block_type + 1 : BlockType.NONE
-          }
-          buff_index--
-          h--
-        }
-      }
-
-      const add_ground_blocks = patch => {
-        const iter = patch?.blockIterator(true)
-        let res = iter.next()
-        while (!res.done) {
-          const block_data = res.value
-          const block_pos = block_data.pos.clone()
-          block_pos.x += 1
-          block_pos.z += 1
-          const block_type = block_data.type
-          fill_blocks_struct(block_pos, block_type)
-          res = iter.next()
-        }
-      }
-
-      const add_entities_blocks = patch => {
-        // patch.spawned
-        const buff_iter = patch.overBlocksIter()
-        for (const blk of buff_iter) {
-          blk.localPos.x += 1
-          blk.localPos.z += 1
-          fill_blocks_struct(blk.localPos, blk.type, blk.buffer)
-        }
-      }
-
-      const add_edges_blocks = () => {
-        for (let i = 0; i < patch_size; i++) {
-          const xmin = {
-            global_pos: new Vector3(bbox.min.x, 0, bbox.min.z + i),
-            local_pos: new Vector3(0, 0, i),
-          }
-          const xmax = {
-            global_pos: new Vector3(bbox.max.x, 0, bbox.min.z + i),
-            local_pos: new Vector3(patch_size - 1, 0, i),
-          }
-          const zmin = {
-            global_pos: new Vector3(bbox.min.x + i, 0, bbox.min.z),
-            local_pos: new Vector3(i, 0, 0),
-          }
-          const zmax = {
-            global_pos: new Vector3(bbox.min.x + i, 0, bbox.max.z),
-            local_pos: new Vector3(i, 0, patch_size - 1),
-          }
-          const edges = [xmin, zmin, xmax, zmax]
-          edges.forEach(edge => {
-            const block_data = PatchCache.getBlock(edge.global_pos)
-            const block_local_pos = edge.local_pos.clone()
-            block_local_pos.y = block_data.pos.y
-            fill_blocks_struct(block_local_pos, block_data.type)
-            // else console.log('missing block: ', edge.pos)
-          })
-        }
-      }
-
-      const patch = PatchCache.cache.find(
-        patch =>
-          patch.bbox.min.x === bbox.min.x + 1 &&
-          patch.bbox.min.z === bbox.min.z + 1 &&
-          patch.bbox.max.x === bbox.max.x - 1 &&
-          patch.bbox.max.z === bbox.max.z - 1 &&
-          patch.bbox.intersectsBox(bbox),
-      )
-
-      if (patch) {
-        add_ground_blocks(patch)
-        // process entities
-        add_entities_blocks(patch)
-        // fill extra blocks at edges from adjacent patches
-        add_edges_blocks()
-        is_empty = false
-      }
+      const res = await CacheWorker.instance.callApi('getChunk', [
+        block_start,
+        block_end,
+      ])
+      const cache = res.data
       return {
         data: cache,
-        isEmpty: is_empty,
+        isEmpty: cache.length === 0,
       }
     },
-    sampleHeightmap(x, z) {
-      const block_pos = new Vector3(x, 128, z)
-      let block_level = 0
-      let block_type = BlockType.WATER
-
-      const ground_block = PatchCache.getBlock(block_pos)
-
-      if (ground_block) {
-        const buff_index = ground_block.buffer.findLastIndex(
-          type => type !== BlockType.NONE,
-        )
-        block_level = ground_block.pos.y
-        block_level += buff_index !== -1 ? buff_index : 0
-        block_type =
-          buff_index !== -1
-            ? ground_block.buffer.at(buff_index)
-            : ground_block.type
-      }
-      const block_color = new Color(blocks_colors[block_type])
+    async sampleHeightmap(x, z) {
+      const res = await CacheWorker.instance.callApi('getBlock', [x, z])
+      const block = res.data
+      const block_color = new Color(blocks_colors[block.type])
       return {
-        altitude: block_level + 0.25,
+        altitude: block.level + 0.25,
         color: block_color,
       }
     },
   }
 
+  // init_cache().then(res => {
+
+  // })
   const terrain = new Terrain(map)
   terrain.parameters.voxels.map.minAltitude = 0
   terrain.parameters.voxels.map.maxAltitude = 400
@@ -191,15 +86,7 @@ export default function () {
   // let last_regen = 0
   // const regen_delay = 1000
   return {
-    tick() {
-      if (!PatchCache.buildNextBatch(10, 80) && PatchCache.updated) {
-        PatchCache.updated = false
-        PatchCache.cacheExtEntities()
-        console.log(`[DAPP] refresh terrain`)
-        terrain.update()
-        // setTimeout(() => (PatchCache.updated = true), 1000)
-      }
-    },
+    tick() {},
     observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -236,9 +123,14 @@ export default function () {
         const state = get_state()
         const player_position =
           current_three_character(state)?.position?.clone()
-
         if (player_position) {
-          PatchCache.updateCache(player_position, cache_size)
+          CacheWorker.instance
+            .callApi('updateCache', [player_position])
+            .then(res => {
+              if (res.data.cacheRefreshed) {
+                terrain.update()
+              }
+            })
           terrain.showMapAroundPosition(
             player_position,
             state.settings.view_distance,
