@@ -43,7 +43,12 @@ jobs:
       - name: Build Vite project
         run: npm run build
 
-      - name: Build Vercel output
+      - name: Build Vercel output for Production
+        if: startsWith(github.ref, 'refs/tags/mainnet-')
+        run: vercel build --prod
+
+      - name: Build Vercel output for Testnet
+        if: startsWith(github.ref, 'refs/tags/testnet-')
         run: vercel build
 
       - name: Deploy to Vercel (Production)
