@@ -65,14 +65,18 @@ export default function () {
         isEmpty: cache.length === 0,
       }
     },
-    async sampleHeightmap(x, z) {
-      const res = await CacheWorker.instance.callApi('getBlock', [x, z])
-      const block = res.data
-      const block_color = new Color(blocks_colors[block.type])
-      return {
-        altitude: block.level + 0.25,
-        color: block_color,
-      }
+    async sampleHeightmap(coords) {
+      return Promise.all(
+        coords.map(async ({ x, z }) => {
+          const res = await CacheWorker.instance.callApi('getBlock', [x, z])
+          const block = res.data
+          const block_color = new Color(blocks_colors[block.type])
+          return {
+            altitude: block.top_level + 0.25,
+            color: block_color,
+          }
+        }),
+      )
     },
   }
 
