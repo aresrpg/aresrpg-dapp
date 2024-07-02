@@ -64,7 +64,7 @@ export const MODELS = {
   }),
   vaporeon: await load(vaporeon, {
     env_map_intensity: 0.5,
-    scale: 0.25,
+    scale: 1.5,
   }),
   suicune: await load(suicune, {
     env_map_intensity: 0.5,

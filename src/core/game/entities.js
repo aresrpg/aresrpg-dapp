@@ -178,7 +178,7 @@ export const ENTITIES = {
     const type = ENTITIES[`${classe}_${sex}`]
 
     if (type) return type({ name, id })
-    return ENTITIES.suicune({ name: 'Oeuftermath', id })
+    return ENTITIES.afegg({ name: 'Oeuftermath', id })
   },
   iop_male: spawn_entity(MODELS.iop_male, {
     height: 1.7,
