@@ -13,7 +13,6 @@ en:
   points_to_distribute: Points to distribute
   level: Level
   experience: Experience
-  increase: +
 fr:
   stats: Caractéristiques
   strength: Force
@@ -28,7 +27,6 @@ fr:
   points_to_distribute: Points à distribuer
   level: Niveau
   experience: Expérience
-  increase: +
 </i18n>
 
 <template lang="pug">
@@ -36,7 +34,7 @@ fr:
   .header {{ t('stats') }}
   .player-info
     .avatar
-      img(src="https://assets.aresrpg.world/classe/iop_female.jpg" alt="Character Image")
+      img(:src="characterImage" alt="Character Image")
     .details
       .name {{ name }}
       .classe-level
@@ -45,68 +43,70 @@ fr:
     .experience-bar
       .label {{ t('experience') }}
       .bar
-        .fill(:style="{ width: `${percent_experience}%`, backgroundColor: 'blue' }")
+        .fill(:style="{ width: `${percent_experience}%`, backgroundColor: '#32cdd9' }")
         .ticks
-          .tick(v-for="n in 5" :key="n" :style="{ left: `${n * 17.5}%` }")
+          .tick(v-for="n in 4" :key="n" :style="{ left: `${n * 20}%` }")
     .health-bar
       .label {{ t('health_points') }}
       .bar
-        .fill(:style="{ width: `${percent_health}%` }")
+        .fill(:style="{ width: `${percent_health}%`, backgroundColor: '#49b500' }")
         .ticks
           .tick(v-for="n in 4" :key="n" :style="{ left: `${n * 20}%` }")
     .soul-bar
       .label {{ t('soul_points') }}
       .bar
-        .fill(:style="{ width: `${percent_soul}%`, backgroundColor: 'red' }")
+        .fill(:style="{ width: `${percent_soul}%`, backgroundColor: '#e11a38' }")
         .ticks
           .tick(v-for="n in 4" :key="n" :style="{ left: `${n * 20}%` }")
   .content
     .stat
-      .label {{ t('ap') }}
+      .label-grp
+        img(src="../../assets/statistics/action.png")
+        .label {{ t('ap') }}
       .value {{ pa }}
     .stat
       .label {{ t('mp') }}
       .value {{ pm }}
     .stat
-      .testlab
+      .label-grp
         img(src="../../assets/statistics/vitality.png")
         .label {{ t('vitality') }}
-      .value
-        .test {{ stats.vitality }}
+      .value-grp
+        .value {{ stats.vitality }}
         .increase-button
-          button(@click="increaseStat('vitality')") {{ t('increase') }}
+          button(@click="increaseStat('vitality')") +
     .stat
-      .testlab
+      .label-grp
         img(src="../../assets/statistics/agility.png")
         .label {{ t('agility') }}
-      .value
-        .test {{ stats.agility }}
+      .value-grp
+        .value {{ stats.agility }}
         .increase-button
-          button(@click="increaseStat('agility')") {{ t('increase') }}
+          button(@click="increaseStat('agility')") +
     .stat
-      .testlab
+      .label-grp
         img(src="../../assets/statistics/strength.png")
         .label {{ t('strength') }}
-      .value
-          .test {{ stats.strength }}
+      .value-grp
+          .value {{ stats.strength }}
           .increase-button
-            button(@click="increaseStat('strength')") {{ t('increase') }}
+            button(@click="increaseStat('strength')") +
     .stat
-      .testlab
+      .label-grp
         img(src="../../assets/statistics/intelligence.png")
         .label {{ t('intelligence') }}
-      .value
-        .test {{ stats.intelligence }}
+      .value-grp
+        .value {{ stats.intelligence }}
         .increase-button
-          button(@click="increaseStat('intelligence')") {{ t('increase') }}
+          button(@click="increaseStat('intelligence')") +
     .stat
-      .testlab
+      .label-grp
         img(src="../../assets/statistics/chance.png")
         .label {{ t('chance') }}
-      .value
-        .test {{ stats.chance }}
+      .value-grp
+        .value {{ stats.chance }}
         .increase-button
-          button(@click="increaseStat('chance')") {{ t('increase') }}
+          button(@click="increaseStat('chance')") +
   .points-to-distribute
     .label {{ t('points_to_distribute') }}
     .value {{ available_points }}
@@ -125,46 +125,72 @@ import {
 
 import { levels, level_progression } from '../../core/utils/game/experience.js';
 
-const percent_experience = ref(0);
+
 
 const stats = ref([]);
 
 const name = ref('N/A');
-const level = ref('N/A');
+const level = ref(0);
 const classe = ref('N/A');
 const characterImage = ref('https://assets.aresrpg.world/classe/iop_female.jpg');
 
 const health = ref(0);
-const max_health = ref(0);
+const max_health = ref(30);
+const percent_health = ref(0)
+
+const experience = ref(0);
+const max_experience = ref(100);
+const percent_experience = ref(0);
+
 const soul_points = ref(0);
-const max_soul_points = ref(0);
-const available_points = ref(0);
+const max_soul_points = ref(100);
+const percent_soul = ref(0)
 
 const pa = ref(12);
 const pm = ref(6);
 
-const percent_health = computed(() => {
-  return Math.round((100 * health.value) / max_health.value);
-});
+const available_points = ref(0);
 
-function update_stats(state) {
-  const character = current_locked_character(state);
+function update_stats() {
+  const character = current_locked_character(undefined);
   if (!character?._type) return;
 
   if (character.name !== name.value) name.value = character.name;
-
-  const _level = level_progression(character.experience)
-
-  if (_level.experience_of_level !== level.value) level.value = _level.experience_of_level;
-  
-  if (percent_experience.value !== _level.experience_percent) percent_experience.value = _level.experience_percent
-
-  if (character.available_points !== available_points.value) available_points.value = character.available_points;
-
   if (character.classe !== classe.value) classe.value = character.classe
 
+
+  console.log(character)
+
+  if (character.characterImage !== `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`) characterImage.value = `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`
+
+  // SOUL POINTS
+  const _max_soul_points = 100;
+
   if (character.soul_points !== soul_points.value) soul_points.value = character.soul_points;
-  if (character.max_soul_points !== max_soul_points.value) max_soul_points.value = 100;
+  if (_max_soul_points !== max_soul_points.value) max_soul_points.value = _max_soul_points;
+      percent_soul.value = (character.soul / _max_soul_points) * 100;
+
+    console.log(character.soul_points, character.max_soul_points)
+
+  // HEALTH
+  const _max_health = get_max_health(character)
+
+  if (character.health !== health.value) health.value = character.health;
+  if (_max_health !== max_health.value) max_health.value = _max_health;
+  percent_health.value = Math.round((character.health / _max_health ) * 100);
+
+  // EXPERIENCE
+
+  const _level = level_progression(character.experience)
+  if (_level.experience_of_level !== level.value) level.value = _level.experience_of_level;
+  
+  if (character.experience !== experience.value) experience.value = character.experience;
+  if (_level.experience_of_next_level !== max_experience.value) max_experience.value = _level.experience_of_next_level;
+  percent_experience.value = (character.experience / _level.experience_of_next_level ) * 100;
+
+
+
+
   if (character.stats !== stats.value) stats.value = {
     'vitality': character.vitality,
     'agility': character.agility,
@@ -173,25 +199,12 @@ function update_stats(state) {
     'chance': character.chance
     }
 
-  const supposed_max_health = get_max_health(character);
-
-  if (character.health !== health.value) health.value = character.health;
-
-  if (supposed_max_health !== max_health.value)
-    max_health.value = supposed_max_health;
-
-  if(character.experience !== percent_experience.value) percent_experience.value = character.experience;
-
-  if (isNaN(max_health.value)) max_health.value = 30;
-
-  if (character.image) {
-    characterImage.value = character.image;
-  }
+    if (character.available_points !== available_points.value) available_points.value = character.available_points;
 }
 
 onMounted(() => {
   context.events.on('STATE_UPDATED', update_stats);
-  update_stats(undefined);
+  update_stats();
 });
 
 onUnmounted(() => {
@@ -257,11 +270,11 @@ const { t } = useI18n();
         width 125px
         font-size 0.8em
       .bar
-        border-radius 13px
         width 100%
-        margin 0.2em
-        background #777
+        margin auto
+        background #383737
         position relative
+        height 10px
         .ticks
           position absolute
           top 0
@@ -273,10 +286,9 @@ const { t } = useI18n();
             top 0
             bottom 0
             width 2px
-            background #fff
+            background #383737
             opacity 0.7
         .fill
-          border-radius 10px
           height 100%
           background #4caf50
   .content
@@ -287,8 +299,8 @@ const { t } = useI18n();
       display flex
       justify-content space-between
       align-items center
-      padding-bottom .5em
-      .testlab
+      padding-bottom .7em
+      .label-grp
         font-size 1em
         vertical-align center
         display flex
@@ -296,22 +308,23 @@ const { t } = useI18n();
           height 25px
           width 25px
       .label
-        margin-left 0.2em
+        margin-left 0.5em
         font-size 0.8em
         font-weight bold
         align-content center
-      .value
+      .value-grp
         font-size 1em
         vertical-align center
         display flex
-        .test
+        .value
           align-content center
+          padding-inline 0.5em
         .increase-button
           button
             font-size 0.8em
             margin-left 0.5em
             padding 0.2em 0.5em
-            background #4caf50
+            background #49b500
             color white
             border none
             border-radius 5px
@@ -325,7 +338,7 @@ const { t } = useI18n();
       font-weight bold
     .value
       margin-left 1em
-      color green
+      color #fff
 </style>
 
 

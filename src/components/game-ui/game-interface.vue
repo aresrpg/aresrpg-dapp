@@ -5,7 +5,6 @@
     zoneVue
     characterSelectVue
     wsConnectBtnVue
-  .left
   .middle
     gameInventory(v-if="inventory_opened")
     gameStats(v-if="stats_opened")
@@ -75,8 +74,6 @@ function open_spells() {
       font-size .8em
       color #EEEEEE
     align-items center
-    > *
-      pointer-events all
   .middle
     pointer-events none
     width calc(100vw - 50px)
