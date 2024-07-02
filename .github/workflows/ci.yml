@@ -7,7 +7,7 @@ on:
       - 'testnet-*'
 
 jobs:
-  deploy:
+  install:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,8 +34,28 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Pull Vercel project settings
-        run: vercel pull --scope=aresrpg --yes --token ${{ secrets.VERCEL_TOKEN }}
+    outputs:
+      cache-key: ${{ steps.cache-node-modules.outputs.cache-hit }}
+
+  deploy-mainnet:
+    needs: install
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/mainnet-')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore Node.js modules cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ needs.install.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Pull Vercel project settings (Production)
+        run: vercel pull --scope=aresrpg --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -43,23 +63,45 @@ jobs:
       - name: Build Vite project
         run: npm run build
 
-      - name: Build Vercel output for Production
-        if: startsWith(github.ref, 'refs/tags/mainnet-')
-        run: vercel build --prod --environment=production
-
-      - name: Build Vercel output for Testnet
-        if: startsWith(github.ref, 'refs/tags/testnet-')
-        run: vercel build --environment=preview
+      - name: Build Vercel output (Production)
+        run: vercel build --prod
 
       - name: Deploy to Vercel (Production)
-        if: startsWith(github.ref, 'refs/tags/mainnet-')
         run: vercel deploy --scope=aresrpg --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+  deploy-testnet:
+    needs: install
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/testnet-')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore Node.js modules cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ needs.install.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Pull Vercel project settings (Preview)
+        run: vercel pull --scope=aresrpg --yes --environment=preview --token ${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Vite project
+        run: npm run build
+
+      - name: Build Vercel output (Preview)
+        run: vercel build
+
       - name: Deploy to Vercel (Testnet)
-        if: startsWith(github.ref, 'refs/tags/testnet-')
         run: |
           url=$(vercel deploy --scope=aresrpg --prebuilt --token ${{ secrets.VERCEL_TOKEN }})
           echo $url
