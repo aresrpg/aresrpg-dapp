@@ -7,34 +7,7 @@ on:
       - 'testnet-*'
 
 jobs:
-  install:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
   deploy-mainnet:
-    needs: install
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/mainnet-')
 
@@ -45,15 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
@@ -74,13 +39,15 @@ jobs:
         run: vercel build --prod
 
       - name: Deploy to Vercel (Production)
-        run: vercel deploy --scope=aresrpg --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(vercel deploy --scope=aresrpg --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }})
+          echo $url
+          vercel alias set $url app.aresrpg.world --scope=aresrpg --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
   deploy-testnet:
-    needs: install
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/testnet-')
 
@@ -91,15 +58,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
