@@ -55,7 +55,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.npm
-          key: ${{ needs.install.outputs.cache-node-modules-restore.outputs.cache-primary-key }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
@@ -90,7 +90,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.npm
-          key: ${{ needs.install.outputs.cache-node-modules-restore.outputs.cache-primary-key }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
