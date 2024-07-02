@@ -23,6 +23,9 @@ jobs:
             **/package-lock.json
             **/package.json
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Install Vercel CLI
         run: npm install -g vercel
 
