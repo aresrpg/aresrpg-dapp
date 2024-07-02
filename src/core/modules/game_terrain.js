@@ -4,14 +4,9 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Color, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
-import { PatchCache } from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
-import {
-  blocks_colors,
-  world_cache_size,
-  world_patch_size,
-} from '../utils/terrain/world_settings.js'
+import { blocks_colors } from '../utils/terrain/world_settings.js'
 import { current_three_character } from '../game/game.js'
 
 const worker_url = new URL('./world_cache_worker', import.meta.url)
@@ -45,8 +40,6 @@ export class CacheWorker {
 
 /** @type {Type.Module} */
 export default function () {
-  PatchCache.patchSize = world_patch_size
-
   /**
    * Data struct filling from blocks cache
    */
