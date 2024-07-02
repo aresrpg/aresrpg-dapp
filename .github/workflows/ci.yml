@@ -19,9 +19,9 @@ jobs:
         with:
           node-version: 20
 
-      - name: Cache Node.js modules
-        id: cache-node-modules
-        uses: actions/cache@v3
+      - name: Restore Node.js modules cache
+        id: cache-node-modules-restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
@@ -30,12 +30,17 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
 
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-    outputs:
-      cache-key: ${{ steps.cache-node-modules.outputs.cache-hit }}
+      - name: Save Node.js modules cache
+        id: cache-node-modules-save
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
 
   deploy-mainnet:
     needs: install
@@ -47,10 +52,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore Node.js modules cache
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: ~/.npm
-          key: ${{ needs.install.outputs.cache-key }}
+          key: ${{ needs.install.outputs.cache-node-modules-restore.outputs.cache-primary-key }}
           restore-keys: |
             ${{ runner.os }}-node-
 
@@ -82,10 +87,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore Node.js modules cache
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: ~/.npm
-          key: ${{ needs.install.outputs.cache-key }}
+          key: ${{ needs.install.outputs.cache-node-modules-restore.outputs.cache-primary-key }}
           restore-keys: |
             ${{ runner.os }}-node-
 
