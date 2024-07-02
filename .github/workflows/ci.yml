@@ -35,7 +35,7 @@ jobs:
         run: npm install -g vercel
 
       - name: Pull Vercel project settings
-        run: vercel pull --yes --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --scope aresrpg --yes --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -48,7 +48,7 @@ jobs:
 
       - name: Deploy to Vercel (Production)
         if: startsWith(github.ref, 'refs/tags/mainnet-')
-        run: vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --scope aresrpg --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -57,7 +57,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/testnet-')
         run: |
           url=$(vercel deploy --prebuilt --token ${{ secrets.VERCEL_TOKEN }})
-          vercel alias set $url testnet.aresrpg.world --token ${{ secrets.VERCEL_TOKEN }}
+          vercel alias set $url testnet.aresrpg.world --scope aresrpg --token ${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
