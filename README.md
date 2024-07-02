@@ -31,10 +31,14 @@ cd app
 
 - Env
 
+> It is important to use a robust rpc with archival data, the default one won't be enough
+
 ```
-VITE_SUI_RPC = 'https://fullnode.testnet.sui.io',
-VITE_SUI_WSS = 'wss://fullnode.testnet.sui.io',
+VITE_SUI_RPC = 'https://your rpc',
+VITE_SUI_WSS = 'wss://your rpc',
 VITE_SERVER_URL = 'https://testnet-api.aresrpg.world',
+VITE_SPONSOR_URL = 'https://testnet-sponsor.aresrpg.world',
+VITE_INDEXER_URL = 'https://testnet-indexer.aresrpg.world',
 VITE_NETWORK = 'testnet',
 ```
 
