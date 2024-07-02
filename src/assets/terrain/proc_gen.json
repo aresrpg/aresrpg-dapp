@@ -8,48 +8,13 @@
         "spline": [
           { "x": 0, "y": 0 },
           { "x": 1, "y": 0.9 },
-          {
-            "x": 0.15,
-            "y": 0.05,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.26,
-            "y": 0.30,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.42,
-            "y": 0.33,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.48,
-            "y": 0.42,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.80,
-            "y": 0.49,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.90,
-            "y": 0.60,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.95,
-            "y": 0.85,
-            "hl": null,
-            "hr": null
-          }
+          { "x": 0.18, "y": 0.05 },
+          { "x": 0.26, "y": 0.21 },
+          { "x": 0.33, "y": 0.23 },
+          { "x": 0.48, "y": 0.42 },
+          { "x": 0.71, "y": 0.52 },
+          { "x": 0.9, "y": 0.76 },
+          { "x": 0.95, "y": 0.92 }
         ],
         "harmonics": 5,
         "harmonic_spread": 2,
@@ -62,62 +27,6 @@
         "scale_x": 1,
         "scale_y": 1,
         "spread": 1.42
-      },
-      {
-        "seed": 571126192,
-        "period": 86,
-        "interpolation": "smoother",
-        "spline": [
-          { "x": 0, "y": 0 },
-          { "x": 1, "y": 1 },
-          {
-            "x": 0.6601452464788733,
-            "y": 0.5018649193548388,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.11084947183098591,
-            "y": 0.2050907258064516,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.2939480633802817,
-            "y": 0.3276713709677419,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.8159991197183099,
-            "y": 0.9792842741935484,
-            "hl": null,
-            "hr": null
-          },
-          {
-            "x": 0.7512103873239436,
-            "y": 0.8760584677419355,
-            "hl": null,
-            "hr": null
-          }
-        ],
-        "harmonics": 7,
-        "harmonic_spread": 2,
-        "harmonic_gain": 0.5,
-        "negative": false,
-        "blend_mode": "product",
-        "blend_weight": 1,
-        "offset_x": 0,
-        "offset_y": 0,
-        "scale_x": 1,
-        "scale_y": 1,
-        "spread": 1.3
       }
-    ],
-    "output_panel": {
-      "palette": [
-        { "t": 0, "color": [0, 0, 0] },
-        { "t": 1, "color": [255, 255, 255] }
-      ]
-    }
+    ]
   }

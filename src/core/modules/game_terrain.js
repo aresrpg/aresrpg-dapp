@@ -2,103 +2,95 @@ import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Box3, Color, Vector2, Vector3 } from 'three'
+import { Color, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
-import { ProcGenLayer, WorldGenerator } from '@aresrpg/aresrpg-world'
+import { PatchCache, LocalCache } from '@aresrpg/aresrpg-world'
 
 import { abortable } from '../utils/iterator.js'
-import { current_three_character } from '../game/game.js'
-import proc_layers_json from '../../assets/terrain/proc_gen.json'
 import {
   blocks_colors,
-  terrain_mapping,
+  world_cache_size,
+  world_patch_size,
 } from '../utils/terrain/world_settings.js'
+import { current_three_character } from '../game/game.js'
+
+const worker_url = new URL('./world_cache_worker', import.meta.url)
+
+export class CacheWorker {
+  static singleton
+  cache_worker
+  count = 0
+  resolvers = {}
+
+  constructor() {
+    this.cache_worker = new Worker(worker_url, { type: 'module' })
+    this.cache_worker.onmessage = ({ data }) => {
+      this.resolvers[data.id](data)
+      delete this.resolvers[data.id] // Prevent memory leak
+    }
+  }
+
+  static get instance() {
+    CacheWorker.singleton = CacheWorker.singleton || new CacheWorker()
+    return CacheWorker.singleton
+  }
+
+  callApi(api, args) {
+    const id = this.count++
+    this.cache_worker.postMessage({ id, api, args })
+    // Send id and task to WebWorker
+    return new Promise(resolve => (this.resolvers[id] = resolve))
+  }
+}
 
 /** @type {Type.Module} */
 export default function () {
-  const noise_scale = 1 / 8
-  const proc_layers = ProcGenLayer.fromJsonConfig({
-    procLayers: proc_layers_json.noise_panels,
-  })
-  const selection = ProcGenLayer.layerIndex(0)
-  WorldGenerator.instance.config = {
-    selection,
-    samplingScale: noise_scale,
-    procLayers: proc_layers,
-    terrainBlocksMapping: Object.values(terrain_mapping),
-    seaLevel: 76,
-  }
+  PatchCache.patchSize = world_patch_size
+  LocalCache.cacheSize = world_cache_size / 10
+  LocalCache.patchCacheProvider = patch_bbox =>
+    CacheWorker.instance.callApi('getPatch', [patch_bbox.min, patch_bbox.max])
+  LocalCache.updateCache(new Vector3())
 
-  const water_material_id = 1
+  /**
+   * Data struct filling from blocks cache
+   */
   const map = {
     voxelMaterialsList: Object.values(blocks_colors).map(col => ({
       color: new Color(col),
     })),
     getLocalMapData: async (block_start, block_end) => {
-      // TODO make this function run in another thread
-      const block_size = new Vector3().subVectors(block_end, block_start)
-      const cache = new Uint16Array(block_size.x * block_size.y * block_size.z)
-
-      const index_factor = {
-        x: 1,
-        y: block_size.x,
-        z: block_size.x * block_size.y,
-      }
-
-      const build_index = position => {
-        if (position.x < 0 || position.y < 0 || position.z < 0) {
-          throw new Error()
-        }
-        return (
-          position.x * index_factor.x +
-          position.y * index_factor.y +
-          position.z * index_factor.z
-        )
-      }
-
-      let is_empty = true
-      const bbox = new Box3(block_start, block_end)
-      for (const voxel of WorldGenerator.instance.generate(bbox, false)) {
-        if (voxel.type !== water_material_id) {
-          const local_position = new Vector3().subVectors(
-            voxel.pos,
-            block_start,
-          )
-          const cache_index = build_index(local_position)
-          cache[cache_index] = 1 + voxel.type
-          is_empty = false
-        }
-      }
-
+      const res = await CacheWorker.instance.callApi('getChunk', [
+        block_start,
+        block_end,
+      ])
+      const cache = res.data
       return {
         data: cache,
-        isEmpty: is_empty,
+        isEmpty: cache.length === 0,
       }
     },
-    sampleHeightmap(x, z) {
-      const block_level =
-        WorldGenerator.instance.getHeight(new Vector2(x, z)) - 1
-      const block_pos = new Vector3(x, block_level, z)
-      const block_type = WorldGenerator.instance.getBlockType(block_pos)
-      const block_color = new Color(blocks_colors[block_type])
-      let altitude = block_level + 1
-      if (block_type === water_material_id) {
-        altitude = -1
-      }
-
+    async sampleHeightmap(x, z) {
+      const res = await CacheWorker.instance.callApi('getBlock', [x, z])
+      const block = res.data
+      const block_color = new Color(blocks_colors[block.type])
       return {
-        altitude,
+        altitude: block.level + 0.25,
         color: block_color,
       }
     },
   }
 
-  const terrain = new Terrain(map)
+  // init_cache().then(res => {
 
+  // })
+  const terrain = new Terrain(map)
+  terrain.parameters.voxels.map.minAltitude = 0
+  terrain.parameters.voxels.map.maxAltitude = 400
+
+  // let last_regen = 0
+  // const regen_delay = 1000
   return {
-    tick() {
-      terrain.update()
-    },
+    tick() {},
     observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -135,15 +127,22 @@ export default function () {
         const state = get_state()
         const player_position =
           current_three_character(state)?.position?.clone()
-
         if (player_position) {
+          CacheWorker.instance
+            .callApi('updateCache', [player_position])
+            .then(res => {
+              if (res.data.cacheRefreshed) {
+                LocalCache.updateCache(player_position)
+                terrain.update()
+              }
+            })
           terrain.showMapAroundPosition(
             player_position,
             state.settings.view_distance,
           )
+          terrain.setLod(camera.position, 50, camera.far)
+          // }
         }
-
-        terrain.setLod(camera.position, 50, camera.far)
       })
     },
   }
