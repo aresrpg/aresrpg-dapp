@@ -9,7 +9,9 @@
     "lint": "eslint . && prettier . --check && npm run typecheck",
     "typecheck": "vue-tsc --build",
     "format": "prettier . --write && eslint . --fix",
-    "postversion": "git push --follow-tags"
+    "postversion": "git push --follow-tags",
+    "publish:testnet": "git tag testnet-$(node -p -e \"require('./package.json').version\") && git push origin testnet-$(node -p -e \"require('./package.json').version\")",
+    "publish:mainnet": "git tag mainnet-$(node -p -e \"require('./package.json').version\") && git push origin mainnet-$(node -p -e \"require('./package.json').version\")"
   },
   "dependencies": {
     "@aresrpg/aresrpg-engine": "^1.6.3",
