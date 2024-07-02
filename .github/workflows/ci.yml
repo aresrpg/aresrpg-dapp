@@ -14,33 +14,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js and install dependencies with cache
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Restore Node.js modules cache
-        id: cache-node-modules-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        run: npm install
-        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
+          cache: 'npm'
+          cache-dependency-path: |
+            **/package-lock.json
+            **/package.json
 
       - name: Install Vercel CLI
         run: npm install -g vercel
-
-      - name: Save Node.js modules cache
-        id: cache-node-modules-save
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
 
   deploy-mainnet:
     needs: install
@@ -51,13 +35,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore Node.js modules cache
-        uses: actions/cache/restore@v4
+      - name: Set up Node.js and install dependencies with cache
+        uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            **/package-lock.json
+            **/package.json
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
 
       - name: Pull Vercel project settings (Production)
         run: vercel pull --scope=aresrpg --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
@@ -86,13 +74,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore Node.js modules cache
-        uses: actions/cache/restore@v4
+      - name: Set up Node.js and install dependencies with cache
+        uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            **/package-lock.json
+            **/package.json
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
 
       - name: Pull Vercel project settings (Preview)
         run: vercel pull --scope=aresrpg --yes --environment=preview --token ${{ secrets.VERCEL_TOKEN }}
