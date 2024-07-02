@@ -49,8 +49,6 @@ import game_audio from '../modules/game_audio.js'
 import game_entities from '../modules/game_entities.js'
 import game_terrain from '../modules/game_terrain.js'
 import game_water from '../modules/game_water.js'
-import game_instanced from '../modules/game_instanced.js'
-import create_pools from '../game/pool.js'
 import logger from '../../logger.js'
 import { VITE_SERVER_URL } from '../../env.js'
 import sui_data from '../modules/sui_data.js'
@@ -62,9 +60,14 @@ import player_health from '../modules/player_health.js'
 import player_pet from '../modules/player_pet.js'
 import player_skin from '../modules/player_skin.js'
 import player_equipment from '../modules/player_equipment.js'
+import toast from '../../toast.js'
+import { i18n } from '../../i18n.js'
 
 import { handle_server_error } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
+
+// @ts-ignore
+import MdiClippy from '~icons/mdi/clippy'
 
 export const GRAVITY = 9.81
 
@@ -284,7 +287,6 @@ const MODULES = [
   game_sky,
   game_render,
   game_lights,
-  game_instanced,
   game_camera,
   game_audio,
   game_entities,
@@ -312,7 +314,15 @@ const packets = new PassThrough({ objectMode: true })
 const renderer = new WebGLRenderer({
   antialias: true,
   powerPreference: 'high-performance',
+  failIfMajorPerformanceCaveat: true,
 })
+
+if (!renderer) {
+  toast.error(i18n.global.t('no_perf'), 'Rekt!', MdiClippy, 15000)
+  decrease_loading()
+  throw new Error('Failed to create WebGLRenderer')
+}
+
 renderer.setPixelRatio(window.devicePixelRatio)
 const renderer_size = renderer.getSize(new Vector2())
 const composer = new EffectComposer(
@@ -334,7 +344,6 @@ const camera = new PerspectiveCamera(
   3000, // Far clipping plane
 )
 camera.layers.enableAll()
-const pool = create_pools(scene)
 
 const orthographic_camera = new OrthographicCamera()
 /** @type {Type.Events} */
@@ -413,7 +422,6 @@ function connect_ws() {
 const context = {
   events,
   actions,
-  pool,
   composer,
   // @ts-ignore
   camera_controls: new CameraControls(camera, renderer.domElement),

@@ -97,6 +97,7 @@ export const i18n = createI18n({
       item_sold: 'a été vendu',
       sign_message:
         '[AresRPG] Ceci est un message de vérification pour prouver que vous possédez cette adresse. Il vous permettra de vous connecter au serveur',
+      no_perf: `Votre appareil ne supporte pas WebGL ou il fonctionne dans des conditions qui causeraient des problèmes de performances majeurs. Veuillez essayer sur un autre appareil ou assurez-vous que votre navigateur et vos pilotes sont à jour.`,
     },
     en: {
       ...error_translations.en,
@@ -104,6 +105,8 @@ export const i18n = createI18n({
       item_sold: 'was sold',
       sign_message:
         '[AresRPG] This is a verification message to prove that you own this address. It will allow you to connect to the server',
+      no_perf:
+        'Your device does not support WebGL or it is running under conditions that would cause major performance issues. Please try on a different device or ensure your browser and drivers are up to date.',
     },
   },
 })
