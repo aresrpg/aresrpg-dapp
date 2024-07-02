@@ -29,7 +29,7 @@ export default function () {
       }
     },
 
-    observe({ scene, signal, composer, camera, pool, events }) {
+    observe({ scene, signal, composer, camera }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
 
       const gtaopass = new GTAOPass(

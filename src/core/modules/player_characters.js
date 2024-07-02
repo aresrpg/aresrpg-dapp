@@ -1,3 +1,4 @@
+import { ENTITIES } from '../game/entities.js'
 import { context, current_three_character } from '../game/game.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { state_iterator } from '../utils/iterator.js'
@@ -21,7 +22,7 @@ export default function () {
           characters: state.characters.filter(({ id }) => id !== payload),
         }
       if (type === 'action/add_character') {
-        const three_character = context.pool.entity(payload).non_instanced()
+        const three_character = ENTITIES.from_character(payload)
 
         const level = experience_to_level(payload.experience)
 

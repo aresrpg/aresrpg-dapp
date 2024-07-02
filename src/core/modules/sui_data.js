@@ -30,7 +30,7 @@ import EmojioneMoneyBag from '~icons/emojione/money-bag'
 
 export const DEFAULT_SUI_CHARACTER = () => ({
   id: 'default',
-  name: 'Chafer Lancier',
+  name: 'Oeuftermath',
   classe: 'default',
   sex: 'default',
 

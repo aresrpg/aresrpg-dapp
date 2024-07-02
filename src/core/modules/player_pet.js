@@ -7,6 +7,7 @@ import {
   current_three_character,
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
+import { ENTITIES } from '../game/entities.js'
 
 const PET_SPEED = 8.0 // Adjust this value to set the pet's movement speed
 
@@ -55,6 +56,8 @@ export function tick_pet(character, pet, delta) {
   } else {
     pet.animate('IDLE')
   }
+
+  pet?.mixer.update(delta)
 }
 
 /** @type {Type.Module} */
@@ -90,7 +93,7 @@ export default function () {
             pets.delete(character.id)
           }
           if (character.pet) {
-            const spawned_pet = context.pool[character.pet.item_type].get({
+            const spawned_pet = ENTITIES[character.pet.item_type]({
               id: character.pet.id,
               name: character.pet.name,
             })
