@@ -4,14 +4,15 @@ import { Vector3 } from 'three'
 import { aiter } from 'iterator-helper'
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
-import { abortable, state_iterator } from '../utils/iterator.js'
+import { abortable } from '../utils/iterator.js'
 import {
   sui_get_character,
   sui_get_character_name,
   sui_get_item,
 } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
-import { context, current_three_character } from '../game/game.js'
+import { current_three_character } from '../game/game.js'
+import { ENTITIES } from '../game/entities.js'
 
 import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
 import { tick_pet } from './player_pet.js'
@@ -37,9 +38,9 @@ export default function () {
   function spawn_pet(character) {
     despawn_pet(character)
 
-    const spawned_pet = context.pool[character.pet.item_type].get({
-      id: character.pet.id,
+    const spawned_pet = ENTITIES[character.pet.item_type]({
       name: character.pet.name,
+      id: character.pet.id,
     })
 
     sui_get_character_name(character.id).then(name => {
@@ -77,9 +78,10 @@ export default function () {
             character.target_position = null
         }
         character.animate(character.action)
+        character.mixer.update(delta)
       }
     },
-    observe({ events, pool, get_state, signal }) {
+    observe({ events, get_state, signal }) {
       // listening for character movements with the goal of registering new entities
       // the logic is only triggered when the character has never been seen before
       events.on('packet/characterPosition', ({ id, position }) => {
@@ -92,9 +94,9 @@ export default function () {
         )
 
         if (!visible_characters.has(id) && !character_is_mine) {
-          const default_three_character = pool
-            .entity(DEFAULT_SUI_CHARACTER())
-            .instanced()
+          const default_three_character = ENTITIES.from_character(
+            DEFAULT_SUI_CHARACTER(),
+          )
 
           // it's okay to manipulate visible_characters without dispatching action
           // because it's a map and never changed, and as it manages others players, it's accessed very often and needed sequentially
@@ -112,17 +114,20 @@ export default function () {
 
               const skin = get_item_skin(sui_data)
               const level = experience_to_level(sui_data.experience)
-              const three_character = pool
-                .entity({
-                  ...sui_data,
-                  name: `${sui_data.name} (${level})`,
-                  skin,
-                })
-                .instanced()
+              const content = {
+                ...sui_data,
+                name: `${sui_data.name} (${level})`,
+              }
+              /** @type {Type.ThreeEntity} */
+              const three_character = skin
+                ? ENTITIES[skin](content)
+                : ENTITIES.from_character(content)
 
               if (sui_data.pet) spawn_pet(sui_data)
+              if (sui_data.hat) three_character.equip_hat(sui_data.hat)
 
-              default_three_character.apply_state(three_character)
+              three_character.move(default_three_character.object3d.position)
+
               visible_characters.set(id, {
                 ...visible_characters.get(id),
                 ...sui_data,
@@ -236,16 +241,16 @@ export default function () {
         character.remove()
 
         const level = experience_to_level(character.experience)
-        const three_character = pool
-          .entity({
-            ...character,
-            name: `${character.name} (${level})`,
-            skin,
-          })
-          .instanced()
+        const content = {
+          ...character,
+          name: `${character.name} (${level})`,
+        }
+        const three_character = skin
+          ? ENTITIES[skin](content)
+          : ENTITIES.from_character(content)
 
-        character.apply_state(three_character)
-
+        three_character.move(character.position)
+        three_character.animate(character.action)
         visible_characters.set(character.id, {
           ...character,
           ...three_character,
@@ -269,6 +274,10 @@ export default function () {
             spawn_pet(character)
           }
 
+          if (item.item_category === ITEM_CATEGORY.HAT) {
+            character.equip_hat(item)
+          }
+
           const skin = get_item_skin(character)
 
           if (skin !== character.skin)
@@ -288,6 +297,10 @@ export default function () {
 
         if (item.item_category === ITEM_CATEGORY.PET) {
           despawn_pet(character)
+        }
+
+        if (item.item_category === ITEM_CATEGORY.HAT) {
+          character.equip_hat(null)
         }
 
         character[slot] = null

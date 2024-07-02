@@ -67,9 +67,13 @@ function update_online({ online }) {
   else if (status === 'ONLINE' && !online) connection_status.value = 'CLOSED';
 }
 
-watch(ws_status, () => {
-  update_online({ online: ws_status.value });
-});
+watch(
+  ws_status,
+  () => {
+    update_online({ online: ws_status.value });
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
   if (

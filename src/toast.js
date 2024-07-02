@@ -70,14 +70,19 @@ export default {
       content,
     })
   },
-  error(content, title = 'Oh no!', icon = FluentEmojiHighContrastFly) {
+  error(
+    content,
+    title = 'Oh no!',
+    icon = FluentEmojiHighContrastFly,
+    duration = 7000,
+  ) {
     VsNotification({
       flat: true,
       color: '#E74C3C',
       position: 'bottom-right',
       title,
       content,
-      duration: 7000,
+      duration,
       icon,
     })
   },

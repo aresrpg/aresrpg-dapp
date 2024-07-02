@@ -43,12 +43,12 @@ export const MODELS = {
     scale: 1.5,
   }),
   suifren_capy: await load(suifren_capy, {
-    env_map_intensity: 0.2,
+    env_map_intensity: 0.5,
     scale: 1.5,
   }),
   afegg: await load(afegg, {
     env_map_intensity: 0.5,
-    scale: 0.18,
+    scale: 1.5,
   }),
   primemachin: await load(primemachin, {
     env_map_intensity: 0.5,

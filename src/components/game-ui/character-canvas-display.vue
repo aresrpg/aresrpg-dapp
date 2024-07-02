@@ -8,11 +8,15 @@ import {
   Clock,
   Vector3,
   AmbientLight,
+  Color,
+  BoxGeometry,
+  Mesh,
+  MeshBasicMaterial,
 } from 'three';
 import { nanoid } from 'nanoid';
 
-import create_pools from '../../core/game/pool.js';
 import dispose from '../../core/utils/three/dispose.js';
+import { ENTITIES } from '../../core/game/entities.js';
 
 const scene_div = ref(null);
 const canvas = ref(null);
@@ -27,7 +31,6 @@ let iop_female = null;
 let sram_female = null;
 
 let scene = null;
-let pool = null;
 let renderer = null;
 const light = new DirectionalLight(0xffffff, 2);
 const ambient = new AmbientLight(0xffffff, 1);
@@ -50,30 +53,35 @@ function setup_classe(classe) {
 }
 
 function display_classe(type) {
-  if (!pool) return;
   reset_classes();
   switch (type) {
     case 'IOP_MALE':
       if (!iop) {
-        iop = pool.iop_male.get({ id: nanoid() });
+        iop = ENTITIES.iop_male({ id: nanoid(), scene_override: scene });
         setup_classe(iop);
       }
       break;
     case 'SRAM_MALE':
       if (!sram) {
-        sram = pool.sram_male.get({ id: nanoid() });
+        sram = ENTITIES.sram_male({ id: nanoid(), scene_override: scene });
         setup_classe(sram);
       }
       break;
     case 'IOP_FEMALE':
       if (!iop_female) {
-        iop_female = pool.iop_female.get({ id: nanoid() });
+        iop_female = ENTITIES.iop_female({
+          id: nanoid(),
+          scene_override: scene,
+        });
         setup_classe(iop_female);
       }
       break;
     case 'SRAM_FEMALE':
       if (!sram_female) {
-        sram_female = pool.sram_female.get({ id: nanoid() });
+        sram_female = ENTITIES.sram_female({
+          id: nanoid(),
+          scene_override: scene,
+        });
         setup_classe(sram_female);
       }
       break;
@@ -90,7 +98,6 @@ onMounted(() => {
   const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
 
   scene = new Scene();
-  pool = create_pools(scene);
 
   scene.userData.element = scene_div.value;
   scene.userData.camera = camera;
@@ -119,19 +126,20 @@ onMounted(() => {
 
   scene.add(light);
 
-  display_classe(props.type);
-
   const clock = new Clock();
+
+  display_classe(props.type);
 
   function animate() {
     if (!running.value) return;
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
 
-    Object.values(pool).forEach(value => {
-      if (typeof value === 'function') return;
-      value.instanced_entity.entity.tick(delta);
-    });
+    iop?.mixer.update(delta);
+    sram?.mixer.update(delta);
+    iop_female?.mixer.update(delta);
+    sram_female?.mixer.update(delta);
+
     renderer.render(scene, camera);
   }
 
@@ -145,7 +153,7 @@ onUnmounted(() => {
     scene.remove(ambient);
     scene.remove(light);
 
-    pool?.dispose();
+    reset_classes();
     renderer?.dispose();
 
     dispose(scene);

@@ -37,13 +37,12 @@ declare namespace Type {
     position: import('three').Vector3
     target_position: Position | null
     object3d?: import('three').Object3D
-    set_low_priority?: (skip: boolean) => void
-    apply_state: (entity: Partial<ThreeEntity>) => void
+    set_low_priority: (skip: boolean) => void
     move: (position: Position) => void
     rotate: (rotation: import('three').Vector3) => void
     animate: (name: string) => void
     remove: () => void
-    mixer?: import('three').AnimationMixer
+    mixer: import('three').AnimationMixer
     jump_time: number
     action: string
     audio: import('three').PositionalAudio
