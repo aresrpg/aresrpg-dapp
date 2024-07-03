@@ -6,7 +6,10 @@ import { Color, Vector3 } from 'three'
 import { Terrain } from '@aresrpg/aresrpg-engine'
 
 import { abortable } from '../utils/iterator.js'
-import { blocks_colors } from '../utils/terrain/world_settings.js'
+import {
+  blocks_colors,
+  world_cache_size,
+} from '../utils/terrain/world_settings.js'
 import { current_three_character } from '../game/game.js'
 
 const worker_url = new URL('./world_cache_worker', import.meta.url)
@@ -40,6 +43,11 @@ export class CacheWorker {
 
 /** @type {Type.Module} */
 export default function () {
+  CacheWorker.instance
+    .callApi('updateCache', [new Vector3(), world_cache_size / 10])
+    .then(res => {
+      console.log(`done fast cache updating`)
+    })
   /**
    * Data struct filling from blocks cache
    */
@@ -128,6 +136,7 @@ export default function () {
                 terrain.update()
               }
             })
+          // terrain.update()
           terrain.showMapAroundPosition(
             player_position,
             state.settings.view_distance,

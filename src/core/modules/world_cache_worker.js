@@ -115,8 +115,8 @@ const init_cache = () => {
   // PatchCache.updateCache(new Vector3(), world_cache_size / 4, true)
 }
 
-const update_cache = player_position => {
-  return PatchCache.updateCache(player_position, world_cache_size)
+const update_cache = (player_position, cache_size = world_cache_size) => {
+  return PatchCache.updateCache(player_position, cache_size)
 }
 
 const get_block = (x, z) => {
