@@ -1,8 +1,6 @@
-import { Heightmap, PatchCache } from '@aresrpg/aresrpg-world'
-import { Vector2, Vector3 } from 'three'
+import { Vector3 } from 'three'
 
 import {
-  context,
   current_locked_character,
   current_three_character,
 } from '../game/game.js'
