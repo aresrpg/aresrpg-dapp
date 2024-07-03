@@ -44,18 +44,21 @@ fr:
       .label {{ t('experience') }}
       .bar
         .fill(:style="{ width: `${percent_experience}%`, backgroundColor: '#32cdd9' }")
+        .tooltip {{ experience }} / {{ max_experience }}
         .ticks
           .tick(v-for="n in 4" :key="n" :style="{ left: `${n * 20}%` }")
     .health-bar
       .label {{ t('health_points') }}
       .bar
         .fill(:style="{ width: `${percent_health}%`, backgroundColor: '#49b500' }")
+        .tooltip {{ health }} / {{ max_health }}
         .ticks
           .tick(v-for="n in 4" :key="n" :style="{ left: `${n * 20}%` }")
     .soul-bar
       .label {{ t('soul_points') }}
       .bar
         .fill(:style="{ width: `${percent_soul}%`, backgroundColor: '#e11a38' }")
+        .tooltip {{ soul }} / {{ max_soul }}
         .ticks
           .tick(v-for="n in 4" :key="n" :style="{ left: `${n * 20}%` }")
   .content
@@ -113,19 +116,16 @@ fr:
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
 
 import {
   context,
   current_locked_character,
-  current_three_character,
 } from '../../core/game/game.js';
 
-import { levels, level_progression } from '../../core/utils/game/experience.js';
-
-
+import { level_progression } from '../../core/utils/game/experience.js';
 
 const stats = ref([]);
 
@@ -142,8 +142,8 @@ const experience = ref(0);
 const max_experience = ref(100);
 const percent_experience = ref(0);
 
-const soul_points = ref(0);
-const max_soul_points = ref(100);
+const soul = ref(0);
+const max_soul= ref(100);
 const percent_soul = ref(0)
 
 const pa = ref(12);
@@ -158,19 +158,14 @@ function update_stats() {
   if (character.name !== name.value) name.value = character.name;
   if (character.classe !== classe.value) classe.value = character.classe
 
-
-  console.log(character)
-
   if (character.characterImage !== `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`) characterImage.value = `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`
 
   // SOUL POINTS
-  const _max_soul_points = 100;
+  const _max_soul = 100;
 
-  if (character.soul_points !== soul_points.value) soul_points.value = character.soul_points;
-  if (_max_soul_points !== max_soul_points.value) max_soul_points.value = _max_soul_points;
-      percent_soul.value = (character.soul / _max_soul_points) * 100;
-
-    console.log(character.soul_points, character.max_soul_points)
+  if (character.soul_points !== soul.value) soul.value = character.soul;
+  if (_max_soul !== max_soul.value) max_soul.value = _max_soul;
+      percent_soul.value = (character.soul / _max_soul) * 100;
 
   // HEALTH
   const _max_health = get_max_health(character)
@@ -259,38 +254,67 @@ const { t } = useI18n();
     align-items center
     width 100%
     margin-bottom 0.5em
-    .experience-bar, .health-bar, .soul-bar
-      display flex
-      flex-direction row
-      justify-content space-between
+  .experience-bar, .health-bar, .soul-bar
+    display flex
+    flex-direction row
+    justify-content space-between
+    overflow visible
+    width 100%
+    margin-bottom 0.5em
+    .label
+      width 125px
+      font-size 0.8em
+    .bar
       width 100%
-      overflow hidden
-      margin-bottom 0.5em
-      .label
-        width 125px
+      margin auto
+      background #383737
+      position relative
+      overflow visible
+      height 10px
+      .fill
+        height 100%
+        background #4caf50
+      .tooltip
+        position absolute
+        left 50%
+        transform translateX(-50%)
+        bottom 125%
+        visibility hidden
+        background-color #2A2A2A
         font-size 0.8em
-      .bar
+        color #fff
+        text-align center
+        border-radius 6px
+        padding 5px 20px
+        opacity 0
+        transition opacity 0.3s
+        white-space nowrap
+        ::after
+          content ""
+          position absolute
+          top 100%
+          left 50%
+          margin-left -5px
+          border-width 5px
+          border-style solid
+          border-color #555 transparent transparent transparent
+      .ticks
+        position absolute
+        top 0
+        left 0
         width 100%
-        margin auto
-        background #383737
-        position relative
-        height 10px
-        .ticks
+        height 100%
+        .tick
           position absolute
           top 0
-          left 0
-          width 100%
-          height 100%
-          .tick
-            position absolute
-            top 0
-            bottom 0
-            width 2px
-            background #383737
-            opacity 0.7
-        .fill
-          height 100%
-          background #4caf50
+          bottom 0
+          width 2px
+          background #383737
+          opacity 0.7
+      &:hover .tooltip
+        visibility visible
+        opacity 1
+
   .content
     display flex
     flex-direction column
