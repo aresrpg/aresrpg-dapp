@@ -81,6 +81,7 @@ export default function () {
   const terrain = new Terrain(map)
   terrain.parameters.voxels.map.minAltitude = 0
   terrain.parameters.voxels.map.maxAltitude = 400
+  terrain.parameters.lod.enabled = false;
 
   CacheWorker.instance
     .callApi('updateCache', [new Vector3(), world_cache_size / 5])
@@ -92,7 +93,7 @@ export default function () {
   // const regen_delay = 1000
   return {
     tick() {
-      // terrain.update()
+      terrain.update()
     },
     observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
