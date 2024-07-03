@@ -43,11 +43,6 @@ export class CacheWorker {
 
 /** @type {Type.Module} */
 export default function () {
-  CacheWorker.instance
-    .callApi('updateCache', [new Vector3(), world_cache_size / 10])
-    .then(res => {
-      console.log(`done fast cache updating`)
-    })
   /**
    * Data struct filling from blocks cache
    */
@@ -71,9 +66,11 @@ export default function () {
         coords.map(async ({ x, z }) => {
           const res = await CacheWorker.instance.callApi('getBlock', [x, z])
           const block = res.data
-          const block_color = new Color(blocks_colors[block.type])
+          const block_level = block.top_level
+          const block_type = block.type
+          const block_color = new Color(blocks_colors[block_type])
           return {
-            altitude: block.top_level + 0.25,
+            altitude: block_level + 0.25,
             color: block_color,
           }
         }),
@@ -81,17 +78,22 @@ export default function () {
     },
   }
 
-  // init_cache().then(res => {
-
-  // })
   const terrain = new Terrain(map)
   terrain.parameters.voxels.map.minAltitude = 0
   terrain.parameters.voxels.map.maxAltitude = 400
 
+  CacheWorker.instance
+    .callApi('updateCache', [new Vector3(), world_cache_size / 5])
+    .then(res => {
+      terrain.update()
+    })
+
   // let last_regen = 0
   // const regen_delay = 1000
   return {
-    tick() {},
+    tick() {
+      // terrain.update()
+    },
     observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -136,7 +138,6 @@ export default function () {
                 terrain.update()
               }
             })
-          // terrain.update()
           terrain.showMapAroundPosition(
             player_position,
             state.settings.view_distance,
