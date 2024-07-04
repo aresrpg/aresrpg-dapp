@@ -20,7 +20,7 @@ GLTF_LOADER.setMeshoptDecoder(MeshoptDecoder)
 
 export async function load(
   path,
-  { env_map_intensity = 1, mesh_name = 'Model', scale = 1 } = {},
+  { env_map_intensity = 0.5, mesh_name = 'Model', scale = 1 } = {},
 ) {
   const { scene, animations } = await GLTF_LOADER.loadAsync(path)
 

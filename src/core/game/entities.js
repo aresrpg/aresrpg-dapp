@@ -1,6 +1,14 @@
 import { createDerivedMaterial } from 'troika-three-utils'
 import { Text } from 'troika-three-text'
-import { Group, LoopOnce, MeshBasicMaterial, Quaternion, Vector3 } from 'three'
+import {
+  BoxGeometry,
+  Group,
+  LoopOnce,
+  Mesh,
+  MeshBasicMaterial,
+  Quaternion,
+  Vector3,
+} from 'three'
 
 import dispose from '../utils/three/dispose.js'
 
@@ -68,7 +76,7 @@ gl_Position = projectionMatrix * mvPosition;
   })
 }
 
-function spawn_entity(clone_model, { skin, height, radius, offset_y = 0 }) {
+function spawn_entity(clone_model, { skin, height, radius }) {
   return ({ id, name = '', scene_override = null }) => {
     const { model, compute_animations } = clone_model()
     const { mixer, actions } = compute_animations()
@@ -86,9 +94,15 @@ function spawn_entity(clone_model, { skin, height, radius, offset_y = 0 }) {
 
     origin.add(title)
     origin.add(model)
+    origin.add(
+      new Mesh(
+        new BoxGeometry(radius, height, radius),
+        new MeshBasicMaterial({ color: 0x00ff00, wireframe: true }),
+      ),
+    )
 
-    title.position.y += height * 2
-    // model.position.y -= height * 0.5
+    title.position.y += height + 0.2
+    model.position.y -= height * 0.5
 
     const scene = scene_override || context.scene
 
@@ -117,7 +131,7 @@ function spawn_entity(clone_model, { skin, height, radius, offset_y = 0 }) {
         // @ts-ignore
         if (origin.position.distanceTo(position) < 0.01) return
         origin.position.copy(position)
-        origin.position.y = position.y + offset_y
+        origin.position.y = position.y
       },
       rotate(movement) {
         // Normalize the movement vector in the horizontal plane (x-z)
@@ -181,58 +195,58 @@ export const ENTITIES = {
     return ENTITIES.afegg({ name: 'Oeuftermath', id })
   },
   iop_male: spawn_entity(MODELS.iop_male, {
-    height: 1.7,
-    radius: 0.9,
+    height: 1.5,
+    radius: 0.7,
     skin: 'iop_male',
   }),
   iop_female: spawn_entity(MODELS.iop_female, {
-    height: 1.7,
-    radius: 0.9,
+    height: 1.5,
+    radius: 0.7,
     skin: 'iop_female',
   }),
   sram_male: spawn_entity(MODELS.sram_male, {
-    height: 1.7,
-    radius: 0.9,
+    height: 1.5,
+    radius: 0.7,
     skin: 'sram_male',
   }),
   sram_female: spawn_entity(MODELS.sram_female, {
-    height: 1.7,
-    radius: 0.9,
+    height: 1.5,
+    radius: 0.7,
     skin: 'sram_female',
   }),
   chafer: spawn_entity(MODELS.chafer, {
-    height: 2.1,
-    radius: 0.9,
+    height: 1.5,
+    radius: 0.7,
     skin: 'chafer',
   }),
   suifren_capy: spawn_entity(MODELS.suifren_capy, {
-    height: 0.83,
-    radius: 0.9,
+    height: 0.75,
+    radius: 0.75,
     skin: 'suifren_capy',
   }),
   suifren_bullshark: spawn_entity(MODELS.suifren_bullshark, {
-    height: 0.83,
-    radius: 0.9,
+    height: 0.75,
+    radius: 0.75,
     skin: 'suifren_bullshark',
   }),
   afegg: spawn_entity(MODELS.afegg, {
-    height: 0.83,
-    radius: 0.9,
+    height: 0.75,
+    radius: 0.75,
     skin: 'afegg',
   }),
   primemachin: spawn_entity(MODELS.primemachin, {
-    height: 1.8,
-    radius: 0.9,
+    height: 1.5,
+    radius: 0.7,
     skin: 'primemachin',
   }),
   vaporeon: spawn_entity(MODELS.vaporeon, {
-    height: 0.83,
-    radius: 0.9,
+    height: 0.75,
+    radius: 0.75,
     skin: 'vaporeon',
   }),
   suicune: spawn_entity(MODELS.suicune, {
-    height: 0.83,
-    radius: 0.9,
+    height: 0.75,
+    radius: 0.75,
     skin: 'suicune',
   }),
 }
