@@ -94,12 +94,12 @@ function spawn_entity(clone_model, { skin, height, radius }) {
 
     origin.add(title)
     origin.add(model)
-    origin.add(
-      new Mesh(
-        new BoxGeometry(radius, height, radius),
-        new MeshBasicMaterial({ color: 0x00ff00, wireframe: true }),
-      ),
-    )
+    // origin.add(
+    //   new Mesh(
+    //     new BoxGeometry(radius, height, radius),
+    //     new MeshBasicMaterial({ color: 0x00ff00, wireframe: true }),
+    //   ),
+    // )
 
     title.position.y += height + 0.2
     model.position.y -= height * 0.5
