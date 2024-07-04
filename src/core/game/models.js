@@ -27,19 +27,19 @@ export const MODELS = {
   fud_hat: await load(pug_hat, {}),
   suicunio: await load(suicune_hat, {}),
   suifren_bullshark: await load(suifren_bullshark, {
-    scale: 1.5,
+    scale: 0.8,
   }),
   suifren_capy: await load(suifren_capy, {
-    scale: 1.5,
+    scale: 0.8,
   }),
   afegg: await load(afegg, {
-    scale: 1.5,
+    scale: 0.8,
   }),
   vaporeon: await load(vaporeon, {
-    scale: 1.5,
+    scale: 0.8,
   }),
   suicune: await load(suicune, {
-    scale: 1.5,
+    scale: 0.8,
   }),
 }
 

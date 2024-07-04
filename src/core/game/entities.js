@@ -131,7 +131,6 @@ function spawn_entity(clone_model, { skin, height, radius }) {
         // @ts-ignore
         if (origin.position.distanceTo(position) < 0.01) return
         origin.position.copy(position)
-        origin.position.y = position.y
       },
       rotate(movement) {
         // Normalize the movement vector in the horizontal plane (x-z)
@@ -196,27 +195,27 @@ export const ENTITIES = {
   },
   iop_male: spawn_entity(MODELS.iop_male, {
     height: 1.5,
-    radius: 0.7,
+    radius: 0.8,
     skin: 'iop_male',
   }),
   iop_female: spawn_entity(MODELS.iop_female, {
     height: 1.5,
-    radius: 0.7,
+    radius: 0.8,
     skin: 'iop_female',
   }),
   sram_male: spawn_entity(MODELS.sram_male, {
     height: 1.5,
-    radius: 0.7,
+    radius: 0.8,
     skin: 'sram_male',
   }),
   sram_female: spawn_entity(MODELS.sram_female, {
     height: 1.5,
-    radius: 0.7,
+    radius: 0.8,
     skin: 'sram_female',
   }),
   chafer: spawn_entity(MODELS.chafer, {
     height: 1.5,
-    radius: 0.7,
+    radius: 0.8,
     skin: 'chafer',
   }),
   suifren_capy: spawn_entity(MODELS.suifren_capy, {
@@ -236,7 +235,7 @@ export const ENTITIES = {
   }),
   primemachin: spawn_entity(MODELS.primemachin, {
     height: 1.5,
-    radius: 0.7,
+    radius: 0.8,
     skin: 'primemachin',
   }),
   vaporeon: spawn_entity(MODELS.vaporeon, {

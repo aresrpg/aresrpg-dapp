@@ -65,9 +65,9 @@ export default function () {
 
       if (player.target_position) {
         const { x, z } = player.target_position
-        const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
+        const ground_pos = new Vector2(Math.floor(x), Math.floor(z))
         const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
-        player.target_position.y = Math.floor(raw_height)
+        player.target_position.y = Math.ceil(raw_height) + player.height * 0.5
         player.move(player.target_position)
         player.target_position = null
         return
@@ -81,7 +81,7 @@ export default function () {
       // TODO: tp to nether if falling to hell
       if (origin.y <= 10) {
         velocity.setScalar(0)
-        player.move(new Vector3(origin.x, 125, origin.z))
+        player.move(new Vector3(origin.x, 200, origin.z))
         return
       }
 
@@ -115,15 +115,6 @@ export default function () {
           jump_state = jump_states.ASCENT
           jump_cooldown = JUMP_COOLDWON
           on_ground = false
-
-          // context.send_packet('packet/characterAction', {
-          //   id: player.id,
-          //   action: 'JUMP',
-          // })
-          // context.dispatch('action/character_action', {
-          //   id: player.id,
-          //   action: 'JUMP',
-          // })
         } else {
           jump_state = jump_states.NONE
 
@@ -179,12 +170,12 @@ export default function () {
       const { x, z } = dummy.position
       const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
       const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
-      const ground_height = Math.floor(raw_height) + 0.22
+      const ground_height = Math.ceil(raw_height) // + 0.22
 
       if (!ground_height) return
 
-      const target_y = ground_height + player.height
-      const dummy_bottom_y = dummy.position.y - player.height
+      const target_y = ground_height + player.height * 0.5
+      const dummy_bottom_y = dummy.position.y - player.height * 0.5
       const ground_height_distance = ground_height - dummy_bottom_y
 
       if (dummy_bottom_y <= ground_height) {

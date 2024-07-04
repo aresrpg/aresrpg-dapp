@@ -47,8 +47,13 @@ export default function () {
       spawned_pet.floating_title.text = `${character.pet.name} (${name})`
     })
 
-    spawned_pet.move(character.position)
+    spawned_pet.target_position = new Vector3()
+      .copy(character.position)
+      .add(new Vector3(Math.random() * 7 - 3, 0, Math.random() * 7 - 3))
+
     spawned_pets.set(character.id, spawned_pet)
+
+    tick_pet(character, spawned_pet, 0)
   }
 
   return {
