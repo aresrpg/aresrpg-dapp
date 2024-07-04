@@ -18,57 +18,28 @@ import chafer from '../../assets/models/mobs/chafer.glb?url'
 import { load } from '../utils/three/load_model.js'
 
 export const MODELS = {
-  iop_male: await load(iop_male, {
-    env_map_intensity: 0.5,
-    scale: 0.9,
-  }),
-  iop_female: await load(iop_female, {
-    env_map_intensity: 0.5,
-    // scale: 1.2,
-  }),
-  sram_male: await load(sram_male, {
-    env_map_intensity: 0.5,
-    // scale: 1.2,
-  }),
-  sram_female: await load(sram_female, {
-    env_map_intensity: 0.5,
-    scale: 0.043,
-  }),
-  chafer: await load(chafer, {
-    env_map_intensity: 0.5,
-    scale: 1.2,
-  }),
+  iop_male: await load(iop_male, {}),
+  iop_female: await load(iop_female, {}),
+  sram_male: await load(sram_male, {}),
+  sram_female: await load(sram_female, {}),
+  chafer: await load(chafer, {}),
+  primemachin: await load(primemachin, {}),
+  fud_hat: await load(pug_hat, {}),
+  suicunio: await load(suicune_hat, {}),
   suifren_bullshark: await load(suifren_bullshark, {
-    env_map_intensity: 0.5,
     scale: 1.5,
   }),
   suifren_capy: await load(suifren_capy, {
-    env_map_intensity: 0.5,
     scale: 1.5,
   }),
   afegg: await load(afegg, {
-    env_map_intensity: 0.5,
     scale: 1.5,
   }),
-  primemachin: await load(primemachin, {
-    env_map_intensity: 0.5,
-    scale: 0.046,
-  }),
-  fud_hat: await load(pug_hat, {
-    env_map_intensity: 0.5,
-    scale: 1,
-  }),
-  suicunio: await load(suicune_hat, {
-    env_map_intensity: 0.5,
-    scale: 1,
-  }),
   vaporeon: await load(vaporeon, {
-    env_map_intensity: 0.5,
     scale: 1.5,
   }),
   suicune: await load(suicune, {
-    env_map_intensity: 0.5,
-    scale: 0.25,
+    scale: 1.5,
   }),
 }
 

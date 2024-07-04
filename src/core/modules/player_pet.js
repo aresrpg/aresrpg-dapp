@@ -43,7 +43,7 @@ export function tick_pet(character, pet, delta) {
       ),
     )
 
-    new_position.setY(height + pet.height * 2 + 0.2)
+    new_position.setY(height + pet.height * 1.5 + 0.22)
 
     pet.move(new_position)
     pet.rotate(movement)

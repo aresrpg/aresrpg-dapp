@@ -66,7 +66,7 @@ export default function () {
       if (player.target_position) {
         const { x, z } = player.target_position
         const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
-        const raw_height = WorldGenerator.instance.getRawHeight(ground_pos) + 2 // add player height
+        const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
         player.target_position.y = Math.floor(raw_height)
         player.move(player.target_position)
         player.target_position = null
@@ -179,12 +179,12 @@ export default function () {
       const { x, z } = dummy.position
       const ground_pos = new Vector2(Math.floor(x), Math.floor(z)) // .subScalar(0.5)
       const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
-      const ground_height = Math.floor(raw_height)
+      const ground_height = Math.floor(raw_height) + 0.22
 
       if (!ground_height) return
 
-      const target_y = ground_height + player.height + 0.2
-      const dummy_bottom_y = dummy.position.y - player.height - 0.2
+      const target_y = ground_height + player.height
+      const dummy_bottom_y = dummy.position.y - player.height
       const ground_height_distance = ground_height - dummy_bottom_y
 
       if (dummy_bottom_y <= ground_height) {
