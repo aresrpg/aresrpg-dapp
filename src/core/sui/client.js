@@ -685,7 +685,7 @@ export function sui_to_mists(amount) {
 
 export function pretty_print_mists(amount) {
   const sui = +mists_to_sui(amount)
-  return sui.toFixed(3).replace(/\.0+$/, '')
+  return sui.toFixed(2).replace(/\.0+$/, '')
 }
 
 export async function sui_get_sui_balance() {
@@ -974,6 +974,16 @@ export async function sui_claim_kiosks_profits() {
   finalize()
 
   await execute(tx)
+}
+
+export async function sui_get_royalty_fee(item_type) {
+  try {
+    const fee = BN(await sdk.get_royalty_fee(item_type))
+    const rate = fee.dividedBy(BN(10000))
+    return rate || BN(0)
+  } catch (error) {
+    return BN(0)
+  }
 }
 
 /** @param {Type.SuiItem} item */

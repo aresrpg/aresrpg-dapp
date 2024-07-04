@@ -61,7 +61,11 @@ import { BigNumber as BN } from 'bignumber.js';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { VITE_INDEXER_URL } from '../../env.js';
-import { sui_buy_item, mists_to_sui } from '../../core/sui/client.js';
+import {
+  sui_buy_item,
+  mists_to_sui,
+  sui_get_royalty_fee,
+} from '../../core/sui/client.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 import toast from '../../toast.js';
 import tabs from '../../components/game-ui/tabs.vue';
@@ -83,6 +87,7 @@ const current_address = inject('current_address');
 const sui_balance = inject('sui_balance');
 
 const listings = ref([]);
+const royalty_rate = ref(BN(0))
 const { t } = useI18n();
 
 function filter_listings(quantity) {
@@ -113,21 +118,13 @@ function start_buy_item(item) {
 }
 
 function final_item_price(item) {
-  if (!item.is_aresrpg_item && !item.is_aresrpg_character)
-    return new BN(mists_to_sui(item.list_price));
-
   // Convert mists to Sui and create a BN instance of the price
   const price_in_sui = new BN(mists_to_sui(item.list_price));
 
-  // Determine the royalty rate
-  const royalty_rate =
-    item.is_aresrpg_character || item.is_aresrpg_item ? 0.1 : 0;
-
-  // Calculate the royalty amount
-  const calculated_royalty = price_in_sui.times(royalty_rate);
+  const fee = price_in_sui.times(royalty_rate.value)
 
   // Apply the minimum royalty fee of 0.1 Sui
-  const royalty_amount = BN.max(calculated_royalty, new BN(0.1));
+  const royalty_amount = BN.max(fee, new BN(0.1));
 
   // Calculate the final price
   const final_price = price_in_sui.plus(royalty_amount);
@@ -156,7 +153,11 @@ async function fetch_listings() {
   );
   const { items, cursor } = await result.json();
   listings.value = items;
-  if (items.length) select_item(items[0]);
+  if (items.length) {
+    select_item(items[0]);
+    const rate = await sui_get_royalty_fee(items[0]._type)
+    royalty_rate.value = rate
+  }
 }
 
 watch(

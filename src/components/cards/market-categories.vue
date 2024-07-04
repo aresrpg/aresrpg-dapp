@@ -138,7 +138,7 @@ fr:
             span.count {{ available_type.item_count }}
           .floor
             span {{ t('floor') }}:
-            span.count.price {{ pretty_print_mists(available_type.price_floor) }}
+            span.count.price {{ pretty_print_mists(apply_fees(available_type)) }}
             TokenSui(:style="{ fontSize: '.7em', color: '#90CAF9' }")
 </template>
 
@@ -151,9 +151,10 @@ import {
   MISC,
 } from '@aresrpg/aresrpg-sdk/items';
 import { watch, ref, inject } from 'vue';
+import { BigNumber as BN } from 'bignumber.js';
 
 import { VITE_INDEXER_URL } from '../../env.js';
-import { pretty_print_mists } from '../../core/sui/client.js';
+import { pretty_print_mists, sui_get_royalty_fee } from '../../core/sui/client.js';
 
 // @ts-ignore
 import TokenSui from '~icons/token/sui';
@@ -166,11 +167,41 @@ const selected_item = inject('selected_item');
 const currently_listed_items_names = inject('currently_listed_items_names');
 
 const available_types = ref([]);
+const royalty_rates = ref([])
 
 function select_item(item) {
   if (selected_item_type.value !== item.item_type) selected_item.value = null;
   selected_item_type.value = item.item_type;
 }
+
+function apply_fees({ price_floor, item_type }) {
+  const price = BN(price_floor)
+  const royalty_rate = royalty_rates.value.find(rate => rate.type == item_type)?.royalty_rate ?? BN(0.1)
+  const fee = price.times(royalty_rate)
+  const final_price = price.plus(fee)
+  return final_price
+}
+
+async function get_items_by_type(types) {
+  const result = await Promise.all(types.map(async categorie => {
+    const { items } = await fetch(
+      `${VITE_INDEXER_URL}/listings/${categorie.item_type}`
+    ).then(res => res.json());
+    return items[0];
+  }));
+  return result
+}
+
+async function get_all_rates(categories) {
+  const ratePromises = categories.map(async item => {
+    const rate = await sui_get_royalty_fee(item._type);
+    return { type: item.item_type, royalty_rate: rate };
+  });
+
+  const rates = await Promise.all(ratePromises);
+  royalty_rates.value = rates;
+}
+
 
 watch(filtered_name, name => {
   if (!name) return;
@@ -187,6 +218,9 @@ watch(
       `${VITE_INDEXER_URL}/item-types/${category}`,
     ).then(res => res.json());
     available_types.value = types;
+
+    const items = await get_items_by_type(types);
+    await get_all_rates(items);
   },
   { immediate: true },
 );
