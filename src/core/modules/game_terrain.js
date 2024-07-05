@@ -1,18 +1,39 @@
 import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
+import { TerrainViewer, VoxelmapViewer } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Color, Vector3 } from 'three'
-import { Terrain } from '@aresrpg/aresrpg-engine'
+import {
+  Camera,
+  Color,
+  Frustum,
+  Matrix4,
+  PerspectiveCamera,
+  Vector3,
+} from 'three'
+import { VoxelmapVisibilityComputer } from '@aresrpg/aresrpg-engine/dist/terrain/voxelmap/voxelmap-visibility-computer.js'
 
+import { current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import {
   blocks_colors,
   world_cache_size,
 } from '../utils/terrain/world_settings.js'
-import { current_three_character } from '../game/game.js'
 
 const worker_url = new URL('./world_cache_worker', import.meta.url)
+
+function compute_camera_frustum(/** @type PerspectiveCamera */ camera) {
+  camera.updateMatrix()
+  camera.updateMatrixWorld(true)
+  camera.updateProjectionMatrix()
+
+  return new Frustum().setFromProjectionMatrix(
+    new Matrix4().multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse,
+    ),
+  )
+}
 
 export class CacheWorker {
   static singleton
@@ -47,6 +68,8 @@ export default function () {
    * Data struct filling from blocks cache
    */
   const map = {
+    minAltitude: -1,
+    maxAltitude: 400,
     voxelMaterialsList: Object.values(blocks_colors).map(col => ({
       color: new Color(col),
     })),
@@ -58,6 +81,7 @@ export default function () {
       const cache = res.data
       return {
         data: cache,
+        size: new Vector3().subVectors(block_end, block_start),
         isEmpty: cache.length === 0,
       }
     },
@@ -78,29 +102,42 @@ export default function () {
     },
   }
 
-  const terrain = new Terrain(map)
-  terrain.parameters.voxels.map.minAltitude = 0
-  terrain.parameters.voxels.map.maxAltitude = 400
-  terrain.parameters.lod.enabled = false;
+  const patch_size = { xz: 64, y: 64 }
+  const min_patch_id_y = Math.floor(map.minAltitude / patch_size.y)
+  const max_patch_id_y = Math.floor(map.maxAltitude / patch_size.y)
+  const voxelmap_viewer = new VoxelmapViewer(
+    min_patch_id_y,
+    max_patch_id_y,
+    map.voxelMaterialsList,
+    { patchSize: patch_size },
+  )
+  const terrain_viewer = new TerrainViewer(map, voxelmap_viewer)
+  terrain_viewer.parameters.lod.enabled = false
+
+  const voxelmap_visibility_computer = new VoxelmapVisibilityComputer(
+    { x: patch_size.xz, y: patch_size.y, z: patch_size.xz },
+    min_patch_id_y,
+    max_patch_id_y,
+  )
 
   CacheWorker.instance
     .callApi('updateCache', [new Vector3(), world_cache_size / 5])
     .then(res => {
-      terrain.update()
+      terrain_viewer.update()
     })
 
   // let last_regen = 0
   // const regen_delay = 1000
   return {
     tick() {
-      terrain.update()
+      terrain_viewer.update()
     },
     observe({ camera, events, signal, scene, get_state }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
       events.emit('CHUNKS_LOADED')
 
-      scene.add(terrain.container)
+      scene.add(terrain_viewer.container)
 
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
         async (
@@ -136,15 +173,47 @@ export default function () {
             .callApi('updateCache', [player_position])
             .then(res => {
               if (res.data.cacheRefreshed) {
-                terrain.update()
+                terrain_viewer.update()
               }
             })
-          terrain.showMapAroundPosition(
+
+          // compute all patches that need to be visible and prioritize them
+          voxelmap_visibility_computer.reset()
+          voxelmap_visibility_computer.showMapAroundPosition(
             player_position,
             state.settings.view_distance,
+            compute_camera_frustum(camera),
           )
-          terrain.setLod(camera.position, 50, camera.far)
-          // }
+          const requested_patches_ids_list = voxelmap_visibility_computer
+            .getRequestedPatches()
+            .map(requested_patch => requested_patch.id)
+
+          // declare them as visible, hide the others
+          voxelmap_viewer.setVisibility(requested_patches_ids_list)
+
+          // filter the patches_ids that need computing and data from the map
+          const patches_ids_list = requested_patches_ids_list.filter(patch_id =>
+            voxelmap_viewer.doesPatchRequireVoxelsData(patch_id),
+          )
+
+          // for each of these patches
+          for (const patch_id of patches_ids_list) {
+            // query the map (asynchronous) to get data for this patch
+            const block_box = voxelmap_viewer.getPatchVoxelsBox(patch_id)
+            const chunkdata_promise = map.getLocalMapData(
+              block_box.min,
+              block_box.max,
+            )
+
+            // once we got data for this patch
+            chunkdata_promise.then(chunkdata => {
+              // check if the engine still needs this data (this second check is required because we got the data asynchronously)
+              if (voxelmap_viewer.doesPatchRequireVoxelsData(patch_id)) {
+                // if needed, add it to the queue so that the voxelmap_viewer can compute a mesh asap.
+                voxelmap_viewer.enqueuePatch(patch_id, chunkdata)
+              }
+            })
+          }
         }
       })
     },
