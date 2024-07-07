@@ -246,6 +246,7 @@ export default function () {
         const target_character = state.characters.find(
           character => character.id === payload.id,
         )
+        console.log('target', payload, target_character)
         // and if it's the current controlled character
         if (target_character)
           target_character.target_position = payload.position
