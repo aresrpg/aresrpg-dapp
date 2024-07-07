@@ -19,12 +19,12 @@ import {
   Box3,
   Sphere,
   Raycaster,
-  OrthographicCamera,
   Clock,
   WebGLRenderTarget,
   DepthTexture,
   HalfFloatType,
   LinearFilter,
+  Frustum,
 } from 'three'
 import { aiter } from 'iterator-helper'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
@@ -62,6 +62,9 @@ import player_skin from '../modules/player_skin.js'
 import player_equipment from '../modules/player_equipment.js'
 import toast from '../../toast.js'
 import { i18n } from '../../i18n.js'
+import game_entites_stroll from '../modules/game_entites_stroll.js'
+import player_entities_interract from '../modules/player_entities_interract.js'
+import fight_start from '../modules/fight_start.js'
 
 import { handle_server_error } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -220,6 +223,10 @@ export const INITIAL_STATE = {
   // represents other characters on the map
   /** @type {Map<string, Type.FullCharacter>} */
   visible_characters: new Map(),
+  // link a mob group to a list of mob ids
+  /** @type {Map<string, Type.MobGroup>} */
+  visible_mobs_group: new Map(),
+  is_in_fight: false,
 }
 
 /**
@@ -283,6 +290,7 @@ const MODULES = [
   player_pet,
   player_skin,
   player_equipment,
+  player_entities_interract,
 
   game_sky,
   game_render,
@@ -293,6 +301,9 @@ const MODULES = [
   game_terrain,
   game_water,
   game_connect,
+  game_entites_stroll,
+
+  fight_start,
 ]
 
 function last_event_value(emitter, event, default_value = null) {
@@ -338,14 +349,13 @@ const composer = new EffectComposer(
   }),
 )
 const camera = new PerspectiveCamera(
-  60, // Field of view
+  70, // Field of view
   window.innerWidth / window.innerHeight, // Aspect ratio
   0.1, // Near clipping plane
   3000, // Far clipping plane
 )
 camera.layers.enableAll()
 
-const orthographic_camera = new OrthographicCamera()
 /** @type {Type.Events} */
 // @ts-ignore
 const events = new EventEmitter()
@@ -387,9 +397,14 @@ function connect_ws() {
           context.dispatch('action/set_online', true)
           context.dispatch('action/set_online', false)
 
-          const { visible_characters } = context.get_state()
+          const { visible_characters, visible_mobs_group } = context.get_state()
           visible_characters.forEach(character => character.remove())
           visible_characters.clear()
+
+          visible_mobs_group.forEach(({ entities }) =>
+            entities.forEach(mob => mob.remove()),
+          )
+          visible_mobs_group.clear()
 
           reject(new Error('Disconnected from server'))
         },
@@ -440,10 +455,12 @@ const context = {
   dispatch(type, payload) {
     actions.write({ type, payload })
   },
+  frustum: new Frustum(),
+  mouse_raycaster: new Raycaster(),
+  mouse_position: new Vector2(),
   get_state,
   scene,
   renderer,
-  orthographic_camera,
   camera,
   signal: controller.signal,
   controller,
@@ -452,6 +469,29 @@ const context = {
   },
   on_game_hide: handler => {
     game_visible_emitter.on('hide', handler)
+  },
+  switch_to_isometric() {
+    console.log('SWITCH TO ISOMETRIC')
+
+    // Set constraints to maintain isometric-like view
+    context.camera_controls.maxPolarAngle = Math.PI / 4 // Limit vertical rotation
+    context.camera_controls.minPolarAngle = Math.PI / 4 // Limit vertical rotation
+    context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
+    context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
+    context.camera_controls.enableDamping = true // Enable smooth camera movement
+    context.camera_controls.dampingFactor = 0.05 // Adjust damping factor as needed
+  },
+  switch_to_perspective() {
+    console.log('SWITCH TO PERSPECTIVE')
+
+    // context.camera = camera
+    // context.camera_controls.camera = camera
+
+    // // Reset constraints for free movement in perspective view
+    // context.camera_controls.maxPolarAngle = Math.PI // Allow full vertical rotation
+    // context.camera_controls.minPolarAngle = 0 // Allow full vertical rotation
+    // context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
+    // context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
   },
 }
 
@@ -499,12 +539,25 @@ let time_target = 0
 let running = true
 let canvas_applied = false
 
+const reusable_matrix4 = new Matrix4()
+
+window.addEventListener('mousemove', event => {
+  context.mouse_position.x = (event.clientX / window.innerWidth) * 2 - 1
+  context.mouse_position.y = -(event.clientY / window.innerHeight) * 2 + 1
+})
+
 function animate() {
   requestAnimationFrame(animate)
 
   if (running && performance.now() >= time_target) {
     const state = get_state()
     const delta = Math.min(clock.getDelta(), 0.5)
+
+    context.frustum.setFromProjectionMatrix(
+      reusable_matrix4
+        .identity()
+        .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+    )
 
     modules
       .map(({ tick }) => tick)
@@ -516,7 +569,7 @@ function animate() {
     if (state.settings.postprocessing.enabled) {
       composer.render()
     } else {
-      renderer.render(scene, camera)
+      renderer.render(scene, context.camera)
     }
 
     const next_frame_duration = 1000 / state.settings.target_fps

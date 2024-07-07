@@ -4,8 +4,10 @@ import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
 import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
 
-import { abortable } from '../utils/iterator.js'
-import { current_three_character } from '../game/game.js'
+import { abortable, state_iterator } from '../utils/iterator.js'
+import { context, current_three_character } from '../game/game.js'
+
+import { is_hovering_mob_group } from './player_entities_interract.js'
 
 const CAMERA_MIN_DISTANCE = 0.001
 const CAMERA_DISTANCE_STEP = 1
@@ -23,10 +25,13 @@ export default function () {
       if (!camera_state.is_free) {
         const { x, y, z } = player.position
 
+        // Set the perspective camera position to follow the player
         const center_camera_on_head =
           1 - smootherstep(camera_controls.distance, 0, 10)
         const head_height = 1
-        const y_shift = head_height * center_camera_on_head
+        const y_shift = state.is_in_fight
+          ? -5
+          : head_height * center_camera_on_head
         camera_controls.moveTo(x, y + y_shift, z, true)
         camera_controls.setTarget(x, y + y_shift, z, true)
 
@@ -96,6 +101,7 @@ export default function () {
       }
 
       const on_mouse_down = () => {
+        if (context.get_state().is_in_fight || is_hovering_mob_group()) return
         // is_dragging = true
         renderer.domElement.requestPointerLock()
       }
@@ -158,6 +164,15 @@ export default function () {
           return free_camera
         },
       )
+
+      state_iterator().reduce((was_in_fight, { is_in_fight }) => {
+        if (was_in_fight !== is_in_fight) {
+          if (is_in_fight) context.switch_to_isometric()
+          else context.switch_to_perspective()
+        }
+
+        return is_in_fight
+      })
 
       window.addEventListener(
         'mouseup',

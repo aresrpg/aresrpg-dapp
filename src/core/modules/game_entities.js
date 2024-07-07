@@ -13,6 +13,7 @@ import {
 import { experience_to_level } from '../utils/game/experience.js'
 import { current_three_character } from '../game/game.js'
 import { ENTITIES } from '../game/entities.js'
+import { get_terrain_height } from '../utils/terrain/heightmap.js'
 
 import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
 import { tick_pet } from './player_pet.js'
@@ -148,17 +149,72 @@ export default function () {
         }
       })
 
-      events.on('packet/entityDespawn', ({ ids }) => {
+      events.on('packet/charactersDespawn', ({ ids }) => {
         const { visible_characters } = get_state()
+
         ids.forEach(id => {
-          const entity = visible_characters.get(id)
-          if (entity) {
-            despawn_pet(entity)
-            entity.remove()
+          const character = visible_characters.get(id)
+
+          if (character) {
+            despawn_pet(character)
+            character.remove()
             visible_characters.delete(id)
           }
         })
       })
+
+      events.on('packet/entityGroupsDespawn', ({ ids }) => {
+        const { visible_mobs_group } = get_state()
+        ids.forEach(id => {
+          if (visible_mobs_group.has(id)) {
+            visible_mobs_group.get(id).entities.forEach(mob => mob.remove())
+            visible_mobs_group.delete(id)
+          }
+        })
+      })
+
+      events.on(
+        'packet/entityGroupSpawn',
+        ({ id: group_id, position: spawn_position, entities }) => {
+          const { visible_mobs_group } = get_state()
+
+          spawn_position.y = get_terrain_height(spawn_position, 1)
+
+          visible_mobs_group.set(group_id, {
+            id: group_id,
+            position: spawn_position,
+            entities: entities.map(({ name, id, level, skin, size }) => {
+              const spawned_mob = {
+                ...ENTITIES[skin]({
+                  id,
+                  name: `${name} (${level})`,
+                  scale_factor: size,
+                }),
+                name,
+                level,
+                mob_group_id: group_id,
+                spawn_position,
+              }
+
+              // find a position in 4 block range of entity position
+              const position = new Vector3(
+                spawn_position.x + Math.random() * 4 - 2,
+                0,
+                spawn_position.z + Math.random() * 4 - 2,
+              )
+
+              const ground_height = get_terrain_height(
+                position,
+                spawned_mob.height,
+              )
+
+              position.setY(ground_height)
+              spawned_mob.move(position)
+              return spawned_mob
+            }),
+          })
+        },
+      )
 
       // manage LOD when other entities moves
       events.on('packet/characterPosition', ({ id, position }) => {

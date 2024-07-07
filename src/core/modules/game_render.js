@@ -1,7 +1,5 @@
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
-import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-// import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
@@ -32,15 +30,8 @@ export default function () {
     observe({ scene, signal, composer, camera }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
 
-      const gtaopass = new GTAOPass(
-        scene,
-        camera,
-        window.innerWidth,
-        window.innerHeight,
-      )
       const renderpass = new RenderPass(scene, camera)
       const cartoon_renderpass = new CartoonRenderpass(scene, camera)
-      // const outputpass = new OutputPass()
       const gamma_correction = new ShaderPass(GammaCorrectionShader)
 
       const bloompass = new UnrealBloomPass(
@@ -55,28 +46,14 @@ export default function () {
 
       smaapass.renderToScreen = true
 
-      gtaopass.output = GTAOPass.OUTPUT.Default
-
-      // n8aopass.configuration.aoRadius = 1
-      // n8aopass.configuration.distanceFalloff = 5.0
-      // n8aopass.configuration.intensity = 5.0
-
-      // n8aopass.setDisplayMode('Split AO')
-      // n8aopass.configuration.aoSamples = 64
-      // n8aopass.configuration.denoiseSamples = 8
-      // n8aopass.configuration.denoiseRadius = 6
-
       const underwater_pass = new UnderwaterPass()
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
       composer.addPass(underwater_pass)
       composer.addPass(bloompass)
-      // composer.addPass(gtaopass)
-      // composer.addPass(n8aopass)
       composer.addPass(gamma_correction)
       composer.addPass(smaapass)
-      // composer.addPass(outputpass)
 
       state_iterator().reduce(
         (
