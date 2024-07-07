@@ -3,6 +3,8 @@ import { GUI } from 'dat.gui'
 
 import { INITIAL_STATE, current_three_character } from '../game/game.js'
 
+import { CacheWorker } from './game_terrain.js'
+
 /** @type {Type.Module} */
 export default function () {
   const settings = { ...INITIAL_STATE.settings }
@@ -50,20 +52,24 @@ export default function () {
       game_folder
         .add(
           {
-            teleport: () => {
+            teleport: async () => {
               const player = current_three_character()
               if (player?.position) {
                 // @ts-ignore
                 const { x, z } = player.position
-                const ground_height = Heightmap.instance.getGroundBlock(
-                  player.position,
-                ).pos
+
+                const {
+                  data: { ground_level },
+                } = await CacheWorker.instance.callApi('getBlock', [
+                  Math.floor(x),
+                  Math.floor(z),
+                ])
 
                 dispatch('packet/characterPosition', {
                   id: player.id,
                   position: {
                     x,
-                    y: ground_height + 10,
+                    y: ground_level + 10,
                     z,
                   },
                 })
