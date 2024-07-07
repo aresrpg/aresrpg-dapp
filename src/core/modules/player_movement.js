@@ -8,6 +8,7 @@ import { WorldGenerator } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
+import { get_terrain_height } from '../utils/terrain/heightmap.js'
 
 import { play_step_sound } from './game_audio.js'
 
@@ -65,9 +66,10 @@ export default function () {
 
       if (player.target_position) {
         const { x, z } = player.target_position
-        const ground_pos = new Vector2(Math.floor(x), Math.floor(z))
-        const raw_height = WorldGenerator.instance.getRawHeight(ground_pos)
-        player.target_position.y = Math.ceil(raw_height) + player.height * 0.5
+        player.target_position.y = get_terrain_height(
+          player.target_position,
+          player.height,
+        )
         player.move(player.target_position)
         player.target_position = null
         return

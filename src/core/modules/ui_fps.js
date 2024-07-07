@@ -4,9 +4,18 @@ import Stats from 'stats.js'
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'
+import { get_spawned_entities_count } from '../utils/game/entities.js'
 
 /** @type {Type.Module} */
 export default function () {
+  // Custom panel for entity count
+  const stats_entities = new Stats()
+  const entity_panel = new Stats.Panel('Entities', '#76FF03', '#221')
+  stats_entities.addPanel(entity_panel)
+  stats_entities.showPanel(3)
+  stats_entities.dom.style.cssText =
+    'position:fixed;bottom:350px;right:0px;cursor:pointer;opacity:0.9;z-index:10000'
+
   const stats_fps = new Stats()
   stats_fps.showPanel(0) // 0: FPS
   stats_fps.dom.style.cssText =
@@ -34,12 +43,14 @@ export default function () {
 
   function show_stats(show) {
     if (show) {
+      document.body.appendChild(stats_entities.dom)
       document.body.appendChild(stats_fps.dom)
       document.body.appendChild(stats_memory.dom)
       document.body.appendChild(stats_mesh.dom)
       document.body.appendChild(stats_draw_calls.dom)
     } else {
       ;[
+        stats_entities.dom,
         stats_fps.dom,
         stats_memory.dom,
         stats_mesh.dom,
@@ -62,10 +73,12 @@ export default function () {
 
   return {
     tick(state, { scene, renderer }) {
+      stats_entities.update()
       stats_fps.update()
       stats_memory.update()
       mesh_panel.update(count_meshes(scene), 1000) // 1000 is an arbitrary max value
       draw_calls_panel.update(renderer.info.render.calls, 5000) // 5000 is an arbitrary max value for draw calls
+      entity_panel.update(get_spawned_entities_count(state), 1000) // 1000 is an arbitrary max value for entities
     },
     reduce(state, { type, payload }) {
       if (type === 'action/show_fps') {

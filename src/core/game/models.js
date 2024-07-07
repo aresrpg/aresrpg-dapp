@@ -26,21 +26,11 @@ export const MODELS = {
   primemachin: await load(primemachin, {}),
   fud_hat: await load(pug_hat, {}),
   suicunio: await load(suicune_hat, {}),
-  suifren_bullshark: await load(suifren_bullshark, {
-    scale: 0.8,
-  }),
-  suifren_capy: await load(suifren_capy, {
-    scale: 0.8,
-  }),
-  afegg: await load(afegg, {
-    scale: 0.8,
-  }),
-  vaporeon: await load(vaporeon, {
-    scale: 0.8,
-  }),
-  suicune: await load(suicune, {
-    scale: 0.8,
-  }),
+  suifren_bullshark: await load(suifren_bullshark, {}),
+  suifren_capy: await load(suifren_capy, {}),
+  afegg: await load(afegg, {}),
+  vaporeon: await load(vaporeon, {}),
+  suicune: await load(suicune, {}),
 }
 
 function apply_matrix({ scale = 1, position = [0, 0, 0] }) {

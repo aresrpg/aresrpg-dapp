@@ -20,11 +20,9 @@ GLTF_LOADER.setMeshoptDecoder(MeshoptDecoder)
 
 export async function load(
   path,
-  { env_map_intensity = 0.5, mesh_name = 'Model', scale = 1 } = {},
+  { env_map_intensity = 0.5, mesh_name = 'Model' } = {},
 ) {
   const { scene, animations } = await GLTF_LOADER.loadAsync(path)
-
-  scene.scale.set(scale, scale, scale)
 
   scene.traverse(child => {
     // @ts-ignore

@@ -32,6 +32,7 @@ const props = defineProps(['status', 'text', 'title']);
   .left
     display flex
     flex-flow column nowrap
+    padding-right .5em
     .title
       font-size .7em
       font-weight bold

@@ -40,7 +40,7 @@ function fade_to_animation(from, to, duration = 0.3) {
 //   'WALK',
 // ]
 
-function create_billboard_material(base_material, keep_aspect) {
+export function create_billboard_material(base_material, keep_aspect) {
   return createDerivedMaterial(base_material, {
     // Declaring custom uniforms
     uniforms: {
@@ -76,10 +76,16 @@ gl_Position = projectionMatrix * mvPosition;
   })
 }
 
-function spawn_entity(clone_model, { skin, height, radius }) {
-  return ({ id, name = '', scene_override = null }) => {
+function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
+  return ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
     const { model, compute_animations } = clone_model()
     const { mixer, actions } = compute_animations()
+
+    model.scale.set(
+      scale * scale_factor,
+      scale * scale_factor,
+      scale * scale_factor,
+    )
 
     const origin = new Group()
     const title = new Text()
@@ -92,14 +98,18 @@ function spawn_entity(clone_model, { skin, height, radius }) {
     title.text = name
     title.layers.set(CartoonRenderpass.non_outlined_layer)
 
+    const hitbox = new Mesh(
+      new BoxGeometry(radius, height, radius),
+      // new MeshBasicMaterial({ color: 0x00ff00, wireframe: true }),
+    )
+
+    hitbox.name = 'hitbox'
+    hitbox.visible = false
+    hitbox.geometry.computeBoundingBox()
+
     origin.add(title)
     origin.add(model)
-    // origin.add(
-    //   new Mesh(
-    //     new BoxGeometry(radius, height, radius),
-    //     new MeshBasicMaterial({ color: 0x00ff00, wireframe: true }),
-    //   ),
-    // )
+    origin.add(hitbox)
 
     title.position.y += height + 0.2
     model.position.y -= height * 0.5
@@ -147,6 +157,7 @@ function spawn_entity(clone_model, { skin, height, radius }) {
       },
       remove() {
         scene.remove(origin)
+        title.dispose()
         dispose(origin)
       },
       animate(name) {
@@ -222,16 +233,19 @@ export const ENTITIES = {
     height: 0.75,
     radius: 0.75,
     skin: 'suifren_capy',
+    scale: 0.8,
   }),
   suifren_bullshark: spawn_entity(MODELS.suifren_bullshark, {
     height: 0.75,
     radius: 0.75,
     skin: 'suifren_bullshark',
+    scale: 0.8,
   }),
   afegg: spawn_entity(MODELS.afegg, {
     height: 0.75,
     radius: 0.75,
     skin: 'afegg',
+    scale: 0.8,
   }),
   primemachin: spawn_entity(MODELS.primemachin, {
     height: 1.5,
@@ -242,10 +256,12 @@ export const ENTITIES = {
     height: 0.75,
     radius: 0.75,
     skin: 'vaporeon',
+    scale: 0.8,
   }),
   suicune: spawn_entity(MODELS.suicune, {
     height: 0.75,
     radius: 0.75,
     skin: 'suicune',
+    scale: 0.8,
   }),
 }

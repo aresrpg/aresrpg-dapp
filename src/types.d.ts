@@ -49,12 +49,20 @@ declare namespace Type {
     skin: string
 
     equip_hat(hat: SuiItem): void
+    mob_group_id?: string
   }
 
-  // type Entity = {
-  //   level: number
-  //   siblings: { name: string; level: number }[]
-  // }
+  type MobGroup = Omit<
+    import('@aresrpg/aresrpg-protocol/src/types.js').EntityGroup,
+    'entities'
+  > & {
+    entities: (ThreeEntity & {
+      name: string
+      level: number
+      mob_group_id: string
+      spawn_point: Position
+    })[]
+  }
 
   type Spell = { name: string; icon: string }
   type FullCharacter = ThreeEntity &
