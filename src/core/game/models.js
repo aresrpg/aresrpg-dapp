@@ -15,6 +15,7 @@ import suicune from '../../assets/models/pets/suicune.glb?url'
 import pug_hat from '../../assets/models/equipment/pug_hat.glb?url'
 import suicune_hat from '../../assets/models/equipment/suicune_hat.glb?url'
 import chafer from '../../assets/models/mobs/chafer.glb?url'
+import hop_bunny from '../../assets/models/mobs/hop_bunny.glb?url'
 import { load } from '../utils/three/load_model.js'
 
 export const MODELS = {
@@ -22,15 +23,20 @@ export const MODELS = {
   iop_female: await load(iop_female, {}),
   sram_male: await load(sram_male, {}),
   sram_female: await load(sram_female, {}),
-  chafer: await load(chafer, {}),
+
   primemachin: await load(primemachin, {}),
+
+  chafer: await load(chafer, {}),
+  hop_bunny: await load(hop_bunny, {}),
+
   fud_hat: await load(pug_hat, {}),
   suicunio: await load(suicune_hat, {}),
-  suifren_bullshark: await load(suifren_bullshark, {}),
-  suifren_capy: await load(suifren_capy, {}),
-  afegg: await load(afegg, {}),
-  vaporeon: await load(vaporeon, {}),
-  suicune: await load(suicune, {}),
+
+  suifren_bullshark: await load(suifren_bullshark),
+  suifren_capy: await load(suifren_capy),
+  afegg: await load(afegg),
+  vaporeon: await load(vaporeon),
+  suicune: await load(suicune),
 }
 
 function apply_matrix({ scale = 1, position = [0, 0, 0] }) {

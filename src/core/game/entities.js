@@ -111,7 +111,7 @@ function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
     origin.add(model)
     origin.add(hitbox)
 
-    title.position.y += height + 0.2
+    title.position.y += height * scale_factor + 0.2
     model.position.y -= height * 0.5
 
     const scene = scene_override || context.scene
@@ -204,6 +204,9 @@ export const ENTITIES = {
     if (type) return type({ name, id })
     return ENTITIES.afegg({ name: 'Oeuftermath', id })
   },
+
+  // ====== CHARACTERS ======
+
   iop_male: spawn_entity(MODELS.iop_male, {
     height: 1.5,
     radius: 0.8,
@@ -224,44 +227,51 @@ export const ENTITIES = {
     radius: 0.8,
     skin: 'sram_female',
   }),
-  chafer: spawn_entity(MODELS.chafer, {
-    height: 1.5,
-    radius: 0.8,
-    skin: 'chafer',
-  }),
-  suifren_capy: spawn_entity(MODELS.suifren_capy, {
-    height: 0.75,
-    radius: 0.75,
-    skin: 'suifren_capy',
-    scale: 0.8,
-  }),
-  suifren_bullshark: spawn_entity(MODELS.suifren_bullshark, {
-    height: 0.75,
-    radius: 0.75,
-    skin: 'suifren_bullshark',
-    scale: 0.8,
-  }),
-  afegg: spawn_entity(MODELS.afegg, {
-    height: 0.75,
-    radius: 0.75,
-    skin: 'afegg',
-    scale: 0.8,
-  }),
   primemachin: spawn_entity(MODELS.primemachin, {
     height: 1.5,
     radius: 0.8,
     skin: 'primemachin',
   }),
+
+  // ====== MOBS ======
+
+  chafer: spawn_entity(MODELS.chafer, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'chafer',
+  }),
+  hop_bunny: spawn_entity(MODELS.hop_bunny, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'hop_bunny',
+    scale: 0.8,
+  }),
+
+  // ====== PETS ======
+
+  suifren_capy: spawn_entity(MODELS.suifren_capy, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'suifren_capy',
+  }),
+  suifren_bullshark: spawn_entity(MODELS.suifren_bullshark, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'suifren_bullshark',
+  }),
+  afegg: spawn_entity(MODELS.afegg, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'afegg',
+  }),
   vaporeon: spawn_entity(MODELS.vaporeon, {
     height: 0.75,
     radius: 0.75,
     skin: 'vaporeon',
-    scale: 0.8,
   }),
   suicune: spawn_entity(MODELS.suicune, {
     height: 0.75,
     radius: 0.75,
     skin: 'suicune',
-    scale: 0.8,
   }),
 }
