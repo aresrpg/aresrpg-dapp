@@ -1,17 +1,21 @@
 import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
-import { TerrainViewer, VoxelmapViewer } from '@aresrpg/aresrpg-engine'
+import {
+  EComputationMethod,
+  TerrainViewer,
+  VoxelmapViewer,
+  VoxelmapVisibilityComputer,
+} from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
 import {
-  Camera,
   Color,
   Frustum,
   Matrix4,
+  OrthographicCamera,
   PerspectiveCamera,
   Vector3,
 } from 'three'
-import { VoxelmapVisibilityComputer } from '@aresrpg/aresrpg-engine/dist/terrain/voxelmap/voxelmap-visibility-computer.js'
 
 import { current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
@@ -22,7 +26,9 @@ import {
 
 const worker_url = new URL('./world_cache_worker', import.meta.url)
 
-function compute_camera_frustum(/** @type PerspectiveCamera */ camera) {
+function compute_camera_frustum(
+  /** @type PerspectiveCamera | OrthographicCamera */ camera,
+) {
   camera.updateMatrix()
   camera.updateMatrixWorld(true)
   camera.updateProjectionMatrix()
@@ -109,7 +115,13 @@ export default function () {
     min_patch_id_y,
     max_patch_id_y,
     map.voxelMaterialsList,
-    { patchSize: patch_size },
+    {
+      patchSize: patch_size,
+      computationOptions: {
+        method: EComputationMethod.CPU_MULTITHREADED,
+        threadsCount: 4,
+      },
+    },
   )
   const terrain_viewer = new TerrainViewer(map, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = false
