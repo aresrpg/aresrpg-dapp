@@ -122,7 +122,11 @@ export default function () {
       document.addEventListener('click', on_click, { signal })
 
       state_iterator().forEach(state => {
-        if (!state.online) remove_text()
+        if (
+          !state.online ||
+          !state.visible_mobs_group.has(current_hovered_group)
+        )
+          remove_text()
       })
     },
   }
