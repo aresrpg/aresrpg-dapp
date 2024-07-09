@@ -202,7 +202,7 @@ export const ENTITIES = {
     const type = ENTITIES[`${classe}_${sex}`]
 
     if (type) return type({ name, id })
-    return ENTITIES.afegg({ name: 'Oeuftermath', id })
+    return ENTITIES.pirate_parrot({ name: 'Oeuftermath', id })
   },
 
   // ====== CHARACTERS ======
@@ -273,5 +273,10 @@ export const ENTITIES = {
     height: 0.75,
     radius: 0.75,
     skin: 'suicune',
+  }),
+  pirate_parrot: spawn_entity(MODELS.pirate_parrot, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'pirate_parrot',
   }),
 }

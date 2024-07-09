@@ -29,7 +29,7 @@ export default function () {
         const center_camera_on_head =
           1 - smootherstep(camera_controls.distance, 0, 10)
         const head_height = 1
-        const y_shift = state.is_in_fight
+        const y_shift = state.current_fight
           ? -5
           : head_height * center_camera_on_head
         camera_controls.moveTo(x, y + y_shift, z, true)
@@ -101,7 +101,7 @@ export default function () {
       }
 
       const on_mouse_down = () => {
-        if (context.get_state().is_in_fight || is_hovering_mob_group()) return
+        if (context.get_state().current_fight || is_hovering_mob_group()) return
         // is_dragging = true
         renderer.domElement.requestPointerLock()
       }
@@ -165,13 +165,13 @@ export default function () {
         },
       )
 
-      state_iterator().reduce((was_in_fight, { is_in_fight }) => {
-        if (was_in_fight !== is_in_fight) {
-          if (is_in_fight) context.switch_to_isometric()
+      state_iterator().reduce((was_in_fight, { current_fight }) => {
+        if (was_in_fight !== !!current_fight) {
+          if (current_fight) context.switch_to_isometric()
           else context.switch_to_perspective()
         }
 
-        return is_in_fight
+        return !!current_fight
       })
 
       window.addEventListener(

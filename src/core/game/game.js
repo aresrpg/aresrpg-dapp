@@ -64,7 +64,7 @@ import toast from '../../toast.js'
 import { i18n } from '../../i18n.js'
 import game_entites_stroll from '../modules/game_entites_stroll.js'
 import player_entities_interract from '../modules/player_entities_interract.js'
-import fight_start from '../modules/fight_start.js'
+import game_fights from '../modules/game_fights.js'
 
 import { handle_server_error } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -226,7 +226,8 @@ export const INITIAL_STATE = {
   // link a mob group to a list of mob ids
   /** @type {Map<string, Type.MobGroup>} */
   visible_mobs_group: new Map(),
-  is_in_fight: false,
+  /** @type {Map<string, Type.Fight>} */
+  visible_fights: new Map(),
 }
 
 /**
@@ -303,7 +304,7 @@ const MODULES = [
   game_connect,
   game_entites_stroll,
 
-  fight_start,
+  game_fights,
 ]
 
 function last_event_value(emitter, event, default_value = null) {

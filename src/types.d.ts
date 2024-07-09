@@ -20,6 +20,7 @@ declare namespace Type {
   type Module = import('./core/game/game.js').Module
   type State = import('./core/game/game.js').State
   type Packets = import('@aresrpg/aresrpg-protocol/src/types.js').Packets
+  type Fight = import('@aresrpg/aresrpg-protocol/src/types.js').Fight
   type GameState = 'MENU' | 'GAME' | 'EDITOR'
   type Await<T> = T extends Promise<infer U> ? U : T
   type Position = { x: number; y: number; z: number }
@@ -50,6 +51,7 @@ declare namespace Type {
 
     equip_hat(hat: SuiItem): void
     mob_group_id?: string
+    current_fight_id?: string
   }
 
   type MobGroup = Omit<
@@ -168,6 +170,7 @@ declare namespace Type {
     }
     'action/set_online': boolean
     'action/character_action': { id: string; action: string }
+    'action/join_fight': { character_id: string; fight_id: string }
   } & Packets
 
   type Events = import('@aresrpg/aresrpg-protocol/src/types.d.ts').TypedEmitter<

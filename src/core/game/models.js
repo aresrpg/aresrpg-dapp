@@ -16,6 +16,8 @@ import pug_hat from '../../assets/models/equipment/pug_hat.glb?url'
 import suicune_hat from '../../assets/models/equipment/suicune_hat.glb?url'
 import chafer from '../../assets/models/mobs/chafer.glb?url'
 import hop_bunny from '../../assets/models/mobs/hop_bunny.glb?url'
+import pirate_parrot from '../../assets/models/pets/pirate_parrot.glb?url'
+import crescent_sword from '../../assets/models/equipment/crescent_sword.glb?url'
 import { load } from '../utils/three/load_model.js'
 
 export const MODELS = {
@@ -29,14 +31,16 @@ export const MODELS = {
   chafer: await load(chafer, {}),
   hop_bunny: await load(hop_bunny, {}),
 
-  fud_hat: await load(pug_hat, {}),
-  suicunio: await load(suicune_hat, {}),
-
   suifren_bullshark: await load(suifren_bullshark),
   suifren_capy: await load(suifren_capy),
   afegg: await load(afegg),
   vaporeon: await load(vaporeon),
   suicune: await load(suicune),
+  pirate_parrot: await load(pirate_parrot),
+
+  fud_hat: await load(pug_hat, {}),
+  suicunio: await load(suicune_hat, {}),
+  crescent_sword: await load(crescent_sword, {}),
 }
 
 function apply_matrix({ scale = 1, position = [0, 0, 0] }) {
