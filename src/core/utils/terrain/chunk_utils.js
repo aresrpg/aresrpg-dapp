@@ -105,7 +105,30 @@ const ground_blocks_pass = (patch, chunk) => {
 
 const entities_blocks_pass = (patch, chunk) => {
   const patch_bis = PatchBaseCache.getPatch(patch.bbox.getCenter(new Vector3()))
-  // patch.spawned
+  const patch_start = patch.bbox.min
+
+  for (const entity_chunk of patch.entitiesChunks) {
+    const { min, max } = entity_chunk.bbox
+    const bmin = new Vector3(...Object.values(min))
+    const bmax = new Vector3(...Object.values(max))
+    const entity_bbox = new Box3(bmin, bmax)
+    const blocks_iter = patch.getBlocks(entity_chunk.bbox)
+    let chunk_index = 0
+    for (const block of blocks_iter) {
+      const buffer_str = entity_chunk.data[chunk_index]
+      const buffer =
+        buffer_str.length > 0 &&
+        buffer_str.split(',').map(char => parseInt(char))
+      if (buffer.length > 0) {
+        block.buffer = buffer
+        block.localPos.x += 1
+        block.localPos.z += 1
+        write_chunk_blocks(chunk, block.localPos, block.type, block.buffer)
+      }
+      chunk_index++
+    }
+  }
+
   // const buff_iter = patch_bis.overBlocksIter()
   // for (const blk of buff_iter) {
   //   blk.localPos.x += 1

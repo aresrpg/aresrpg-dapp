@@ -16,11 +16,22 @@ import {
   PerspectiveCamera,
   Vector3,
 } from 'three'
-import { BlockType, PatchBlocksCache } from '@aresrpg/aresrpg-world'
+import {
+  Biome,
+  BlockType,
+  Heightmap,
+  PatchBaseCache,
+  PatchBlocksCache,
+  PatchCache,
+} from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { blocks_colors } from '../utils/terrain/world_settings.js'
+import {
+  biome_mapping_conf,
+  blocks_colors,
+  world_patch_size,
+} from '../utils/terrain/world_settings.js'
 import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
 
 const worker_url = new URL('./world_cache_worker', import.meta.url)
@@ -41,7 +52,7 @@ function compute_camera_frustum(
 }
 
 // const patchRenderQueue = []
-const patch_cache_lookup = {}
+let patch_cache_lookup = {}
 
 export class CacheSyncProvider {
   static singleton
@@ -89,6 +100,16 @@ const max_altitude = 400
 
 /** @type {Type.Module} */
 export default function () {
+  // TODO: remove temporary workaround
+  // restore LOD using duplicated instance of the world
+  PatchCache.patchSize = world_patch_size
+  Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
+  Heightmap.instance.heightmap.sampling.harmonicsCount = 6
+  Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
+  // Biome (blocks mapping)
+  Biome.instance.setMappings(biome_mapping_conf)
+  Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
+  PatchBaseCache.cacheRadius = 20
   /**
    * Data struct filling from blocks cache
    */
@@ -106,9 +127,25 @@ export default function () {
     async sampleHeightmap(coords) {
       return Promise.all(
         coords.map(async ({ x, z }) => {
-          const block = PatchBlocksCache.getBlock(new Vector3(x, 0, z))
-          const block_level = block?.pos.y // block.top_level
-          const block_type = block.type
+          const block_pos = new Vector3(x, 0, z)
+          const block = PatchBlocksCache.getBlock(block_pos)
+          let block_level = 0
+          let block_type = BlockType.WATER
+          if (block) {
+            block_level = block?.pos.y // block.top_level
+            block_type = block.type
+          } else {
+            // TODO: remove temporary workaround to have LOD back:
+            const biome_type = Biome.instance.getBiomeType(block_pos)
+            const raw_val = Heightmap.instance.getRawVal(block_pos)
+            const block_types = Biome.instance.getBlockType(raw_val, biome_type)
+            block_level = Heightmap.instance.getGroundLevel(
+              block_pos,
+              raw_val,
+              biome_type,
+            )
+            ;[block_type] = block_types.grounds
+          }
           const block_color = new Color(blocks_colors[block_type])
           return {
             altitude: block_level + 0.25,
@@ -135,7 +172,7 @@ export default function () {
     },
   )
   const terrain_viewer = new TerrainViewer(map, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = false
+  terrain_viewer.parameters.lod.enabled = true
 
   const voxelmap_visibility_computer = new VoxelmapVisibilityComputer(
     { x: patch_size.xz, y: patch_size.y, z: patch_size.xz },
@@ -243,6 +280,8 @@ export default function () {
             .then(res => {
               if (res.data.cacheRefreshed) {
                 console.log(`[MainThread] back from cache update`)
+                // reset cache indexing
+                patch_cache_lookup = {}
                 // feed_engine()
                 // terrain_viewer.update()
               }
@@ -260,9 +299,12 @@ export default function () {
 
           requested_patches_ids_list.forEach(patch_id => {
             const patch_key = patch_id.asString
-            const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
-            const cached_patch = find_cached_patch(chunk_bbox)
-            patch_cache_lookup[patch_key] = cached_patch
+            const cached_patch = patch_cache_lookup[patch_key]
+            if (!cached_patch && cached_patch !== null) {
+              const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
+              const cached_patch = find_cached_patch(chunk_bbox)
+              patch_cache_lookup[patch_key] = cached_patch || null
+            }
           })
 
           const available_patch_keys = requested_patches_ids_list.filter(
