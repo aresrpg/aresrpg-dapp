@@ -1,9 +1,8 @@
-import { Heightmap } from '@aresrpg/aresrpg-world'
+import { PatchBlocksCache } from '@aresrpg/aresrpg-world'
 import { GUI } from 'dat.gui'
+import { Vector3 } from 'three'
 
 import { INITIAL_STATE, current_three_character } from '../game/game.js'
-
-import { CacheWorker } from './game_terrain.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -58,12 +57,10 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
 
-                const {
-                  data: { ground_level },
-                } = await CacheWorker.instance.callApi('getBlock', [
-                  Math.floor(x),
-                  Math.floor(z),
-                ])
+                const ground_block = PatchBlocksCache.getGroundBlock(
+                  new Vector3(Math.floor(x), 0, Math.floor(z)),
+                )
+                const ground_level = ground_block?.pos.y
 
                 dispatch('packet/characterPosition', {
                   id: player.id,

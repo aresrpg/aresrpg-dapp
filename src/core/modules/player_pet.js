@@ -1,4 +1,5 @@
 import { Vector3 } from 'three'
+import { PatchBlocksCache } from '@aresrpg/aresrpg-world'
 
 import {
   current_locked_character,
@@ -7,8 +8,6 @@ import {
 import { state_iterator } from '../utils/iterator.js'
 import { ENTITIES } from '../game/entities.js'
 import { get_terrain_height } from '../utils/terrain/heightmap.js'
-
-import { CacheWorker } from './game_terrain.js'
 
 const PET_SPEED = 8.0 // Adjust this value to set the pet's movement speed
 
@@ -40,11 +39,14 @@ export function tick_pet(character, pet, delta) {
 
     new_position.setY(get_terrain_height(new_position, pet.height))
 
-        // Check if pet has reached the target position
-        if (new_position.distanceTo(pet.target_position) < 2) {
-          pet.target_position = null
-        }
-      })
+    pet.move(new_position)
+    pet.rotate(movement)
+    pet.animate('RUN')
+
+    // Check if pet has reached the target position
+    if (new_position.distanceTo(pet.target_position) < 2) {
+      pet.target_position = null
+    }
   } else {
     pet.animate('IDLE')
   }
