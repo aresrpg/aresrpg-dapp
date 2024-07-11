@@ -278,10 +278,17 @@ export default function () {
           CacheSyncProvider.instance
             .callApi('updateCache', [player_position])
             .then(res => {
-              if (res.data.cacheRefreshed) {
-                console.log(`[MainThread] back from cache update`)
+              if (res.data) {
+                console.log(`[MainThread] cache was refreshed`)
                 // reset cache indexing
                 patch_cache_lookup = {}
+                PatchBlocksCache.cleanDeprecated(res.data.kept)
+                res.data.created?.forEach(blocks_cache => {
+                  const blocks_patch = new PatchBlocksCache(blocks_cache)
+                  PatchBlocksCache.instances.push(blocks_patch)
+                })
+                // patchRenderQueue.push(blocksPatch)
+
                 // feed_engine()
                 // terrain_viewer.update()
               }
