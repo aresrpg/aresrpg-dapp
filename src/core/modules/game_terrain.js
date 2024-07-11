@@ -311,15 +311,15 @@ export default function () {
             key => patch_cache_lookup[key.asString],
           )
 
-          const available = Object.values(patch_cache_lookup).filter(
-            patch => patch,
-          )
-          const missing = Object.values(patch_cache_lookup).filter(
-            patch => !patch,
-          )
-          console.log(
-            ` available patches: ${available.length}, missing patches: ${missing.length}`,
-          )
+          // const available = Object.values(patch_cache_lookup).filter(
+          //   patch => patch,
+          // )
+          // const missing = Object.values(patch_cache_lookup).filter(
+          //   patch => !patch,
+          // )
+          // console.log(
+          //   ` available patches: ${available.length}, missing patches: ${missing.length}`,
+          // )
           // console.log(patch_cache_lookup)
 
           // declare them as visible, hide the others
