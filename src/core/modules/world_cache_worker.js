@@ -19,7 +19,7 @@ const init_cache = () => {
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
   Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
-  PatchBaseCache.cacheRadius = 20
+  PatchBaseCache.cacheRadius = 5
 }
 
 init_cache()
