@@ -109,7 +109,7 @@ export default function () {
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
   Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
-  PatchBaseCache.cacheRadius = 20
+  PatchBaseCache.cacheRadius = 10
   /**
    * Data struct filling from blocks cache
    */
@@ -283,10 +283,9 @@ export default function () {
                 // reset cache indexing
                 patch_cache_lookup = {}
                 PatchBlocksCache.cleanDeprecated(res.data.kept)
-                res.data.created?.forEach(blocks_cache => {
-                  const blocks_patch = new PatchBlocksCache(blocks_cache)
-                  PatchBlocksCache.instances.push(blocks_patch)
-                })
+                res.data.created
+                  .map(patch_stub => new PatchBlocksCache(patch_stub))
+                  .forEach(patch => PatchBlocksCache.instances.push(patch))
                 // patchRenderQueue.push(blocksPatch)
 
                 // feed_engine()
