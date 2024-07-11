@@ -37,7 +37,11 @@ addEventListener('message', ({ data: input }) => {
       const on_cache_sync = blocks_patch => {
         // postMessage(blocks_patch)
       }
-      PatchBaseCache.updateCache(input.args[0], on_cache_sync).then(res => {
+      PatchBaseCache.updateCache(
+        input.args[0],
+        on_cache_sync,
+        input.args[1],
+      ).then(res => {
         if (res) {
           if (
             PatchBaseCache.cacheRadius * PatchBaseCache.patchSize <
