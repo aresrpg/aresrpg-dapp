@@ -35,7 +35,7 @@ import {
 import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
 
 const worker_url = new URL('./world_cache_worker', import.meta.url)
-
+const use_worker_async_mode = false // slower if enabled
 function compute_camera_frustum(
   /** @type PerspectiveCamera | OrthographicCamera */ camera,
 ) {
@@ -276,7 +276,7 @@ export default function () {
           current_three_character(state)?.position?.clone()
         if (player_position) {
           CacheSyncProvider.instance
-            .callApi('updateCache', [player_position])
+            .callApi('updateCache', [player_position, use_worker_async_mode])
             .then(res => {
               if (res.data) {
                 console.log(`[MainThread] cache was refreshed`)
