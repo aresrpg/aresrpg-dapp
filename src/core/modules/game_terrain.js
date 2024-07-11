@@ -279,7 +279,6 @@ export default function () {
             .callApi('updateCache', [player_position, use_worker_async_mode])
             .then(res => {
               if (res.data) {
-                console.log(`[MainThread] cache was refreshed`)
                 // reset cache indexing
                 patch_cache_lookup = {}
                 PatchBlocksCache.cleanDeprecated(res.data.kept)

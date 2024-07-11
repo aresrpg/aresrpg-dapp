@@ -48,9 +48,6 @@ addEventListener('message', ({ data: input }) => {
             world_cache_size
           ) {
             PatchBaseCache.cacheRadius *= 2
-            console.log(
-              `[WorkerThread] rampup cache radius to: ${PatchBaseCache.cacheRadius}`,
-            )
           }
         }
         output.data = res
