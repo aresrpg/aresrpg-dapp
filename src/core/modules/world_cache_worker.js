@@ -37,26 +37,24 @@ addEventListener('message', ({ data: input }) => {
       const on_cache_sync = blocks_patch => {
         postMessage(blocks_patch)
       }
-      const promise = PatchBaseCache.updateCache(input.args[0], on_cache_sync)
-      if (promise) {
-        promise.then(res => {
-          console.log(`[WorkerThread] updateCache: done`)
-          output.data = { cacheRefreshed: true }
-          if (
-            PatchBaseCache.cacheRadius * PatchBaseCache.patchSize <
-            world_cache_size
-          ) {
-            PatchBaseCache.cacheRadius *= 2
-            console.log(
-              `[WorkerThread] rampup cache radius to: ${PatchBaseCache.cacheRadius}`,
-            )
+      PatchBaseCache.updateCache(input.args[0], on_cache_sync).then(
+        was_refreshed => {
+          if (was_refreshed) {
+            console.log(`[WorkerThread] updateCache: done`)
+            if (
+              PatchBaseCache.cacheRadius * PatchBaseCache.patchSize <
+              world_cache_size
+            ) {
+              PatchBaseCache.cacheRadius *= 2
+              console.log(
+                `[WorkerThread] rampup cache radius to: ${PatchBaseCache.cacheRadius}`,
+              )
+            }
           }
+          output.data = { cacheRefreshed: was_refreshed }
           postMessage(output)
-        })
-      } else {
-        output.data = {}
-        postMessage(output)
-      }
+        },
+      )
       break
     }
   }
