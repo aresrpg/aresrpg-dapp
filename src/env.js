@@ -4,7 +4,7 @@ const {
   VITE_SERVER_URL,
   VITE_SPONSOR_URL = 'https://testnet-sponsor.aresrpg.world',
   VITE_INDEXER_URL = 'https://testnet-indexer.aresrpg.world',
-  VITE_ENOKI_KEY = 'enoki_public_98a33b011a0542de52088c3f94bfe069',
+  VITE_ENOKI_KEY = 'enoki_public_ff89078fe8efa82d3f14732264813b91',
   VITE_NETWORK = 'testnet',
 } = import.meta.env
 
