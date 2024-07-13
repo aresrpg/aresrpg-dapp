@@ -29,20 +29,20 @@ fr:
   .right-pane
     .head {{ t('what') }}
     .content
-      .section(v-if="!registered_wallets.length")
+      .section(v-if="no_wallet")
         .title.uhoh Uh Oh !
         .desc {{ t('no_wallet') }} #[a(href="https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil" target="_blank") Sui Wallet]
-      .section(v-if="registered_wallets.length")
+      .section(v-if="!no_wallet")
         .title {{ t('section1_title') }}
         .desc {{ t('section1_desc') }}
-      .section(v-if="registered_wallets.length")
+      .section(v-if="!no_wallet")
         .title {{ t('section2_title') }}
         .desc {{ t('section2_desc') }}
 </template>
 
 <script setup>
 import { useI18n } from 'vue-i18n';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 
 import toast from '../../toast';
 import { context } from '../../core/game/game.js';
@@ -51,6 +51,12 @@ const { t } = useI18n();
 const emits = defineEmits(['connection_done']);
 
 const registered_wallets = ref([]);
+
+const no_wallet = computed(() => {
+  const wallets = registered_wallets.value
+  if (wallets.length === 1 && wallets[0].name === "Stashed") return true
+  return false
+})
 
 function update_wallets({ sui: { wallets } }) {
   const wallets_names = Object.keys(wallets);
