@@ -362,6 +362,7 @@ export default function () {
             // })
           }
         }
+        terrain_viewer.setLod(camera.position, 50, camera.far)
       })
     },
   }
