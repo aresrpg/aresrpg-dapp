@@ -7,19 +7,19 @@ import {
 
 import {
   biome_mapping_conf,
+  world_cache_pow_limit,
   world_patch_size,
-  world_cache_size,
 } from '../utils/terrain/world_settings.js'
 
 const init_cache = () => {
   PatchCache.patchSize = world_patch_size
+  PatchBaseCache.cachePowRadius = 1
   Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
   Heightmap.instance.heightmap.sampling.harmonicsCount = 6
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
   Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
-  PatchBaseCache.cacheRadius = 5
 }
 
 init_cache()
@@ -43,11 +43,8 @@ addEventListener('message', ({ data: input }) => {
         input.args[1],
       ).then(res => {
         if (res) {
-          if (
-            PatchBaseCache.cacheRadius * PatchBaseCache.patchSize <
-            world_cache_size
-          ) {
-            PatchBaseCache.cacheRadius *= 2
+          if (PatchBaseCache.cachePowRadius < world_cache_pow_limit) {
+            PatchBaseCache.cachePowRadius += 1
           }
         }
         output.data = res

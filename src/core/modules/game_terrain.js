@@ -136,13 +136,14 @@ export default function () {
             block_type = block.type
           } else {
             // TODO: remove temporary workaround to have LOD back:
-            const biome_type = Biome.instance.getBiomeType(block_pos)
+            const biome_contribs = Biome.instance.getBiomeInfluence(block_pos)
+            const biome_type = Biome.instance.getMainBiome(biome_contribs)
             const raw_val = Heightmap.instance.getRawVal(block_pos)
             const block_types = Biome.instance.getBlockType(raw_val, biome_type)
             block_level = Heightmap.instance.getGroundLevel(
               block_pos,
               raw_val,
-              biome_type,
+              biome_contribs,
             )
             ;[block_type] = block_types.grounds
           }
