@@ -53,9 +53,9 @@ const emits = defineEmits(['connection_done']);
 const registered_wallets = ref([]);
 
 const no_wallet = computed(() => {
-  const wallets = registered_wallets.value
-  if (wallets.length === 1 && wallets[0].name === "Stashed") return true
-  return false
+  const [first_wallet, second_wallet] = registered_wallets.value
+  if (second_wallet) return false
+  return first_wallet?.name === 'Stashed'
 })
 
 function update_wallets({ sui: { wallets } }) {
