@@ -49,7 +49,7 @@ registerSW({
 
       registration.addEventListener('updatefound', () => {
         const installing_worker = registration.installing
-        if (installing_worker) {
+        if (installing_worker && navigator.serviceWorker.controller) {
           const notification = toast.tx(
             'Installing the new AresRPG version',
             'Update Available',
@@ -58,7 +58,7 @@ registerSW({
           // Listen for state changes on the installing worker
           installing_worker.addEventListener('statechange', () => {
             if (installing_worker.state === 'installed') {
-              if (navigator.serviceWorker.controller) {
+              if (navigator.serviceWorker.controller && notification) {
                 // New update is available and waiting to activate
                 notification.update(
                   'success',
