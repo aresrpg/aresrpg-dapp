@@ -48,7 +48,6 @@ registerSW({
       }, 60000)
 
       registration.addEventListener('updatefound', () => {
-        console.log('updatefound')
         const installing_worker = registration.installing
         if (installing_worker) {
           const notification = toast.tx(
