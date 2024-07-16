@@ -15,7 +15,7 @@ export function tick_pet(character, pet, delta) {
     const distance_to_player = pet.position.distanceTo(character.position)
 
     if (distance_to_player > 50) {
-      pet.move(character.position.clone())
+      pet.move(character.position)
       return
     }
 
