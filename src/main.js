@@ -45,7 +45,7 @@ registerSW({
     if (registration) {
       setInterval(() => {
         registration.update()
-      }, 15000)
+      }, 60 * 1000)
 
       registration.addEventListener('updatefound', () => {
         const installing_worker = registration.installing
