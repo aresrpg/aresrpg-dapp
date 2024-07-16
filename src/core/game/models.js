@@ -52,18 +52,18 @@ function apply_matrix({ scale = 1, position = [0, 0, 0] }) {
 
 export const MATRIX = {
   fud_hat: {
-    sram_male: apply_matrix({ scale: 0.045, position: [0, -0.3, -0.05] }),
-    sram_female: apply_matrix({ scale: 90, position: [0, -600, 300] }),
-    iop_male: apply_matrix({ scale: 0.055, position: [0, -0.3, 0.2] }),
-    iop_female: apply_matrix({ scale: 4.1, position: [0, -65, 35] }),
-    primemachin: apply_matrix({ scale: 110, position: [0, -650, 400] }),
+    sram_male: apply_matrix({ scale: 2.8, position: [0, -2.8, 0.05] }),
+    sram_female: apply_matrix({ scale: 5600, position: [0, -6800, 200] }),
+    iop_male: apply_matrix({ scale: 2.9, position: [0, -2.8, 0.2] }),
+    iop_female: apply_matrix({ scale: 250, position: [0, -300, 50] }),
+    primemachin: apply_matrix({ scale: 1000, position: [0, -1400, 0] }),
   },
   suicunio: {
-    sram_male: apply_matrix({ scale: 0.045, position: [0, -0.05, -0.35] }),
-    sram_female: apply_matrix({ scale: 90, position: [0, -300, -600] }),
-    iop_male: apply_matrix({ scale: 0.055, position: [0, -0.1, -0.1] }),
-    iop_female: apply_matrix({ scale: 4.1, position: [0, -50, 10] }),
-    primemachin: apply_matrix({ scale: 120, position: [0, -250, -300] }),
+    sram_male: apply_matrix({ scale: 2.8, position: [0, -2.8, -0.2] }),
+    sram_female: apply_matrix({ scale: 5600, position: [0, -6800, -200] }),
+    iop_male: apply_matrix({ scale: 2.9, position: [0, -2.8, 0] }),
+    iop_female: apply_matrix({ scale: 250, position: [0, -300, 20] }),
+    primemachin: apply_matrix({ scale: 1000, position: [0, -1400, 0] }),
   },
 }
 

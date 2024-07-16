@@ -483,11 +483,8 @@ const context = {
     context.camera_controls.dampingFactor = 0.05 // Adjust damping factor as needed
   },
   switch_to_perspective() {
-    console.log('SWITCH TO PERSPECTIVE')
-
     // context.camera = camera
     // context.camera_controls.camera = camera
-
     // // Reset constraints for free movement in perspective view
     // context.camera_controls.maxPolarAngle = Math.PI // Allow full vertical rotation
     // context.camera_controls.minPolarAngle = 0 // Allow full vertical rotation
