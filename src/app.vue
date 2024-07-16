@@ -392,12 +392,12 @@ function update_all(
 let server_info_timeout = null;
 
 function on_server_info(event) {
-  const { playerCount, maxPlayers } = event;
+  const { player_count, max_players } = event;
 
   clearTimeout(server_info_timeout);
 
-  server_info.online_players = playerCount;
-  server_info.max_players = maxPlayers;
+  server_info.online_players = player_count;
+  server_info.max_players = max_players;
 
   server_info_timeout = setTimeout(() => {
     server_info.online_players = 0;
