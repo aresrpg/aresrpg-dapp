@@ -12,6 +12,7 @@ import { registerSW } from 'virtual:pwa-register'
 import app from './app.vue'
 import router from './router.js'
 import { i18n } from './i18n.js'
+import toast from './toast.js'
 
 inject()
 registerStashedWallet('AresRPG', { origin: 'https://getstashed.com' })
@@ -30,59 +31,95 @@ const vue_app = createApp(app)
 
 vue_app.use(router).use(Vuesax, {}).use(i18n).mount('#app')
 
+let notification = null
+
 registerSW({
-  onNeedRefresh() {
-    console.log('onNeedRefresh')
-    // Show a toast notification to the user that a new version is installing
-    // toast.show({
-    //   title: 'Update Available',
-    //   message: 'A new version is available and is being installed.',
-    //   duration: 5000,
-    // })
-  },
-  onOfflineReady() {
-    console.log('onOfflineReady.')
-    // You can show a toast notification that the app is ready to be used offline
-    // toast.show({
-    //   title: 'Offline Ready',
-    //   message: 'The app is ready to be used offline.',
-    //   duration: 5000,
-    // })
-  },
   onRegisteredSW(sw_url, registration) {
-    console.log('onRegisteredSW:', sw_url)
-    // Registration was successful
+    // Check for updates every 5 minutes
     if (registration) {
-      setInterval(
-        () => {
-          registration.update()
-        },
-        10 * 60 * 1000,
-      ) // Check for updates every hour
+      setInterval(() => {
+        registration.update()
+      }, 300000) // 5 minutes in milliseconds
     }
   },
   onRegistered(r) {
-    // Registration complete
-    console.log('onRegistered:', r)
+    console.log('Service worker registered:', r)
   },
   onUpdateFound() {
-    // A new update is found
-    console.log('onUpdateFound')
+    console.log('New update found.')
+    if (!notification) {
+      notification = toast.tx(
+        'A new version is available and is being installed.',
+        'Update Available',
+      )
+    } else {
+      notification.update(
+        'loading',
+        'A new version is installing...',
+        'Update Available',
+      )
+    }
+  },
+  onNeedRefresh() {
+    // Show a notification that a new version is being installed
+    if (notification) {
+      notification.update(
+        'loading',
+        'A new version is installing...',
+        'Update Available',
+      )
+    } else {
+      notification = toast.tx(
+        'A new version is installing...',
+        'Update Available',
+      )
+    }
   },
   onUpdated(registration) {
-    console.log('onUpdated')
-    // New update ready to be applied
-    // toast.show({
-    //   title: 'New Version Ready',
-    //   message: 'A new version is ready. Click the button to update.',
-    //   duration: 10000,
-    //   action: {
-    //     text: 'Update',
-    //     onClick: () => {
-    //       registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-    //       window.location.reload()
-    //     },
-    //   },
-    // })
+    if (notification) {
+      notification.update(
+        'success',
+        'A new version is ready. Click the button to update.',
+        'Update Ready',
+      )
+
+      // Show a button to reload the page and activate the new service worker
+      const button = document.createElement('button')
+      button.innerText = 'Update'
+      button.onclick = () => {
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+          window.location.reload()
+        }
+      }
+      document.body.appendChild(button) // Adjust this to integrate with your UI as necessary
+    } else {
+      const notification = toast.tx(
+        'A new version is available.',
+        'Update Ready',
+      )
+      notification.update(
+        'success',
+        'A new version is ready. Click the button to update.',
+        'Update Ready',
+      )
+
+      // Show a button to reload the page and activate the new service worker
+      const button = document.createElement('button')
+      button.innerText = 'Update'
+      button.onclick = () => {
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+          window.location.reload()
+        }
+      }
+      document.body.appendChild(button) // Adjust this to integrate with your UI as necessary
+    }
+  },
+  onOfflineReady() {
+    toast.success('The app is ready to be used offline.', 'Offline Ready')
+  },
+  onError(error) {
+    toast.error(`Service worker error: ${error}`, 'Error')
   },
 })

@@ -24,6 +24,16 @@ const init_cache = () => {
 
 init_cache()
 
+addEventListener('error', e => {
+  console.error(e)
+  self.postMessage({ type: 'error', message: e.message })
+})
+
+addEventListener('unhandledrejection', e => {
+  console.error('Worker script unhandled rejection:', e)
+  self.postMessage({ type: 'error', message: e.reason })
+})
+
 addEventListener('message', ({ data: input }) => {
   const output = {
     id: input.id,

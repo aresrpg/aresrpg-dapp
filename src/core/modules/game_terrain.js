@@ -64,11 +64,11 @@ export class CacheSyncProvider {
     }
 
     this.cache_worker.onerror = error => {
-      console.error('Worker error:', error)
+      console.error(error)
     }
 
     this.cache_worker.onmessageerror = error => {
-      console.error('Worker message error:', error)
+      console.error(error)
     }
   }
 
