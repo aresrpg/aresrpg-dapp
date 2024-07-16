@@ -5,14 +5,30 @@ div.notification-loader
   .left
     .title {{ title }}
     .text {{ text }}
+  .right(v-if="button")
+    vs-button(@click="button_action" type="gradient" color="white") {{ button_text }}
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-
 import LoadingSpinner from './control-spinner.vue';
 
-const props = defineProps(['status', 'text', 'title']);
+const props = defineProps({
+  status: String,
+  text: String,
+  title: String,
+  button: {
+    type: Boolean,
+    default: false,
+  },
+  button_action: {
+    type: Function,
+    default: () => {},
+  },
+  button_text: {
+    type: String,
+    default: 'Button Text',
+  },
+});
 </script>
 
 <style lang="stylus" scoped>
@@ -40,4 +56,8 @@ const props = defineProps(['status', 'text', 'title']);
     .text
       font-size .8em
       opacity .7
+  .right
+    display flex
+    justify-content center
+    align-items center
 </style>

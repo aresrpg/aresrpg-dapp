@@ -12,6 +12,9 @@ function create_notification(
   initial_status = 'loading',
   initial_text = '',
   initial_title = '',
+  button = false,
+  button_text = 'Button Text',
+  button_action = () => {},
 ) {
   let removed = false
 
@@ -19,6 +22,9 @@ function create_notification(
     status: initial_status,
     text: initial_text,
     title: initial_title,
+    button,
+    button_text,
+    button_action,
   })
 
   const notification_instance = VsNotification({
@@ -38,12 +44,16 @@ function create_notification(
   }
 
   return {
-    update(status, text, title) {
+    update(status, text, title, show_button, button_text, button_action) {
       if (removed) return
 
       if (status != null) vnode.component.props.status = status
       if (text != null) vnode.component.props.text = text
       if (title != null) vnode.component.props.title = title
+      if (show_button != null) vnode.component.props.button = show_button
+      if (button_text != null) vnode.component.props.button_text = button_text
+      if (button_action != null)
+        vnode.component.props.button_action = button_action
 
       if (status !== 'loading') {
         const duration = status === 'success' ? 2000 : 7000
@@ -57,8 +67,15 @@ function create_notification(
 }
 
 export default {
-  tx(content, title) {
-    return create_notification('loading', content, title)
+  tx(content, title, button, button_text, button_action) {
+    return create_notification(
+      'loading',
+      content,
+      title,
+      button,
+      button_text,
+      button_action,
+    )
   },
   success(content, title = 'AresRPG', icon = "<i class='bx bx-check'></i>") {
     VsNotification({

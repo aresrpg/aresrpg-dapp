@@ -43,7 +43,6 @@ let notification = null
 
 registerSW({
   onRegisteredSW(sw_url, registration) {
-    console.log('onRegisteredSW')
     // Check for updates every 5 minutes
     if (registration) {
       setInterval(() => {
@@ -54,38 +53,28 @@ registerSW({
         console.log('updatefound')
         const installing_worker = registration.installing
         if (installing_worker) {
-          toast.info({
-            title: 'Update Available',
-            message: 'A new version is being installed.',
-            duration: 5000,
-          })
+          const notification = toast.tx(
+            'Installing the new AresRPG version',
+            'Update Available',
+          )
 
           // Listen for state changes on the installing worker
           installing_worker.addEventListener('statechange', () => {
-            console.log('statechange', installing_worker.state)
             if (installing_worker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
                 // New update is available and waiting to activate
-                toast.info({
-                  title: 'New Version Ready',
-                  message:
-                    'A new version is ready. Click the button to update.',
-                  duration: 10000,
-                  action: {
-                    text: 'Update',
-                    onClick: () => {
-                      installing_worker.postMessage({ type: 'SKIP_WAITING' })
-                      window.location.reload()
-                    },
+                notification.update(
+                  'success',
+                  'The new version has been installed',
+                  '',
+                  true,
+                  'Click here to update',
+                  () => {
+                    installing_worker.postMessage({ type: 'SKIP_WAITING' })
+                    notification.remove()
+                    window.location.reload()
                   },
-                })
-              } else {
-                // No previous service worker, this is the first install
-                toast.info({
-                  title: 'App Ready',
-                  message: 'The app is ready to be used offline.',
-                  duration: 5000,
-                })
+                )
               }
             }
           })

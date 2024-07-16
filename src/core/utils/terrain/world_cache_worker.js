@@ -24,8 +24,6 @@ const init_cache = () => {
 
 init_cache()
 
-console.log('init worker')
-
 addEventListener('error', e => {
   console.error(e)
   self.postMessage({ type: 'error', message: e.message })
