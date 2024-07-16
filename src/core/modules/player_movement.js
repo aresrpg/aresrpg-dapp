@@ -2,13 +2,13 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Object3D, Vector2, Vector3 } from 'three'
+import { Object3D, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
 import { PatchBlocksCache } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { get_terrain_height } from '../utils/terrain/heightmap.js'
+import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
 
 import { play_step_sound } from './game_audio.js'
 
@@ -170,14 +170,14 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       const { x, z } = dummy.position
-      const ground_block = PatchBlocksCache.getGroundBlock(
-        new Vector3(Math.floor(x), 0, Math.floor(z)),
-      )
-      const ground_height = ground_block?.pos.y
+      const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z))
+      const raw_height = PatchBlocksCache.getGroundBlock(ground_pos)
+      const ground_height = Math.ceil(raw_height) // + 0.22
+
       if (!ground_height) return
 
-      const target_y = ground_height + player.height + 0.2
-      const dummy_bottom_y = dummy.position.y - player.height - 0.2
+      const target_y = ground_height + player.height * 0.5
+      const dummy_bottom_y = dummy.position.y - player.height * 0.5
       const ground_height_distance = ground_height - dummy_bottom_y
 
       if (dummy_bottom_y <= ground_height) {
@@ -239,7 +239,6 @@ export default function () {
         const target_character = state.characters.find(
           character => character.id === payload.id,
         )
-        console.log('target', payload, target_character)
         // and if it's the current controlled character
         if (target_character)
           target_character.target_position = payload.position

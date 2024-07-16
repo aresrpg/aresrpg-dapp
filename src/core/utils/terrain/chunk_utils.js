@@ -137,7 +137,7 @@ const entities_blocks_pass = (patch, chunk) => {
   // }
 }
 
-const fill_chunk_from_patch = (patch, chunk_bbox) => {
+export function fill_chunk_from_patch(patch, chunk_bbox) {
   const dimensions = chunk_bbox.getSize(new Vector3())
   const cache = new Uint16Array(dimensions.x * dimensions.y * dimensions.z)
   const chunk = { bbox: chunk_bbox, cache }
@@ -172,7 +172,7 @@ const fill_chunk_from_patch = (patch, chunk_bbox) => {
   return chunk.cache
 }
 
-const feed_engine_with_chunks = patch_queue => {
+export function feed_engine_with_chunks(patch_queue) {
   while (patch_queue.length) {
     const blocks_patch = patch_queue.pop()
     const bmin = new Vector3(...Object.values(blocks_patch.bbox.min))
@@ -196,4 +196,8 @@ const feed_engine_with_chunks = patch_queue => {
   }
 }
 
-export { fill_chunk_from_patch, feed_engine_with_chunks }
+export function get_terrain_height({ x, z }, entity_height) {
+  const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z))
+  const raw_height = PatchBlocksCache.getGroundBlock(ground_pos)
+  return Math.ceil(raw_height) + entity_height * 0.5
+}

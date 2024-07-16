@@ -25,7 +25,7 @@ import {
   PatchCache,
 } from '@aresrpg/aresrpg-world'
 
-import { current_three_character } from '../game/game.js'
+import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import {
   biome_mapping_conf,
@@ -33,23 +33,9 @@ import {
   world_patch_size,
 } from '../utils/terrain/world_settings.js'
 import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
+import world_cache_worker_url from '../utils/terrain/world_cache_worker.js?url'
 
-const worker_url = new URL('./world_cache_worker', import.meta.url)
 const use_worker_async_mode = false // slower if enabled
-function compute_camera_frustum(
-  /** @type PerspectiveCamera | OrthographicCamera */ camera,
-) {
-  camera.updateMatrix()
-  camera.updateMatrixWorld(true)
-  camera.updateProjectionMatrix()
-
-  return new Frustum().setFromProjectionMatrix(
-    new Matrix4().multiplyMatrices(
-      camera.projectionMatrix,
-      camera.matrixWorldInverse,
-    ),
-  )
-}
 
 // const patchRenderQueue = []
 let patch_cache_lookup = {}
@@ -61,7 +47,7 @@ export class CacheSyncProvider {
   resolvers = {}
 
   constructor() {
-    this.cache_worker = new Worker(worker_url, { type: 'module' })
+    this.cache_worker = new Worker(world_cache_worker_url, { type: 'module' })
     this.cache_worker.onmessage = ({ data }) => {
       if (data.id !== undefined) {
         this.resolvers[data.id](data)
@@ -108,7 +94,7 @@ export default function () {
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
-  Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
+  Biome.instance.params.seaLevel = context.get_state().settings.water.level
   PatchBaseCache.cacheRadius = 10
   /**
    * Data struct filling from blocks cache
@@ -271,11 +257,12 @@ export default function () {
         },
       )
 
-      aiter(abortable(setInterval(1000, null))).reduce(async () => {
+      aiter(abortable(setInterval(1000, null))).reduce(async last_position => {
         const state = get_state()
         const player_position =
           current_three_character(state)?.position?.clone()
-        if (player_position) {
+
+        if (player_position && player_position.distanceTo(last_position) > 10) {
           CacheSyncProvider.instance
             .callApi('updateCache', [player_position, use_worker_async_mode])
             .then(res => {
@@ -297,7 +284,7 @@ export default function () {
           voxelmap_visibility_computer.showMapAroundPosition(
             player_position,
             state.settings.view_distance,
-            compute_camera_frustum(camera),
+            context.frustum,
           )
           const requested_patches_ids_list = voxelmap_visibility_computer
             .getRequestedPatches()
@@ -306,7 +293,7 @@ export default function () {
           requested_patches_ids_list.forEach(patch_id => {
             const patch_key = patch_id.asString
             const cached_patch = patch_cache_lookup[patch_key]
-            if (!cached_patch && cached_patch !== null) {
+            if (cached_patch != null) {
               const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
               const cached_patch = find_cached_patch(chunk_bbox)
               patch_cache_lookup[patch_key] = cached_patch || null

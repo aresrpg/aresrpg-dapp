@@ -9,7 +9,7 @@ import {
   biome_mapping_conf,
   world_cache_pow_limit,
   world_patch_size,
-} from '../utils/terrain/world_settings.js'
+} from './world_settings.js'
 
 const init_cache = () => {
   PatchCache.patchSize = world_patch_size
