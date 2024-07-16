@@ -3,6 +3,7 @@ import { GUI } from 'dat.gui'
 import { Vector3 } from 'three'
 
 import { INITIAL_STATE, current_three_character } from '../game/game.js'
+import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -57,10 +58,9 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
 
-                const ground_block = PatchBlocksCache.getGroundBlock(
+                const ground_level = get_terrain_height(
                   new Vector3(Math.floor(x), 0, Math.floor(z)),
                 )
-                const ground_level = ground_block?.pos.y
 
                 dispatch('packet/characterPosition', {
                   id: player.id,
