@@ -30,9 +30,7 @@ import {
   world_patch_size,
 } from '../utils/terrain/world_settings.js'
 import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
-import world_cache_worker from '../utils/terrain/world_cache_worker.js?url'
-
-const worker_url = new URL(world_cache_worker, import.meta.url)
+import world_cache_worker from '../utils/terrain/world_cache_worker.js?worker'
 
 const use_worker_async_mode = false // slower if enabled
 
@@ -46,7 +44,7 @@ export class CacheSyncProvider {
   resolvers = {}
 
   constructor() {
-    this.cache_worker = new Worker(worker_url, { type: 'module' })
+    this.cache_worker = new Worker(world_cache_worker, { type: 'module' })
     this.cache_worker.onmessage = ({ data }) => {
       if (data.id !== undefined) {
         this.resolvers[data.id](data)
