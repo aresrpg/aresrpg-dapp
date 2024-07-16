@@ -47,6 +47,19 @@ registerSW({
         registration.update()
       }, 60 * 1000)
 
+      if (registration.waiting) {
+        toast.tx(
+          'A new version of AresRPG is available',
+          '',
+          true,
+          'Click here to update',
+          () => {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+            window.location.reload()
+          },
+        )
+      }
+
       registration.addEventListener('updatefound', () => {
         const installing_worker = registration.installing
         if (installing_worker && navigator.serviceWorker.controller) {
