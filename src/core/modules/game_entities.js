@@ -13,7 +13,7 @@ import {
 import { experience_to_level } from '../utils/game/experience.js'
 import { current_three_character } from '../game/game.js'
 import { ENTITIES } from '../game/entities.js'
-import { get_terrain_height } from '../utils/terrain/heightmap.js'
+import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
 
 import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
 import { tick_pet } from './player_pet.js'
