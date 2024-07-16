@@ -4,7 +4,6 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import { PatchBlocksCache } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
@@ -65,7 +64,6 @@ export default function () {
         .normalize()
 
       if (player.target_position) {
-        const { x, z } = player.target_position
         player.target_position.y = get_terrain_height(
           player.target_position,
           player.height,
@@ -170,9 +168,7 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       const { x, z } = dummy.position
-      const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z))
-      const raw_height = PatchBlocksCache.getGroundBlock(ground_pos)
-      const ground_height = Math.ceil(raw_height) // + 0.22
+      const ground_height = get_terrain_height({ x, z }, 0)
 
       if (!ground_height) return
 

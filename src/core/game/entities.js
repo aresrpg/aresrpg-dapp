@@ -202,7 +202,7 @@ export const ENTITIES = {
     const type = ENTITIES[`${classe}_${sex}`]
 
     if (type) return type({ name, id })
-    return ENTITIES.pirate_parrot({ name: 'Oeuftermath', id })
+    return ENTITIES.afegg({ name: 'Oeuftermath', id })
   },
 
   // ====== CHARACTERS ======

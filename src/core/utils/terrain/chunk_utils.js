@@ -196,8 +196,8 @@ export function feed_engine_with_chunks(patch_queue) {
   }
 }
 
-export function get_terrain_height({ x, z }, entity_height) {
-  const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z))
-  const raw_height = PatchBlocksCache.getGroundBlock(ground_pos)
-  return Math.ceil(raw_height) + entity_height * 0.5
+export function get_terrain_height({ x, z }, entity_height = 0) {
+  const ground_pos = new Vector3(Math.floor(x), 350, Math.floor(z))
+  const { pos = ground_pos } = PatchBlocksCache.getGroundBlock(ground_pos) ?? {}
+  return Math.ceil(pos.y + 1) + entity_height * 0.5
 }

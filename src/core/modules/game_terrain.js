@@ -18,7 +18,11 @@ import {
   PatchCache,
 } from '@aresrpg/aresrpg-world'
 
-import { context, current_three_character } from '../game/game.js'
+import {
+  INITIAL_STATE,
+  context,
+  current_three_character,
+} from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import {
   biome_mapping_conf,
@@ -26,8 +30,9 @@ import {
   world_patch_size,
 } from '../utils/terrain/world_settings.js'
 import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
-import world_cache_worker_url from '../utils/terrain/world_cache_worker.js?url'
+import world_cache_worker from '../utils/terrain/world_cache_worker.js?url'
 
+const worker_url = new URL(world_cache_worker, import.meta.url)
 const use_worker_async_mode = false // slower if enabled
 
 // const patchRenderQueue = []
@@ -40,7 +45,7 @@ export class CacheSyncProvider {
   resolvers = {}
 
   constructor() {
-    this.cache_worker = new Worker(world_cache_worker_url, { type: 'module' })
+    this.cache_worker = new Worker(worker_url, { type: 'module' })
     this.cache_worker.onmessage = ({ data }) => {
       if (data.id !== undefined) {
         this.resolvers[data.id](data)
@@ -87,7 +92,7 @@ export default function () {
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
-  Biome.instance.params.seaLevel = context.get_state().settings.water.level
+  Biome.instance.params.seaLevel = INITIAL_STATE.settings.water.level
   PatchBaseCache.cacheRadius = 10
   /**
    * Data struct filling from blocks cache
@@ -250,16 +255,11 @@ export default function () {
         },
       )
 
-      aiter(abortable(setInterval(1000, null))).reduce(async last_position => {
+      aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
         const player_position =
           current_three_character(state)?.position?.clone()
-
-        const should_refresh_display =
-          player_position &&
-          (!last_position || player_position.distanceTo(last_position) > 10)
-
-        if (should_refresh_display) {
+        if (player_position) {
           CacheSyncProvider.instance
             .callApi('updateCache', [player_position, use_worker_async_mode])
             .then(res => {
@@ -276,11 +276,6 @@ export default function () {
                 // terrain_viewer.update()
               }
             })
-
-          // camera.updateMatrix()
-          // camera.updateMatrixWorld(true)
-          // camera.updateProjectionMatrix()
-
           // compute all patches that need to be visible and prioritize them
           voxelmap_visibility_computer.reset()
           voxelmap_visibility_computer.showMapAroundPosition(
@@ -295,7 +290,7 @@ export default function () {
           requested_patches_ids_list.forEach(patch_id => {
             const patch_key = patch_id.asString
             const cached_patch = patch_cache_lookup[patch_key]
-            if (cached_patch != null) {
+            if (!cached_patch && cached_patch !== null) {
               const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
               const cached_patch = find_cached_patch(chunk_bbox)
               patch_cache_lookup[patch_key] = cached_patch || null
@@ -352,7 +347,6 @@ export default function () {
           }
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)
-        return player_position || last_position
       })
     },
   }
