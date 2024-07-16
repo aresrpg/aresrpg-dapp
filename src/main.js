@@ -50,7 +50,7 @@ registerSW({
       const new_user = !registration.active
 
       if (registration.waiting) {
-        toast.tx(
+        const update_params = [
           'A new version of AresRPG is available',
           '',
           true,
@@ -59,7 +59,8 @@ registerSW({
             registration.waiting.postMessage({ type: 'SKIP_WAITING' })
             window.location.reload()
           },
-        )
+        ]
+        toast.tx(...update_params).update('success', ...update_params)
       }
 
       registration.addEventListener('updatefound', () => {

@@ -6,7 +6,7 @@ div.notification-loader
     .title {{ title }}
     .text {{ text }}
   .right(v-if="button")
-    vs-button(@click="button_action" type="gradient" size="small" color="#2196F3") {{ button_text }}
+    vs-button(@click="button_action" type="gradient" size="small" color="#43A047") {{ button_text }}
 </template>
 
 <script setup>
