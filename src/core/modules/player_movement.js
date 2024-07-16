@@ -8,6 +8,7 @@ import { lerp } from 'three/src/math/MathUtils.js'
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
+import { sea_level } from '../utils/terrain/world_settings.js'
 
 import { play_step_sound } from './game_audio.js'
 
@@ -52,7 +53,7 @@ export default function () {
 
       const { inputs } = state
       const origin = player.position.clone()
-      const is_underwater = player.position.y < state.settings.water.level
+      const is_underwater = player.position.y < sea_level
 
       const camera_forward = new Vector3(0, 0, -1)
         .applyQuaternion(camera.quaternion)

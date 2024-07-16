@@ -102,19 +102,6 @@ registerSW({
   },
   onNeedRefresh() {
     console.log('onNeedRefresh')
-    // Show a notification that a new version is being installed
-    if (notification) {
-      notification.update(
-        'loading',
-        'A new version is installing...',
-        'Update Available',
-      )
-    } else {
-      notification = toast.tx(
-        'A new version is installing...',
-        'Update Available',
-      )
-    }
   },
   onUpdated(registration) {
     console.log('onUpdated')

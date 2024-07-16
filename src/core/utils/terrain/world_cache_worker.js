@@ -7,6 +7,7 @@ import {
 
 import {
   biome_mapping_conf,
+  sea_level,
   world_cache_pow_limit,
   world_patch_size,
 } from './world_settings.js'
@@ -19,7 +20,7 @@ const init_cache = () => {
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
-  Biome.instance.params.seaLevel = biome_mapping_conf.temperate.beach.x
+  Biome.instance.params.seaLevel = sea_level
 }
 
 init_cache()

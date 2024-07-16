@@ -27,6 +27,7 @@ import { abortable } from '../utils/iterator.js'
 import {
   biome_mapping_conf,
   blocks_colors,
+  sea_level,
   world_patch_size,
 } from '../utils/terrain/world_settings.js'
 import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
@@ -101,7 +102,7 @@ export default function () {
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
-  Biome.instance.params.seaLevel = INITIAL_STATE.settings.water.level
+  Biome.instance.params.seaLevel = sea_level
   PatchBaseCache.cacheRadius = 10
   /**
    * Data struct filling from blocks cache
