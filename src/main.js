@@ -45,7 +45,7 @@ registerSW({
     if (registration) {
       setInterval(() => {
         registration.update()
-      }, 10000)
+      }, 60000)
 
       registration.addEventListener('updatefound', () => {
         console.log('updatefound')
