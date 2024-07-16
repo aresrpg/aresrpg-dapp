@@ -1,8 +1,6 @@
 import { context } from '../game/game.js'
-import { get_fight_position } from '../utils/game/fight.js'
 import { spawn_crescent_sword } from '../utils/game/objects.js'
 import { state_iterator } from '../utils/iterator.js'
-import { get_terrain_height } from '../utils/terrain/heightmap.js'
 
 function is_in_team(team, character_id) {
   return team.some(({ id }) => id === character_id)

@@ -8,14 +8,7 @@ import {
   VoxelmapVisibilityComputer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import {
-  Color,
-  Frustum,
-  Matrix4,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Vector3,
-} from 'three'
+import { Color, Vector3 } from 'three'
 import {
   Biome,
   BlockType,
@@ -262,7 +255,11 @@ export default function () {
         const player_position =
           current_three_character(state)?.position?.clone()
 
-        if (player_position && player_position.distanceTo(last_position) > 10) {
+        const should_refresh_display =
+          player_position &&
+          (!last_position || player_position.distanceTo(last_position) > 10)
+
+        if (should_refresh_display) {
           CacheSyncProvider.instance
             .callApi('updateCache', [player_position, use_worker_async_mode])
             .then(res => {
@@ -279,6 +276,11 @@ export default function () {
                 // terrain_viewer.update()
               }
             })
+
+          // camera.updateMatrix()
+          // camera.updateMatrixWorld(true)
+          // camera.updateProjectionMatrix()
+
           // compute all patches that need to be visible and prioritize them
           voxelmap_visibility_computer.reset()
           voxelmap_visibility_computer.showMapAroundPosition(
@@ -350,6 +352,7 @@ export default function () {
           }
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)
+        return player_position || last_position
       })
     },
   }

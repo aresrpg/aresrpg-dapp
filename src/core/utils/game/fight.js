@@ -1,4 +1,4 @@
-import { get_terrain_height } from '../terrain/heightmap.js'
+import { get_terrain_height } from '../terrain/chunk_utils.js'
 
 export function get_fight_position(fight) {
   const position = {

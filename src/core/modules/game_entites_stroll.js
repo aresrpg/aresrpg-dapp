@@ -1,12 +1,11 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Vector2, Vector3 } from 'three'
-import { WorldGenerator } from '@aresrpg/aresrpg-world'
+import { Vector3 } from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import { get_terrain_height } from '../utils/terrain/heightmap.js'
+import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
 
 const MOVE_INTERVAL = 5000 // 5 seconds in milliseconds
 const MOVE_PROBABILITY = 0.1 // 10% chance to move
