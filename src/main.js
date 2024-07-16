@@ -39,7 +39,7 @@ registerSW({
     if (registration) {
       setInterval(() => {
         registration.update()
-      }, 300000) // 5 minutes in milliseconds
+      }, 10000) // 5 minutes in milliseconds
     }
   },
   onRegistered(r) {
