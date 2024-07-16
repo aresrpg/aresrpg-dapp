@@ -29,6 +29,13 @@ console.log('%c https://github.com/aresrpg/aresrpg-dapp', 'font-size:15px;')
 
 const vue_app = createApp(app)
 
+router.onError((error, to) => {
+  if (error.message.includes('Failed to fetch dynamically imported module')) {
+    // @ts-ignore
+    window.location = to.fullPath
+  }
+})
+
 vue_app.use(router).use(Vuesax, {}).use(i18n).mount('#app')
 
 let notification = null
