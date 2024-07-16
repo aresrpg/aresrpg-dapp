@@ -55,7 +55,7 @@ function create_notification(
       if (button_action != null)
         vnode.component.props.button_action = button_action
 
-      if (status !== 'loading') {
+      if (status !== 'loading' && !show_button) {
         const duration = status === 'success' ? 2000 : 7000
         setTimeout(() => {
           remove()

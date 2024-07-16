@@ -39,8 +39,6 @@ router.onError((error, to) => {
 
 vue_app.use(router).use(Vuesax, {}).use(i18n).mount('#app')
 
-let notification = null
-
 registerSW({
   onRegisteredSW(sw_url, registration) {
     // Check for updates every 5 minutes
@@ -82,71 +80,8 @@ registerSW({
       })
     }
   },
-  onRegistered(r) {
-    console.log('onRegistered', r)
-  },
-  onUpdateFound() {
-    console.log('onUpdateFound')
-    if (!notification) {
-      notification = toast.tx(
-        'A new version is available and is being installed.',
-        'Update Available',
-      )
-    } else {
-      notification.update(
-        'loading',
-        'A new version is installing...',
-        'Update Available',
-      )
-    }
-  },
-  onNeedRefresh() {
-    console.log('onNeedRefresh')
-  },
-  onUpdated(registration) {
-    console.log('onUpdated')
-    if (notification) {
-      notification.update(
-        'success',
-        'A new version is ready. Click the button to update.',
-        'Update Ready',
-      )
-
-      // Show a button to reload the page and activate the new service worker
-      const button = document.createElement('button')
-      button.innerText = 'Update'
-      button.onclick = () => {
-        if (registration.waiting) {
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-          window.location.reload()
-        }
-      }
-      document.body.appendChild(button) // Adjust this to integrate with your UI as necessary
-    } else {
-      const notification = toast.tx(
-        'A new version is available.',
-        'Update Ready',
-      )
-      notification.update(
-        'success',
-        'A new version is ready. Click the button to update.',
-        'Update Ready',
-      )
-
-      // Show a button to reload the page and activate the new service worker
-      const button = document.createElement('button')
-      button.innerText = 'Update'
-      button.onclick = () => {
-        if (registration.waiting) {
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-          window.location.reload()
-        }
-      }
-      document.body.appendChild(button) // Adjust this to integrate with your UI as necessary
-    }
-  },
   onOfflineReady() {
-    toast.success('The app is ready to be used offline.', 'Offline Ready')
+    toast.info('AresRPG has been cached in your browser', 'Offline Ready')
   },
   onError(error) {
     toast.error(`Service worker error: ${error}`, 'Error')
