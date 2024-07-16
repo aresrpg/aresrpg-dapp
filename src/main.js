@@ -35,18 +35,61 @@ let notification = null
 
 registerSW({
   onRegisteredSW(sw_url, registration) {
+    console.log('onRegisteredSW')
     // Check for updates every 5 minutes
     if (registration) {
       setInterval(() => {
         registration.update()
       }, 10000) // 5 minutes in milliseconds
+
+      registration.addEventListener('updatefound', () => {
+        console.log('updatefound')
+        const installing_worker = registration.installing
+        if (installing_worker) {
+          toast.show({
+            title: 'Update Available',
+            message: 'A new version is being installed.',
+            duration: 5000,
+          })
+
+          // Listen for state changes on the installing worker
+          installing_worker.addEventListener('statechange', () => {
+            console.log('statechange', installing_worker.state)
+            if (installing_worker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                // New update is available and waiting to activate
+                toast.show({
+                  title: 'New Version Ready',
+                  message:
+                    'A new version is ready. Click the button to update.',
+                  duration: 10000,
+                  action: {
+                    text: 'Update',
+                    onClick: () => {
+                      installing_worker.postMessage({ type: 'SKIP_WAITING' })
+                      window.location.reload()
+                    },
+                  },
+                })
+              } else {
+                // No previous service worker, this is the first install
+                toast.show({
+                  title: 'App Ready',
+                  message: 'The app is ready to be used offline.',
+                  duration: 5000,
+                })
+              }
+            }
+          })
+        }
+      })
     }
   },
   onRegistered(r) {
-    console.log('Service worker registered:', r)
+    console.log('onRegistered', r)
   },
   onUpdateFound() {
-    console.log('New update found.')
+    console.log('onUpdateFound')
     if (!notification) {
       notification = toast.tx(
         'A new version is available and is being installed.',
@@ -61,6 +104,7 @@ registerSW({
     }
   },
   onNeedRefresh() {
+    console.log('onNeedRefresh')
     // Show a notification that a new version is being installed
     if (notification) {
       notification.update(
@@ -76,6 +120,7 @@ registerSW({
     }
   },
   onUpdated(registration) {
+    console.log('onUpdated')
     if (notification) {
       notification.update(
         'success',
