@@ -15,7 +15,7 @@
 
 AresRPG has been a minecraft server project for years and is now upgraded to a standalone game on top of [ThreeJS](https://threejs.org/) and [Sui](https://sui.io/), the project is in a very early stage and everyone is welcomed to contribute to its realization
 
-![](https://i.imgur.com/csWCkeW.png)
+![](https://i.imgur.com/0vqKvlN.jpeg)
 
 - Try it out at https://app.aresrpg.world
 - Or the beta version at https://testnet.aresrpg.world
