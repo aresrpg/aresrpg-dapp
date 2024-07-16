@@ -57,7 +57,7 @@ registerSW({
         () => {
           registration.update()
         },
-        60 * 60 * 1000,
+        10 * 60 * 1000,
       ) // Check for updates every hour
     }
   },
