@@ -30,6 +30,7 @@ console.log('%c https://github.com/aresrpg/aresrpg-dapp', 'font-size:15px;')
 const vue_app = createApp(app)
 
 router.onError((error, to) => {
+  console.log('router error', error, to)
   if (error.message.includes('Failed to fetch dynamically imported module')) {
     // @ts-ignore
     window.location = to.fullPath
@@ -49,47 +50,47 @@ registerSW({
         registration.update()
       }, 10000) // 5 minutes in milliseconds
 
-      registration.addEventListener('updatefound', () => {
-        console.log('updatefound')
-        const installing_worker = registration.installing
-        if (installing_worker) {
-          toast.show({
-            title: 'Update Available',
-            message: 'A new version is being installed.',
-            duration: 5000,
-          })
+      // registration.addEventListener('updatefound', () => {
+      //   console.log('updatefound')
+      //   const installing_worker = registration.installing
+      //   if (installing_worker) {
+      //     toast.show({
+      //       title: 'Update Available',
+      //       message: 'A new version is being installed.',
+      //       duration: 5000,
+      //     })
 
-          // Listen for state changes on the installing worker
-          installing_worker.addEventListener('statechange', () => {
-            console.log('statechange', installing_worker.state)
-            if (installing_worker.state === 'installed') {
-              if (navigator.serviceWorker.controller) {
-                // New update is available and waiting to activate
-                toast.show({
-                  title: 'New Version Ready',
-                  message:
-                    'A new version is ready. Click the button to update.',
-                  duration: 10000,
-                  action: {
-                    text: 'Update',
-                    onClick: () => {
-                      installing_worker.postMessage({ type: 'SKIP_WAITING' })
-                      window.location.reload()
-                    },
-                  },
-                })
-              } else {
-                // No previous service worker, this is the first install
-                toast.show({
-                  title: 'App Ready',
-                  message: 'The app is ready to be used offline.',
-                  duration: 5000,
-                })
-              }
-            }
-          })
-        }
-      })
+      //     // Listen for state changes on the installing worker
+      //     installing_worker.addEventListener('statechange', () => {
+      //       console.log('statechange', installing_worker.state)
+      //       if (installing_worker.state === 'installed') {
+      //         if (navigator.serviceWorker.controller) {
+      //           // New update is available and waiting to activate
+      //           toast.show({
+      //             title: 'New Version Ready',
+      //             message:
+      //               'A new version is ready. Click the button to update.',
+      //             duration: 10000,
+      //             action: {
+      //               text: 'Update',
+      //               onClick: () => {
+      //                 installing_worker.postMessage({ type: 'SKIP_WAITING' })
+      //                 window.location.reload()
+      //               },
+      //             },
+      //           })
+      //         } else {
+      //           // No previous service worker, this is the first install
+      //           toast.show({
+      //             title: 'App Ready',
+      //             message: 'The app is ready to be used offline.',
+      //             duration: 5000,
+      //           })
+      //         }
+      //       }
+      //     })
+      //   }
+      // })
     }
   },
   onRegistered(r) {
