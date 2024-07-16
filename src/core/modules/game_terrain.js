@@ -33,6 +33,9 @@ import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
 import world_cache_worker from '../utils/terrain/world_cache_worker.js?url'
 
 const worker_url = new URL(world_cache_worker, import.meta.url)
+
+console.log('worker_url:', worker_url)
+
 const use_worker_async_mode = false // slower if enabled
 
 // const patchRenderQueue = []

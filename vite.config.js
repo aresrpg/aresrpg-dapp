@@ -28,10 +28,11 @@ export default defineConfig({
     }),
     VitePWA({
       includeAssets: ['favicon.ico', 'robots.txt', '*.png', '*.jpg', '*.svg'],
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/\.html$/, /\/api\//],
+        cleanupOutdatedCaches: true,
         // Exclude HTML files from being cached
         runtimeCaching: [
           {
