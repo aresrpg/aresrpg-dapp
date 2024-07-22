@@ -198,8 +198,8 @@ function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
 
 export const ENTITIES = {
   /** @return {Type.ThreeEntity} */
-  from_character({ name, id, classe, sex }) {
-    const type = ENTITIES[`${classe}_${sex}`]
+  from_character({ name, id, classe, sex, skin }) {
+    const type = ENTITIES[skin || `${classe}_${sex}`]
 
     if (type) return type({ name, id })
     return ENTITIES.afegg({ name: 'Oeuftermath', id })

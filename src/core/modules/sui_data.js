@@ -33,6 +33,7 @@ export const DEFAULT_SUI_CHARACTER = () => ({
   name: 'Oeuftermath',
   classe: 'default',
   sex: 'default',
+  realm: 'overworld',
 
   position: { x: 0, y: 220, z: 0 },
   experience: 0,
@@ -428,10 +429,6 @@ export default function () {
                   const kiosk = await sui_get_kiosk_cap(id)
 
                   return !!kiosk
-                }
-
-                function forward_event(name) {
-                  emitter.on(name, event => SUI_EMITTER.emit(name, event))
                 }
 
                 function is_for_a_visible_character(id) {

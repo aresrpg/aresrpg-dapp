@@ -1,3 +1,5 @@
+import { setTimeout } from 'timers/promises'
+
 import {
   context,
   current_locked_character,
