@@ -1,4 +1,3 @@
-import { PatchBlocksCache } from '@aresrpg/aresrpg-world'
 import { GUI } from 'dat.gui'
 import { Vector3 } from 'three'
 

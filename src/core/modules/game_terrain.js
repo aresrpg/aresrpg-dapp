@@ -11,11 +11,11 @@ import { aiter } from 'iterator-helper'
 import { Color, Vector3 } from 'three'
 import {
   Biome,
+  BlocksPatch,
   BlockType,
+  EntitiesMap,
+  ExternalCache,
   Heightmap,
-  PatchBaseCache,
-  PatchBlocksCache,
-  PatchCache,
 } from '@aresrpg/aresrpg-world'
 
 import { context, current_three_character } from '../game/game.js'
@@ -24,6 +24,7 @@ import {
   biome_mapping_conf,
   blocks_colors,
   sea_level,
+  world_cache_pow_limit,
   world_patch_size,
 } from '../utils/terrain/world_settings.js'
 import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
@@ -31,7 +32,7 @@ import { fill_chunk_from_patch } from '../utils/terrain/chunk_utils.js'
 const use_worker_async_mode = false // slower if enabled
 
 // const patchRenderQueue = []
-let patch_cache_lookup = {}
+const patch_render_list = {}
 
 export class CacheSyncProvider {
   static singleton
@@ -50,12 +51,12 @@ export class CacheSyncProvider {
         delete this.resolvers[data.id]
       } else {
         if (data) {
-          data.kept?.length > 0 && PatchBlocksCache.cleanDeprecated(data.kept)
-          data.created?.forEach(blocks_cache => {
-            const blocks_patch = new PatchBlocksCache(blocks_cache)
-            PatchBlocksCache.instances.push(blocks_patch)
-            // patchRenderQueue.push(blocksPatch)
-          })
+          // data.kept?.length > 0 && PatchBlocksCache.cleanDeprecated(data.kept)
+          // data.created?.forEach(blocks_cache => {
+          //   const blocks_patch = new PatchBlocksCache(blocks_cache)
+          //   PatchBlocksCache.instances.push(blocks_patch)
+          //   // patchRenderQueue.push(blocksPatch)
+          // })
         }
       }
     }
@@ -92,14 +93,15 @@ const max_altitude = 400
 export default function () {
   // TODO: remove temporary workaround
   // restore LOD using duplicated instance of the world
-  PatchCache.patchSize = world_patch_size
+  BlocksPatch.patchSize = world_patch_size
   Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
   Heightmap.instance.heightmap.sampling.harmonicsCount = 6
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
   // Biome (blocks mapping)
   Biome.instance.setMappings(biome_mapping_conf)
   Biome.instance.params.seaLevel = sea_level
-  PatchBaseCache.cacheRadius = 10
+  ExternalCache.cachePowRadius = 1
+  EntitiesMap.populate()
   /**
    * Data struct filling from blocks cache
    */
@@ -118,7 +120,7 @@ export default function () {
       return Promise.all(
         coords.map(async ({ x, z }) => {
           const block_pos = new Vector3(x, 0, z)
-          const block = PatchBlocksCache.getBlock(block_pos)
+          const block = ExternalCache.getBlock(block_pos)
           let block_level = 0
           let block_type = BlockType.WATER
           if (block) {
@@ -177,7 +179,7 @@ export default function () {
     let extra_level = 0
     let block_type = BlockType.WATER
 
-    const ground_block = PatchBlocksCache.getBlock(block_pos)
+    const ground_block = ExternalCache.getBlock(block_pos)
 
     if (ground_block) {
       const buff_index = ground_block.buffer.findLastIndex(
@@ -214,7 +216,7 @@ export default function () {
     // )
     const center = chunk_bbox.getCenter(new Vector3())
     center.y = 100
-    const res = PatchBlocksCache.instances.find(
+    const res = Object.values(ExternalCache.patchLookupIndex).find(
       patch =>
         patch.bbox.intersectsBox(chunk_bbox) &&
         center.x > patch.bbox.min.x &&
@@ -262,22 +264,75 @@ export default function () {
         const player_position =
           current_three_character(state)?.position?.clone()
         if (player_position) {
-          CacheSyncProvider.instance
-            .callApi('updateCache', [player_position, use_worker_async_mode])
-            .then(res => {
-              if (res.data) {
-                // reset cache indexing
-                patch_cache_lookup = {}
-                PatchBlocksCache.cleanDeprecated(res.data.kept)
-                res.data.created
-                  .map(patch_stub => new PatchBlocksCache(patch_stub))
-                  .forEach(patch => PatchBlocksCache.instances.push(patch))
-                // patchRenderQueue.push(blocksPatch)
+          ExternalCache.refreshCache(player_position).then(batch_content => {
+            if (batch_content.length > 0) {
+              const cache_count = Object.keys(
+                ExternalCache.patchLookupIndex,
+              ).length
+              console.log(
+                `Batch size: ${batch_content.length} items (total cache size: ${cache_count} items)`,
+              )
+              ExternalCache.cachePowRadius < world_cache_pow_limit &&
+                ExternalCache.cachePowRadius++
 
-                // feed_engine()
-                // terrain_viewer.update()
-              }
-            })
+              // build chunk index
+              const patch_chunks_index = {}
+              Object.values(ExternalCache.patchLookupIndex).forEach(patch => {
+                patch_chunks_index[patch.key] = []
+                for (let i = 6; i >= 0; i--) {
+                  const chunk_coords = new Vector3(
+                    patch.coords.x,
+                    i,
+                    patch.coords.y,
+                  )
+                  patch_chunks_index[patch.key].push(chunk_coords)
+                }
+              })
+              const chunks_indices = Object.values(patch_chunks_index)
+                .map(arr => arr)
+                .flat()
+              // declare them as visible, hide the others
+              voxelmap_viewer.setVisibility(chunks_indices)
+              // feed engine with chunks
+              // batch_content
+              //   .map(patch_key => ExternalCache.patchLookupIndex[patch_key])
+              Object.entries(patch_chunks_index).forEach(
+                ([patch_key, chunk_ids]) => {
+                  const patch = ExternalCache.patchLookupIndex[patch_key]
+                  chunk_ids.forEach(chunk_id => {
+                    // patch.origin.x + '_' + i + '_' + patch.origin.y
+                    const chunk_bbox =
+                      voxelmap_viewer.getPatchVoxelsBox(chunk_id)
+                    // fill chunk from patch
+                    const data = fill_chunk_from_patch(patch, chunk_bbox)
+                    const size = Math.round(Math.pow(data.length, 1 / 3))
+                    const dimensions = new Vector3(size, size, size)
+                    const chunk = { data, size: dimensions, isEmpty: false }
+                    if (voxelmap_viewer.doesPatchRequireVoxelsData(chunk_id)) {
+                      console.log(`push engine chunk`)
+                      voxelmap_viewer.enqueuePatch(chunk_id, chunk)
+                    }
+                  })
+                },
+              )
+            }
+          })
+          // CacheSyncProvider.instance
+          //   .callApi('updateCache', [player_position, use_worker_async_mode])
+          //   .then(res => {
+          //     if (res.data) {
+          //       // reset cache indexing
+          //       patch_cache_lookup = {}
+          //       PatchBlocksCache.cleanDeprecated(res.data.kept)
+          //       res.data.created
+          //         .map(patch_stub => new BlocksPatch(patch_stub))
+          //         .forEach(patch => PatchBlocksCache.instances.push(patch))
+          //       // patchRenderQueue.push(blocksPatch)
+
+          //       // feed_engine()
+          //       // terrain_viewer.update()
+          //     }
+          //   })
           // compute all patches that need to be visible and prioritize them
           voxelmap_visibility_computer.reset()
           voxelmap_visibility_computer.showMapAroundPosition(
@@ -289,18 +344,20 @@ export default function () {
             .getRequestedPatches()
             .map(requested_patch => requested_patch.id)
 
-          requested_patches_ids_list.forEach(patch_id => {
-            const patch_key = patch_id.asString
-            const cached_patch = patch_cache_lookup[patch_key]
-            if (!cached_patch && cached_patch !== null) {
-              const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
-              const cached_patch = find_cached_patch(chunk_bbox)
-              patch_cache_lookup[patch_key] = cached_patch || null
-            }
-          })
-
           const available_patch_keys = requested_patches_ids_list.filter(
-            key => patch_cache_lookup[key.asString],
+            patch_id => {
+              const patch_id_parsing = patch_id.asString
+                .split('_')
+                .map(val => parseInt(val))
+              const patch_key = `patch_${patch_id_parsing[0]}_${patch_id_parsing[2]}`
+              const cached_patch = ExternalCache.patchLookupIndex[patch_key]
+              // if (!cached_patch && cached_patch !== null) {
+              //   const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
+              //   const cached_patch = find_cached_patch(chunk_bbox)
+              //   patch_cache_lookup[patch_key] = cached_patch || null
+              // }
+              return cached_patch
+            },
           )
 
           // const available = Object.values(patch_cache_lookup).filter(
@@ -322,31 +379,34 @@ export default function () {
             voxelmap_viewer.doesPatchRequireVoxelsData(patch_id),
           )
 
-          for (const patch_id of patches_ids_list) {
-            const patch_key = patch_id.asString
-            const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
-            const cached_patch = patch_cache_lookup[patch_key]
-            // fill chunk from patch
-            const data = fill_chunk_from_patch(cached_patch, chunk_bbox)
-            const size = Math.round(Math.pow(data.length, 1 / 3))
-            const dimensions = new Vector3(size, size, size)
-            const chunk = { data, size: dimensions, isEmpty: false }
-            // feed engine with chunk
-            voxelmap_viewer.enqueuePatch(patch_id, chunk)
-            // query the map (asynchronous) to get data for this patch
-            // const chunkdata_promise = map.getLocalMapData(
-            //   block_box.min,
-            //   block_box.max,
-            // )
-            // // once we got data for this patch
-            // chunkdata_promise.then(chunkdata => {
-            //   // check if the engine still needs this data (this second check is required because we got the data asynchronously)
-            //   if (voxelmap_viewer.doesPatchRequireVoxelsData(patch_id)) {
-            //     // if needed, add it to the queue so that the voxelmap_viewer can compute a mesh asap.
-            //     voxelmap_viewer.enqueuePatch(patch_id, chunkdata)
-            //   }
-            // })
-          }
+          // for (const patch_id of patches_ids_list) {
+          //   const patch_id_parsing = patch_id.asString
+          //     .split('_')
+          //     .map(val => parseInt(val))
+          //   const patch_key = `patch_${patch_id_parsing[0]}_${patch_id_parsing[2]}`
+          //   const chunk_bbox = voxelmap_viewer.getPatchVoxelsBox(patch_id)
+          //   const cached_patch = ExternalCache.patchLookupIndex[patch_key]
+          //   // fill chunk from patch
+          //   const data = fill_chunk_from_patch(cached_patch, chunk_bbox)
+          //   const size = Math.round(Math.pow(data.length, 1 / 3))
+          //   const dimensions = new Vector3(size, size, size)
+          //   const chunk = { data, size: dimensions, isEmpty: false }
+          //   // feed engine with chunk
+          //   voxelmap_viewer.enqueuePatch(patch_id, chunk)
+          //   // query the map (asynchronous) to get data for this patch
+          //   // const chunkdata_promise = map.getLocalMapData(
+          //   //   block_box.min,
+          //   //   block_box.max,
+          //   // )
+          //   // // once we got data for this patch
+          //   // chunkdata_promise.then(chunkdata => {
+          //   //   // check if the engine still needs this data (this second check is required because we got the data asynchronously)
+          //   //   if (voxelmap_viewer.doesPatchRequireVoxelsData(patch_id)) {
+          //   //     // if needed, add it to the queue so that the voxelmap_viewer can compute a mesh asap.
+          //   //     voxelmap_viewer.enqueuePatch(patch_id, chunkdata)
+          //   //   }
+          //   // })
+          // }
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)
       })
