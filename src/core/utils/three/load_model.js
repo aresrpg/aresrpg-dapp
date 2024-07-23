@@ -5,6 +5,8 @@ import { AnimationMixer, DefaultLoadingManager } from 'three'
 import { MeshoptDecoder } from 'meshoptimizer'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 
+import GLTFMaterialsVariantsExtension from './KHR_material_variants.js'
+
 const GLTF_LOADER = new GLTFLoader(DefaultLoadingManager)
 const DRACO_LOADER = new DRACOLoader(DefaultLoadingManager)
 const KTX2_LOADER = new KTX2Loader(DefaultLoadingManager)
@@ -18,11 +20,14 @@ GLTF_LOADER.setDRACOLoader(DRACO_LOADER)
 GLTF_LOADER.setKTX2Loader(KTX2_LOADER)
 GLTF_LOADER.setMeshoptDecoder(MeshoptDecoder)
 
+GLTF_LOADER.register(parser => new GLTFMaterialsVariantsExtension(parser))
+
 export async function load(
   path,
   { env_map_intensity = 0.5, mesh_name = 'Model' } = {},
 ) {
-  const { scene, animations } = await GLTF_LOADER.loadAsync(path)
+  // @ts-ignore
+  const { scene, animations, functions } = await GLTF_LOADER.loadAsync(path)
 
   scene.traverse(child => {
     // @ts-ignore
@@ -45,6 +50,10 @@ export async function load(
     return {
       model: cloned,
       skinned_mesh: cloned.getObjectByName(mesh_name),
+      async set_variant(variant) {
+        console.log('set variant', variant)
+        await functions.selectVariant(cloned, variant)
+      },
       compute_animations() {
         const mixer = new AnimationMixer(cloned)
         return {

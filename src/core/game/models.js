@@ -34,7 +34,7 @@ export const MODELS = {
   suifren_bullshark: await load(suifren_bullshark),
   suifren_capy: await load(suifren_capy),
   afegg: await load(afegg),
-  vaporeon: await load(vaporeon),
+  vaporeon: await load(vaporeon, { env_map_intensity: 1 }),
   suicune: await load(suicune),
   pirate_parrot: await load(pirate_parrot),
 

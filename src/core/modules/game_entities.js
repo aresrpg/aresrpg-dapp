@@ -44,6 +44,12 @@ export default function () {
       id: character.pet.id,
     })
 
+    if (
+      character.pet.item_type === 'vaporeon' &&
+      character.pet.name.includes('shiny')
+    )
+      spawned_pet.set_variant('shiny')
+
     sui_get_character_name(character.id).then(name => {
       spawned_pet.floating_title.text = `${character.pet.name} (${name})`
     })

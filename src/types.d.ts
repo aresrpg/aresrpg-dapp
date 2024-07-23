@@ -48,7 +48,7 @@ declare namespace Type {
     action: string
     audio: import('three').PositionalAudio
     skin: string
-
+    set_variant: (variant: string) => Promise<void>
     equip_hat(hat: SuiItem): void
     mob_group_id?: string
     current_fight_id?: string

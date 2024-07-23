@@ -18,11 +18,7 @@ import {
   PatchCache,
 } from '@aresrpg/aresrpg-world'
 
-import {
-  INITIAL_STATE,
-  context,
-  current_three_character,
-} from '../game/game.js'
+import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import {
   biome_mapping_conf,

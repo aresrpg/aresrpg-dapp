@@ -78,7 +78,7 @@ gl_Position = projectionMatrix * mvPosition;
 
 function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
   return ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
-    const { model, compute_animations } = clone_model()
+    const { model, compute_animations, set_variant } = clone_model()
     const { mixer, actions } = compute_animations()
 
     model.scale.set(
@@ -176,7 +176,7 @@ function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
       },
       position: origin.position,
       target_position: null,
-
+      set_variant,
       equip_hat(hat) {
         const head = find_head_bone(model)
 
@@ -265,14 +265,16 @@ export const ENTITIES = {
     skin: 'afegg',
   }),
   vaporeon: spawn_entity(MODELS.vaporeon, {
-    height: 0.75,
+    height: 0.85,
     radius: 0.75,
     skin: 'vaporeon',
+    scale: 0.9,
   }),
   suicune: spawn_entity(MODELS.suicune, {
-    height: 0.75,
+    height: 0.85,
     radius: 0.75,
     skin: 'suicune',
+    scale: 0.9,
   }),
   pirate_parrot: spawn_entity(MODELS.pirate_parrot, {
     height: 0.75,
