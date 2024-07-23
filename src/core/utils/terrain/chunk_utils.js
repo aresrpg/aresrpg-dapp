@@ -1,13 +1,9 @@
-import {
-  BlockType,
-  PatchBaseCache,
-  PatchBlocksCache,
-} from '@aresrpg/aresrpg-world'
+import { BlockType, ExternalCache } from '@aresrpg/aresrpg-world'
 import { Vector3, MathUtils, Box3 } from 'three'
 
 import { world_patch_size } from './world_settings.js'
 
-const dbg_highlight_patch_borders = false // debug only
+const dbg_highlight_patch_borders = true // debug only
 
 const write_chunk_blocks = (
   chunk,
@@ -69,7 +65,7 @@ const edges_blocks_pass = chunk => {
     }
     const edges = [xmin, zmin, xmax, zmax]
     edges.forEach(edge => {
-      const block_data = PatchBlocksCache.getBlock(edge.global_pos.clone())
+      const block_data = ExternalCache.getBlock(edge.global_pos.clone())
       if (block_data) {
         const block_local_pos = edge.local_pos.clone()
         block_local_pos.y = block_data.pos.y
@@ -83,7 +79,7 @@ const edges_blocks_pass = chunk => {
 }
 
 const ground_blocks_pass = (patch, chunk) => {
-  const iter = patch?.iterator(true)
+  const iter = patch.iterBlocks(true)
   let res = iter.next()
   while (!res.done) {
     const block_data = res.value
@@ -104,7 +100,7 @@ const ground_blocks_pass = (patch, chunk) => {
 }
 
 const entities_blocks_pass = (patch, chunk) => {
-  const patch_bis = PatchBaseCache.getPatch(patch.bbox.getCenter(new Vector3()))
+  const patch_bis = ExternalCache.getPatch(patch.bbox.getCenter(new Vector3()))
   const patch_start = patch.bbox.min
 
   for (const entity_chunk of patch.entitiesChunks) {
@@ -112,7 +108,7 @@ const entities_blocks_pass = (patch, chunk) => {
     const bmin = new Vector3(...Object.values(min))
     const bmax = new Vector3(...Object.values(max))
     const entity_bbox = new Box3(bmin, bmax)
-    const blocks_iter = patch.getBlocks(entity_chunk.bbox)
+    const blocks_iter = patch.getBlocks(entity_chunk.bbox, true)
     let chunk_index = 0
     for (const block of blocks_iter) {
       const buffer_str = entity_chunk.data[chunk_index]
@@ -123,6 +119,7 @@ const entities_blocks_pass = (patch, chunk) => {
         block.buffer = buffer
         block.localPos.x += 1
         block.localPos.z += 1
+        bmin.y = block.localPos.y
         write_chunk_blocks(chunk, block.localPos, block.type, block.buffer)
       }
       chunk_index++
@@ -198,6 +195,6 @@ export function feed_engine_with_chunks(patch_queue) {
 
 export function get_terrain_height({ x, z }, entity_height = 0) {
   const ground_pos = new Vector3(Math.floor(x), 350, Math.floor(z))
-  const { pos = ground_pos } = PatchBlocksCache.getGroundBlock(ground_pos) ?? {}
+  const { pos = ground_pos } = ExternalCache.getGroundBlock(ground_pos) ?? {}
   return Math.ceil(pos.y + 1) + entity_height * 0.5
 }
