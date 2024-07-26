@@ -44,13 +44,13 @@ export function play_step_sound() {
   }
 }
 
-const audio_buffer = import('../../assets/sound/main_theme.mp3')
+const audio_buffer = import('../../assets/sound/plaine_caffres.mp3')
   .then(module => module.default)
   .then(main_theme => audio_loader.loadAsync(main_theme))
   .then(buffer => {
     main_audio.setBuffer(buffer)
     main_audio.setLoop(true)
-    main_audio.setVolume(0.5)
+    main_audio.setVolume(1.5)
   })
 
 /** @type {Type.Module} */
