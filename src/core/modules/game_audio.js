@@ -50,7 +50,7 @@ const audio_buffer = import('../../assets/sound/plaine_caffres.mp3')
   .then(buffer => {
     main_audio.setBuffer(buffer)
     main_audio.setLoop(true)
-    main_audio.setVolume(1.5)
+    main_audio.setVolume(1)
   })
 
 /** @type {Type.Module} */
