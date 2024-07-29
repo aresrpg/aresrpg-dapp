@@ -4,6 +4,7 @@ import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import Icons from 'unplugin-icons/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import ViteYaml from '@modyfi/vite-plugin-yaml'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,6 +14,7 @@ export default defineConfig({
   plugins: [
     vue(),
     vueI18n({}),
+    ViteYaml(),
     nodePolyfills({
       // To add only specific polyfills, add them here. If no option is passed, adds all polyfills
       include: ['stream', 'events', 'path', 'timers/promises', 'util'],

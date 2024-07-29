@@ -159,7 +159,7 @@ async function execute_sponsored({ transaction, sender, wallet }) {
   }).then(res => res.json())
 
   if (error === 'FAILURE')
-    toast.warn(t('ENOKI_DOWN'), 'Beeb boop', GameIconsBrokenBottle)
+    toast.warn(t('SUI_ENOKI_DOWN'), 'Beeb boop', GameIconsBrokenBottle)
 
   if (error) throw new Error(error)
 
@@ -202,7 +202,7 @@ async function execute_unsponsored({ transaction, sender, wallet }) {
 export const execute = async transaction => {
   const sender = get_address()
   if (!sender) {
-    toast.error(t('LOGIN_AGAIN'), t('WALLET_NOT_FOUND'))
+    toast.error(t('APP_LOGIN_AGAIN'), t('APP_WALLET_NOT_FOUND'))
     throw new Error('Wallet not found')
   }
 
@@ -211,7 +211,7 @@ export const execute = async transaction => {
 
     if (wallet.chain !== `sui:${NETWORK}`) {
       toast.error(
-        t('PLEASE_SWITCH_NETWORK') + ' ' + NETWORK,
+        t('WALLET_PLEASE_SWITCH_NETWORK') + ' ' + NETWORK,
         t('WALLET_CONFIG'),
         MaterialSymbolsLightRuleSettings,
       )
@@ -237,20 +237,15 @@ export const execute = async transaction => {
     console.dir({ execute_error: true, error })
 
     if (code === 'salt_failure')
-      toast.error(t('ENOKI_SALT'), 'Oh no!', TwemojiSalt)
+      toast.error(t('SUI_ENOKI_SALT'), 'Oh no!', TwemojiSalt)
     else if (message.includes('No valid gas coins'))
-      toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
+      toast.error(t('SUI_NO_GAS'), 'Suuuuuu', MapGasStation)
     else if (message === 'EAlreadyFed')
-      toast.warn(t('E_PET_ALREADY_FED'), 'Burp!', TwemojiSushi)
-    else if (message === 'EInventoryNotEmpty') toast.error(t('INV_NOT_EMPTY'))
+      toast.warn(t('SUI_PET_ALREADY_FED'), 'Burp!', TwemojiSushi)
+    else if (message === 'EInventoryNotEmpty')
+      toast.error(t('SUI_INV_NOT_EMPTY'))
     else if (message.includes('Some("assert_latest") }, 1'))
-      toast.error(t('OUTDATED'))
-    else if (message === 'FAILURE') {
-      // let upstream handle the error
-      // toast.error(t('FAILURE'))
-    } else {
-      // toast.error(message, 'Transaction failed')
-    }
+      toast.error(t('APP_OUTDATED'))
     throw error
   }
 }
@@ -277,7 +272,7 @@ export async function sui_faucet_mint(ticker) {
   if (last_mint.has(ticker)) {
     const last = last_mint.get(ticker)
     if (Date.now() - last < 5000) {
-      toast.warn(t('WAIT_A_MINUTE'))
+      toast.warn(t('APP_WAIT_A_MINUTE'))
       return 'WAIT_A_MINUTE'
     }
   }
@@ -448,7 +443,7 @@ export async function sui_reveal_craft(finished_craft) {
   )
 
   if (!first_personal_kiosk) {
-    toast.error(t('NO_PERSONAL_KIOSK'))
+    toast.error(t('SUI_NO_PERSONAL_KIOSK'))
     return
   }
 
@@ -736,7 +731,7 @@ export async function sui_is_character_name_taken(name) {
     })
   } catch (error) {
     if (error.message === 'NO_GAS')
-      toast.error(t('NO_GAS'), 'Suuuuuu', MapGasStation)
+      toast.error(t('SUI_NO_GAS'), 'Suuuuuu', MapGasStation)
     else toast.error(error.message, 'Transaction failed')
   }
 }
@@ -1112,7 +1107,7 @@ export async function sui_subscribe({ signal }) {
 
   signal.addEventListener('abort', try_reset, { once: true })
 
-  const tx_toast = toast.tx(t('SUBSCRIBE_START'))
+  const tx_toast = toast.tx(t('SUI_SUBSCRIBE_START'))
 
   try {
     await try_reset()
@@ -1142,14 +1137,14 @@ export async function sui_subscribe({ signal }) {
         },
       })
     })
-    tx_toast.update('success', t('SUI_SUBSCRIBE_OK'))
+    tx_toast.update('success', t('SUI_SUBSCRIBED'))
   } catch (error) {
     if (error.message.includes('Invalid params'))
       console.error(
         'Unable to subscribe to the Sui node as it is too crowded. Please try again later.',
       )
     else console.error('Unable to subscribe to the Sui node', error)
-    tx_toast.update('error', t('SUBSCRIBE_ERROR'))
+    tx_toast.update('error', t('SUI_SUBSCRIBE_ERROR'))
     active_subscription.unsubscribe = null
   }
 

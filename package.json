@@ -75,6 +75,7 @@
     "@iconify-json/token": "^1.1.6",
     "@iconify-json/token-branded": "^1.1.7",
     "@iconify-json/twemoji": "^1.1.15",
+    "@modyfi/vite-plugin-yaml": "^1.1.0",
     "@types/dat.gui": "^0.7.13",
     "@types/node": "^20.14.11",
     "@types/three": "^0.166.0",

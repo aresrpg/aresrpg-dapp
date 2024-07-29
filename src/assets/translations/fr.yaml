@@ -1,0 +1,36 @@
+SERVER_ALREADY_ONLINE: Il semble que vous êtes déjà connecté au serveur, veuillez patienter quelques secondes et réessayer
+SERVER_EARLY_ACCESS_KEY_REQUIRED: Vous avez besoin d'une clé d'accès anticipé pour jouer sur AresRPG
+SERVER_MAX_PLAYERS: Désolé sir, le serveur est plein et nous n'avons pas encore la capacité de gérer autant de joueurs, veuillez réessayer plus tard
+SERVER_SIGNATURE_TIMEOUT: Veuillez signer le message plus rapidement !
+SERVER_INVALID_SIGNATURE: Signature invalide
+SERVER_MOVE_FIRST: Veuillez vous déplacer avant de faire cette action, le serveur doit reconnaître votre existence d'abord
+SERVER_CHARACTER_UNLOCKED: Avez-vous débloqué votre personnage ?
+SERVER_MAX_CHARACTERS_PER_PLAYER: Vous ne pouvez pas jouer avec autant de personnages !
+APP_LOGIN_AGAIN: Veuillez vous reconnecter
+APP_WALLET_NOT_FOUND: Portefeuille non trouvé
+APP_OUTDATED: L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour l'application.
+WALLET_PLEASE_SWITCH_NETWORK: Veuillez changer de réseau Sui
+SUI_ENOKI_SALT: Enoki n'a pas réussi à livrer la transaction (échec du salt). Veuillez réessayer.
+SUI_NO_GAS: Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action
+SUI_NOT_ENOUGH_FOOD: Vous n'avez pas assez de nourriture !
+WALLET_CONFIG: Erreur de configuration du portefeuille
+SUI_SUBSCRIBED: Connecté à Sui
+SUI_PET_ALREADY_FED: Ce famillier n'a pas faim
+SUI_INV_NOT_EMPTY: Vous devez déséquiper tous les objets avant cela
+SUI_SUBSCRIBE_ERROR: La node Sui a refusé l'abonnement, veuillez rafraîchir la page pour réessayer
+SUI_NO_PERSONAL_KIOSK: Cette action nécessite de créer d'abord un personnage
+SUI_SUBSCRIBE_START: Abonnement a la node Sui en cours...
+SUI_FETCHING_DATA: Récupération des personnages et des objets...
+SUI_DATA_FETCHED: Récupération des personnages et des objets réussie
+APP_WAIT_A_MINUTE: Veuillez patienter avant de réessayer
+SUI_ENOKI_DOWN: Le service de sponsoring semble être en panne, veuillez réessayer plus tard.
+
+WS_FAILED_TO_CONNECT: Échec de la connexion au serveur, consultez https://status.aresrpg.world pour plus d'informations
+WS_RECONNECTED: De retour en ligne !
+WS_CONNECTING_TO_SERVER: Connexion au serveur
+WS_CONNECTED_TO_SERVER: Connecté au serveur
+
+SUI_ITEM_SOLD: a été vendu
+SUI_INVALID_CONTRACT: Le contrat est invalide, votre application est-elle à jour ? Essayez de rafraîchir la page
+WALLET_SIGN_MESSAGE: "[AresRPG] Ceci est un message de vérification pour prouver que vous possédez cette adresse. Cela vous permettra de vous connecter au serveur"
+BROWSER_NO_PERF: Votre appareil ne prend pas en charge WebGL ou fonctionne dans des conditions qui entraîneraient de graves problèmes de performance. Veuillez essayer sur un autre appareil ou assurez-vous que votre navigateur et vos pilotes sont à jour.

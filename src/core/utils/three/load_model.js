@@ -51,7 +51,6 @@ export async function load(
       model: cloned,
       skinned_mesh: cloned.getObjectByName(mesh_name),
       async set_variant(variant) {
-        console.log('set variant', variant)
         await functions.selectVariant(cloned, variant)
       },
       compute_animations() {

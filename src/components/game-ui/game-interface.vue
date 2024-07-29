@@ -4,7 +4,6 @@
     .no-characters
     zoneVue
     characterSelectVue
-    wsConnectBtnVue
   .middle
     gameInventory(v-if="inventory_opened")
   .bottom_panel
@@ -21,7 +20,6 @@
 import { ref } from 'vue';
 
 import characterSelectVue from './character-select.vue';
-import wsConnectBtnVue from './ws-connect-btn.vue';
 import zoneVue from './zone.vue';
 import gameChat from './game-chat.vue';
 import gameHealth from './game-health.vue';

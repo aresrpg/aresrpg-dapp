@@ -8,13 +8,20 @@ import FluentEmojiSkull from '~icons/fluent-emoji/skull'
 
 const { t } = i18n.global
 
+let server_down_toast = null
+
+export function notify_reconnected() {
+  if (server_down_toast) {
+    server_down_toast.update('success', t('WS_RECONNECTED'))
+    server_down_toast = null
+  }
+}
+
 export async function handle_server_error(reason) {
   if (!reason) {
-    toast.error(
-      t('NO_REASON'),
-      'Can the dev do something?',
-      "<i class='bx bx-error-circle'/>",
-    )
+    if (!server_down_toast)
+      server_down_toast = toast.tx(t('WS_CONNECTING_TO_SERVER'))
+    server_down_toast.update('loading', t('WS_CONNECTING_TO_SERVER'))
     return
   }
 
@@ -22,40 +29,44 @@ export async function handle_server_error(reason) {
     case 'USER_DISCONNECTED':
       return
     case 'ALREADY_ONLINE':
-      toast.error(t('ALREADY_ONLINE'), 'Oh no!', "<i class='bx bx-key'/>")
+      toast.error(
+        t('SERVER_ALREADY_ONLINE'),
+        'Oh no!',
+        "<i class='bx bx-key'/>",
+      )
       break
     case 'EARLY_ACCESS_KEY_REQUIRED':
       toast.error(
-        t('EARLY_ACCESS_KEY_REQUIRED'),
+        t('SERVER_EARLY_ACCESS_KEY_REQUIRED'),
         'Oh no!',
         "<i class='bx bx-key'/>",
       )
       break
     case 'MAX_PLAYERS':
-      toast.info(t('MAX_PLAYERS'), 'Suuuuu', "<i class='bx bxs-hot'/>")
+      toast.info(t('SERVER_MAX_PLAYERS'), 'Suuuuu', "<i class='bx bxs-hot'/>")
       break
     case 'SIGNATURE_TIMEOUT':
       if (ws_status.value === 'CLOSED')
         toast.error(
-          t('SIGNATURE_TIMEOUT'),
+          t('SERVER_SIGNATURE_TIMEOUT'),
           'Aaaaaaaah 🫠',
           "<i class='bx bxs-timer'/>",
         )
       break
     case 'INVALID_SIGNATURE':
-      toast.error(t('INVALID_SIGNATURE'))
+      toast.error(t('SERVER_INVALID_SIGNATURE'))
       break
     case 'CHARACTER_INVALID':
-      toast.error(t('MOVE_FIRST'))
+      toast.error(t('SERVER_MOVE_FIRST'))
       break
     case 'CHARACTER_UNLOCKED':
-      toast.error(t('CHARACTER_UNLOCKED'), '...', FluentEmojiSkull)
+      toast.error(t('SERVER_CHARACTER_UNLOCKED'), '...', FluentEmojiSkull)
       break
     case 'INVALID_CONTRACT':
-      toast.error(t('INVALID_CONTRACT'))
+      toast.error(t('SUI_INVALID_CONTRACT'))
       break
     case 'MAX_CHARACTERS_PER_PLAYER':
-      toast.error(t('MAX_CHARACTERS_PER_PLAYER'))
+      toast.error(t('SERVER_MAX_CHARACTERS_PER_PLAYER'))
       break
     default:
       toast.error(reason)

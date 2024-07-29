@@ -1,0 +1,36 @@
+SERVER_ALREADY_ONLINE: It seems you are already connected to the server, please wait a few seconds and try again
+SERVER_EARLY_ACCESS_KEY_REQUIRED: You need an early access key to play on AresRPG
+SERVER_MAX_PLAYERS: Sorry sir, the server is full and we don't yet have the capacity to handle that much players, please try again later
+SERVER_SIGNATURE_TIMEOUT: Please sign the message faster!
+SERVER_INVALID_SIGNATURE: Invalid signature
+SERVER_MOVE_FIRST: Please move before doing this action, the server must acknowledge your existence first
+SERVER_CHARACTER_UNLOCKED: Did you unlock your character ?
+SERVER_MAX_CHARACTERS_PER_PLAYER: You can't play with that many characters!
+APP_LOGIN_AGAIN: Please login again
+APP_WALLET_NOT_FOUND: Wallet not found
+APP_OUTDATED: The app is outdated and can't use this feature. Please update the app.
+WALLET_PLEASE_SWITCH_NETWORK: Please switch to the Sui
+SUI_ENOKI_SALT: Enoki failed to deliver the transaction (salt failure). Please try again.
+SUI_NO_GAS: You need Sui in your wallet to perform this action
+SUI_NOT_ENOUGH_FOOD: You do not have enough food!
+WALLET_CONFIG: Wallet configuration error
+SUI_SUBSCRIBED: Connected to Sui
+SUI_PET_ALREADY_FED: This pet is not hungry
+SUI_INV_NOT_EMPTY: You must unequip all items before that
+SUI_SUBSCRIBE_ERROR: The Sui node refused the subscription, please refresh the page to try again
+SUI_NO_PERSONAL_KIOSK: This action requires to create a character first
+SUI_SUBSCRIBE_START: Subscribing to Sui node...
+SUI_FETCHING_DATA: Fetching characters and items..
+SUI_DATA_FETCHED: Successfully fetched characters and items
+APP_WAIT_A_MINUTE: Please wait before trying again
+SUI_ENOKI_DOWN: The sponsoring service seems to be malfunctioning, please try again later.
+
+WS_FAILED_TO_CONNECT: Failed to connect to the server, check https://status.aresrpg.world for more information
+WS_RECONNECTED: Back online!
+WS_CONNECTING_TO_SERVER: Connecting to the server
+WS_CONNECTED_TO_SERVER: Connected to the server
+
+SUI_ITEM_SOLD: was sold
+SUI_INVALID_CONTRACT: The contract is invalid, is your app up to date ? Try to refresh the page
+WALLET_SIGN_MESSAGE: "[AresRPG] This is a verification message to prove that you own this address. It will allow you to connect to the server"
+BROWSER_NO_PERF: Your device does not support WebGL or it is running under conditions that would cause major performance issues. Please try on a different device or ensure your browser and drivers are up to date.

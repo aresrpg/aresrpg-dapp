@@ -66,7 +66,7 @@ import game_entites_stroll from '../modules/game_entites_stroll.js'
 import player_entities_interract from '../modules/player_entities_interract.js'
 import game_fights from '../modules/game_fights.js'
 
-import { handle_server_error } from './error_handler.js'
+import { handle_server_error, notify_reconnected } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
 
 // @ts-ignore
@@ -329,7 +329,7 @@ const renderer = new WebGLRenderer({
 })
 
 if (!renderer) {
-  toast.error(i18n.global.t('no_perf'), 'Rekt!', MdiClippy, 15000)
+  toast.error(i18n.global.t('BROWSER_NO_PERF'), 'Rekt!', MdiClippy, 15000)
   decrease_loading()
   throw new Error('Failed to create WebGLRenderer')
 }
@@ -381,13 +381,16 @@ renderer.info.autoReset = false
 composer.setSize(window.innerWidth, window.innerHeight)
 
 function connect_ws() {
+  logger.SOCKET('Connecting to server')
+  const connecting_toast = toast.tx(i18n.global.t('WS_CONNECTING_TO_SERVER'))
   return new Promise((resolve, reject) => {
     const { selected_address } = get_state().sui
     const server_url = VITE_SERVER_URL.replaceAll('http', 'ws')
+
     const { status } = useWebSocket(
       `${server_url}?address=${selected_address}`,
       {
-        autoReconnect: false,
+        autoReconnect: true,
         async onDisconnected(ws, event) {
           decrease_loading()
           await handle_server_error(event.reason)
@@ -416,12 +419,19 @@ function connect_ws() {
           ws.binaryType = 'arraybuffer'
           logger.SOCKET(`connected to ${server_url}`)
 
+          notify_reconnected()
+
           ares_client = create_client({
             socket_write: ws.send.bind(ws),
             socket_end: message => ws.close(1000, message),
           })
 
           ares_client.stream.pipe(packets)
+
+          connecting_toast.update(
+            'success',
+            i18n.global.t('WS_CONNECTED_TO_SERVER'),
+          )
 
           resolve()
         },
@@ -431,6 +441,9 @@ function connect_ws() {
     watch(status, value => {
       ws_status.value = value
     })
+  }).catch(error => {
+    console.error('Failed to connect:', error)
+    connecting_toast.update('error', i18n.global.t('WS_FAILED_TO_CONNECT'))
   })
 }
 

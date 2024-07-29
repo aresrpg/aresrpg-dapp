@@ -20,7 +20,7 @@ export default function () {
       } = i18n
 
       events.on('packet/signatureRequest', async ({ payload }) => {
-        const message = `${t('sign_message')}\n\n::${payload}`
+        const message = `${t('WALLET_SIGN_MESSAGE')}\n\n::${payload}`
         try {
           await sui_sign_payload(message)
           context.dispatch('action/set_online', true)

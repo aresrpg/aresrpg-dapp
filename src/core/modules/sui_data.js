@@ -421,7 +421,7 @@ export default function () {
             if (selected_address) {
               if (tx) tx.remove()
 
-              tx = toast.tx(t('FETCHING_DATA'))
+              tx = toast.tx(t('SUI_FETCHING_DATA'))
 
               // unsubscription is handled internally
               sui_subscribe(controller).then(emitter => {
@@ -702,7 +702,7 @@ export default function () {
                     // if the price isn't 0
                     toast.info(
                       // @ts-ignore
-                      `${my_listing.name} ${t('item_sold')}`,
+                      `${my_listing.name} ${t('SUI_ITEM_SOLD')}`,
                       // @ts-ignore
                       `+${pretty_print_mists(my_listing.list_price)} Sui`,
                       EmojioneMoneyBag,
@@ -874,13 +874,14 @@ export default function () {
                   update_tokens: true,
                   update_finished_crafts: true,
                 })
-                tx.update('success', t('DATA_FETCHED'))
+                tx.update('success', t('SUI_DATA_FETCHED'))
+                context.connect_ws()
               } catch (error) {
                 console.error(error)
                 tx.remove()
               }
             } else {
-              if (tx) tx.update('error', t('LOGIN_AGAIN'))
+              if (tx) tx.update('error', t('APP_LOGIN_AGAIN'))
               controller.abort()
               controller = new AbortController()
 

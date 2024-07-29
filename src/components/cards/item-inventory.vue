@@ -136,7 +136,7 @@ function on_right_click_item(event, item) {
         try {
           const fed = await sui_feed_pet(selected_item.value);
           if (fed) tx.update('success', t('fed'));
-          else tx.update('error', t('NOT_ENOUGH_FOOD'));
+          else tx.update('error', t('SUI_NOT_ENOUGH_FOOD'));
         } catch (error) {
           if (error.message.includes('101)')) {
             tx.update('error', t('pet_full'));
