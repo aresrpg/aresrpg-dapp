@@ -29,7 +29,18 @@ export default defineConfig({
       autoInstall: true,
     }),
     VitePWA({
-      includeAssets: ['favicon.ico', 'robots.txt', '*.png', '*.jpg', '*.svg'],
+      includeAssets: [
+        'favicon.ico',
+        'robots.txt',
+        '*.png',
+        '*.jpg',
+        '*.svg',
+        '*.gif',
+        '*.glb',
+        '*.mp3',
+        '*.wav',
+        '*.ogg',
+      ],
       registerType: 'prompt',
       workbox: {
         navigateFallback: '/index.html',
