@@ -20,7 +20,7 @@ const main_audio = new Audio(listener)
 const step_audio = new Audio(listener)
 
 step_audio.setLoop(false)
-step_audio.setVolume(0.5)
+step_audio.setVolume(0.7)
 step_audio.duration = 0.3
 
 const audio_loader = new AudioLoader()
