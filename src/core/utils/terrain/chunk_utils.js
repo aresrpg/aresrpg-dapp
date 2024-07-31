@@ -1,9 +1,9 @@
-import { BlockType, ExternalCache } from '@aresrpg/aresrpg-world'
+import { BlockType, WorldCache } from '@aresrpg/aresrpg-world'
 import { Vector3, MathUtils, Box3 } from 'three'
 
 import { world_patch_size } from './world_settings.js'
 
-const dbg_highlight_patch_borders = true // debug only
+const dbg_highlight_patch_borders = false // debug only
 
 const write_chunk_blocks = (
   chunk,
@@ -64,8 +64,10 @@ const edges_blocks_pass = chunk => {
       local_pos: new Vector3(i, 0, patch_size - 1),
     }
     const edges = [xmin, zmin, xmax, zmax]
-    edges.forEach(edge => {
-      const block_data = ExternalCache.getBlock(edge.global_pos.clone())
+    edges.forEach(async edge => {
+      const block_data = await WorldCache.getGroundBlock(
+        edge.global_pos.clone(),
+      )
       if (block_data) {
         const block_local_pos = edge.local_pos.clone()
         block_local_pos.y = block_data.pos.y
@@ -100,7 +102,7 @@ const ground_blocks_pass = (patch, chunk) => {
 }
 
 const entities_blocks_pass = (patch, chunk) => {
-  const patch_bis = ExternalCache.getPatch(patch.bbox.getCenter(new Vector3()))
+  const patch_bis = WorldCache.getPatch(patch.bbox.getCenter(new Vector3()))
   const patch_start = patch.bbox.min
 
   for (const entity_chunk of patch.entitiesChunks) {
@@ -169,32 +171,50 @@ export function fill_chunk_from_patch(patch, chunk_bbox) {
   return chunk.cache
 }
 
-export function feed_engine_with_chunks(patch_queue) {
-  while (patch_queue.length) {
-    const blocks_patch = patch_queue.pop()
-    const bmin = new Vector3(...Object.values(blocks_patch.bbox.min))
-    const bmax = new Vector3(...Object.values(blocks_patch.bbox.max))
-    const patch_coords = bmin.clone().divideScalar(world_patch_size)
-    const ymin = Math.floor(bmin.y / world_patch_size)
-    let ymax = Math.floor(bmax.y / world_patch_size)
-    ymax += bmax.y % world_patch_size > 0 ? 1 : 0
-    for (let y = ymin; y < ymax; y++) {
-      patch_coords.y = y
-      bmin.y = y * world_patch_size
-      bmax.y = (y + 1) * world_patch_size
-      const bbox = new Box3(bmin, bmax).clone().expandByScalar(1)
-      const chunk_data = fill_chunk_from_patch(blocks_patch, bbox)
-      const size = Math.round(Math.pow(chunk_data.length, 1 / 3))
-      const dimensions = new Vector3(size, size, size)
-      const chunk = { data: chunk_data, size: dimensions, isEmpty: false }
-      // perform engine call here
-      // voxelmap_viewer.enqueuePatch(patch_coords, chunk)
+function get_patch_chunk_ids(patch_key) {
+  const chunk_ids = []
+  const patch = WorldCache.patchLookupIndex[patch_key]
+  if (patch) {
+    for (let i = 6; i >= 0; i--) {
+      const chunk_coords = new Vector3(patch.coords.x, i, patch.coords.y)
+      chunk_ids.push(chunk_coords)
     }
   }
+  return chunk_ids
+}
+
+export function get_chunks_indices(patch_keys) {
+  // build chunk index
+  const patch_chunks_index = {}
+  // Object.values(WorldCache.patchLookupIndex)
+  const chunks_indices = patch_keys
+    .map(patch_key => get_patch_chunk_ids(patch_key))
+    .flat()
+  return chunks_indices
+}
+
+export function get_patch_chunks(patch_key) {
+  const patch = WorldCache.patchLookupIndex[patch_key]
+  const chunks_ids = get_patch_chunk_ids(patch_key)
+  const chunks = chunks_ids.map(chunk_coords => {
+    const bmin = chunk_coords.clone().multiplyScalar(world_patch_size)
+    const bmax = chunk_coords
+      .clone()
+      .addScalar(1)
+      .multiplyScalar(world_patch_size)
+    const chunk_bbox = new Box3(bmin, bmax)
+    chunk_bbox.expandByScalar(1)
+    const data = fill_chunk_from_patch(patch, chunk_bbox)
+    const size = Math.round(Math.pow(data.length, 1 / 3))
+    const dimensions = new Vector3(size, size, size)
+    const chunk = { id: chunk_coords, data, size: dimensions, isEmpty: false }
+    return chunk
+  })
+  return chunks
 }
 
 export function get_terrain_height({ x, z }, entity_height = 0) {
   const ground_pos = new Vector3(Math.floor(x), 350, Math.floor(z))
-  const { pos = ground_pos } = ExternalCache.getGroundBlock(ground_pos) ?? {}
+  const { pos = ground_pos } = WorldCache.getGroundBlock(ground_pos) ?? {}
   return Math.ceil(pos.y + 1) + entity_height * 0.5
 }
