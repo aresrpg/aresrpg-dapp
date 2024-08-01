@@ -1,154 +1,25 @@
-<i18n>
-en:
-  set: Set
-  to: to
-  damage: damage(s)
-  life_steal: life steal
-  heal: heal
-  earth: Earth
-  fire: Fire
-  water: Water
-  air: Air
-  vitality: vitality
-  wisdom: wisdom
-  strength: strength
-  intelligence: intelligence
-  chance: chance
-  agility: agility
-  critical: critical
-  raw_damage: damages
-  action: AP
-  movement: MP
-  range: range
-  earth_resistance: "% Earth resistance"
-  fire_resistance: "% Fire resistance"
-  water_resistance: "% Water resistance"
-  air_resistance: "% Air resistance"
-  effects: Effects
-  stomach: in stomach
-  last_feed: Last fed
-
-  relic: Relic
-  rune: Rune
-  mount: Mount
-  hat: Hat
-  cloack: Cloack
-  amulet: Amulet
-  ring: Ring
-  belt: Belt
-  boots: Boots
-  title: Title
-  pet: Pet
-  character: Character
-
-  weapons: Weapons
-
-  bow: Bow
-  wand: Wand
-  staff: Staff
-  dagger: Dagger
-  shovel: Shovel
-  sword: Sword
-  scythe: Scythe
-  axe: Axe
-  hammer: Hammer
-  fishing_rod: Fishing rod
-  pickaxe: Pickaxe
-
-  resource: Resource
-
-  key: Key
-
-  consumable: Consumable
-
-  orb: Orb
-fr:
-  set: Panoplie
-  to: à
-  damage: dégât(s)
-  life_steal: vol de vie
-  heal: soin
-  earth: Terre
-  fire: Feu
-  water: Eau
-  air: Air
-  vitality: vitalité
-  wisdom: sagesse
-  strength: force
-  intelligence: intelligence
-  chance: chance
-  agility: agilité
-  critical: coups critique
-  raw_damage: dommages
-  action: PA
-  movement: PM
-  range: portée
-  earth_resistance: "% Résistance Terre"
-  fire_resistance: "% Résistance Feu"
-  water_resistance: "% Résistance Eau"
-  air_resistance: "% Résistance Air"
-  effects: Effets
-  stomach: dans l'estomac
-  last_feed: Dernier repas
-
-  relic: Relique
-  rune: Rune
-  mount: Monture
-  hat: Coiffe
-  cloack: Cape
-  amulet: Amulette
-  ring: Anneau
-  belt: Ceinture
-  boots: Bottes
-  title: Titre
-  pet: Familier
-  character: Perso
-
-  weapons: Armes
-
-  bow: Arc
-  wand: Baguette
-  staff: Bâton
-  dagger: Dague
-  shovel: Pelle
-  sword: Épée
-  scythe: Faux
-  axe: Hache
-  hammer: Marteau
-  fishing_rod: Canne à pêche
-  pickaxe: Pioche
-
-  resource: Ressource
-
-  key: Clé
-
-  consumable: Consommable
-
-  orb: Orbe
-</i18n>
-
 <template lang="pug">
 .description-container(v-if="item")
   .header
     .name {{ item.name }}
-    .set(v-if="item.item_set !== 'none'") ({{ t('set') }} {{ item.item_set }})
+    .set(v-if="item.item_set !== 'none'") ({{ t('APP_ITEM_SET') }} {{ item.item_set }})
     .lvl Lvl. {{ item.level || experience_to_level(item.experience) }}
   .content
     .left-content
       img.icon(:src="item?.image_url")
-      .category {{ t(item.item_category || 'not found') }}
+      .category {{ t(`APP_ITEM_${item.item_category.toUpperCase()}` || 'not found') }}
       a.id(v-if="item.id" @click="() => open_explorer(item.id)") {{ short_id(item.id) }}
       .bottom(v-if="item.critical_chance") cc: {{ item.critical_chance }} / {{ item.critical_outcomes }}
     .right-content
       .scroll-container
-        .eff {{ t('effects') }}:
+        .eff {{ t('APP_ITEM_EFFECTS') }}:
         .damage(
           v-if="item.damages?.length"
           v-for="damage in item.damages"
           :key="damage.id"
           :class="damage.element"
         )
-          .dmg(:class="damage.element") {{ damage.from }} {{ t('to') }} {{ damage.to }} {{ t(damage.damage_type) }} {{ t(damage.element) }}
+          .dmg(:class="damage.element") {{ damage.from }} {{ t('APP_ITEM_TO') }} {{ damage.to }} {{ t(`APP_ITEM_${damage.damage_type.toUpperCase()}`) }} {{ t(`APP_ITEM_${damage.element.toUpperCase()}`) }}
         .sepa
         div(
           v-if="stats.length"
@@ -156,10 +27,10 @@ fr:
           :key="stat.name"
         )
           img(:src="stat.icon")
-          .value +{{ stat.value }} {{ t(stat.name) }}
+          .value +{{ stat.value }} {{ t(`APP_ITEM_${stat.name.toUpperCase()}`) }}
         .sepa(v-if="item.last_feed")
-        .stomach(v-if="item.feed_level") #[b {{ item.food_name }}] {{ t('stomach') }}: {{ item.feed_level }} / {{ item.max_feed_level }}
-        .last-feed(v-if="item.last_feed") {{ t('last_feed') }}: {{ item.last_feed }}
+        .stomach(v-if="item.feed_level") #[b {{ item.food_name }}] {{ t('APP_ITEM_STOMACH') }}: {{ item.feed_level }} / {{ item.max_feed_level }}
+        .last-feed(v-if="item.last_feed") {{ t('APP_ITEM_LAST_FEED') }}: {{ item.last_feed }}
 
 </template>
 

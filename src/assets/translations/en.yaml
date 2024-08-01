@@ -6,14 +6,266 @@ SERVER_INVALID_SIGNATURE: Invalid signature
 SERVER_MOVE_FIRST: Please move before doing this action, the server must acknowledge your existence first
 SERVER_CHARACTER_UNLOCKED: Did you unlock your character ?
 SERVER_MAX_CHARACTERS_PER_PLAYER: You can't play with that many characters!
+
 APP_LOGIN_AGAIN: Please login again
 APP_WALLET_NOT_FOUND: Wallet not found
 APP_OUTDATED: The app is outdated and can't use this feature. Please update the app.
+APP_WAIT_A_MINUTE: Please wait before trying again
+APP_SCREEN_TOO_SMALL: Use this app on desktop only
+APP_CHOOSE_LANG: Choose a language
+APP_WELCOME: Welcome Adventurer!
+APP_TAB_CHARACTERS_EXPLANATION: |
+  AresRPG is an immersive voxel-based MMORPG that unfolds entirely within your browser, uniquely crafted atop the {0} chain.
+  Our innovative approach eliminates the need for traditional databases; every piece of data is securely stored on-chain.
+  This means you, as a User, hold complete ownership over your in-game assets.
+  Everything from items and characters to gold coins and titles resides within your wallet, offering you unparalleled control and security.
+  In a bid to make AresRPG accessible to everyone, we absorb transaction costs for users who sign in through Google (ZkLogin), allowing you to dive into our infinite world for free.
+APP_TAB_CHARACTERS_EXPLANATION_ALT: |
+  The game offers limitless character creation, enabling you to forge as many personas as you wish.
+  Each character embarks on its own unique journey, boasting a personalized inventory and progression pathway.
+  The freedom is yours: Stuff your characters as you see fit, and should you decide, you can easily withdraw them or their items to feature anything on the marketplace for trade.
+  AresRPG is not just a game; it's a realm where your decisions craft your destiny, and your assets are truly your own.
+APP_LOCKED_CHARACTERS: 🔒 Selected characters
+APP_LOCKED_CHARACTERS_DESC: Those characters are currently in use, you can play with them in the game
+APP_UNLOCKED_CHARACTERS: Available characters
+APP_UNLOCKED_CHARACTERS_DESC: These one are only in your wallet, you can freely transfer or sell them
+APP_CHARACTER_NEW: New character
+
+APP_TAB_SHOP_SELL: Sell
+APP_TAB_SHOP_BUY: Buy"
+APP_TAB_SHOP_FAUCET: Faucet
+APP_TAB_SHOP_WRONG_PRICE: Invalid price
+APP_TAB_SHOP_LISTING: Listing in the market
+APP_TAB_SHOP_LISTED: Listed
+APP_TAB_SHOP_FAILED_TO_LIST: Failed to list item
+APP_TAB_SHOP_MINT: Shop
+APP_TAB_SHOP_MINT_TITLE: AresRPG limited editions items
+APP_TAB_SHOP_MINT_HEADER: In this section you have access to special limited edition items, they can appear during events or special occasions.
+APP_TAB_SHOP_CLOSE: Close
+APP_TAB_SHOP_REVEALED: Impressive, you got a new Item!
+APP_TAB_WORKSHOP: Workshop
+APP_TAB_WORKSHOP_DESC: Here you can craft items if you have the required job & level.
+APP_TAB_WORKSHOP_TAILOR: Tailor
+APP_TAB_WORKSHOP_WOODCUTTER: Lumberjack
+APP_TAB_WORKSHOP_RECIPES: Available Recipes
+APP_TAB_WORKSHOP_JOBS: My Jobs
+
+APP_FAUCET_CLAIM: Claim some testnet {0}
+APP_FAUCET_CLAIMING: Claiming 10 test tokens
+APP_FAUCET_CLAIMED: Successfully claimed test tokens
+APP_FAUCET_FAILED: Failed to claim test tokens
+
+APP_ITEM_SET: Set
+APP_ITEM_TO: to
+APP_ITEM_DAMAGE: damage(s)
+APP_ITEM_LIFE_STEAL: life steal
+APP_ITEM_HEAL: heal
+APP_ITEM_EARTH: Earth
+APP_ITEM_FIRE: Fire
+APP_ITEM_WATER: Water
+APP_ITEM_AIR: Air
+APP_ITEM_VITALITY: vitality
+APP_ITEM_WISDOM: wisdom
+APP_ITEM_STRENGTH: strength
+APP_ITEM_INTELLIGENCE: intelligence
+APP_ITEM_CHANCE: chance
+APP_ITEM_AGILITY: agility
+APP_ITEM_CRITICAL: critical
+APP_ITEM_RAW_DAMAGE: damages
+APP_ITEM_ACTION: AP
+APP_ITEM_MOVEMENT: MP
+APP_ITEM_RANGE: range
+APP_ITEM_EARTH_RESISTANCE: "% earth resistance"
+APP_ITEM_FIRE_RESISTANCE: "% fire resistance"
+APP_ITEM_WATER_RESISTANCE: "% water resistance"
+APP_ITEM_AIR_RESISTANCE: "% air resistance"
+APP_ITEM_EFFECTS: Effects
+APP_ITEM_STOMACH: in stomach
+APP_ITEM_LAST_FEED: Last fed
+APP_ITEM_RELIC: Relic
+APP_ITEM_RUNE: Rune
+APP_ITEM_MOUNT: Mount
+APP_ITEM_HAT: Hat
+APP_ITEM_CLOACK: Cloack
+APP_ITEM_AMULET: Amulet
+APP_ITEM_RING: Ring
+APP_ITEM_BELT: Belt
+APP_ITEM_BOOTS: Boots
+APP_ITEM_TITLE: Title
+APP_ITEM_PET: Pet
+APP_ITEM_CHARACTER: Character
+APP_ITEM_WEAPON: Weapons
+APP_ITEM_BOW: Bow
+APP_ITEM_WAND: Wand
+APP_ITEM_STAFF: Staff
+APP_ITEM_DAGGER: Dagger
+APP_ITEM_SHOVEL: Shovel
+APP_ITEM_SWORD: Sword
+APP_ITEM_SCYTHE: Scythe
+APP_ITEM_AXE: Axe
+APP_ITEM_HAMMER: Hammer
+APP_ITEM_FISHING_ROD: Fishing rod
+APP_ITEM_PICKAXE: Pickaxe
+APP_ITEM_RESOURCE: Resource
+APP_ITEM_KEY: Key
+APP_ITEM_CONSUMABLE: Consumable
+APP_ITEM_ORB: Orb
+
+APP_ITEM_FEED: Feed with
+APP_ITEM_FEEDING: Feeding your small friend
+APP_ITEM_FED: Your pet is very happy now!
+APP_ITEM_PET_FULL: Your pet is not hungry
+APP_ITEM_FEED_FAILED: Failed to feed your pet
+APP_ITEM_DELETE: Destroy item
+APP_ITEM_DELETE_CONFIRM: Delete
+APP_ITEM_CANCEL: Cancel
+APP_ITEM_DELETE_DESC: Are you sure you want to delete {0} ? This action is irreversible.
+APP_ITEM_DELETING: Deleting item
+APP_ITEM_DELETED: Item deleted!
+APP_ITEM_FAILED_TO_DELETE: Failed to delete item
+
+APP_MARKET_NO_ITEMS: No items are currently sold in this category
+APP_MARKET_CATEGORY: Category
+APP_MARKET_NAME: Name
+APP_MARKET_CHOOSE: Type a category
+APP_MARKET_CHOOSE_NAME: Type an item name
+APP_MARKET_EQUIPMENT: Equipment
+APP_MARKET_CONSUMABLES: Consumables
+APP_MARKET_MISC: Misc
+APP_MARKET_LISTED: listed
+APP_MARKET_FLOOR: floor
+APP_MARKET_BUY: Buy
+APP_MARKET_BUY_CONFIRM: Confirm purchase
+APP_MARKET_CONFIRM_DESC: Are you sure you want to buy {0} for {1} ?
+APP_MARKET_CANCEL: Cancel
+APP_MARKET_CONFIRM: Pay now
+APP_MARKET_BUY_SUCCESS: Purchase successful
+APP_MARKET_INSUFFICIENT_FUNDS: You are way to broke to afford this precious item..
+APP_MARKET_NO_LISTINGS: No listings available
+APP_MARKET_WITHDRAW: Withdraw
+APP_MARKET_DELISTING: Delisting item
+APP_MARKET_DELISTED: Item delisted
+APP_MARKET_FAILED_TO_DELIST: Failed to delist item
+
+APP_MINT_CARD_MINT: Mint
+APP_MINT_CARD_MINTING: Minting item
+APP_MINT_CARD_MINTED: Item minted successfully
+APP_MINT_CARD_FAILED_TO_MINT: Failed to mint item
+APP_MINT_CARD_TOTAL: Total
+APP_MINT_CARD_FREE: Free Mint
+APP_MINT_CARD_VAPOREONTEXT: |
+  This Vaporeon is a pet which you can equip on AresRPG, he will follow you in your exploration and fights.
+  Feed him with some $HSUI daily, and he will increase your stats
+
+APP_RECIPE_REQUIREMENTS: Requirements
+APP_RECIPE_TAILOR: Tailor
+APP_RECIPE_CRAFT: Craft
+APP_RECIPE_REVEAL: Reveal
+APP_RECIPE_CRAFT_TITLE: Craft item
+APP_RECIPE_CRAFT_DESC: Are you sure you want to craft {0} ?
+APP_RECIPE_CANCEL: Cancel
+APP_RECIPE_CRAFTING: Crafting item
+APP_RECIPE_CRAFTED: Item crafted
+APP_RECIPE_FAILED_TO_CRAFT: Failed to craft item
+APP_RECIPE_REVEALING: Revealing item
+APP_RECIPE_REVEALED: Item revealed
+APP_RECIPE_FAILED_TO_REVEAL: Failed to reveal item
+APP_RECIPE_CLOSE: Close
+
+APP_SERVER_ONLINE_PLAYERS: Online players
+APP_SERVER_TOTAL_PLAYERS: Registered players
+APP_SERVER_SERVER: Server
+APP_SERVER_NOT_ONLINE: You must connect to the server to see live analytics
+
+APP_USER_LOCK: Select
+APP_USER_UNLOCK: Unselect
+APP_USER_DELETE: Delete
+APP_USER_SEND: Send
+APP_USER_DELETE_DESC: Are you sure you want to delete this character?
+APP_USER_CANCEL: Cancel
+APP_USER_CONFIRM: Confirm
+APP_USER_INVALID_ADDRESS: Invalid Sui address
+APP_USER_LOCK_DESC: You're about to select this character to access it in game, you can unselect it at anytime when you're done playing
+APP_USER_UNLOCK_DESC: You're about to unselect this character and retrieve it in your wallet
+APP_USER_LOCK_FAILED: Failed to select character, please retry shortly
+APP_USER_UNLOCK_FAILED: Failed to unselect character, please retry shortly
+APP_USER_DELETE_FAILED: Failed to delete character, please retry shortly
+APP_USER_DELETING: Deleting character
+APP_USER_DELETED: Character deleted
+APP_USER_SELECTING: Selecting character
+APP_USER_SELECTED: Character selected
+APP_USER_UNSELECTING: Unselecting character
+APP_USER_UNSELECTED: Character unselected
+APP_USER_UNSELECTING_STUFF: You must unequip all items before unselecting this character
+
+APP_CHARACTER_NAME: Character name
+APP_CHARACTER_NAME_VALID: The character name must be between 3 and 20 chars
+APP_CHARACTER_CREATE_BUTTON: Create
+APP_CHARACTER_CANCEL_BUTTON: Cancel
+APP_CHARACTER_NAME_TOO_LONG: Name is too long
+APP_CHARACTER_NAME_INVALID: Name is invalid
+APP_CHARACTER_NAME_WHITE_SPACE: Name can't contain white spaces
+APP_CHARACTER_NAME_TAKEN: This name is already taken
+APP_CHARACTER_CREATE_TX: Saving character on Sui 💧
+APP_CHARACTER_CREATE_OK: Character created!
+APP_CHARACTER_CREATE_ERROR: Error while creating character
+APP_CHARACTER_NO_CHARACTERS: You must lock a character to play
+
+APP_GAME_CHAT_COPY_ADDRESS: Copy address
+APP_GAME_CHAT_COPIED: Address copied to clipboard
+APP_GAME_CHAT_NO_CHARACTER: You must select a character first
+APP_GAME_CHAT_NO_ONLINE: You must be online to send a message
+
+APP_GAME_INVENTORY_CLAIM_ALL: Claim all
+
+APP_ZONE_PLAYERS: Players
+
+APP_PLEASE_CONNECT: Welcome on AresRPG, please login to get started
+
+APP_SIDEBAR_SHOP: Market
+APP_SIDEBAR_SETTINGS: Settings
+APP_SIDEBAR_LANG: Choose a language
+APP_SIDEBAR_WORLD: Open World
+APP_SIDEBAR_CHARACTERS: Characters
+APP_SIDEBAR_ADMIN: Admin
+APP_SIDEBAR_WORKSHOP: Workshop
+
+APP_TOP_BAR_LOGOUT: Logout
+APP_TOP_BAR_DISCONNECT: Disconnect
+APP_TOP_BAR_CONNECT: Connect
+APP_TOP_BAR_WITH: with
+APP_TOP_BAR_LOGIN: Choose a login method
+APP_TOP_BAR_ALT: Using google will provide you with an invisible Sui wallet using {0}
+APP_TOP_BAR_ALT2: If you prefer using your own wallet and manage each transaction, choose the Sui option
+APP_TOP_BAR_TESTNET: You are currently on a test network
+APP_TOP_BAR_MAINNET: AresRPG is not yet launched on the mainnet! Try out {0}
+APP_TOP_BAR_COPY: Copy address
+APP_TOP_BAR_COPIED: Address copied to clipboard
+APP_TOP_BAR_SALES: Sales
+APP_TOP_BAR_CLAIMING_PROFIT: Claiming sales profits
+APP_TOP_BAR_PROFIT_CLAIMED: Wow! that's a good chunk you got there!
+APP_TOP_BAR_CLAIM_FAILED: Error claiming sales profits
+APP_TOP_BAR_FAUCET_CLAIM: Printing some test Sui
+APP_TOP_BAR_FAUCET_CLAIMED: Sui claimed
+APP_TOP_BAR_FAUCET_FAILED: Failed to claim Sui
+APP_TOP_BAR_FAUCET: Get some Sui
+
+APP_WALLET_CONNECT: Connect a Wallet
+APP_WALLET_WHAT: What is a Wallet
+APP_WALLET_SECTION1_TITLE: Easy login
+APP_WALLET_SECTION1_DESC: No need to create new accounts and passwords for every website. Just connect your wallet and get going.
+APP_WALLET_SECTION2_TITLE: Store your Digital assets
+APP_WALLET_SECTION2_DESC: Send, receive, store, and display your items and tokens.
+APP_WALLET_CONNECT_REFUSED: Why did you cancel ? 🫠
+APP_WALLET_NO_WALLET: It seem you don't have any wallet, please install one. You can start with the official
+
 WALLET_PLEASE_SWITCH_NETWORK: Please switch to the Sui
+WALLET_CONFIG: Wallet configuration error
+WALLET_SIGN_MESSAGE: "[AresRPG] This is a verification message to prove that you own this address. It will allow you to connect to the server"
+
 SUI_ENOKI_SALT: Enoki failed to deliver the transaction (salt failure). Please try again.
 SUI_NO_GAS: You need Sui in your wallet to perform this action
 SUI_NOT_ENOUGH_FOOD: You do not have enough food!
-WALLET_CONFIG: Wallet configuration error
 SUI_SUBSCRIBED: Connected to Sui
 SUI_PET_ALREADY_FED: This pet is not hungry
 SUI_INV_NOT_EMPTY: You must unequip all items before that
@@ -22,15 +274,13 @@ SUI_NO_PERSONAL_KIOSK: This action requires to create a character first
 SUI_SUBSCRIBE_START: Subscribing to Sui node...
 SUI_FETCHING_DATA: Fetching characters and items..
 SUI_DATA_FETCHED: Successfully fetched characters and items
-APP_WAIT_A_MINUTE: Please wait before trying again
 SUI_ENOKI_DOWN: The sponsoring service seems to be malfunctioning, please try again later.
+SUI_ITEM_SOLD: was sold
+SUI_INVALID_CONTRACT: The contract is invalid, is your app up to date ? Try to refresh the page
 
 WS_FAILED_TO_CONNECT: Failed to connect to the server, check https://status.aresrpg.world for more information
 WS_RECONNECTED: Back online!
 WS_CONNECTING_TO_SERVER: Connecting to the server
 WS_CONNECTED_TO_SERVER: Connected to the server
 
-SUI_ITEM_SOLD: was sold
-SUI_INVALID_CONTRACT: The contract is invalid, is your app up to date ? Try to refresh the page
-WALLET_SIGN_MESSAGE: "[AresRPG] This is a verification message to prove that you own this address. It will allow you to connect to the server"
 BROWSER_NO_PERF: Your device does not support WebGL or it is running under conditions that would cause major performance issues. Please try on a different device or ensure your browser and drivers are up to date.

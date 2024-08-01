@@ -1,0 +1,286 @@
+SERVER_ALREADY_ONLINE: すでにサーバーに接続しているようです。数秒待ってからもう一度お試しください。
+SERVER_EARLY_ACCESS_KEY_REQUIRED: AresRPGをプレイするには早期アクセスキーが必要です。
+SERVER_MAX_PLAYERS: 申し訳ありませんが、サーバーは満員です。これ以上のプレイヤーを処理する容量がまだありませんので、後ほどもう一度お試しください。
+SERVER_SIGNATURE_TIMEOUT: メッセージの署名をもっと早く行ってください！
+SERVER_INVALID_SIGNATURE: 無効な署名です。
+SERVER_MOVE_FIRST: このアクションを実行する前に移動してください。サーバーはまずあなたの存在を確認する必要があります。
+SERVER_CHARACTER_UNLOCKED: キャラクターを解除しましたか？
+SERVER_MAX_CHARACTERS_PER_PLAYER: これほど多くのキャラクターを使用することはできません！
+
+APP_LOGIN_AGAIN: もう一度ログインしてください。
+APP_WALLET_NOT_FOUND: ウォレットが見つかりません。
+APP_OUTDATED: アプリが古くなっており、この機能を使用できません。アプ"リを更新してください。
+APP_WAIT_A_MINUTE: もう一度試す前に少しお待ちください。
+APP_SCREEN_TOO_SMALL: このアプリはデスクトップでのみ使用してください。
+APP_CHOOSE_LANG: 言語を選択してください。
+APP_WELCOME: ようこそ冒険者！
+APP_TAB_CHARACTERS_EXPLANATION: |
+  AresRPGは、{0}チェーンの上にユニークに構築された、完全にブラウザ内で展開する没入型のボクセルベースのMMORPGです。
+  私たちの革新的なアプローチにより、従来のデータベースは不要です。すべてのデータは安全にオンチェーンで保存されます。
+  これにより、ユーザーとしてあなたはゲーム内資産の完全な所有権を持つことができます。
+  アイテムやキャラクターから金貨やタイトルまですべてがウォレット内に保存され、比類ないコントロールとセキュリティを提供します。
+  AresRPGを誰でもアクセス可能にするために、Googleを通じてサインインするユーザーにはトランザクションコストを負担します（ZkLogin）。これにより、無料で私たちの無限の世界に飛び込むことができます。
+APP_TAB_CHARACTERS_EXPLANATION_ALT: |
+  ゲームは無制限のキャラクター作成を提供し、好きなだけ多くのキャラクターを作り出すことができます。
+  各キャラクターは独自の旅を始め、パーソナライズされたインベントリと進行経路を持ちます。
+  自由はあなたのものです：あなたのキャラクターを思う存分詰め込んでください。必要に応じて、それらやアイテムを簡単に引き出し、マーケットプレイスに出品することもできます。
+  AresRPGは単なるゲームではなく、あなたの決定が運命を形作り、あなたの資産が真にあなたのものとなる世界です。
+APP_LOCKED_CHARACTERS: 🔒 選択されたキャラクター
+APP_LOCKED_CHARACTERS_DESC: これらのキャラクターは現在使用中です。ゲーム内でプレイできます。
+APP_UNLOCKED_CHARACTERS: 利用可能なキャラクター
+APP_UNLOCKED_CHARACTERS_DESC: これらはあなたのウォレットにのみ存在します。自由に転送や販売ができます。
+APP_CHARACTER_NEW: 新しいキャラクター
+
+APP_TAB_SHOP_SELL: 売る
+APP_TAB_SHOP_BUY: 買う
+APP_TAB_SHOP_FAUCET: ファウセット
+APP_TAB_SHOP_WRONG_PRICE: 無効な価格
+APP_TAB_SHOP_LISTING: マーケットへの出品
+APP_TAB_SHOP_LISTED: 出品済み
+APP_TAB_SHOP_FAILED_TO_LIST: アイテムの出品に失敗しました。
+APP_TAB_SHOP_MINT: ショップ
+APP_TAB_SHOP_MINT_TITLE: AresRPG限定アイテム
+APP_TAB_SHOP_MINT_HEADER: このセクションでは、イベントや特別な機会に登場する特別な限定アイテムにアクセスできます。
+APP_TAB_SHOP_CLOSE: 閉じる
+APP_TAB_SHOP_REVEALED: 素晴らしい、新しいアイテムを手に入れました！
+APP_TAB_WORKSHOP: ワークショップ
+APP_TAB_WORKSHOP_DESC: ここでは、必要なジョブとレベルがあればアイテムを作成できます。
+APP_TAB_WORKSHOP_TAILOR: 裁縫師
+APP_TAB_WORKSHOP_WOODCUTTER: 木こり
+APP_TAB_WORKSHOP_RECIPES: 利用可能なレシピ
+APP_TAB_WORKSHOP_JOBS: 私のジョブ
+
+APP_FAUCET_CLAIM: 一部のテストネット{0}を請求する
+APP_FAUCET_CLAIMING: 10テストトークンを請求中
+APP_FAUCET_CLAIMED: テストトークンを正常に請求しました
+APP_FAUCET_FAILED: テストトークンの請求に失敗しました
+
+APP_ITEM_SET: セット
+APP_ITEM_TO: に
+APP_ITEM_DAMAGE: ダメージ
+APP_ITEM_LIFE_STEAL: ライフスティール
+APP_ITEM_HEAL: 回復
+APP_ITEM_EARTH: 地
+APP_ITEM_FIRE: 火
+APP_ITEM_WATER: 水
+APP_ITEM_AIR: 風
+APP_ITEM_VITALITY: 体力
+APP_ITEM_WISDOM: 知恵
+APP_ITEM_STRENGTH: 力
+APP_ITEM_INTELLIGENCE: 知性
+APP_ITEM_CHANCE: 運
+APP_ITEM_AGILITY: 機敏さ
+APP_ITEM_CRITICAL: クリティカル
+APP_ITEM_RAW_DAMAGE: ダメージ
+APP_ITEM_ACTION: 行動ポイント
+APP_ITEM_MOVEMENT: 移動ポイント
+APP_ITEM_RANGE: 射程
+APP_ITEM_EARTH_RESISTANCE: "% 地耐性"
+APP_ITEM_FIRE_RESISTANCE: "% 火耐性"
+APP_ITEM_WATER_RESISTANCE: "% 水耐性"
+APP_ITEM_AIR_RESISTANCE: "% 風耐性"
+APP_ITEM_EFFECTS: 効果
+APP_ITEM_STOMACH: 胃の中
+APP_ITEM_LAST_FEED: 最後の餌やり
+APP_ITEM_RELIC: レリック
+APP_ITEM_RUNE: ルーン
+APP_ITEM_MOUNT: マウント
+APP_ITEM_HAT: 帽子
+APP_ITEM_CLOACK: マント
+APP_ITEM_AMULET: アミュレット
+APP_ITEM_RING: 指輪
+APP_ITEM_BELT: ベルト
+APP_ITEM_BOOTS: ブーツ
+APP_ITEM_TITLE: タイトル
+APP_ITEM_PET: ペット
+APP_ITEM_CHARACTER: キャラクター
+APP_ITEM_WEAPON: 武器
+APP_ITEM_BOW: 弓
+APP_ITEM_WAND: 杖
+APP_ITEM_STAFF: スタッフ
+APP_ITEM_DAGGER: 短剣
+APP_ITEM_SHOVEL: シャベル
+APP_ITEM_SWORD: 剣
+APP_ITEM_SCYTHE: 大鎌
+APP_ITEM_AXE: 斧
+APP_ITEM_HAMMER: ハンマー
+APP_ITEM_FISHING_ROD: 釣り竿
+APP_ITEM_PICKAXE: ツルハシ
+APP_ITEM_RESOURCE: 資源
+APP_ITEM_KEY: 鍵
+APP_ITEM_CONSUMABLE: 消耗品
+APP_ITEM_ORB: オーブ
+
+APP_ITEM_FEED: で餌をやる
+APP_ITEM_FEEDING: 小さな友達に餌をやっています
+APP_ITEM_FED: あなたのペットはとても幸せです！
+APP_ITEM_PET_FULL: あなたのペットはお腹がいっぱいです
+APP_ITEM_FEED_FAILED: ペットの餌やりに失敗しました
+APP_ITEM_DELETE: アイテムを削除する
+APP_ITEM_DELETE_CONFIRM: 削除
+APP_ITEM_CANCEL: キャンセル
+APP_ITEM_DELETE_DESC: "{0} を削除してもよろしいですか？この操作は取り消せません。"
+APP_ITEM_DELETING: アイテムを削除中
+APP_ITEM_DELETED: アイテムが削除されました！
+APP_ITEM_FAILED_TO_DELETE: アイテムの削除に失敗しました
+
+APP_MARKET_NO_ITEMS: このカテゴリーには現在販売されているアイテムはありません
+APP_MARKET_CATEGORY: カテゴリー
+APP_MARKET_NAME: 名前
+APP_MARKET_CHOOSE: カテゴリーを入力してください
+APP_MARKET_CHOOSE_NAME: アイテム名を入力してください
+APP_MARKET_EQUIPMENT: 装備
+APP_MARKET_CONSUMABLES: 消耗品
+APP_MARKET_MISC: その他
+APP_MARKET_LISTED: 上場
+APP_MARKET_FLOOR: フロア
+APP_MARKET_BUY: 買う
+APP_MARKET_BUY_CONFIRM: 購入確認
+APP_MARKET_CONFIRM_DESC: "{0} を{1} で購入してもよろしいですか？"
+APP_MARKET_CANCEL: キャンセル
+APP_MARKET_CONFIRM: 今すぐ支払う
+APP_MARKET_BUY_SUCCESS: 購入成功
+APP_MARKET_INSUFFICIENT_FUNDS: この貴重なアイテムを購入するには資金が不足しています。
+APP_MARKET_NO_LISTINGS: 利用可能なリスティングはありません
+APP_MARKET_WITHDRAW: 引き出す
+APP_MARKET_DELISTING: アイテムをリスティングから削除中
+APP_MARKET_DELISTED: アイテムがリスティングから削除されました
+APP_MARKET_FAILED_TO_DELIST: アイテムのリスティングからの削除に失敗しました
+
+APP_MINT_CARD_MINT: ミント
+APP_MINT_CARD_MINTING: アイテムをミント中
+APP_MINT_CARD_MINTED: アイテムが正常にミントされました
+APP_MINT_CARD_FAILED_TO_MINT: アイテムのミントに失敗しました
+APP_MINT_CARD_TOTAL: 合計
+APP_MINT_CARD_FREE: 無料ミント
+APP_MINT_CARD_VAPOREONTEXT: |
+  このシャワーズは、AresRPGで装備できるペットで、探索や戦闘であなたに同行します。
+  毎日$HSUIで餌を与えると、ステータスが上がります。
+
+APP_RECIPE_REQUIREMENTS: 必要条件
+APP_RECIPE_TAILOR: 裁縫師
+APP_RECIPE_CRAFT: クラフト
+APP_RECIPE_REVEAL: 明らかにする
+APP_RECIPE_CRAFT_TITLE: アイテムをクラフトする
+APP_RECIPE_CRAFT_DESC: "{0} をクラフトしてもよろしいですか？"
+APP_RECIPE_CANCEL: キャンセル
+APP_RECIPE_CRAFTING: アイテムをクラフト中
+APP_RECIPE_CRAFTED: アイテムがクラフトされました
+APP_RECIPE_FAILED_TO_CRAFT: アイテムのクラフトに失敗しました
+APP_RECIPE_REVEALING: アイテムを明らかにしています
+APP_RECIPE_REVEALED: アイテムが明らかになりました
+APP_RECIPE_FAILED_TO_REVEAL: アイテムの明らかに失敗しました
+APP_RECIPE_CLOSE: 閉じる
+
+APP_SERVER_ONLINE_PLAYERS: オンラインプレイヤー
+APP_SERVER_TOTAL_PLAYERS: 登録プレイヤー
+APP_SERVER_SERVER: サーバー
+APP_SERVER_NOT_ONLINE: ライブ分析を見るためにはサーバーに接続する必要があります。
+
+APP_USER_LOCK: 選択
+APP_USER_UNLOCK: 選択解除
+APP_USER_DELETE: 削除
+APP_USER_SEND: 送信
+APP_USER_DELETE_DESC: このキャラクターを削除してもよろしいですか？
+APP_USER_CANCEL: キャンセル
+APP_USER_CONFIRM: 確認
+APP_USER_INVALID_ADDRESS: 無効なSuiアドレス
+APP_USER_LOCK_DESC: ゲーム内でアクセスするためにこのキャラクターを選択しようとしています。プレイが終わったらいつでも選択を解除できます。
+APP_USER_UNLOCK_DESC: このキャラクターを選択解除し、ウォレットに戻そうとしています。
+APP_USER_LOCK_FAILED: キャラクターの選択に失敗しました。しばらくしてからもう一度お試しください。
+APP_USER_UNLOCK_FAILED: キャラクターの選択解除に失敗しました。しばらくしてからもう一度お試しください。
+APP_USER_DELETE_FAILED: キャラクターの削除に失敗しました。しばらくしてからもう一度お試しください。
+APP_USER_DELETING: キャラクターを削除中
+APP_USER_DELETED: キャラクターが削除されました
+APP_USER_SELECTING: キャラクターを選択中
+APP_USER_SELECTED: キャラクターが選択されました
+APP_USER_UNSELECTING: キャラクターの選択を解除中
+APP_USER_UNSELECTED: キャラクターの選択が解除されました
+APP_USER_UNSELECTING_STUFF: このキャラクターを選択解除する前に、すべてのアイテムを解除する必要があります。
+
+APP_CHARACTER_NAME: キャラクター名
+APP_CHARACTER_NAME_VALID: キャラクター名は3～20文字である必要があります
+APP_CHARACTER_CREATE_BUTTON: 作成
+APP_CHARACTER_CANCEL_BUTTON: キャンセル
+APP_CHARACTER_NAME_TOO_LONG: 名前が長すぎます
+APP_CHARACTER_NAME_INVALID: 無効な名前です
+APP_CHARACTER_NAME_WHITE_SPACE: 名前には空白を含めることはできません
+APP_CHARACTER_NAME_TAKEN: この名前はすでに使用されています
+APP_CHARACTER_CREATE_TX: Suiにキャラクターを保存中 💧
+APP_CHARACTER_CREATE_OK: キャラクターが作成されました！
+APP_CHARACTER_CREATE_ERROR: キャラクターの作成中にエラーが発生しました
+APP_CHARACTER_NO_CHARACTERS: プレイするにはキャラクターをロックする必要があります
+
+APP_GAME_CHAT_COPY_ADDRESS: アドレスをコピー
+APP_GAME_CHAT_COPIED: アドレスがクリップボードにコピーされました
+APP_GAME_CHAT_NO_CHARACTER: まずキャラクターを選択する必要があります
+APP_GAME_CHAT_NO_ONLINE: メッセージを送信するにはオンラインである必要があります
+
+APP_GAME_INVENTORY_CLAIM_ALL: すべてを請求
+
+APP_ZONE_PLAYERS: プレイヤー
+
+APP_PLEASE_CONNECT: AresRPGへようこそ。始めるにはログインしてください。
+
+APP_SIDEBAR_SHOP: マーケット
+APP_SIDEBAR_SETTINGS: 設定
+APP_SIDEBAR_LANG: 言語を選択
+APP_SIDEBAR_WORLD: オープンワールド
+APP_SIDEBAR_CHARACTERS: キャラクター
+APP_SIDEBAR_ADMIN: 管理者
+APP_SIDEBAR_WORKSHOP: ワークショップ
+
+APP_TOP_BAR_LOGOUT: ログアウト
+APP_TOP_BAR_DISCONNECT: 切断
+APP_TOP_BAR_CONNECT: 接続
+APP_TOP_BAR_WITH: で
+APP_TOP_BAR_LOGIN: ログイン方法を選択
+APP_TOP_BAR_ALT: Googleを使用すると、{0} を使用して見えないSuiウォレットが提供されます
+APP_TOP_BAR_ALT2: 自分のウォレットを使用し、各トランザクションを管理する方がよい場合は、Suiオプションを選択してください
+APP_TOP_BAR_TESTNET: 現在、テストネットワークにいます
+APP_TOP_BAR_MAINNET: AresRPGはまだメインネットでローンチされていません！ {0} を試してみてください
+APP_TOP_BAR_COPY: アドレスをコピー
+APP_TOP_BAR_COPIED: アドレスがクリップボードにコピーされました
+APP_TOP_BAR_SALES: 販売
+APP_TOP_BAR_CLAIMING_PROFIT: 販売利益の請求中
+APP_TOP_BAR_PROFIT_CLAIMED: すごい！いい額を手に入れましたね！
+APP_TOP_BAR_CLAIM_FAILED: 販売利益の請求に失敗しました
+APP_TOP_BAR_FAUCET_CLAIM: テストSuiを印刷中
+APP_TOP_BAR_FAUCET_CLAIMED: Suiを請求しました
+APP_TOP_BAR_FAUCET_FAILED: Suiの請求に失敗しました
+APP_TOP_BAR_FAUCET: Suiを入手
+
+APP_WALLET_CONNECT: ウォレットを接続
+APP_WALLET_WHAT: ウォレットとは？
+APP_WALLET_SECTION1_TITLE: 簡単なログイン
+APP_WALLET_SECTION1_DESC: すべてのウェブサイトで新しいアカウントやパスワードを作成する必要はありません。ウォレットを接続して開始してください。
+APP_WALLET_SECTION2_TITLE: デジタル資産を保管
+APP_WALLET_SECTION2_DESC: アイテムやトークンを送受信、保管、表示します。
+APP_WALLET_CONNECT_REFUSED: なぜキャンセルしたのですか？ 🫠
+APP_WALLET_NO_WALLET: ウォレットがないようです。公式のものをインストールしてください。
+
+WALLET_PLEASE_SWITCH_NETWORK: Suiネットワークに切り替えてください
+WALLET_CONFIG: ウォレット設定エラー
+WALLET_SIGN_MESSAGE: "[AresRPG] これはこのアドレスを所有していることを証明するための確認メッセージです。これによりサーバーに接続できます。"
+
+SUI_ENOKI_SALT: Enokiのトランザクションに失敗しました（塩の失敗）。もう一度お試しください。
+SUI_NO_GAS: このアクションを実行するにはウォレットにSuiが必要です。
+SUI_NOT_ENOUGH_FOOD: 十分な食べ物がありません！
+SUI_SUBSCRIBED: Suiに接続しました
+SUI_PET_ALREADY_FED: このペットはお腹が空いていません
+SUI_INV_NOT_EMPTY: その前にすべてのアイテムを解除する必要があります
+SUI_SUBSCRIBE_ERROR: Suiノードがサブスクリプションを拒否しました。ページをリフレッシュしてもう一度お試しください。
+SUI_NO_PERSONAL_KIOSK: このアクションを実行するにはまずキャラクターを作成する必要があります。
+SUI_SUBSCRIBE_START: Suiノードにサブスクライブ中...
+SUI_FETCHING_DATA: キャラクターとアイテムを取得中...
+SUI_DATA_FETCHED: キャラクターとアイテムを正常に取得しました。
+SUI_ENOKI_DOWN: スポンサリングサービスが不具合を起こしているようです。後ほどもう一度お試しください。
+SUI_ITEM_SOLD: が売れました。
+SUI_INVALID_CONTRACT: コントラクトが無効です。アプリが最新か確認してください。ページをリフレッシュしてみてください。
+
+WS_FAILED_TO_CONNECT: サーバーへの接続に失敗しました。詳細はhttps://status.aresrpg.worldをご確認ください。
+WS_RECONNECTED: オンラインに戻りました！
+WS_CONNECTING_TO_SERVER: サーバーに接続中
+WS_CONNECTED_TO_SERVER: サーバーに接続しました。
+
+BROWSER_NO_PERF: お使いのデバイスはWebGLをサポートしていないか、パフォーマンス上の大きな問題が発生する状態で実行されています。別のデバイスを試すか、ブラウザとドライバが最新であることを確認してください。

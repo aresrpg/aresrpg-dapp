@@ -1,36 +1,287 @@
 SERVER_ALREADY_ONLINE: Il semble que vous êtes déjà connecté au serveur, veuillez patienter quelques secondes et réessayer
-SERVER_EARLY_ACCESS_KEY_REQUIRED: Vous avez besoin d'une clé d'accès anticipé pour jouer sur AresRPG
+SERVER_EARLY_ACCESS_KEY_REQUIRED: Vous avez besoin d'une clé d'accès anticipé pour jouer à AresRPG
 SERVER_MAX_PLAYERS: Désolé sir, le serveur est plein et nous n'avons pas encore la capacité de gérer autant de joueurs, veuillez réessayer plus tard
 SERVER_SIGNATURE_TIMEOUT: Veuillez signer le message plus rapidement !
 SERVER_INVALID_SIGNATURE: Signature invalide
-SERVER_MOVE_FIRST: Veuillez vous déplacer avant de faire cette action, le serveur doit reconnaître votre existence d'abord
+SERVER_MOVE_FIRST: Veuillez bouger avant de faire cette action, le serveur doit d'abord reconnaître votre existence
 SERVER_CHARACTER_UNLOCKED: Avez-vous débloqué votre personnage ?
 SERVER_MAX_CHARACTERS_PER_PLAYER: Vous ne pouvez pas jouer avec autant de personnages !
+
 APP_LOGIN_AGAIN: Veuillez vous reconnecter
 APP_WALLET_NOT_FOUND: Portefeuille non trouvé
-APP_OUTDATED: L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour l'application.
-WALLET_PLEASE_SWITCH_NETWORK: Veuillez changer de réseau Sui
-SUI_ENOKI_SALT: Enoki n'a pas réussi à livrer la transaction (échec du salt). Veuillez réessayer.
+APP_OUTDATED: L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour AresRPG.
+APP_WAIT_A_MINUTE: Veuillez attendre avant de réessayer
+APP_SCREEN_TOO_SMALL: Utilisez cette application uniquement sur un ordinateur de bureau
+APP_CHOOSE_LANG: Choisissez une langue
+APP_WELCOME: Bienvenue Aventurier !
+APP_TAB_CHARACTERS_EXPLANATION: |
+  AresRPG est un MMORPG voxel basé sur navigateur, conçu de manière unique sur la chaine {0}.
+  Notre approche innovante élimine le besoin de bases de données traditionnelles ;
+  chaque donnée est stockée de manière sécurisée sur la blockchain. Cela signifie que vous, en tant qu'Utilisateur, détenez une propriété complète sur vos actifs dans le jeu.
+  Tout, des objets et des personnages aux pièces d'or et aux titres, réside dans votre portefeuille, vous offrant un contrôle et une sécurité inégalés.
+  Dans le but de rendre AresRPG accessible à tous, nous prenons en charge les coûts de transaction pour les utilisateurs qui se connectent via Google,
+  vous permettant de plonger dans notre monde expansif sans barrières financières.
+APP_TAB_CHARACTERS_EXPLANATION_ALT: |
+  Le jeu offre une création de personnages illimitée, vous permettant de forger autant de personnas que vous le souhaitez.
+  Chaque personnage se lance dans son propre voyage unique, avec un inventaire personnalisé et un chemin de progression.
+  La liberté est vôtre: équipez vos personnages comme bon vous semble, et si vous le souhaitez, vous pouvez facilement les retirer ou leurs objets pour les mettre en vente sur le marché.
+  AresRPG n'est pas seulement un jeu ; c'est un royaume dans lequel vos décisions façonnent votre destin, et vos actifs vous appartiennent véritablement.
+APP_LOCKED_CHARACTERS: 🔒 Personnages sélectionnés
+APP_LOCKED_CHARACTERS_DESC: Ces personnages sont actuellement utilisés, vous pouvez jouer avec eux dans le jeu
+APP_UNLOCKED_CHARACTERS: Personnages disponibles
+APP_UNLOCKED_CHARACTERS_DESC: Ceux-ci sont uniquement dans votre portefeuille, vous pouvez les transférer ou les vendre librement
+APP_CHARACTER_NEW: Nouveau personnage
+
+APP_TAB_SHOP_SELL: Vendre
+APP_TAB_SHOP_BUY: Acheter
+APP_TAB_SHOP_FAUCET: Fauccet
+APP_TAB_SHOP_WRONG_PRICE: Prix invalide
+APP_TAB_SHOP_LISTING: Mise en vente
+APP_TAB_SHOP_LISTED: Mis en vente
+APP_TAB_SHOP_FAILED_TO_LIST: Échec de la mise en vente
+APP_TAB_SHOP_MINT: Boutique
+APP_TAB_SHOP_MINT_TITLE: Items en édition limitée AresRPG
+APP_TAB_SHOP_MINT_HEADER: Dans cette section, vous avez accès à des items en édition spéciale limitée, ils peuvent apparaître lors d'événements ou d'occasions spéciales.
+APP_TAB_SHOP_CLOSE: Fermer
+APP_TAB_SHOP_REVEALED: Impressionnant, vous avez obtenu un nouvel objet !
+APP_TAB_WORKSHOP: Atelier
+APP_TAB_WORKSHOP_DESC: Ici, vous pouvez fabriquer des objets si vous avez le métier et le niveau requis.
+APP_TAB_WORKSHOP_TAILOR: Tailleur
+APP_TAB_WORKSHOP_WOODCUTTER: Bûcheron
+APP_TAB_WORKSHOP_RECIPES: Recettes disponibles
+APP_TAB_WORKSHOP_JOBS: Mes métiers
+
+APP_FAUCET_CLAIM: Réclamez quelques testnet {0}
+APP_FAUCET_CLAIMING: Réclamation de 10 tokens de test
+APP_FAUCET_CLAIMED: Tokens de test réclamés avec succès
+APP_FAUCET_FAILED: Échec de la réclamation des tokens de test
+
+APP_ITEM_SET: Panoplie
+APP_ITEM_TO: à
+APP_ITEM_DAMAGE: dommage(s)
+APP_ITEM_LIFE_STEAL: vol de vie
+APP_ITEM_HEAL: soins
+APP_ITEM_EARTH: Terre
+APP_ITEM_FIRE: Feu
+APP_ITEM_WATER: Eau
+APP_ITEM_AIR: Air
+APP_ITEM_VITALITY: vitalité
+APP_ITEM_WISDOM: sagesse
+APP_ITEM_STRENGTH: force
+APP_ITEM_INTELLIGENCE: intelligence
+APP_ITEM_CHANCE: chance
+APP_ITEM_AGILITY: agilité
+APP_ITEM_CRITICAL: critique
+APP_ITEM_RAW_DAMAGE: dégâts
+APP_ITEM_ACTION: PA
+APP_ITEM_MOVEMENT: PM
+APP_ITEM_RANGE: portée
+APP_ITEM_EARTH_RESISTANCE: "% résistance terre"
+APP_ITEM_FIRE_RESISTANCE: "% résistance feu"
+APP_ITEM_WATER_RESISTANCE: "% résistance eau"
+APP_ITEM_AIR_RESISTANCE: "% résistance air"
+APP_ITEM_EFFECTS: Effets
+APP_ITEM_STOMACH: dans l'estomac
+APP_ITEM_LAST_FEED: Dernier nourrissage
+APP_ITEM_RELIC: Relique
+APP_ITEM_RUNE: Rune
+APP_ITEM_MOUNT: Monture
+APP_ITEM_HAT: Coiffe
+APP_ITEM_CLOACK: Cape
+APP_ITEM_AMULET: Amulette
+APP_ITEM_RING: Anneau
+APP_ITEM_BELT: Ceinture
+APP_ITEM_BOOTS: Bottes
+APP_ITEM_TITLE: Titre
+APP_ITEM_PET: Familier
+APP_ITEM_CHARACTER: Personnage
+APP_ITEM_WEAPON: Armes
+APP_ITEM_BOW: Arc
+APP_ITEM_WAND: Baguette
+APP_ITEM_STAFF: Bâton
+APP_ITEM_DAGGER: Dague
+APP_ITEM_SHOVEL: Pelle
+APP_ITEM_SWORD: Épée
+APP_ITEM_SCYTHE: Faux
+APP_ITEM_AXE: Hache
+APP_ITEM_HAMMER: Marteau
+APP_ITEM_FISHING_ROD: Canne à pêche
+APP_ITEM_PICKAXE: Pioche
+APP_ITEM_RESOURCE: Ressource
+APP_ITEM_KEY: Clé
+APP_ITEM_CONSUMABLE: Consommable
+APP_ITEM_ORB: Orbe
+
+APP_ITEM_FEED: Nourrir avec
+APP_ITEM_FEEDING: Nourrir votre familier
+APP_ITEM_FED: Votre familier est très heureux maintenant !
+APP_ITEM_PET_FULL: Votre familier n'a pas faim
+APP_ITEM_FEED_FAILED: Échec de la nutrition de votre familier
+APP_ITEM_DELETE: Détruire l'item
+APP_ITEM_DELETE_CONFIRM: Supprimer
+APP_ITEM_CANCEL: Annuler
+APP_ITEM_DELETE_DESC: Êtes-vous sûr de vouloir supprimer {0} ? Cette action est irréversible.
+APP_ITEM_DELETING: Suppression de l'item
+APP_ITEM_DELETED: Item supprimé !
+APP_ITEM_FAILED_TO_DELETE: Échec de la suppression de l'item
+
+APP_MARKET_NO_ITEMS: Aucun item n'est actuellement vendu dans cette catégorie
+APP_MARKET_CATEGORY: Catégorie
+APP_MARKET_NAME: Nom
+APP_MARKET_CHOOSE: Tapez une catégorie
+APP_MARKET_CHOOSE_NAME: Tapez le nom d'un item
+APP_MARKET_EQUIPMENT: Équipement
+APP_MARKET_CONSUMABLES: Consommables
+APP_MARKET_MISC: Divers
+APP_MARKET_LISTED: inscrit
+APP_MARKET_FLOOR: sol
+APP_MARKET_BUY: Acheter
+APP_MARKET_BUY_CONFIRM: Confirmer l'achat
+APP_MARKET_CONFIRM_DESC: Êtes-vous sûr de vouloir acheter {0} pour {1} ?
+APP_MARKET_CANCEL: Annuler
+APP_MARKET_CONFIRM: Payer maintenant
+APP_MARKET_BUY_SUCCESS: Achat réussi
+APP_MARKET_INSUFFICIENT_FUNDS: Vous êtes trop fauché pour vous permettre cet item précieux..
+APP_MARKET_NO_LISTINGS: Aucun item n'est actuellement en vente
+APP_MARKET_WITHDRAW: Retirer
+APP_MARKET_DELISTING: Retrait de l'item
+APP_MARKET_DELISTED: Item retiré
+APP_MARKET_FAILED_TO_DELIST: Échec du retrait de l'item
+
+APP_MINT_CARD_MINT: Creer
+APP_MINT_CARD_MINTING: Creer l'item
+APP_MINT_CARD_MINTED: Item créé avec succès
+APP_MINT_CARD_FAILED_TO_MINT: Échec de la création de l'item
+APP_MINT_CARD_TOTAL: Total
+APP_MINT_CARD_FREE: Creation gratuite
+APP_MINT_CARD_VAPOREONTEXT: |
+  Ce Vaporeon est un familier que vous pouvez équiper sur AresRPG, il vous suivra dans vos explorations et combats.
+  Nourrissez-le quotidiennement avec du $HSUI, et il augmentera vos statistiques
+
+APP_RECIPE_REQUIREMENTS: Requis
+APP_RECIPE_TAILOR: Tailleur
+APP_RECIPE_CRAFT: Fabriquer
+APP_RECIPE_REVEAL: Révéler
+APP_RECIPE_CRAFT_TITLE: Fabriquer l'item
+APP_RECIPE_CRAFT_DESC: Êtes-vous sûr de vouloir fabriquer {0} ?
+APP_RECIPE_CANCEL: Annuler
+APP_RECIPE_CRAFTING: Fabrication de l'item
+APP_RECIPE_CRAFTED: Item fabriqué
+APP_RECIPE_FAILED_TO_CRAFT: Échec de la fabrication de l'item
+APP_RECIPE_REVEALING: Révélation de l'item
+APP_RECIPE_REVEALED: Item révélé
+APP_RECIPE_FAILED_TO_REVEAL: Échec de la révélation de l'item
+APP_RECIPE_CLOSE: Fermer
+
+APP_SERVER_ONLINE_PLAYERS: Joueurs en ligne
+APP_SERVER_TOTAL_PLAYERS: Joueurs enregistrés
+APP_SERVER_SERVER: Serveur
+APP_SERVER_NOT_ONLINE: Vous devez vous connecter au serveur pour voir les analyses en direct
+
+APP_USER_LOCK: Sélectionner
+APP_USER_UNLOCK: Désélectionner
+APP_USER_DELETE: Supprimer
+APP_USER_SEND: Envoyer
+APP_USER_DELETE_DESC: Êtes-vous sûr de vouloir supprimer ce personnage ?
+APP_USER_CANCEL: Annuler
+APP_USER_CONFIRM: Confirmer
+APP_USER_INVALID_ADDRESS: Adresse Sui invalide
+APP_USER_LOCK_DESC: Vous êtes sur le point de sélectionner ce personnage pour y accéder dans le jeu, vous pouvez le désélectionner à tout moment lorsque vous avez fini de jouer
+APP_USER_UNLOCK_DESC: Vous êtes sur le point de désélectionner ce personnage et de le récupérer dans votre portefeuille
+APP_USER_LOCK_FAILED: Échec de la sélection du personnage, veuillez réessayer sous peu
+APP_USER_UNLOCK_FAILED: Échec de la désélection du personnage, veuillez réessayer sous peu
+APP_USER_DELETE_FAILED: Échec de la suppression du personnage, veuillez réessayer sous peu
+APP_USER_DELETING: Suppression du personnage
+APP_USER_DELETED: Personnage supprimé
+APP_USER_SELECTING: Sélection du personnage
+APP_USER_SELECTED: Personnage sélectionné
+APP_USER_UNSELECTING: Désélection du personnage
+APP_USER_UNSELECTED: Personnage désélectionné
+APP_USER_UNSELECTING_STUFF: Vous devez déséquiper tous les objets avant de désélectionner ce personnage
+
+APP_CHARACTER_NAME: Nom du personnage
+APP_CHARACTER_NAME_VALID: Le nom du personnage doit comporter entre 3 et 20 caractères
+APP_CHARACTER_CREATE_BUTTON: Créer
+APP_CHARACTER_CANCEL_BUTTON: Annuler
+APP_CHARACTER_NAME_TOO_LONG: Nom trop long
+APP_CHARACTER_NAME_INVALID: Nom invalide
+APP_CHARACTER_NAME_WHITE_SPACE: Le nom ne peut pas contenir d'espaces blancs
+APP_CHARACTER_NAME_TAKEN: Ce nom est déjà pris
+APP_CHARACTER_CREATE_TX: Sauvegarde du personnage sur Sui 💧
+APP_CHARACTER_CREATE_OK: Personnage créé !
+APP_CHARACTER_CREATE_ERROR: Erreur lors de la création du personnage
+APP_CHARACTER_NO_CHARACTERS: Vous devez verrouiller un personnage pour jouer
+
+APP_GAME_CHAT_COPY_ADDRESS: Copier l'adresse
+APP_GAME_CHAT_COPIED: Adresse copiée dans le presse-papiers
+APP_GAME_CHAT_NO_CHARACTER: Vous devez d'abord sélectionner un personnage
+APP_GAME_CHAT_NO_ONLINE: Vous devez être en ligne pour envoyer un message
+
+APP_GAME_INVENTORY_CLAIM_ALL: Tout récupérer
+
+APP_ZONE_PLAYERS: Joueurs
+
+APP_PLEASE_CONNECT: Bienvenue sur AresRPG, veuillez vous connecter pour commencer
+
+APP_SIDEBAR_SHOP: Hôtel des ventes
+APP_SIDEBAR_SETTINGS: Paramètres
+APP_SIDEBAR_LANG: Choisissez une langue
+APP_SIDEBAR_WORLD: Jouer
+APP_SIDEBAR_CHARACTERS: Personnages
+APP_SIDEBAR_ADMIN: Admin
+APP_SIDEBAR_WORKSHOP: Atelier
+
+APP_TOP_BAR_LOGOUT: Déconnexion
+APP_TOP_BAR_DISCONNECT: Déconnecter
+APP_TOP_BAR_CONNECT: Connecter
+APP_TOP_BAR_WITH: avec
+APP_TOP_BAR_LOGIN: Choisissez une méthode de connexion
+APP_TOP_BAR_ALT: Utiliser Google vous fournira un portefeuille Sui invisible utilisant {0}
+APP_TOP_BAR_ALT2: Si vous préférez utiliser votre propre portefeuille et gérer chaque transaction, choisissez l'option Sui
+APP_TOP_BAR_TESTNET: Vous êtes actuellement sur le testnet
+APP_TOP_BAR_MAINNET: AresRPG n'est pas encore lancé sur le mainnet ! Essayez {0}
+APP_TOP_BAR_COPY: Copier l'adresse
+APP_TOP_BAR_COPIED: Adresse copiée dans le presse-papiers
+APP_TOP_BAR_SALES: Ventes
+APP_TOP_BAR_CLAIMING_PROFIT: Récupérer les bénéfices
+APP_TOP_BAR_PROFIT_CLAIMED: Wow ! Vous avez obtenu une belle somme !
+APP_TOP_BAR_CLAIM_FAILED: Erreur lors de la réclamation des bénéfices des ventes
+APP_TOP_BAR_FAUCET_CLAIM: Récupération de Sui en cours
+APP_TOP_BAR_FAUCET_CLAIMED: Sui récupéré avec succès
+APP_TOP_BAR_FAUCET_FAILED: Échec de la récupération de Sui
+APP_TOP_BAR_FAUCET: Miner quelques Sui
+
+APP_WALLET_CONNECT: Connecter un portefeuille
+APP_WALLET_WHAT: Qu'est-ce qu'un portefeuille ?
+APP_WALLET_SECTION1_TITLE: Connexion facile
+APP_WALLET_SECTION1_DESC: Pas besoin de créer de nouveaux comptes et mots de passe pour chaque site web. Connectez simplement votre portefeuille et commencez.
+APP_WALLET_SECTION2_TITLE: Stockez vos actifs numériques
+APP_WALLET_SECTION2_DESC: Envoyez, recevez, stockez et affichez vos articles et jetons.
+APP_WALLET_CONNECT_REFUSED: Pourquoi avez-vous annulé ? 🫠
+APP_WALLET_NO_WALLET: Il semble que vous n'ayez aucun portefeuille, veuillez en installer un. Vous pouvez commencer avec l'officiel
+
+WALLET_PLEASE_SWITCH_NETWORK: Veuillez passer au réseau Sui
+WALLET_CONFIG: Erreur de configuration du portefeuille
+WALLET_SIGN_MESSAGE: "[AresRPG] Ceci est un message de vérification pour prouver que vous possédez cette adresse. Cela vous permettra de vous connecter au serveur"
+
+SUI_ENOKI_SALT: Échec de la transaction par Enoki (échec du salt). Veuillez réessayer.
 SUI_NO_GAS: Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action
 SUI_NOT_ENOUGH_FOOD: Vous n'avez pas assez de nourriture !
-WALLET_CONFIG: Erreur de configuration du portefeuille
 SUI_SUBSCRIBED: Connecté à Sui
-SUI_PET_ALREADY_FED: Ce famillier n'a pas faim
+SUI_PET_ALREADY_FED: Ce familier n'a pas faim
 SUI_INV_NOT_EMPTY: Vous devez déséquiper tous les objets avant cela
-SUI_SUBSCRIBE_ERROR: La node Sui a refusé l'abonnement, veuillez rafraîchir la page pour réessayer
-SUI_NO_PERSONAL_KIOSK: Cette action nécessite de créer d'abord un personnage
-SUI_SUBSCRIBE_START: Abonnement a la node Sui en cours...
-SUI_FETCHING_DATA: Récupération des personnages et des objets...
-SUI_DATA_FETCHED: Récupération des personnages et des objets réussie
-APP_WAIT_A_MINUTE: Veuillez patienter avant de réessayer
-SUI_ENOKI_DOWN: Le service de sponsoring semble être en panne, veuillez réessayer plus tard.
+SUI_SUBSCRIBE_ERROR: Le nœud Sui a refusé la connection, veuillez actualiser la page pour réessayer
+SUI_NO_PERSONAL_KIOSK: Cette action nécessite de créer un personnage d'abord
+SUI_SUBSCRIBE_START: Connexion à Sui
+SUI_FETCHING_DATA: Récupération des personnages et objets...
+SUI_DATA_FETCHED: Personnages et objets récupérés avec succès
+SUI_ENOKI_DOWN: Le service de sponsoring semble mal fonctionner, veuillez réessayer plus tard.
+SUI_ITEM_SOLD: a été vendu
+SUI_INVALID_CONTRACT: Le contrat est invalide, votre application est-elle à jour ? Essayez d'actualiser la page
 
 WS_FAILED_TO_CONNECT: Échec de la connexion au serveur, consultez https://status.aresrpg.world pour plus d'informations
 WS_RECONNECTED: De retour en ligne !
 WS_CONNECTING_TO_SERVER: Connexion au serveur
 WS_CONNECTED_TO_SERVER: Connecté au serveur
 
-SUI_ITEM_SOLD: a été vendu
-SUI_INVALID_CONTRACT: Le contrat est invalide, votre application est-elle à jour ? Essayez de rafraîchir la page
-WALLET_SIGN_MESSAGE: "[AresRPG] Ceci est un message de vérification pour prouver que vous possédez cette adresse. Cela vous permettra de vous connecter au serveur"
-BROWSER_NO_PERF: Votre appareil ne prend pas en charge WebGL ou fonctionne dans des conditions qui entraîneraient de graves problèmes de performance. Veuillez essayer sur un autre appareil ou assurez-vous que votre navigateur et vos pilotes sont à jour.
+BROWSER_NO_PERF: Votre appareil ne prend pas en charge WebGL ou fonctionne dans des conditions qui causeraient des problèmes de performance majeurs. Veuillez essayer sur un autre appareil ou vous assurer que votre navigateur et vos pilotes sont à jour.

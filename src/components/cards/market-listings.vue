@@ -1,31 +1,10 @@
-<i18n>
-en:
-  buy: Buy
-  buy_confirm: Confirm purchase
-  buy_confirm_desc: Are you sure you want to buy {0} for {1} ?
-  cancel: Cancel
-  confirm: Pay now
-  buy_success: Purchase successful
-  insufficient_funds: You are way to broke to afford this precious item..
-  no_listings: No listings available
-fr:
-  buy: Acheter
-  buy_confirm: Confirmer l'achat
-  buy_confirm_desc: Êtes-vous sûr de vouloir acheter {0} pour {1} ?
-  cancel: Annuler
-  confirm: Payer
-  buy_success: Achat réussi
-  insufficient_funds: Vous êtes trop fauché pour acheter cet objet précieux..
-  no_listings: Aucune annonce disponible
-</i18n>
-
 <template lang="pug">
 .listings-container
   tabs.quantity-selector(v-if="listings.length" :tabs="listings[0].stackable ? quantity_tabs : { x1: 1 }" :spaced="true" :nobg="true" :scroll="true")
     template(#tab="{ tab }")
       .tab-name {{ tab }}
     template.testo(#content="{ data, tab }")
-      .none(v-if="!filter_listings(data).length") {{ t('no_listings') }}
+      .none(v-if="!filter_listings(data).length") {{ t('APP_MARKET_NO_LISTINGS') }}
       .listing(
         v-for="(listing, index) in filter_listings(data)"
         :key="listing.id"
@@ -40,18 +19,18 @@ fr:
           TokenBrandedSui.icon
           vs-button.btn(
             v-if="listing.seller !== current_address"
-            type="gradient" color="#43A047" size="small" @click="() => start_buy_item(listing)") {{ t('buy') }}
+            type="gradient" color="#43A047" size="small" @click="() => start_buy_item(listing)") {{ t('APP_MARKET_BUY') }}
 
   /// buy dialog
   vs-dialog(v-model="buy_dialog" :loading="buy_loading")
-    template(#header) {{ t('buy_confirm') }}
-    i18n-t(keypath="buy_confirm_desc")
+    template(#header) {{ t('APP_MARKET_BUY_CONFIRM') }}
+    i18n-t(keypath="APP_MARKET_CONFIRM_DESC")
       b.itemname {{ bought_item?.name }}
       b.price {{ final_item_price(bought_item)?.toFixed?.(2) }} Sui
     template(#footer)
       .dialog-footer
-        vs-button(type="transparent" color="#E74C3C" @click="buy_dialog = false") {{ t('cancel') }}
-        vs-button(type="transparent" color="#2ECC71" @click="buy_item") {{ t('confirm') }}
+        vs-button(type="transparent" color="#E74C3C" @click="buy_dialog = false") {{ t('APP_MARKET_CANCEL') }}
+        vs-button(type="transparent" color="#2ECC71" @click="buy_item") {{ t('APP_MARKET_CONFIRM') }}
 </template>
 
 <script setup>
@@ -105,7 +84,7 @@ function start_buy_item(item) {
       .dividedBy(MIST_PER_SUI.toString())
       .isLessThan(final_item_price(item))
   ) {
-    toast.warn(t('insufficient_funds'), '', GameIconsPayMoney);
+    toast.warn(t('APP_MARKET_INSUFFICIENT_FUNDS'), '', GameIconsPayMoney);
     return;
   }
   buy_dialog.value = true;
@@ -142,7 +121,7 @@ async function buy_item() {
   try {
     select_item(bought_item.value);
     if (await sui_buy_item(bought_item.value))
-      toast.success(t('buy_success'), '', GameIconsPayMoney);
+      toast.success(t('APP_MARKET_BUY_SUCCESS'), '', GameIconsPayMoney);
   } catch (error) {
     console.error(error);
   }

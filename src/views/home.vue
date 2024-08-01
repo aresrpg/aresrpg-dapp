@@ -1,12 +1,3 @@
-<i18n>
-fr:
-  mobile: Ton écran est trop petit pour accéder à l'app
-  lang: Choisir une langue
-en:
-  mobile: Use this app on desktop only
-  lang: Choose a language
-</i18n>
-
 <script setup>
 import { onMounted, inject, ref, provide, defineAsyncComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -17,6 +8,8 @@ import SideBar from '../components/navigation/side-bar.vue';
 import serverInfo from '../components/cards/server-info.vue';
 import { i18n } from '../i18n.js';
 
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const TopBar = defineAsyncComponent(
   () => import('../components/navigation/top-bar.vue'),
 );
@@ -36,6 +29,7 @@ provide('show_topbar', show_topbar);
 const langs = {
   fr: 'Français',
   en: 'English',
+  jp: '日本語',
 };
 
 provide('lang_dialog', lang_dialog);
@@ -67,7 +61,7 @@ onMounted(() => {
   .blur
   vs-dialog(v-model="lang_dialog")
     template(#header)
-      h3.title {{ t('lang') }}
+      h3.title {{ t('APP_CHOOSE_LANG') }}
     vs-row(justify="center")
       vs-select(v-model="selected" :items="Object.values(langs)" @change="select" color="warn")
         vs-option(v-for="lang in langs" :key="lang" :value="lang") {{ lang }}
@@ -77,7 +71,7 @@ onMounted(() => {
   .mobile(v-if="breakpoints.mobile.matches")
     serverInfo.info
     img(src="../assets/mobile/moai.png")
-    span {{  t('mobile') }}
+    span {{  t('APP_SCREEN_TOO_SMALL') }}
   .content(v-else)
     // Side panel
     SideBar

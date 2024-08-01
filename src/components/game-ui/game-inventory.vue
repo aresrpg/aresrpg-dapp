@@ -1,10 +1,3 @@
-<i18n>
-en:
-  claim_all: Claim all
-fr:
-  claim_all: Tout récupérer
-</i18n>
-
 <template lang="pug">
 .game-inventory
   itemEquipments
@@ -24,7 +17,7 @@ fr:
       @click="claim_all"
       :loading="claim_loading"
       v-if="selected_category === 'loot' && extension_items.length"
-    ) {{ t('claim_all') }}
+    ) {{ t('APP_GAME_INVENTORY_CLAIM_ALL') }}
 </template>
 
 <script setup>

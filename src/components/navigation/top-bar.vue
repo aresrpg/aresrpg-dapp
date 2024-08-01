@@ -1,53 +1,3 @@
-<i18n>
-fr:
-  logout: Déconnexion
-  disconnect: Déconnexion
-  connect: Connexion
-  with: Avec
-  login: Choisir une méthode de connexion
-  alt: Utiliser google vous fournira un portefeuille Sui invisible utilisant {0}
-  alt2: Si vous préférez utiliser votre propre portefeuille et gérer chaque transaction, choisissez l'option Sui
-  quest: Quêtes terminées
-  offline_ws: Hors ligne
-  online_ws: En ligne
-  testnet: Vous êtes actuellement sur un test network
-  mainnet: AresRPG n'est pas encore lancé sur le mainnet! Essayez {0}
-  copy: Copier l'adresse
-  copied: Adresse copiée dans le presse-papier
-  sales: Ventes
-  claiming_profit: Retrait des profits de vente
-  profit_claimed: Wow! C'est un bon billet que vous avez là!
-  claiming_error: Erreur lors du retrait des profits de vente
-  faucet_claim: Impression de quelques Sui de test
-  faucet: Obtenir des Sui
-  faucet_claimed: Sui réclamé
-  faucet_error: Erreur lors de la réclamation de Sui
-en:
-  logout: Logout
-  disconnect: Disconnect
-  connect: Connect
-  with: With
-  login: Choose a login method
-  alt: Using google will provide you with an invisible Sui wallet using {0}
-  alt2: If you prefer using your own wallet and manage each transaction, choose the Sui option
-  quest: Quests completed
-  offline_ws: Offline
-  online_ws: Online
-  testnet: You are currently on a test network
-  mainnet: AresRPG is not yet launched on the mainnet! Try out {0}
-  copy: Copy address
-  copied: Address copied to clipboard
-  sales: Sales
-  claiming_profit: Claiming sales profits
-  profit_claimed: Wow! that's a good chunk you got there!
-  claiming_error: Error claiming sales profits
-  faucet_claim: Printing some test Sui
-  faucet_claimed: Sui claimed
-  faucet_error: Error claiming Sui
-  faucet: Get some Sui
-
-</i18n>
-
 <script setup>
 import { ref, inject, onMounted, onUnmounted, watch } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
@@ -115,7 +65,7 @@ function disconnect_wallet() {
 
 function copy_address() {
   navigator.clipboard.writeText(current_account.value.address);
-  toast.success(t('copied'), 'Woooosh', StreamlineEmojisWaterWave);
+  toast.success(t('APP_TOP_BAR_COPIED'), 'Woooosh', StreamlineEmojisWaterWave);
   dropdown.value.close();
 }
 
@@ -133,13 +83,16 @@ async function refresh_kiosk_profits() {
 }
 
 async function claim_kiosk_profits() {
-  const tx = toast.tx(t('claiming_profit'), `${kiosk_profits.value} Sui`);
+  const tx = toast.tx(
+    t('APP_TOP_BAR_CLAIMING_PROFIT'),
+    `${kiosk_profits.value} Sui`,
+  );
   try {
     await sui_claim_kiosks_profits();
-    tx.update('success', t('profit_claimed'));
+    tx.update('success', t('APP_TOP_BAR_PROFIT_CLAIMED'));
     kiosk_profits.value = '';
   } catch (error) {
-    tx.update('error', t('claiming_error'));
+    tx.update('error', t('APP_TOP_BAR_CLAIM_FAILED'));
     console.error(error);
   }
 }
@@ -147,7 +100,7 @@ async function claim_kiosk_profits() {
 const claiming_faucet = ref(false);
 
 async function claim_faucet() {
-  const tx = toast.tx(t('faucet_claim'), 'Brrrrrr');
+  const tx = toast.tx(t('APP_TOP_BAR_FAUCET_CLAIM'), 'Brrrrrr');
   claiming_faucet.value = true;
 
   try {
@@ -163,9 +116,9 @@ async function claim_faucet() {
       }),
     });
 
-    tx.update('success', t('faucet_claimed'));
+    tx.update('success', t('APP_TOP_BAR_FAUCET_CLAIMED'));
   } catch (error) {
-    tx.update('error', t('faucet_error'));
+    tx.update('error', t('APP_TOP_BAR_FAUCET_FAILED'));
     console.error(error);
   }
 
@@ -188,19 +141,19 @@ onUnmounted(() => {
 
 <template lang="pug">
 nav(:class="{ small: breakpoints.mobile.matches }")
-  .beware-tesnet(v-if="NETWORK !== 'mainnet'") {{ t('testnet') }}
-  .beware-mainnet(v-if="NETWORK === 'mainnet'") {{ t('mainnet') }} #[a(href="https://testnet.aresrpg.world") https://testnet.aresrpg.world]
+  .beware-tesnet(v-if="NETWORK !== 'mainnet'") {{ t('APP_TOP_BAR_TESTNET') }}
+  .beware-mainnet(v-if="NETWORK === 'mainnet'") {{ t('APP_TOP_BAR_MAINNET') }} #[a(href="https://testnet.aresrpg.world") https://testnet.aresrpg.world]
   vs-row(justify="end")
     // ======
     vs-button.btn(v-if="!current_wallet" type="border" color="#eee" @click="login_dialog = true")
       i.bx.bx-droplet
-      span {{ t('connect') }}
+      span {{ t('APP_TOP_BAR_CONNECT') }}
     vs-row.row(v-else justify="end")
       .sui-balance(v-if="sui_balance != null")
         span {{ (+mists_to_sui(sui_balance)).toFixed(3) }}
         img.icon(src="../../assets/sui/sui-logo.png")
       vs-button.sui-faucet(v-if="NETWORK === 'testnet'" type="gradient" size="small" color="#64B5F6" @click="claim_faucet" :disabled="claiming_faucet")
-        span.profit {{ t('faucet') }}
+        span.profit {{ t('APP_TOP_BAR_FAUCET') }}
       vs-button(
         v-if="kiosk_profits > 0"
         type="gradient"
@@ -208,7 +161,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
         size="small"
         @click="claim_kiosk_profits"
       )
-        span.profit {{ t('sales') }}: {{ kiosk_profits }} Sui
+        span.profit {{ t('APP_TOP_BAR_SALES') }}: {{ kiosk_profits }} Sui
       .badge(:class="{ mainnet: NETWORK === 'mainnet' }") Sui {{ NETWORK }} #[img.icon(:src="current_wallet.icon")]
       // Address container with dropdown
 
@@ -229,11 +182,11 @@ nav(:class="{ small: breakpoints.mobile.matches }")
           vs-row(justify="center")
             vs-button.btn(type="transparent" block color="#1ABC9C" @click="copy_address")
               PhCopy
-              span {{ t('copy') }}
+              span {{ t('APP_TOP_BAR_COPY') }}
           vs-row(justify="center")
             vs-button.btn(type="transparent" block color="#E74C3C" @click="disconnect_wallet")
               i.bx.bx-log-out
-              span {{ t('logout') }}
+              span {{ t('APP_TOP_BAR_LOGOUT') }}
       //- vs-avatar(history size="60" @click="logout_dialog = true")
         img(:src="avatar")
 
@@ -242,7 +195,7 @@ nav(:class="{ small: breakpoints.mobile.matches }")
     template(#header)
       img.logo(src="../../assets/logo.png")
     vs-row(justify="center")
-      .title {{ t('login') }}
+      .title {{ t('APP_TOP_BAR_LOGIN') }}
     vs-button.btn(type="gradient" block color="#E74C3C" @click="enoki_login" :disabled="NETWORK === 'mainnet'")
       i.bx.bxl-google
       span Google
@@ -251,10 +204,10 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       span SUI Wallet
     template(#footer)
       vs-row(justify="center")
-        i18n-t.alt(keypath="alt" tag="span")
+        i18n-t.alt(keypath="APP_TOP_BAR_ALT" tag="span")
           a.zklogin(href="https://sui.io/zklogin", target="_blank") ZkLogin
       vs-row(justify="center")
-        span.alt {{ t('alt2') }}
+        span.alt {{ t('APP_TOP_BAR_ALT2') }}
 
   // Second dialog to select the Sui wallet
 

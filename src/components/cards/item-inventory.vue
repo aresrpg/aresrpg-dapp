@@ -1,32 +1,3 @@
-<i18n>
-en:
-  feed: Feed with
-  feeding: Feeding your small friend
-  fed: Your pet is very happy now!
-  pet_full: Your pet is not hungry
-  feed_failed: Failed to feed your pet
-  delete: Destroy item
-  delete_confirm: Delete
-  cancel: Cancel
-  delete_desc: Are you sure you want to delete {0} ? This action is irreversible.
-  deleting: Deleting item
-  deleted: Item deleted!
-  failed_to_delete: Failed to delete item
-fr:
-  feed: Nourrir avec
-  feeding: Nourrir votre familier
-  fed: Votre famillier est très heureux maintenant!
-  pet_full: Votre familier n'a pas faim
-  feed_failed: Échec du nourrissage de votre familier
-  delete: Détruire l'objet
-  delete_confirm: Supprimer
-  cancel: Annuler
-  delete_desc: Êtes-vous sûr de vouloir supprimer {0} ? Cette action est irréversible.
-  deleting: Suppression de l'objet
-  deleted: Objet supprimé!
-  failed_to_delete: Échec de la suppression de l'objet
-</i18n>
-
 <template lang="pug">
 .inventory-container(@dragover.prevent @drop="handle_drop")
   .item(
@@ -44,13 +15,13 @@ fr:
 
   /// delete dialog
   vs-dialog(v-model="deletion_dialog")
-    template(#header) {{ t('delete') }}
-    i18n-t(keypath="delete_desc")
+    template(#header) {{ t('APP_ITEM_DELETE') }}
+    i18n-t(keypath="APP_ITEM_DELETE_DESC")
       b.itemname {{ selected_item?.name }} (Lvl. {{ selected_item?.level }})
     template(#footer)
       .dialog-footer
-        vs-button(type="transparent" color="#E74C3C" @click="deletion_dialog = false") {{ t('cancel') }}
-        vs-button(type="transparent" color="#2ECC71" @click="delete_item") {{ t('delete_confirm') }}
+        vs-button(type="transparent" color="#E74C3C" @click="deletion_dialog = false") {{ t('APP_ITEM_CANCEL') }}
+        vs-button(type="transparent" color="#2ECC71" @click="delete_item") {{ t('APP_ITEM_DELETE_CONFIRM') }}
 </template>
 
 <script setup>
@@ -76,7 +47,6 @@ const selected_category = inject('selected_category');
 const owned_items = inject('owned_items');
 const owned_tokens = inject('owned_tokens');
 const extension_items = inject('extension_items');
-const unlocked_characters = inject('unlocked_characters');
 const edit_mode_equipment = inject('edit_mode_equipment');
 const edit_mode = inject('edit_mode');
 const real_equipment = inject('equipment');
@@ -100,21 +70,21 @@ function pretty_amount(item) {
 }
 
 const delete_context = {
-  label: t('delete'),
+  label: t('APP_ITEM_DELETE'),
   onClick: () => {
     deletion_dialog.value = true;
   },
 };
 
 async function delete_item() {
-  const tx = toast.tx(t('deleting'), selected_item.value.name);
+  const tx = toast.tx(t('APP_ITEM_DELETING'), selected_item.value.name);
   try {
     deletion_dialog.value = false;
     await sui_delete_item(selected_item.value);
-    tx.update('success', t('deleted'));
+    tx.update('success', t('APP_ITEM_DELETED'));
   } catch (error) {
     console.error(error);
-    tx.update('error', t('failed_to_delete'));
+    tx.update('error', t('APP_ITEM_FAILED_TO_DELETE'));
   }
 }
 
@@ -130,17 +100,17 @@ function on_right_click_item(event, item) {
     item.item_type === 'vaporeon'
   )
     context.push({
-      label: `${t('feed')} ${selected_item.value?.required_food} ${selected_item.value?.food_name}`,
+      label: `${t('APP_ITEM_FEED')} ${selected_item.value?.required_food} ${selected_item.value?.food_name}`,
       onClick: async () => {
-        const tx = toast.tx(t('feeding'), selected_item.value.name);
+        const tx = toast.tx(t('APP_ITEM_FEEDING'), selected_item.value.name);
         try {
           const fed = await sui_feed_pet(selected_item.value);
-          if (fed) tx.update('success', t('fed'));
+          if (fed) tx.update('success', t('APP_ITEM_FED'));
           else tx.update('error', t('SUI_NOT_ENOUGH_FOOD'));
         } catch (error) {
           if (error.message.includes('101)')) {
-            tx.update('error', t('pet_full'));
-          } else tx.update('error', t('feed_failed'));
+            tx.update('error', t('APP_ITEM_PET_FULL'));
+          } else tx.update('error', t('APP_ITEM_FEED_FAILED'));
           console.error(error);
         }
       },

@@ -1,30 +1,13 @@
-<i18n>
-en:
-  workshop: Workshop
-  desc: Here you can craft items if you have the required job & level.
-  required: Requirements
-  tailor: Tailor
-  recipes: Available Recipes
-  jobs: My Jobs
-fr:
-  workshop: Atelier
-  desc: Ici vous pouvez fabriquer des objets si vous avez le métier et le niveau requis.
-  required: Requis
-  tailor: Tailleur
-  recipes: Recettes Disponibles
-  jobs: Mes Métiers
-</i18n>
-
 <template lang="pug">
 sectionContainer(v-if="NETWORK === 'testnet'")
-  sectionHeader(:title="t('workshop')" :desc="t('desc')" color="#673AB7" rows="true")
+  sectionHeader(:title="t('APP_TAB_WORKSHOP')" :desc="t('APP_TAB_WORKSHOP_DESC')" color="#673AB7" rows="true")
     .recipes
-      .recipe-name {{ t('recipes') }}:
+      .recipe-name {{ t('APP_TAB_WORKSHOP_RECIPES') }}:
       recipeVue(v-for="recipe in indexed_recipes" :recipe="recipe" :key="recipe.id")
     .right
       .desc
         itemDescription
-      .jobs-name {{ t('jobs') }}:
+      .jobs-name {{ t('APP_TAB_WORKSHOP_JOBS') }}:
       .jobs
         .job.material-2(v-for="job in jobs" :key="job.name")
           img(:src="job.icon")
@@ -35,7 +18,7 @@ sectionContainer(v-if="NETWORK === 'testnet'")
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
+import { inject, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import sectionContainer from '../components/misc/section-container.vue';
@@ -43,8 +26,10 @@ import sectionHeader from '../components/misc/section-header.vue';
 import recipeVue from '../components/cards/recipe.vue';
 import itemInventory from '../components/cards/item-inventory.vue';
 import itemDescription from '../components/cards/item-description.vue';
-import { VITE_INDEXER_URL, NETWORK } from '../env.js';
+import { NETWORK, VITE_INDEXER_URL } from '../env.js';
+// @ts-ignore
 import tailor_icon from '../assets/jobs/tailor.png';
+// @ts-ignore
 import woodcutter_icon from '../assets/jobs/woodcutter.png';
 import { SUI_EMITTER } from '../core/modules/sui_data.js';
 
@@ -53,8 +38,8 @@ const indexed_recipes = inject('recipes');
 const current_wallet = inject('current_wallet');
 
 const jobs = [
-  { name: 'Tailor', level: 1, icon: tailor_icon },
-  { name: 'Woodcutter', level: 1, icon: woodcutter_icon },
+  { name: t('APP_TAB_WORKSHOP_TAILOR'), level: 1, icon: tailor_icon },
+  { name: t('APP_TAB_WORKSHOP_WOODCUTTER'), level: 1, icon: woodcutter_icon },
 ];
 
 async function refresh_recipes() {

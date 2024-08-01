@@ -1,143 +1,48 @@
-<i18n>
-en:
-  no_items: No items are currently sold in this category
-  category: Category
-  name: Name
-  choose: Type a category
-  choose-name: Type an item name
-  equipment: Equipment
-
-  relic: Relic
-  rune: Rune
-  mount: Mount
-  hat: Hat
-  cloack: Cloack
-  amulet: Amulet
-  ring: Ring
-  belt: Belt
-  boots: Boots
-  title: Title
-  pet: Pet
-  character: Character
-
-  weapons: Weapons
-
-  bow: Bow
-  wand: Wand
-  staff: Staff
-  dagger: Dagger
-  shovel: Shovel
-  sword: Sword
-  scythe: Scythe
-  axe: Axe
-  hammer: Hammer
-  fishing_rod: Fishing rod
-  pickaxe: Pickaxe
-
-  resource: Resource
-  misc: Misc
-
-  key: Key
-
-  consumable: Consumable
-
-  orb: Orb
-
-  listed: Listed
-  floor: Floor
-fr:
-  no_items: Aucun item n'est actuellement vendu dans cette catégorie
-  category: Catégorie
-  name: Nom
-  choose: Choisissez une catégorie
-  choose-name: Tapez un nom d'item
-  equipment: Équipement
-
-  relic: Relique
-  rune: Rune
-  mount: Monture
-  hat: Coiffe
-  cloack: Cape
-  amulet: Amulette
-  ring: Anneau
-  belt: Ceinture
-  boots: Bottes
-  title: Titre
-  pet: Familiers
-  character: Perso
-
-  weapons: Armes
-
-  bow: Arc
-  wand: Baguette
-  staff: Bâton
-  dagger: Dague
-  shovel: Pelle
-  sword: Épée
-  scythe: Faux
-  axe: Hache
-  hammer: Marteau
-  fishing_rod: Canne à pêche
-  pickaxe: Pioche
-
-  resource: Ressource
-  misc: Divers
-
-  key: Clé
-
-  consumable: Consommable
-
-  orb: Orbe
-
-  listed: En vente
-  floor: Prix minimum
-</i18n>
-
 <template lang="pug">
 .categories
   .select
     .filter-category
-      span {{ t('category') }}:
-      vs-select(filter default-first-option v-model="filtered_category" :placeholder="t('choose')")
-        vs-option-group(:label="t('equipment')")
+      span {{ t('APP_MARKET_CATEGORY') }}:
+      vs-select(filter default-first-option v-model="filtered_category" :placeholder="t('APP_MARKET_CHOOSE')")
+        vs-option-group(:label="t('APP_MARKET_EQUIPMENT')")
           vs-option(
             v-for="item in EQUIPMENTS"
-            :label="t(item)" :value="item"
+            :label="t(`APP_ITEM_${item.toUpperCase()}`)" :value="item"
           )
-        vs-option-group(:label="t('weapons')")
+        vs-option-group(:label="t('APP_ITEM_WEAPON')")
           vs-option(
             v-for="item in WEAPONS"
-            :label="t(item)" :value="item"
+            :label="t(`APP_ITEM_${item.toUpperCase()}`)" :value="item"
           )
-        vs-option-group(:label="t('consumable')")
+        vs-option-group(:label="t('APP_MARKET_CONSUMABLES')")
           vs-option(
             v-for="item in CONSUMABLES"
-            :label="t(item)" :value="item"
+            :label="t(`APP_ITEM_${item.toUpperCase()}`)" :value="item"
           )
-        vs-option-group(:label="t('misc')")
+        vs-option-group(:label="t('APP_MARKET_MISC')")
           vs-option(
             v-for="item in MISC"
-            :label="t(item)" :value="item"
+            :label="t(`APP_ITEM_${item.toUpperCase()}`)" :value="item"
           )
     .names
-      span {{ t('name') }}:
-      vs-select(filter default-first-option v-model="filtered_name" :placeholder="t('choose-name')")
+      span {{ t('APP_MARKET_NAME') }}:
+      vs-select(filter default-first-option v-model="filtered_name" :placeholder="t('APP_MARKET_CHOOSE_NAME')")
         vs-option(
           v-for="item_name in Object.keys(currently_listed_items_names)"
           :label="item_name" :value="item_name" :key="item_name"
         )
   .all
-    .none(v-if="!available_types.length") {{ t('no_items') }}
+    .none(v-if="!available_types.length") {{ t('APP_MARKET_NO_ITEMS') }}
     .type.material-1(v-else v-for="available_type in available_types" :key="available_type.name" @click="() => select_item(available_type)")
       img.icon(:src="available_type.image_url" alt="listing image")
       .right
         span.name {{ available_type.name }}
         .bottom
           .listed
-            span {{ t('listed') }}:
+            span {{ t('APP_MARKET_LISTED') }}:
             span.count {{ available_type.item_count }}
           .floor
-            span {{ t('floor') }}:
+            span {{ t('APP_MARKET_FLOOR') }}:
             span.count.price {{ pretty_print_mists(available_type.price_floor) }}
             TokenSui(:style="{ fontSize: '.7em', color: '#90CAF9' }")
 </template>

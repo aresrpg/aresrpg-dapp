@@ -1,39 +1,8 @@
-<i18n>
-  en:
-    shop: 🥐 Market
-    sell: Sell
-    buy: Buy
-    faucet: Faucet
-    wrong_price: Invalid price
-    listing: Listing in the market
-    listed: Listed
-    failed_to_list: Failed to list item
-    mint: Shop
-    mint_title: AresRPG limited editions items
-    mint_header: In this section you have access to special limited edition items, they can appear during events or special occasions.
-    close: Close
-    revealed: Impressive, you got a new Item!
-  fr:
-    shop: 🥐 Hôtel des Ventes
-    sell: Vendre
-    buy: Acheter
-    faucet: Faucet
-    wrong_price: Prix invalide
-    listing: Mise en vente
-    listed: Listé avec succès
-    failed_to_list: Échec de la mise en vente
-    mint: Boutique
-    mint_title: Objets en édition limitée AresRPG
-    mint_header: Dans cette section, vous avez accès à des objets spéciaux en édition limitée, ils peuvent apparaître lors d'événements ou d'occasions spéciales.
-    close: Fermer
-    revealed: Impressionnant, vous avez un nouvel objet!
-</i18n>
-
 <template lang="pug">
 sectionContainer
   tabs.tabs_(:tabs="shop_tabs" :spaced="true" :nobg="true" :noborder="true")
     template(#tab="{ tab, active }")
-      vs-button(type="transparent" size="small" color="#90CAF9" :active="active").name {{ t(tab) }}
+      vs-button(type="transparent" size="small" color="#90CAF9" :active="active").name {{ t(`APP_TAB_SHOP_${tab.toUpperCase()}`) }}
     template(#content="{ data, tab }")
       .buy-page(v-if="tab === 'buy'")
         .left
@@ -44,7 +13,7 @@ sectionContainer
       .faucet-page(v-else-if="tab === 'faucet'")
         faucetCard(v-for="token in faucet_tokens" :token="token")
       .mint-page(v-else-if="tab === 'mint'")
-        sectionHeader(:title="t('mint_title')" :desc="t('mint_header')" color="#FFC107")
+        sectionHeader(:title="t('APP_TAB_SHOP_MINT_TITLE')" :desc="t('APP_TAB_SHOP_MINT_HEADER')" color="#FFC107")
         .mints
           mintCard(v-for="mint in mints" :mint="mint" :has_key="false")
       .sell-page(v-else-if="tab === 'sell'")
@@ -62,14 +31,14 @@ sectionContainer
               )
                 template(#icon)
                   TokenSui
-                template(#message-danger v-if="!is_price_valid") {{ t('wrong_price') }}
+                template(#message-danger v-if="!is_price_valid") {{ t('APP_TAB_SHOP_WRONG_PRICE') }}
             vs-button(
               type="gradient"
               size="small"
               color="#A4C400"
               @click="() => sell(1)"
               :disabled="!selected_item || !is_price_valid || selected_currently_listing"
-            ) {{ t('sell') }}
+            ) {{ t('APP_TAB_SHOP_SELL') }}
             vs-button(
               v-if="selected_item && get_item_total_amount(selected_item) >= 10"
               type="gradient"
@@ -77,7 +46,7 @@ sectionContainer
               color="#60A917"
               @click="() => sell(10)"
               :disabled="!selected_item || !is_price_valid || selected_currently_listing"
-            ) {{ t('sell') }} x10
+            ) {{ t('APP_TAB_SHOP_SELL') }} x10
             vs-button(
               v-if="selected_item && get_item_total_amount(selected_item) >= 100"
               type="gradient"
@@ -85,18 +54,18 @@ sectionContainer
               color="#008A00"
               @click="() => sell(100)"
               :disabled="!selected_item || !is_price_valid || selected_currently_listing"
-            ) {{ t('sell') }} x100
+            ) {{ t('APP_TAB_SHOP_SELL') }} x100
           .items
             itemInventory(:disable_edit="true" :sell_mode="true")
 
   /// revealed dialog
   vs-dialog(v-model="reveal_dialog")
     template(#header)
-      span.dialog-header(:class="{ reveal_shiny }") {{ t('revealed') }}
+      span.dialog-header(:class="{ reveal_shiny }") {{ t('APP_TAB_SHOP_REVEALED') }}
     itemDescription
     template(#footer)
       .dialog-footer
-        vs-button(type="transparent" color="#2ECC71" @click="(reveal_dialog = false, reveal_shiny = false)") {{ t('close') }}
+        vs-button(type="transparent" color="#2ECC71" @click="(reveal_dialog = false, reveal_shiny = false)") {{ t('APP_TAB_SHOP_CLOSE') }}
 </template>
 
 <script setup>
@@ -208,6 +177,7 @@ const is_price_valid = computed(() => {
 const currently_listing = ref([]);
 
 const selected_currently_listing = computed(() =>
+  // @ts-ignore
   currently_listing.value.includes(selected_item.value?.id),
 );
 
@@ -216,7 +186,8 @@ async function sell(quantity) {
 
   const listed_id = selected_item.value.id;
 
-  const tx = toast.tx(t('listing'), selected_item.value.name);
+  const tx = toast.tx(t('APP_TAB_SHOP_LISTING'), selected_item.value.name);
+  // @ts-ignore
   currently_listing.value.push(selected_item.value.id);
   try {
     await sui_list_item({
@@ -224,9 +195,9 @@ async function sell(quantity) {
       amount: quantity,
       price: requested_list_price.value,
     });
-    tx.update('success', t('listed'));
+    tx.update('success', t('APP_TAB_SHOP_LISTED'));
   } catch (error) {
-    tx.update('error', t('failed_to_list'));
+    tx.update('error', t('APP_TAB_SHOP_FAILED_TO_LIST'));
     console.error(error);
   } finally {
     currently_listing.value = currently_listing.value.filter(

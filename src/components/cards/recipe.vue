@@ -1,43 +1,10 @@
-<i18n>
-en:
-  required: Requirements
-  tailor: Tailor
-  craft: Craft
-  reveal: Reveal
-  craft_title: Craft item
-  craft_desc: Are you sure you want to craft {0} ?
-  cancel: Cancel
-  crafting: Crafting item
-  crafted: Item crafted
-  crafted_failed: Failed to craft item
-  revealing: Revealing item
-  revealed: Item revealed
-  revealed_failed: Failed to reveal item
-  close: Close
-fr:
-  required: Requis
-  tailor: Tailleur
-  craft: Fabriquer
-  reveal: Révéler
-  craft_title: Fabriquer l'objet
-  craft_desc: Êtes-vous sûr de vouloir fabriquer {0} ?
-  cancel: Annuler
-  crafting: Fabrication de l'objet
-  crafted: Objet fabriqué
-  crafted_failed: Échec de la fabrication de l'objet
-  revealing: Révélation de l'objet
-  revealed: Objet révélé
-  revealed_failed: Échec de la révélation de l'objet
-  close: Fermer
-</i18n>
-
 <template lang="pug">
 .recipe.material-2
   .top
     img(:src="item_icon(recipe.template.item_type)")
     .name
       span {{ recipe.template.name }}
-      .job #[b {{ t('required') }}]: {{ t('tailor') }} {{ recipe.level }}
+      .job #[b {{ t('APP_RECIPE_REQUIREMENTS') }}]: {{ t('APP_RECIPE_TAILOR') }} {{ recipe.level }}
     .lvl Lvl. {{ recipe.template.level }}
   .bottom
     .ingredients
@@ -49,18 +16,18 @@ fr:
     .btns
       vs-button(v-if="admin.admin_caps.length" type="gradient" size="small" color="#F4511E" @click="delete_recipe") Delete
       vs-button(v-if="is_finished" type="gradient" size="small" color="#76FF03" @click="reveal_craft" :disabled="currently_revealing || currently_crafting")
-        span.title {{ t('reveal') }}
+        span.title {{ t('APP_RECIPE_REVEAL') }}
       vs-button(v-else :disabled="!has_required_ingredients || currently_revealing || currently_crafting" type="gradient" size="small" color="#FFB300" @click="craft_dialog = true") {{ t('craft') }}
 
   /// craft dialog
   vs-dialog(v-model="craft_dialog")
-    template(#header) {{ t('craft_title') }}
-    i18n-t(keypath="craft_desc")
+    template(#header) {{ t('APP_RECIPE_CRAFT_TITLE') }}
+    i18n-t(keypath="APP_RECIPE_CRAFT_DESC")
       b.itemname {{ recipe.template.name }} (Lvl. {{ recipe.template.level }})
     template(#footer)
       .dialog-footer
-        vs-button(type="transparent" color="#E74C3C" @click="craft_dialog = false") {{ t('cancel') }}
-        vs-button(type="transparent" color="#2ECC71" @click="craft_item") {{ t('craft') }}
+        vs-button(type="transparent" color="#E74C3C" @click="craft_dialog = false") {{ t('APP_RECIPE_CANCEL') }}
+        vs-button(type="transparent" color="#2ECC71" @click="craft_item") {{ t('APP_RECIPE_CRAFT') }}
 
   /// revealed dialog
   vs-dialog(v-model="reveal_dialog" :loading="!selected_item")
@@ -68,7 +35,7 @@ fr:
     itemDescription
     template(#footer)
       .dialog-footer
-        vs-button(type="transparent" color="#2ECC71" @click="reveal_dialog = false") {{ t('close') }}
+        vs-button(type="transparent" color="#2ECC71" @click="reveal_dialog = false") {{ t('APP_RECIPE_CLOSE') }}
 </template>
 
 <script setup>
@@ -108,21 +75,21 @@ const is_finished = computed(() => {
 });
 
 async function craft_item() {
-  const tx = toast.tx(t('crafting'), props.recipe.template.name);
+  const tx = toast.tx(t('APP_RECIPE_CRAFTING'), props.recipe.template.name);
   try {
     currently_crafting.value = true;
     craft_dialog.value = false;
     await sui_craft_item(props.recipe);
-    tx.update('success', t('crafted'));
+    tx.update('success', t('APP_RECIPE_CRAFTED'));
   } catch (error) {
     console.error(error);
-    tx.update('error', t('crafted_failed'));
+    tx.update('error', t('APP_RECIPE_FAILED_TO_CRAFT'));
   }
   currently_crafting.value = false;
 }
 
 async function reveal_craft() {
-  const tx = toast.tx(t('revealing'), props.recipe.template.name);
+  const tx = toast.tx(t('APP_RECIPE_REVEALING'), props.recipe.template.name);
   try {
     currently_revealing.value = true;
     selected_item.value = null;
@@ -130,13 +97,13 @@ async function reveal_craft() {
       craft => craft.recipe_id === props.recipe.id,
     );
     await sui_reveal_craft(finished_craft);
-    tx.update('success', t('revealed'));
+    tx.update('success', t('APP_RECIPE_REVEALED'));
     // @ts-ignore
     context.dispatch('action/sui_remove_finished_craft', finished_craft.id);
     reveal_dialog.value = true;
   } catch (error) {
     console.error(error);
-    tx.update('error', t('revealed_failed'));
+    tx.update('error', t('APP_RECIPE_FAILED_TO_REVEAL'));
   }
   currently_revealing.value = false;
 }

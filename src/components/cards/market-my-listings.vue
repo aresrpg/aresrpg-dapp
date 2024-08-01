@@ -1,16 +1,3 @@
-<i18n>
-en:
-  withdraw: Withdraw
-  delisting: Delisting item
-  delisted: Item delisted
-  failed_to_delist: Failed to delist item
-fr:
-  withdraw: Retirer
-  delisting: Retrait de l'objet
-  delisted: Objet retiré
-  failed_to_delist: Échec du retrait de l'objet
-</i18n>
-
 <template lang="pug">
 .my-listings
   .listing(
@@ -25,7 +12,7 @@ fr:
     .price
       .sui {{ mists_to_sui(listing.list_price) }}
       TokenBrandedSui.icon
-      vs-button.btn(type="gradient" color="#0277BD" size="small" @click="() => delist_item(listing)" :disabled="delisting_items.includes(listing.id)") {{ t('withdraw') }}
+      vs-button.btn(type="gradient" color="#0277BD" size="small" @click="() => delist_item(listing)" :disabled="delisting_items.includes(listing.id)") {{ t('APP_MARKET_WITHDRAW') }}
 </template>
 
 <script setup>
@@ -49,14 +36,14 @@ function select_item(item) {
 const delisting_items = ref([]);
 
 async function delist_item(item) {
-  const tx = toast.tx(t('delisting'), item.name);
+  const tx = toast.tx(t('APP_MARKET_DELISTING'), item.name);
   delisting_items.value.push(item.id);
   try {
     await sui_delist_item(item);
-    tx.update('success', t('delisted'));
+    tx.update('success', t('APP_MARKET_DELISTED'));
   } catch (error) {
     console.error(error);
-    tx.update('error', t('failed_to_delist'));
+    tx.update('error', t('APP_MARKET_FAILED_TO_DELIST'));
   }
   delisting_items.value = delisting_items.value.filter(id => id !== item.id);
 }

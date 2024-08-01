@@ -9,9 +9,6 @@ import {
   Vector3,
   AmbientLight,
   Color,
-  BoxGeometry,
-  Mesh,
-  MeshBasicMaterial,
 } from 'three';
 import { nanoid } from 'nanoid';
 

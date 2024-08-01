@@ -1,16 +1,3 @@
-<i18n>
-en:
-  copy_address: Copy address
-  copied: Address copied to clipboard
-  no_character: You must select a character first
-  no_online: You must be online to send a message
-fr:
-  copy_address: Copier l'adresse
-  copied: Adresse copiée
-  no_character: Vous devez d'abord sélectionner un personnage
-  no_online: Vous devez être en ligne pour envoyer un message
-</i18n>
-
 <template lang="pug">
 .chat_container(:class="{ hidden, wide }")
   i.bx.bx-low-vision(@click="hidden = !hidden")
@@ -59,10 +46,10 @@ function on_right_click_id(event, id) {
     theme: 'mac dark',
     items: [
       {
-        label: t('copy_address'),
+        label: t('APP_GAME_CHAT_COPY_ADDRESS'),
         onClick: () => {
           navigator.clipboard.writeText(id);
-          toast.success(t('copied'));
+          toast.success(t('APP_GAME_CHAT_COPIED'));
         },
       },
     ],
@@ -83,14 +70,14 @@ function send_message() {
   if (!msg) return;
 
   if (!online.value) {
-    toast.error(t('no_online'));
+    toast.error(t('APP_GAME_CHAT_NO_ONLINE'));
     return;
   }
 
   const id = context.get_state().selected_character_id;
 
   if (!id) {
-    toast.error(t('no_character'));
+    toast.error(t('APP_GAME_CHAT_NO_CHARACTER'));
     return;
   }
 

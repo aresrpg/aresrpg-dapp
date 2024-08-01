@@ -1,43 +1,20 @@
-<i18n>
-  en:
-    mint: Mint
-    minting: Minting item
-    minted: Item minted successfully
-    failed_to_mint: Failed to mint item
-    total: Total
-    free: Free Mint
-    vaporeontext: |
-      This Vaporeon is a pet which you can equip on AresRPG, he will follow you in your exploration and fights.
-      Feed him with some $HSUI daily, and he will increase your stats
-  fr:
-    mint: Creer
-    minting: Création de l'item
-    minted: Objet créé avec succès
-    failed_to_mint: Échec de la création de l'objet
-    total: Total
-    free: Mint gratuit
-    vaporeontext: |
-      Ce Vaporeon est un familier que vous pouvez équiper sur AresRPG, il vous suivra dans vos explorations et combats.
-      Nourrissez-le avec du $HSUI quotidiennement, et il augmentera vos statistiques
-</i18n>
-
 <template lang="pug">
 vs-card
   template(#title)
     span.title {{ props.mint.name }}
   template(#img)
     img(:src="props.mint.image_url")
-  template(#text) {{ t('vaporeontext') }}
+  template(#text) {{ t('APP_MINT_CARD_VAPOREONTEXT') }}
   template.iiit(#interactions)
     .btns
       vs-button(type="shadow" v-if="!mint_keys.length")
         b {{ pretty_print_mists(props.mint.price) }}
         TokenSui(:style="{ fontSize: '.9em', color: '#90CAF9' }")
       vs-button(type="shadow").left
-        span.total {{ t('total') }}: {{ props.mint.minted }}/{{ props.mint.max_mint }}
-      vs-button.btn(v-if="!mint_keys.length" type="gradient" color="#4CAF50" @click="claim") {{ t('mint') }}
+        span.total {{ t('APP_MINT_CARD_TOTAL') }}: {{ props.mint.minted }}/{{ props.mint.max_mint }}
+      vs-button.btn(v-if="!mint_keys.length" type="gradient" color="#4CAF50" @click="claim") {{ t('APP_MINT_CARD_MINT') }}
       vs-button.btn(v-else type="gradient" color="#AB47BC" @click="claim")
-        b {{ t('free') }} #[span.amount (x{{ mint_keys.length }})]
+        b {{ t('APP_MINT_CARD_FREE') }} #[span.amount (x{{ mint_keys.length }})]
 </template>
 
 <script setup>
@@ -62,18 +39,18 @@ const allow_mint = ref(true);
 const mint_keys = ref([]);
 
 async function claim() {
-  const tx = toast.tx(t('minting'), `${props.mint.name}`);
+  const tx = toast.tx(t('APP_MINT_CARD_MINTING'), `${props.mint.name}`);
   try {
     allow_mint.value = false;
     const result = await sui_mint_vaporeon(mint_keys.value.pop());
-    if (result) tx.update('success', t('minted'));
+    if (result) tx.update('success', t('APP_MINT_CARD_MINTED'));
     else {
       console.error('Failed to mint');
       tx.remove();
     }
   } catch (error) {
     console.error(error);
-    tx.update('error', t('failed_to_mint'));
+    tx.update('error', t('APP_MINT_CARD_FAILED_TO_MINT'));
   }
 
   allow_mint.value = true;

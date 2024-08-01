@@ -1,19 +1,6 @@
-<i18n>
-en:
-  faucet: Claim some testnet {0}
-  claiming: Claiming 10 test tokens
-  claimed: Successfully claimed test tokens
-  failed_to_claim: Failed to claim test tokens
-fr:
-  faucet: Réclamer des testnet {0}
-  claiming: Recuperation de 10 tokens de test
-  claimed: Tokens de test récupérés avec succès
-  failed_to_claim: Échec de la récupération des tokens de test
-</i18n>
-
 <template lang="pug">
 .faucet-card
-  vs-button.wth(:disabled="!allow_claim" type="gradient" size="small" color="#4A148C" @click="claim") {{ t('faucet') }} #[b ${{ token.name }}]
+  vs-button.wth(:disabled="!allow_claim" type="gradient" size="small" color="#4A148C" @click="claim") {{ t('APP_FAUCET_CLAIM') }} #[b ${{ token.name }}]
 </template>
 
 <script setup>
@@ -33,15 +20,15 @@ const background_image = computed(() => {
 const allow_claim = ref(true);
 
 async function claim() {
-  const tx = toast.tx(t('claiming'), `$${props.token.name}`);
+  const tx = toast.tx(t('APP_FAUCET_CLAIMING'), `$${props.token.name}`);
   try {
     allow_claim.value = false;
     const result = await sui_faucet_mint(props.token.name.toLowerCase());
     if (result === 'WAIT_A_MINUTE') tx.remove();
-    else tx.update('success', t('claimed'));
+    else tx.update('success', t('APP_FAUCET_CLAIMED'));
   } catch (error) {
     console.error(error);
-    tx.update('error', t('failed_to_claim'));
+    tx.update('error', t('APP_FAUCET_FAILED'));
   }
 
   allow_claim.value = true;

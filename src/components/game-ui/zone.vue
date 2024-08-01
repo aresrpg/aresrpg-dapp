@@ -1,15 +1,8 @@
-<i18n>
-en:
-  players: Players
-fr:
-  players: Joueurs
-</i18n>
-
 <template lang="pug">
 .zone__container
   .zone Plaine des Caffres
   .position 🗺️ {{ position?.x }}, {{ position?.y }}, {{ position?.z }} ( {{ chunk_position.x }}, {{ chunk_position.z }} )
-  .players {{ t('players') }}: {{ server_info.online_players }} / {{ server_info.max_players }}
+  .players {{ t('APP_ZONE_PLAYERS') }}: {{ server_info.online_players }} / {{ server_info.max_players }}
   .version version {{ pkg.version }}
 </template>
 

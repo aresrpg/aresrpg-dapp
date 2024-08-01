@@ -1,13 +1,6 @@
-<i18n>
-  en:
-    please_connect: Welcome on AresRPG, please login to get started
-  fr:
-    please_connect: Bienvenue sur AresRPG, veuillez vous connecter pour commencer
-</i18n>
-
 <template lang="pug">
 .container
-  span(v-if="!current_wallet && !props.allow_offline") {{ t('please_connect') }}
+  span(v-if="!current_wallet && !props.allow_offline") {{ t('APP_PLEASE_CONNECT') }}
   slot(v-else)
 </template>
 

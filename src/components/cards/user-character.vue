@@ -1,48 +1,3 @@
-<i18n>
-  en:
-    lock: Select
-    unlock: Unselect
-    delete: Delete
-    send: Send
-    delete_desc: Are you sure you want to delete this character?
-    cancel: Cancel
-    confirm: Confirm
-    invalid_address: Invalid Sui address
-    lock_desc: You're about to select this character to access it in game, you can unselect it at anytime when you're done playing
-    unlock_desc: You're about to unselect this character and retrieve it in your wallet
-    lock_failed: Failed to select character, please retry shortly
-    unlock_failed: Failed to unselect character, please retry shortly
-    delete_failed: Failed to delete character, please retry shortly
-    deleting: Deleting character
-    deleting_ok: Character deleted
-    selecting: Selecting character
-    selecting_ok: Character selected
-    unselecting: Unselecting character
-    unselecting_ok: Character unselected
-    unselecting_stuff: You must unequip all items before unselecting this character
-  fr:
-    lock: Sélectionner
-    unlock: Désélectionner
-    delete: Supprimer
-    send: Envoyer
-    delete_desc: Êtes-vous sûr de vouloir supprimer ce personnage ?
-    cancel: Annuler
-    confirm: Confirmer
-    invalid_address: Adresse Sui invalide
-    lock_desc: Vous êtes sur le point de sélectionner ce personnage pour y accéder en jeu, vous pouvez le désélectionner à tout moment lorsque vous avez fini de jouer
-    unlock_desc: Vous êtes sur le point de désélectionner ce personnage et de le récupérer dans votre portefeuille
-    lock_failed: Échec de sélection du personnage, veuillez réessayer ultérieurement
-    unlock_failed: Échec de désélection du personnage, veuillez réessayer ultérieurement
-    delete_failed: Échec de suppression du personnage, veuillez réessayer ultérieurement
-    deleting: Suppression du personnage
-    deleting_ok: Personnage supprimé
-    selecting: Sélection du personnage
-    selecting_ok: Personnage sélectionné
-    unselecting: Désélection du personnage
-    unselecting_ok: Personnage désélectionné
-    unselecting_stuff: Vous devez déséquiper tous les objets avant de désélectionner ce personnage
-</i18n>
-
 <template lang="pug">
 .character(:class="{ locked: props.locked, [props.character.classe]: true, male: props.character.sex === 'male' }")
   span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
@@ -60,45 +15,44 @@
       size="small"
       color="#EF5350"
       :disabled="delete_loading"
-      @click="delete_dialog = true") {{ t('delete') }}
-    vs-button(v-if="!props.locked" type="transparent" size="small" color="#4CAF50" @click="lock_dialog = true" :disabled="lock_loading") {{ t('lock') }}
-    vs-button(v-else type="transparent" size="small" color="#4CAF50" @click="unlock_dialog = true" :disabled="unlock_loading") {{ t('unlock') }}
+      @click="delete_dialog = true") {{ t('APP_USER_DELETE') }}
+    vs-button(v-if="!props.locked" type="transparent" size="small" color="#4CAF50" @click="lock_dialog = true" :disabled="lock_loading") {{ t('APP_USER_LOCK') }}
+    vs-button(v-else type="transparent" size="small" color="#4CAF50" @click="unlock_dialog = true" :disabled="unlock_loading") {{ t('APP_USER_UNLOCK') }}
 
     /// deletion dialog
     vs-dialog(v-model="delete_dialog")
-      template(#header) {{ t('delete') }}
-      span {{ t('delete_desc') }}
+      template(#header) {{ t('APP_USER_DELETE') }}
+      span {{ t('APP_USER_DELETE_DESC') }}
       template(#footer)
         .dialog-footer
-          vs-button(type="transparent" color="#E74C3C" @click="delete_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="delete_character") {{ t('confirm') }}
+          vs-button(type="transparent" color="#E74C3C" @click="delete_dialog = false") {{ t('APP_USER_CANCEL') }}
+          vs-button(type="transparent" color="#2ECC71" @click="delete_character") {{ t('APP_USER_CONFIRM') }}
 
     /// lock dialog
     vs-dialog(v-model="lock_dialog")
-      template(#header) {{ t('lock') }}
-      span {{ t('lock_desc') }}
+      template(#header) {{ t('APP_USER_LOCK') }}
+      span {{ t('APP_USER_LOCK_DESC') }}
       template(#footer)
         .dialog-footer
-          vs-button(type="transparent" color="#E74C3C" @click="lock_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="select_character") {{ t('confirm') }}
+          vs-button(type="transparent" color="#E74C3C" @click="lock_dialog = false") {{ t('APP_USER_CANCEL') }}
+          vs-button(type="transparent" color="#2ECC71" @click="select_character") {{ t('APP_USER_CONFIRM') }}
 
     /// unlock dialog
     vs-dialog(v-model="unlock_dialog")
-      template(#header) {{ t('unlock') }}
-      span {{ t('unlock_desc') }}
+      template(#header) {{ t('APP_USER_UNLOCK') }}
+      span {{ t('APP_USER_UNLOCK_DESC') }}
       template(#footer)
         .dialog-footer
-          vs-button(type="transparent" color="#E74C3C" @click="unlock_dialog = false") {{ t('cancel') }}
-          vs-button(type="transparent" color="#2ECC71" @click="unselect_character") {{ t('confirm') }}
+          vs-button(type="transparent" color="#E74C3C" @click="unlock_dialog = false") {{ t('APP_USER_CANCEL') }}
+          vs-button(type="transparent" color="#2ECC71" @click="unselect_character") {{ t('APP_USER_CONFIRM') }}
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted, inject } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isValidSuiAddress } from '@mysten/sui/utils';
 
 import { experience_to_level } from '../../core/utils/game/experience.js';
-import { context } from '../../core/game/game.js';
 import {
   sui_delete_character,
   sui_select_character,
@@ -138,30 +92,30 @@ const unlock_dialog = ref(false);
 const unlock_loading = ref(false);
 
 async function delete_character() {
-  const { update } = toast.tx(t('deleting'), props.character.name);
+  const { update } = toast.tx(t('APP_USER_DELETING'), props.character.name);
   try {
     delete_loading.value = true;
     delete_dialog.value = false;
     await sui_delete_character(props.character);
-    update('success', t('deleting_ok'));
+    update('success', t('APP_USER_DELETED'));
   } catch (error) {
     console.error(error);
-    update('error', t('delete_failed'));
+    update('error', t('APP_USER_DELETE_FAILED'));
   } finally {
     delete_loading.value = false;
   }
 }
 
 async function select_character() {
-  const { update } = toast.tx(t('selecting'), props.character.name);
+  const { update } = toast.tx(t('APP_USER_SELECTING'), props.character.name);
   try {
     lock_loading.value = true;
     lock_dialog.value = false;
     await sui_select_character(props.character);
-    update('success', t('selecting_ok'));
+    update('success', t('APP_USER_SELECTED'));
   } catch (error) {
     console.error(error);
-    update('error', t('lock_failed'));
+    update('error', t('APP_USER_LOCK_FAILED'));
   } finally {
     lock_loading.value = false;
   }
@@ -189,21 +143,21 @@ function has_equipment(character) {
 }
 
 async function unselect_character() {
-  const { update } = toast.tx(t('unselecting'), props.character.name);
+  const { update } = toast.tx(t('APP_USER_UNSELECTING'), props.character.name);
   if (has_equipment(props.character)) {
-    update('error', t('unselecting_stuff'));
+    update('error', t('APP_USER_UNSELECTING_STUFF'));
     return;
   }
   try {
     unlock_loading.value = true;
     unlock_dialog.value = false;
     await sui_unselect_character(props.character);
-    update('success', t('unselecting_ok'));
+    update('success', t('APP_USER_UNSELECTED'));
   } catch (error) {
     console.error(error);
     if (error.message.includes('Some("unselect_character") }, 101)')) {
-      update('error', t('unselecting_stuff'));
-    } else update('error', t('unlock_failed'));
+      update('error', t('APP_USER_UNSELECTING_STUFF'));
+    } else update('error', t('APP_USER_UNLOCK_FAILED'));
   } finally {
     unlock_loading.value = false;
   }

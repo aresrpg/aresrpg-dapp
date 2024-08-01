@@ -1,30 +1,3 @@
-<i18n>
-fr:
-  character_name: Nom du personnage
-  character_name_valid: Le nom du personnage doit être compris entre 3 et 20 caractères
-  create_button: Créer
-  cancel_button: Annuler
-  name_too_long: Le nom est trop long
-  name_invalid: Le nom est invalide
-  name_white_space: Le nom ne peut pas contenir d'espaces blancs
-  name_taken: Ce nom est déjà pris
-  create_tx: Enregistrement du personnage sur Sui 💧
-  create_ok: Character created!
-  create_error: Erreur lors de la création du personnage
-en:
-  character_name: character name
-  character_name_valid: The character name must be between 3 and 20 chars
-  create_button: Create
-  cancel_button: Cancel
-  name_too_long: Name is too long
-  name_invalid: Name is invalid
-  name_white_space: Name cannot contain white spaces
-  name_taken: This name is already taken
-  create_tx: Saving character on Sui 💧
-  create_ok: Character created!
-  create_error: Error while creating character
-</i18n>
-
 <script setup>
 import { inject, ref, watch, computed } from 'vue';
 import Spells from '@aresrpg/aresrpg-sdk/spells';
@@ -160,11 +133,11 @@ watch(new_character_dialog, value => {
 
 watch(new_character_name, value => {
   if (value.length > 2 && name_too_long.value) {
-    name_error.value = t('name_too_long');
+    name_error.value = t('APP_CHARACTER_NAME_TOO_LONG');
   } else if (value.length > 2 && name_invalid.value) {
-    name_error.value = t('name_invalid');
+    name_error.value = t('APP_CHARACTER_NAME_INVALID');
   } else if (value.length > 2 && name_white_space.value) {
-    name_error.value = t('name_white_space');
+    name_error.value = t('APP_CHARACTER_NAME_WHITE_SPACE');
   } else if (value) name_error.value = '';
 });
 
@@ -174,12 +147,12 @@ async function create_character() {
   const classe = selected_class_type.value.includes('IOP') ? 'iop' : 'sram';
 
   if (await sui_is_character_name_taken(new_character_name.value)) {
-    name_error.value = t('name_taken');
+    name_error.value = t('APP_CHARACTER_NAME_TAKEN');
     create_button_disabled.value = false;
     return;
   }
 
-  const tx = toast.tx(t('create_tx'), new_character_name.value);
+  const tx = toast.tx(t('APP_CHARACTER_CREATE_TX'), new_character_name.value);
 
   try {
     cancel();
@@ -188,11 +161,11 @@ async function create_character() {
       type: classe,
       sex: female ? 'female' : 'male',
     });
-    tx.update('success', t('create_ok'));
+    tx.update('success', t('APP_CHARACTER_CREATE_OK'));
 
     new_character_name.value = '';
   } catch (error) {
-    tx.update('error', t('create_error'));
+    tx.update('error', t('APP_CHARACTER_CREATE_ERROR'));
     console.error(error);
   }
   create_button_disabled.value = false;
@@ -228,14 +201,14 @@ vs-dialog(v-model="new_character_dialog" full-screen)
       SpellDisplay(:spells="selected_class_data.spells")
     vs-input.name(block placeholder="Enter your name" v-model="new_character_name" @keyup.enter="create_character")
       template(#message-danger v-if="name_error") {{ name_error }}
-    vs-button.cancel(type="transparent" size="xl" color="#E74C3C" @click="cancel") {{ t('cancel_button') }}
+    vs-button.cancel(type="transparent" size="xl" color="#E74C3C" @click="cancel") {{ t('APP_CHARACTER_CANCEL_BUTTON') }}
     vs-button.create(
       type="transparent"
       size="xl"
       color="#2ECC71"
       @click="create_character"
       :disabled="!is_character_name_valid || create_button_disabled"
-    ) {{ t('create_button') }}
+    ) {{ t('APP_CHARACTER_CREATE_BUTTON') }}
 </template>
 
 <style lang="stylus" scoped>

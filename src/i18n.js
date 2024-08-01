@@ -4,6 +4,8 @@ import { createI18n } from 'vue-i18n'
 import en from './assets/translations/en.yaml'
 // @ts-ignore
 import fr from './assets/translations/fr.yaml'
+// @ts-ignore
+import jp from './assets/translations/jp.yaml'
 
 export const i18n = createI18n({
   legacy: false,
@@ -12,5 +14,6 @@ export const i18n = createI18n({
   messages: {
     fr,
     en,
+    jp,
   },
 })

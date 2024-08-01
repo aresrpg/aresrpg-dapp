@@ -1,10 +1,3 @@
-<i18n>
-en:
-  no_characters: You must lock a character to play
-fr:
-  no_characters: Vous devez verrouiller un personnage pour jouer
-</i18n>
-
 <template lang="pug">
 Dropdown(:border="false" ref="dropdown")
   template(#trigger)
@@ -15,7 +8,7 @@ Dropdown(:border="false" ref="dropdown")
       v-else
       type="gradient" color="#FF3D00"
       @click="go_to_characters"
-    ) {{ t('no_characters') }}
+    ) {{ t('APP_CHARACTER_NO_CHARACTERS') }}
   .dropdown-content
     vs-row(justify="center")
       vs-button.btn(

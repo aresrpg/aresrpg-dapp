@@ -14,8 +14,6 @@ import { VITE_INDEXER_URL } from './env.js';
 // @ts-ignore
 const name = 'app';
 
-const { t } = useI18n();
-
 const sidebar_reduced = ref(false);
 const game_visible = ref(false);
 
@@ -216,6 +214,7 @@ function update_all(
     owned_items.value = [...unlocked_items];
 
     const unlocked_selected = unlocked_items.find(
+      // @ts-ignore
       item => item.id === selected_item.value?.id,
     );
 
@@ -243,6 +242,7 @@ function update_all(
   )
     owned_tokens.value = tokens;
 
+  // @ts-ignore
   if (current_wallet.value?.name !== selected_wallet_name)
     // @ts-ignore
     current_wallet.value = selected_wallet;
@@ -407,6 +407,7 @@ function on_server_info(event) {
 
 let game_module = null;
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function update_all_(state) {
   if (game_module) update_all(state, game_module);
 }

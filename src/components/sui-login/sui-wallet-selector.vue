@@ -1,43 +1,22 @@
-<i18n>
-en:
-  connect: Connect a Wallet
-  what: What is a Wallet
-  section1_title: Easy login
-  section1_desc: No need to create new accounts and passwords for every website. Just connect your wallet and get going.
-  section2_title: Store your Digital Assets
-  section2_desc: Send, receive, store, and display your items and tokens.
-  wallet_connect_refused: Why did you cancel ? 🫠
-  no_wallet: It seem you don't have any wallet, please install one. You can start with the official
-fr:
-  connect: Connecter un Portefeuille
-  what: Qu'est-ce qu'un Portefeuille
-  section1_title: Connexion facile
-  section1_desc: Pas besoin de créer de nouveaux comptes et mots de passe pour chaque site Web. Connectez simplement votre portefeuille et c'est parti.
-  section2_title: Stockez vos actifs numériques
-  section2_desc: Envoyez, recevez, stockez et affichez vos objets et tokens.
-  wallet_connect_refused: Pourquoi avez-vous annulé ? 🫠
-  no_wallet: Il semble que vous n'ayez pas de portefeuille Sui, veuillez en installer un. Vous pouvez commencer par le Wallet officiel
-</i18n>
-
 <template lang="pug">
 .container
   .left-pane
-    .head {{ t('connect') }}
+    .head {{ t('APP_WALLET_CONNECT') }}
     .wallet(v-for="wallet in registered_wallets" :key="wallet.name" @click="() => connect_to_wallet(wallet)")
       img(:src="wallet.icon" :alt="wallet.name")
       span {{ wallet.name }}
   .right-pane
-    .head {{ t('what') }}
+    .head {{ t('APP_WALLET_WHAT') }}
     .content
       .section(v-if="no_wallet")
         .title.uhoh Uh Oh !
-        .desc {{ t('no_wallet') }} #[a(href="https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil" target="_blank") Sui Wallet]
+        .desc {{ t('APP_WALLET_NO_WALLET') }} #[a(href="https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil" target="_blank") Sui Wallet]
       .section(v-if="!no_wallet")
-        .title {{ t('section1_title') }}
-        .desc {{ t('section1_desc') }}
+        .title {{ t('APP_WALLET_SECTION1_TITLE') }}
+        .desc {{ t('APP_WALLET_SECTION1_DESC') }}
       .section(v-if="!no_wallet")
-        .title {{ t('section2_title') }}
-        .desc {{ t('section2_desc') }}
+        .title {{ t('APP_WALLET_SECTION2_TITLE') }}
+        .desc {{ t('APP_WALLET_SECTION2_DESC') }}
 </template>
 
 <script setup>
@@ -79,7 +58,7 @@ async function connect_to_wallet(wallet) {
     await wallet.connect();
   } catch (error) {
     console.error(error);
-    toast.error(t('wallet_connect_refused'), 'Hey !');
+    toast.error(t('APP_WALLET_CONNECT_REFUSED'), 'Hey !');
   } finally {
     emits('connection_done');
   }

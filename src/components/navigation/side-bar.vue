@@ -1,21 +1,3 @@
-<i18n>
-  fr:
-    shop: Hôtel des ventes
-    settings: Paramètres
-    world: Jouer
-    characters: Personnages
-    admin: Admin
-    workshop: Atelier
-  en:
-    shop: Market
-    settings: Settings
-    lang: Choose a language
-    world: Open World
-    characters: Characters
-    admin: Admin
-    workshop: Workshop
-</i18n>
-
 <template lang="pug">
 .hidden
   vs-sidebar(
@@ -26,22 +8,22 @@
     template(#logo)
       img.logo(v-if="!sidebar_reduced" src="../../assets/logo.png" @click="router.push('/')")
       .logo(v-else)
-    vs-sidebar-item(id="characters" @click="router.push('/characters')") {{ t('characters') }}
+    vs-sidebar-item(id="characters" @click="router.push('/characters')") {{ t('APP_SIDEBAR_CHARACTERS') }}
       template(#icon)
         i.bx.bxs-user-account
-    vs-sidebar-item(id="world" @click="router.push('/world')") {{ t('world') }}
+    vs-sidebar-item(id="world" @click="router.push('/world')") {{ t('APP_SIDEBAR_WORLD') }}
       template(#icon)
         i.bx.bx-world
-    vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('shop') }}
+    vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('APP_SIDEBAR_SHOP') }}
       template(#icon)
         i.bx.bxs-store
-    vs-sidebar-item(id="workshop" @click="router.push('/workshop')") {{ t('workshop') }}
+    vs-sidebar-item(id="workshop" @click="router.push('/workshop')") {{ t('APP_SIDEBAR_WORKSHOP') }}
       template(#icon)
         i.bx.bx-cut
-    vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('settings') }}
+    vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('APP_SIDEBAR_SETTINGS') }}
       template(#icon)
         i.bx.bx-cog
-    vs-sidebar-item(v-if="admin_policies.admin_caps.length" id="admin" @click="router.push('/admin')") {{ t('admin') }}
+    vs-sidebar-item(v-if="admin_policies.admin_caps.length" id="admin" @click="router.push('/admin')") {{ t('APP_SIDEBAR_ADMIN') }}
       template(#icon)
         i.bx.bx-pyramid
     vs-sidebar-item(id="discord" @click="open_discord") Discord
@@ -54,7 +36,7 @@
       .footer
         .version v{{ pkg.version }}
         serverInfo
-        .lang(@click="lang_dialog = true") {{ t('lang') }}
+        .lang(@click="lang_dialog = true") {{ t('APP_SIDEBAR_LANG') }}
 </template>
 
 <script setup>
