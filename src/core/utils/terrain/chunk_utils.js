@@ -171,7 +171,7 @@ export function fill_chunk_from_patch(patch, chunk_bbox) {
   return chunk.cache
 }
 
-function get_patch_chunk_ids(patch_key) {
+export function get_patch_chunk_ids(patch_key) {
   const chunk_ids = []
   const patch = WorldCache.patchLookupIndex[patch_key]
   if (patch) {
@@ -183,7 +183,7 @@ function get_patch_chunk_ids(patch_key) {
   return chunk_ids
 }
 
-export function get_chunks_indices(patch_keys) {
+export function get_chunks_ids(patch_keys) {
   // build chunk index
   const patch_chunks_index = {}
   // Object.values(WorldCache.patchLookupIndex)

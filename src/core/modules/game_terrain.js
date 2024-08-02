@@ -9,12 +9,7 @@ import {
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
 import { Color, Vector3 } from 'three'
-import {
-  BlockType,
-  WorldApi,
-  WorldCache,
-  WorldWorkerApi,
-} from '@aresrpg/aresrpg-world'
+import { WorldApi, WorldCache, WorldWorkerApi } from '@aresrpg/aresrpg-world'
 
 import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
@@ -23,7 +18,7 @@ import {
   world_cache_pow_limit,
 } from '../utils/terrain/world_settings.js'
 import {
-  get_chunks_indices,
+  get_chunks_ids,
   get_patch_chunks,
 } from '../utils/terrain/chunk_utils.js'
 
@@ -63,22 +58,12 @@ export default function () {
       }
     },
     async sampleHeightmap(coords) {
-      return Promise.all(
-        coords.map(async ({ x, z }) => {
-          const block_pos = new Vector3(x, 0, z)
-          const block = await WorldCache.getOvergroundBlock(block_pos, true)
-          if (!block) {
-            console.log(block)
-          }
-          const block_level = block?.pos.y || 0
-          const block_type = block?.type || BlockType.WATER
-          const block_color = new Color(blocks_colors[block_type])
-          return {
-            altitude: block_level + 0.25,
-            color: block_color,
-          }
-        }),
-      )
+      const res = await WorldCache.processBlocksBatch(coords)
+      const data = res.map(block => ({
+        altitude: block.level + 0.25,
+        color: new Color(blocks_colors[block.type]),
+      }))
+      return data
     },
   }
 
@@ -164,12 +149,12 @@ export default function () {
                 WorldCache.cachePowRadius++
 
               // build chunk index
-              // const chunks_indices = get_chunks_indices(batch_content)
-              const chunks_indices = get_chunks_indices(
+              // const chunks_ids = get_chunks_ids(batch_content)
+              const chunks_ids = get_chunks_ids(
                 Object.keys(WorldCache.patchLookupIndex),
               )
               // declare them as visible, hide the others
-              voxelmap_viewer.setVisibility(chunks_indices)
+              voxelmap_viewer.setVisibility(chunks_ids)
               // add patch keys requiring chunks generation
               batch_content.forEach(patch_key =>
                 patch_render_queue.push(patch_key),
