@@ -37,12 +37,12 @@ const patch_render_queue = []
 
 /** @type {Type.Module} */
 export default function () {
-  // World
-  // `world-compute`run inside worker
+  // World setup
+  // run `world-compute`in worker
   const world_worker_api = new WorldWorkerApi(world_worker)
-  // `world-api` using worker version
+  // tell `world-api` to use worker
   WorldApi.usedApi = world_worker_api
-  // `world-cache` available in main thread
+  // increase `world-cache` gradually
   WorldCache.cachePowRadius = 1
 
   // Engine
@@ -94,7 +94,6 @@ export default function () {
         chunks
           .filter(chunk => voxelmap_viewer.doesPatchRequireVoxelsData(chunk.id))
           .forEach(chunk => {
-            console.log(`push engine chunk`)
             voxelmap_viewer.enqueuePatch(chunk.id, chunk)
           })
       }
@@ -139,17 +138,8 @@ export default function () {
         if (player_position) {
           WorldCache.refresh(player_position).then(batch_content => {
             if (batch_content.length > 0) {
-              const cache_count = Object.keys(
-                WorldCache.patchLookupIndex,
-              ).length
-              console.log(
-                `Batch size: ${batch_content.length} items (total cache size: ${cache_count} items)`,
-              )
               WorldCache.cachePowRadius < world_cache_pow_limit &&
                 WorldCache.cachePowRadius++
-
-              // build chunk index
-              // const chunks_ids = get_chunks_ids(batch_content)
               const chunks_ids = get_chunks_ids(
                 Object.keys(WorldCache.patchLookupIndex),
               )
