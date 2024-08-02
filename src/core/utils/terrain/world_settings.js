@@ -3,7 +3,7 @@ import { BlockType } from '@aresrpg/aresrpg-world'
 // constants
 export const world_patch_size = Math.pow(2, 6)
 // max cache radius as a power of two
-export const world_cache_pow_limit = 3 // 4 => 16 patches radius
+export const world_cache_pow_limit = 2 // 4 => 16 patches radius
 export const sea_level = 76
 
 export const blocks_colors = {
