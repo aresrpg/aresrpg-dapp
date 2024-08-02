@@ -3,6 +3,7 @@ import { setInterval } from 'timers/promises'
 
 import {
   EComputationMethod,
+  HeightmapViewer,
   TerrainViewer,
   VoxelmapViewer,
   VoxelmapVisibilityComputer,
@@ -82,7 +83,12 @@ export default function () {
       },
     },
   )
-  const terrain_viewer = new TerrainViewer(map, voxelmap_viewer)
+  const heightmap_viewer = new HeightmapViewer(map, {
+    basePatchSize: voxelmap_viewer.chunkSize.xz,
+    voxelRatio: 2,
+    maxLevel: 5,
+  })
+  const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = true
 
   return {
