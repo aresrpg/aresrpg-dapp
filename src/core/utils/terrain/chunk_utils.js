@@ -1,3 +1,4 @@
+import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import { BlockType, WorldCache } from '@aresrpg/aresrpg-world'
 import { Vector3, MathUtils, Box3 } from 'three'
 
@@ -35,7 +36,9 @@ const write_chunk_blocks = (
       cache[cache_index] !== undefined &&
       !buffer_over[buff_index]
     if (!skip) {
-      cache[cache_index] = block_type ? block_type + 1 : BlockType.NONE
+      cache[cache_index] = block_type
+        ? voxelmapDataPacking.encode(false, block_type)
+        : voxelmapDataPacking.encodeEmpty()
     }
     buff_index--
     h--
