@@ -216,8 +216,30 @@ export function get_patch_chunks(patch_key) {
   return chunks
 }
 
-export function get_terrain_height({ x, z }, entity_height = 0) {
+function get_ground_block({ x, z }, entity_height) {
   const ground_pos = new Vector3(Math.floor(x), 350, Math.floor(z))
-  const { pos = ground_pos } = WorldCache.getGroundBlock(ground_pos) ?? {}
-  return Math.ceil(pos.y + 1) + entity_height * 0.5
+  const parse_block = ({ pos }) => Math.ceil(pos.y + 1) + entity_height * 0.5
+  const ground_block = WorldCache.getGroundBlock(ground_pos)
+
+  if (ground_block instanceof Promise) {
+    console.log('IS PROMISE')
+    return ground_block.then(parse_block)
+  }
+
+  return parse_block(ground_block)
+}
+
+// those 2 functions allows for better typings instead of using param options
+
+export async function get_terrain_height({ x, z }, entity_height = 0) {
+  return get_ground_block({ x, z }, entity_height)
+}
+
+export function get_optional_terrain_height({ x, z }, entity_height = 0) {
+  const ground_block = get_ground_block({ x, z }, entity_height)
+
+  // the height won't always be there
+  if (ground_block instanceof Promise) return null
+
+  return ground_block
 }
