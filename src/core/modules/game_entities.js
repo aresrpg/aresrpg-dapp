@@ -181,43 +181,45 @@ export default function () {
 
       events.on(
         'packet/entityGroupSpawn',
-        ({ id: group_id, position: spawn_position, entities }) => {
+        async ({ id: group_id, position: spawn_position, entities }) => {
           const { visible_mobs_group } = get_state()
 
-          spawn_position.y = get_terrain_height(spawn_position, 1)
+          spawn_position.y = await get_terrain_height(spawn_position, 1)
 
           visible_mobs_group.set(group_id, {
             id: group_id,
             position: spawn_position,
-            entities: entities.map(({ name, id, level, skin, size }) => {
-              const spawned_mob = {
-                ...ENTITIES[skin]({
-                  id,
-                  name: `${name} (${level})`,
-                  scale_factor: size,
-                }),
-                name,
-                level,
-                mob_group_id: group_id,
-                spawn_position,
-              }
+            entities: await Promise.all(
+              entities.map(async ({ name, id, level, skin, size }) => {
+                const spawned_mob = {
+                  ...ENTITIES[skin]({
+                    id,
+                    name: `${name} (${level})`,
+                    scale_factor: size,
+                  }),
+                  name,
+                  level,
+                  mob_group_id: group_id,
+                  spawn_position,
+                }
 
-              // find a position in 4 block range of entity position
-              const position = new Vector3(
-                spawn_position.x + Math.random() * 4 - 2,
-                0,
-                spawn_position.z + Math.random() * 4 - 2,
-              )
+                // find a position in 4 block range of entity position
+                const position = new Vector3(
+                  spawn_position.x + Math.random() * 4 - 2,
+                  0,
+                  spawn_position.z + Math.random() * 4 - 2,
+                )
 
-              const ground_height = get_terrain_height(
-                position,
-                spawned_mob.height,
-              )
+                const ground_height = await get_terrain_height(
+                  position,
+                  spawned_mob.height,
+                )
 
-              position.setY(ground_height)
-              spawned_mob.move(position)
-              return spawned_mob
-            }),
+                position.setY(ground_height)
+                spawned_mob.move(position)
+                return spawned_mob
+              }),
+            ),
           })
         },
       )

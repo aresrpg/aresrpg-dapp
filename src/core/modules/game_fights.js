@@ -22,27 +22,34 @@ export default function () {
       return state
     },
     observe() {
-      context.events.on('packet/fightSpawn', fight => {
-        const { visible_fights, characters } = context.get_state()
+      context.events.on('packet/fightSpawn', async fight => {
+        try {
+          const { visible_fights, characters } = context.get_state()
 
-        fight.start_time = +fight.start_time
+          fight.start_time = +fight.start_time
 
-        visible_fights.set(fight.id, fight)
+          visible_fights.set(fight.id, fight)
 
-        characters.forEach(character => {
-          if (
-            is_in_team(fight.team1, character.id) ||
-            is_in_team(fight.team2, character.id) ||
-            is_in_team(fight.spectators, character.id)
-          ) {
-            context.dispatch('action/join_fight', {
-              character_id: character.id,
-              fight_id: fight.id,
-            })
-          }
-        })
+          characters.forEach(character => {
+            if (
+              is_in_team(fight.team1, character.id) ||
+              is_in_team(fight.team2, character.id) ||
+              is_in_team(fight.spectators, character.id)
+            ) {
+              context.dispatch('action/join_fight', {
+                character_id: character.id,
+                fight_id: fight.id,
+              })
+            }
+          })
 
-        fight_swords.set(fight.id, spawn_crescent_sword(fight, context.scene))
+          fight_swords.set(
+            fight.id,
+            await spawn_crescent_sword(fight, context.scene),
+          )
+        } catch (error) {
+          console.error('Failed to spawn fight', error)
+        }
       })
 
       context.events.on('packet/fightsDespawn', ({ ids }) => {
