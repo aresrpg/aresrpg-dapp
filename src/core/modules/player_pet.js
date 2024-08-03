@@ -6,7 +6,7 @@ import {
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
 import { ENTITIES } from '../game/entities.js'
-import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
+import { get_optional_terrain_height } from '../utils/terrain/chunk_utils.js'
 
 const PET_SPEED = 8.0 // Adjust this value to set the pet's movement speed
 
@@ -35,16 +35,19 @@ export function tick_pet(character, pet, delta) {
     const movement = direction.multiplyScalar(PET_SPEED * delta)
 
     const new_position = pet.position.clone().add(movement)
+    const terrain_height = get_optional_terrain_height(new_position, pet.height)
 
-    new_position.setY(get_terrain_height(new_position, pet.height))
+    if (terrain_height != null) {
+      new_position.setY(terrain_height)
 
-    pet.move(new_position)
-    pet.rotate(movement)
-    pet.animate('RUN')
+      pet.move(new_position)
+      pet.rotate(movement)
+      pet.animate('RUN')
 
-    // Check if pet has reached the target position
-    if (new_position.distanceTo(pet.target_position) < 2) {
-      pet.target_position = null
+      // Check if pet has reached the target position
+      if (new_position.distanceTo(pet.target_position) < 2) {
+        pet.target_position = null
+      }
     }
   } else {
     pet.animate('IDLE')
