@@ -5,17 +5,23 @@ import {
   EComputationMethod,
   HeightmapViewer,
   TerrainViewer,
+  voxelmapDataPacking,
   VoxelmapViewer,
   // VoxelmapVisibilityComputer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
 import { Box3, Color, Vector3 } from 'three'
-import { WorldApi, WorldCache, WorldWorkerApi } from '@aresrpg/aresrpg-world'
+import {
+  BlocksContainer,
+  ChunkTools,
+  WorldApi,
+  WorldCache,
+  WorldWorkerApi,
+} from '@aresrpg/aresrpg-world'
 
-import { context, current_three_character } from '../game/game.js'
+import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
 import { blocks_colors } from '../utils/terrain/world_settings.js'
-import * as ChunkTools from '../utils/terrain/chunk_utils.js'
 
 const world_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
@@ -29,6 +35,7 @@ const min_altitude = -1
 const max_altitude = 400
 
 const patch_render_queue = []
+const cache_pow_radius = 1
 
 /** @type {Type.Module} */
 export default function () {
@@ -42,11 +49,7 @@ export default function () {
     maxAltitude: max_altitude,
     voxelMaterialsList: voxel_materials_list,
     getLocalMapData: async (block_start, block_end) => {
-      return {
-        data: [],
-        size: new Vector3().subVectors(block_end, block_start),
-        isEmpty: true,
-      }
+      return null
     },
     async sampleHeightmap(coords) {
       const res = await WorldCache.processBlocksBatch(coords)
@@ -79,33 +82,35 @@ export default function () {
     maxLevel: 5,
   })
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = false
-
-  // const voxelmap_visibility_computer = new VoxelmapVisibilityComputer(
-  //   { x: patch_size.xz, y: patch_size.y, z: patch_size.xz },
-  //   min_patch_id_y,
-  //   max_patch_id_y,
-  // )
+  terrain_viewer.parameters.lod.enabled = true
 
   return {
     tick() {
       // process patch queue to generate render chunks
       if (patch_render_queue.length > 0) {
         const patch_key = patch_render_queue.pop()
-        const patch = WorldCache.patchLookupIndex[patch_key]
-        const chunks_ids = ChunkTools.gen_chunk_ids(
+
+        const patch = WorldCache.patchContainer.patchLookup[patch_key]
+        const chunks_ids = ChunkTools.genChunkIds(
           patch,
           min_patch_id_y,
           max_patch_id_y,
         )
         const chunks = chunks_ids.map(chunk_id =>
-          ChunkTools.make_chunk(patch, chunk_id),
+          ChunkTools.makeChunk(patch, chunk_id),
         )
         chunks
           .filter(chunk => voxelmap_viewer.doesPatchRequireVoxelsData(chunk.id))
           .forEach(chunk => {
+            chunk.data.forEach(
+              (val, i) =>
+                (chunk.data[i] = val
+                  ? voxelmapDataPacking.encode(false, val)
+                  : voxelmapDataPacking.encodeEmpty()),
+            )
             voxelmap_viewer.enqueuePatch(chunk.id, chunk)
           })
+        // }
       }
       terrain_viewer.update()
     },
@@ -156,13 +161,14 @@ export default function () {
           // query patches belonging to visible area and enqueue them for render
           WorldCache.refresh(cache_box).then(changes => {
             if (changes.count > 0) {
-              const chunks_ids = Object.values(WorldCache.patchLookupIndex)
+              console.log(
+                `batch size: ${changes.batch.length} (total cache size ${WorldCache.patchContainer.count})`,
+              )
+              // cache_pow_radius < world_cache_pow_limit &&
+              // cache_pow_radius++
+              const chunks_ids = WorldCache.patchContainer.availablePatches
                 .map(patch =>
-                  ChunkTools.gen_chunk_ids(
-                    patch,
-                    min_patch_id_y,
-                    max_patch_id_y,
-                  ),
+                  ChunkTools.genChunkIds(patch, min_patch_id_y, max_patch_id_y),
                 )
                 .flat()
               // declare them as visible, hide the others

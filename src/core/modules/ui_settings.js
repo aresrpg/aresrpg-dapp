@@ -2,7 +2,7 @@ import { GUI } from 'dat.gui'
 import { Vector3 } from 'three'
 
 import { INITIAL_STATE, current_three_character } from '../game/game.js'
-import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
+import { get_terrain_height } from '../utils/terrain/world_utils.js'
 
 /** @type {Type.Module} */
 export default function () {
