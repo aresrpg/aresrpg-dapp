@@ -7,7 +7,7 @@ import { lerp } from 'three/src/math/MathUtils.js'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { get_optional_terrain_height } from '../utils/terrain/chunk_utils.js'
+import { get_optional_terrain_height } from '../utils/terrain/world_utils.js'
 import { sea_level } from '../utils/terrain/world_settings.js'
 
 import { play_step_sound } from './game_audio.js'

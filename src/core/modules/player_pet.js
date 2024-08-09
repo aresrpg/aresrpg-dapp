@@ -6,7 +6,7 @@ import {
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
 import { ENTITIES } from '../game/entities.js'
-import { get_optional_terrain_height } from '../utils/terrain/chunk_utils.js'
+import { get_optional_terrain_height } from '../utils/terrain/world_utils.js'
 
 const PET_SPEED = 8.0 // Adjust this value to set the pet's movement speed
 
