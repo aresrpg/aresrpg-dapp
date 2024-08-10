@@ -4,6 +4,7 @@ import {
   BlocksPatch,
   WorldCompute,
   WorldApiName,
+  WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Vector3 } from 'three'
 
@@ -39,16 +40,9 @@ addEventListener('message', ({ data: input }) => {
   const output = {
     id: input.id,
   }
-  const { apiName: api_name, args } = input
-  if (
-    [
-      WorldApiName.GroundBlockCompute,
-      WorldApiName.OvergroundBlocksCompute,
-    ].includes(api_name)
-  ) {
-    args[0] = new Vector3(...Object.values(args[0]))
-  }
-  const obj_stub = WorldCompute[api_name](...args)
-  output.data = obj_stub
+  const { apiName: api_name } = input
+  const args = input.args.map(arg => WorldUtils.parseThreeStub(arg))
+  const res_stub = WorldCompute[api_name](...args)
+  output.data = res_stub
   postMessage(output)
 })

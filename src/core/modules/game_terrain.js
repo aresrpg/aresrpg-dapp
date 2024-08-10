@@ -6,7 +6,6 @@ import {
   HeightmapViewer,
   TerrainViewer,
   VoxelmapViewer,
-  VoxelmapVisibilityComputer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
 import { Color, Vector3 } from 'three'
@@ -14,14 +13,8 @@ import { WorldApi, WorldCache, WorldWorkerApi } from '@aresrpg/aresrpg-world'
 
 import { context, current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
-import {
-  blocks_colors,
-  world_cache_pow_limit,
-} from '../utils/terrain/world_settings.js'
-import {
-  get_chunks_ids,
-  get_patch_chunks,
-} from '../utils/terrain/chunk_utils.js'
+import { blocks_colors } from '../utils/terrain/world_settings.js'
+import { gen_chunk_ids, make_chunk } from '../utils/terrain/chunk_utils.js'
 
 const world_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
@@ -44,7 +37,7 @@ export default function () {
   // tell `world-api` to use worker
   WorldApi.usedApi = world_worker_api
   // increase `world-cache` gradually
-  WorldCache.cachePowRadius = 1
+  // WorldCache.cachePowRadius = 1
 
   // Engine
   const map = {
@@ -96,7 +89,9 @@ export default function () {
       // feed engine with chunks
       if (patch_render_queue.length > 0) {
         const patch_key = patch_render_queue.pop()
-        const chunks = get_patch_chunks(patch_key)
+        const patch = WorldCache.patchLookupIndex[patch_key]
+        const chunks_ids = gen_chunk_ids(patch, min_patch_id_y, max_patch_id_y)
+        const chunks = chunks_ids.map(chunk_id => make_chunk(patch, chunk_id))
         chunks
           .filter(chunk => voxelmap_viewer.doesPatchRequireVoxelsData(chunk.id))
           .forEach(chunk => {
@@ -140,11 +135,16 @@ export default function () {
         if (player_position) {
           WorldCache.refresh(player_position).then(batch_content => {
             if (batch_content.length > 0) {
-              WorldCache.cachePowRadius < world_cache_pow_limit &&
-                WorldCache.cachePowRadius++
-              const chunks_ids = get_chunks_ids(
-                Object.keys(WorldCache.patchLookupIndex),
-              )
+              // console.log(
+              //   `batch size: ${batch_content.length} (total cache size ${WorldCache.patchContainer.count})`,
+              // )
+              // cache_pow_radius < world_cache_pow_limit &&
+              // cache_pow_radius++
+              const chunks_ids = Object.values(WorldCache.patchLookupIndex)
+                .map(patch =>
+                  gen_chunk_ids(patch, min_patch_id_y, max_patch_id_y),
+                )
+                .flat()
               // declare them as visible, hide the others
               voxelmap_viewer.setVisibility(chunks_ids)
               // add patch keys requiring chunks generation
