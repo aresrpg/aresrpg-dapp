@@ -6,15 +6,16 @@ import {
   HeightmapViewer,
   TerrainViewer,
   VoxelmapViewer,
+  // VoxelmapVisibilityComputer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Color, Vector3 } from 'three'
+import { Box3, Color, Vector3 } from 'three'
 import { WorldApi, WorldCache, WorldWorkerApi } from '@aresrpg/aresrpg-world'
 
 import { context, current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
 import { blocks_colors } from '../utils/terrain/world_settings.js'
-import { gen_chunk_ids, make_chunk } from '../utils/terrain/chunk_utils.js'
+import * as ChunkTools from '../utils/terrain/chunk_utils.js'
 
 const world_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
@@ -32,14 +33,10 @@ const patch_render_queue = []
 /** @type {Type.Module} */
 export default function () {
   // World setup
-  // run `world-compute`in worker
   const world_worker_api = new WorldWorkerApi(world_worker)
-  // tell `world-api` to use worker
   WorldApi.usedApi = world_worker_api
-  // increase `world-cache` gradually
-  // WorldCache.cachePowRadius = 1
 
-  // Engine
+  // Engine setup
   const map = {
     minAltitude: min_altitude,
     maxAltitude: max_altitude,
@@ -82,16 +79,28 @@ export default function () {
     maxLevel: 5,
   })
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = true
+  terrain_viewer.parameters.lod.enabled = false
+
+  // const voxelmap_visibility_computer = new VoxelmapVisibilityComputer(
+  //   { x: patch_size.xz, y: patch_size.y, z: patch_size.xz },
+  //   min_patch_id_y,
+  //   max_patch_id_y,
+  // )
 
   return {
     tick() {
-      // feed engine with chunks
+      // process patch queue to generate render chunks
       if (patch_render_queue.length > 0) {
         const patch_key = patch_render_queue.pop()
         const patch = WorldCache.patchLookupIndex[patch_key]
-        const chunks_ids = gen_chunk_ids(patch, min_patch_id_y, max_patch_id_y)
-        const chunks = chunks_ids.map(chunk_id => make_chunk(patch, chunk_id))
+        const chunks_ids = ChunkTools.gen_chunk_ids(
+          patch,
+          min_patch_id_y,
+          max_patch_id_y,
+        )
+        const chunks = chunks_ids.map(chunk_id =>
+          ChunkTools.make_chunk(patch, chunk_id),
+        )
         chunks
           .filter(chunk => voxelmap_viewer.doesPatchRequireVoxelsData(chunk.id))
           .forEach(chunk => {
@@ -133,26 +142,50 @@ export default function () {
         const player_position =
           current_three_character(state)?.position?.clone()
         if (player_position) {
-          WorldCache.refresh(player_position).then(batch_content => {
-            if (batch_content.length > 0) {
-              // console.log(
-              //   `batch size: ${batch_content.length} (total cache size ${WorldCache.patchContainer.count})`,
-              // )
-              // cache_pow_radius < world_cache_pow_limit &&
-              // cache_pow_radius++
+          // compute viewed area around player to know which patch are required
+          const cache_radius = state.settings.view_distance
+          const cache_dims = new Vector3(
+            cache_radius,
+            cache_radius,
+            cache_radius,
+          ).multiplyScalar(2)
+          const cache_box = new Box3().setFromCenterAndSize(
+            player_position,
+            cache_dims,
+          )
+          // query patches belonging to visible area and enqueue them for render
+          WorldCache.refresh(cache_box).then(changes => {
+            if (changes.count > 0) {
               const chunks_ids = Object.values(WorldCache.patchLookupIndex)
                 .map(patch =>
-                  gen_chunk_ids(patch, min_patch_id_y, max_patch_id_y),
+                  ChunkTools.gen_chunk_ids(
+                    patch,
+                    min_patch_id_y,
+                    max_patch_id_y,
+                  ),
                 )
                 .flat()
               // declare them as visible, hide the others
               voxelmap_viewer.setVisibility(chunks_ids)
               // add patch keys requiring chunks generation
-              batch_content.forEach(patch_key =>
+              changes.batch.forEach(patch_key =>
                 patch_render_queue.push(patch_key),
               )
             }
           })
+          // // compute all patches that need to be visible and prioritize them
+          // voxelmap_visibility_computer.reset()
+          // voxelmap_visibility_computer.showMapAroundPosition(
+          //   player_position,
+          //   state.settings.view_distance,
+          //   context.frustum,
+          // )
+          // const requested_patches_ids_list = voxelmap_visibility_computer
+          //   .getRequestedPatches()
+          //   .map(requested_patch => requested_patch.id)
+
+          // // declare them as visible, hide the others
+          // voxelmap_viewer.setVisibility(requested_patches_ids_list)
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)
       })
