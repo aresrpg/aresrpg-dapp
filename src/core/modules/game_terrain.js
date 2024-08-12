@@ -7,13 +7,14 @@ import {
   TerrainViewer,
   voxelmapDataPacking,
   VoxelmapViewer,
-  // VoxelmapVisibilityComputer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
 import { Box3, Color, Vector3 } from 'three'
 import {
   BlocksContainer,
+  BoardContainer,
   ChunkTools,
+  PlateauLegacy,
   WorldApi,
   WorldCache,
   WorldWorkerApi,
@@ -35,8 +36,10 @@ const min_altitude = -1
 const max_altitude = 400
 
 const patch_render_queue = []
-const cache_pow_radius = 1
+let board_container_ref
+let last_player_pos = new Vector3(0, 0, 0)
 
+const use_legacy_plateau = true
 /** @type {Type.Module} */
 export default function () {
   // World setup
@@ -82,7 +85,30 @@ export default function () {
     maxLevel: 5,
   })
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = true
+  terrain_viewer.parameters.lod.enabled = false
+
+  const render_patch_container = patch_container => {
+    patch_container.availablePatches.forEach(board_patch => {
+      const chunks_ids = ChunkTools.genChunkIds(
+        board_patch,
+        min_patch_id_y,
+        max_patch_id_y,
+      )
+      const board_chunks = chunks_ids.map(chunk_id =>
+        ChunkTools.makeChunk(board_patch, chunk_id),
+      )
+      board_chunks.forEach(chunk => {
+        chunk.data.forEach(
+          (val, i) =>
+            (chunk.data[i] = val
+              ? voxelmapDataPacking.encode(false, val)
+              : voxelmapDataPacking.encodeEmpty()),
+        )
+        voxelmap_viewer.invalidatePatch(chunk.id)
+        voxelmap_viewer.enqueuePatch(chunk.id, chunk)
+      })
+    })
+  }
 
   return {
     tick() {
@@ -179,19 +205,94 @@ export default function () {
               )
             }
           })
-          // // compute all patches that need to be visible and prioritize them
-          // voxelmap_visibility_computer.reset()
-          // voxelmap_visibility_computer.showMapAroundPosition(
-          //   player_position,
-          //   state.settings.view_distance,
-          //   context.frustum,
-          // )
-          // const requested_patches_ids_list = voxelmap_visibility_computer
-          //   .getRequestedPatches()
-          //   .map(requested_patch => requested_patch.id)
+          // Board POC
+          if (last_player_pos.distanceTo(player_position) > 2) {
+            last_player_pos = player_position
+            // restore previous patches content
+            if (board_container_ref) {
+              const board_original_patches = new BoardContainer(
+                board_container_ref.bbox,
+              )
+              board_original_patches.fillFromPatches(
+                WorldCache.patchContainer.availablePatches,
+                true,
+              )
+              render_patch_container(board_original_patches)
+              board_container_ref = null
+            }
+            if (use_legacy_plateau) {
+              PlateauLegacy.computePlateau(player_position).then(board => {
+                console.log(board)
+                const board_dims = new Vector3(board.size.x, 0, board.size.z)
+                const board_end = board.origin.clone().add(board_dims)
+                const board_box = new Box3(board.origin, board_end)
+                // prepare board
+                const board_blocks_container = new BlocksContainer(board_box, 0)
+                const size = Math.sqrt(board.squares.length)
+                const { min, max } = board_blocks_container.bbox
+                board.squares.forEach((v, i) => {
+                  const z = Math.floor(i / size)
+                  const x = i % size
+                  const index = z + size * x
+                  const block_level = v.floorY || 0
+                  const block_type = v.materialId
+                  board_blocks_container.groundBlocks.level[index] = block_level
+                  board_blocks_container.groundBlocks.type[index] = block_type
+                  min.y = block_level > 0 ? Math.min(min.y, block_level) : min.y
+                  max.y = Math.max(max.y, block_level)
+                })
+                const y_diff = max.y - min.y
+                min.y += Math.round(y_diff / 2)
+                // create container covering board area filled with patches from cache
 
-          // // declare them as visible, hide the others
-          // voxelmap_viewer.setVisibility(requested_patches_ids_list)
+                board_container_ref = new BoardContainer(board_box)
+                board_container_ref.fillFromPatches(
+                  WorldCache.patchContainer.availablePatches,
+                  true,
+                )
+                // merge with board blocks
+                board_container_ref.mergeBoardBlocks(board_blocks_container)
+                board_container_ref &&
+                  render_patch_container(board_container_ref)
+              })
+            } else {
+              const board_radius = Math.pow(2, 5)
+              const board_dims = new Vector3(
+                board_radius,
+                board_radius,
+                board_radius,
+              )
+              const board_box = new Box3().setFromCenterAndSize(
+                player_position,
+                board_dims,
+              )
+              board_container_ref = new BoardContainer(board_box)
+              board_container_ref.fillFromPatches(
+                WorldCache.patchContainer.availablePatches,
+                true,
+              )
+              let min = board_container_ref.bbox.max.y
+              let max = board_container_ref.bbox.min.y
+              board_container_ref.availablePatches.forEach(patch => {
+                const blocks = patch.iterOverBlocks(board_box)
+                for (const block of blocks) {
+                  const block_level = block.pos.y
+                  min = Math.min(block_level, min)
+                  max = Math.max(block_level, max)
+                }
+              })
+              const avg = Math.round(min + (max - min) / 2)
+              board_container_ref.availablePatches.forEach(patch => {
+                const blocks = patch.iterOverBlocks(board_box)
+                for (const block of blocks) {
+                  patch.writeBlockAtIndex(block.index, avg, block.type)
+                }
+              })
+              // merge with board blocks
+              // board_container_ref.mergeBoardBlocks(board_blocks_container)
+              board_container_ref && render_patch_container(board_container_ref)
+            }
+          }
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)
       })
