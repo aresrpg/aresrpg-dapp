@@ -1,4 +1,5 @@
-import { WorldCache } from '@aresrpg/aresrpg-world'
+import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+import { WorldCache, WorldUtils } from '@aresrpg/aresrpg-world'
 import { Vector3 } from 'three'
 import { LRUCache } from 'lru-cache'
 
@@ -53,6 +54,8 @@ function memoize_ground_block() {
 
 const request_ground_block = memoize_ground_block()
 
+import { world_patch_size } from './world_settings.js'
+
 function get_ground_block({ x, z }, entity_height) {
   const ground_block = request_ground_block({ x, z })
   const parse_block = ({ pos }) => Math.ceil(pos.y + 1) + entity_height * 0.5
@@ -75,4 +78,30 @@ export function get_optional_terrain_height({ x, z }, entity_height = 0) {
   if (ground_block instanceof Promise) return null
 
   return ground_block
+}
+
+const chunk_data_encode = world_chunk_data => {
+  const engine_chunk_data = []
+  // convert chunk data to engine format
+  world_chunk_data.forEach(
+    (val, i) =>
+      (engine_chunk_data[i] = val
+        ? voxelmapDataPacking.encode(false, val)
+        : voxelmapDataPacking.encodeEmpty()),
+  )
+  return engine_chunk_data
+}
+
+export const convert_to_engine_chunk = world_chunk => {
+  const id = WorldUtils.parseChunkKey(world_chunk.key)
+  const chunk_bbox = WorldUtils.getChunkBboxFromId(id, world_patch_size) // voxelmap_viewer.getPatchVoxelsBox(id)
+  const size = chunk_bbox.getSize(new Vector3())
+  const data = world_chunk.data ? chunk_data_encode(world_chunk.data) : []
+  const engine_chunk = {
+    id,
+    data,
+    isEmpty: !world_chunk.data,
+    size,
+  }
+  return engine_chunk
 }
