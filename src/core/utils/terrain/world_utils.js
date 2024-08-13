@@ -1,6 +1,14 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
-import { WorldComputeApi, WorldUtils } from '@aresrpg/aresrpg-world'
-import { Vector3 } from 'three'
+import {
+  BlocksContainer,
+  BoardContainer,
+  CacheContainer,
+  PlateauLegacy,
+  WorldComputeApi,
+  WorldUtils,
+} from '@aresrpg/aresrpg-world'
+import { Box3, Vector3 } from 'three'
+import { world_patch_size } from './world_settings.js'
 import { LRUCache } from 'lru-cache'
 
 function memoize_ground_block() {
@@ -26,7 +34,7 @@ function memoize_ground_block() {
 
     // Create a new ground block request
     const ground_pos = new Vector3(x, 0, z)
-    const ground_block = WorldCache.getGroundBlock(ground_pos)
+    const ground_block = WorldComputeApi.instance.computeBlocksBatch([ground_pos])
 
     // If it's a promise, handle it accordingly
     if (ground_block instanceof Promise) {
@@ -34,7 +42,8 @@ function memoize_ground_block() {
 
       // Once the promise resolves, store it in the cache and remove from in-progress map
       ground_block
-        .then(block => {
+        .then(res => {
+          const block = res[0]
           ground_block_cache.set(key, block)
           existing_groundblock_requests.delete(key)
         })
@@ -54,14 +63,7 @@ function memoize_ground_block() {
 
 const request_ground_block = memoize_ground_block()
 
-import { world_patch_size } from './world_settings.js'
-
 function get_ground_block({ x, z }, entity_height) {
-  // return WorldComputeApi.instance.computeBlocksBatch([ground_pos])
-  // .then(res=>{
-  //   const block = res[0]
-  //   return parse_block(block)
-  // })
   const ground_block = request_ground_block({ x, z })
   const parse_block = ({ pos }) => Math.ceil(pos.y + 1) + entity_height * 0.5
 
@@ -109,4 +111,49 @@ export const convert_to_engine_chunk = world_chunk => {
     size,
   }
   return engine_chunk
+}
+
+export const make_board = player_position => {
+  const board_container = new BoardContainer(player_position, 48)
+  board_container.populateFromExisting(
+    CacheContainer.instance.availablePatches,
+    true,
+  )
+  board_container.shapeBoard()
+  return board_container
+}
+
+export const make_legacy_board = async player_position => {
+  const board_struct = await PlateauLegacy.computePlateau(player_position)
+
+  const board_dims = new Vector3(board_struct.size.x, 0, board_struct.size.z)
+  const board_end = board_struct.origin.clone().add(board_dims)
+  const board_box = new Box3(board_struct.origin, board_end)
+  // prepare board
+  const board_blocks_container = new BlocksContainer(board_box, 0)
+  const size = Math.sqrt(board_struct.squares.length)
+  const { min, max } = board_blocks_container.bbox
+  board_struct.squares.forEach((v, i) => {
+    const z = Math.floor(i / size)
+    const x = i % size
+    const index = z + size * x
+    const block_level = v.floorY || 0
+    const block_type = v.materialId
+    board_blocks_container.groundBlocks.level[index] = block_level
+    board_blocks_container.groundBlocks.type[index] = block_type
+    min.y = block_level > 0 ? Math.min(min.y, block_level) : min.y
+    max.y = Math.max(max.y, block_level)
+  })
+  const y_diff = max.y - min.y
+  min.y += Math.round(y_diff / 2)
+  // create container covering board area filled with patches from cache
+
+  const board_container = new BoardContainer(board_box)
+  board_container.fillFromPatches(
+    CacheContainer.instance.availablePatches,
+    true,
+  )
+  // merge with board blocks
+  board_container.mergeBoardBlocks(board_blocks_container)
+  return board_container
 }
