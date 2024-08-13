@@ -1,6 +1,6 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import { BlockType, WorldCache, WorldUtils } from '@aresrpg/aresrpg-world'
-import { Vector3, MathUtils, Box3, Vector2 } from 'three'
+import { Vector3, MathUtils, Box3 } from 'three'
 import { LRUCache } from 'lru-cache'
 
 import { world_patch_size } from './world_settings.js'
@@ -233,21 +233,25 @@ function memoize_ground_block() {
   const existing_groundblock_requests = new Map()
   const ground_block_cache = new LRUCache({ max: 1000 })
 
-  return ({ x, z }) => {
+  return pos => {
+    const x = Math.floor(pos.x)
+    const z = Math.floor(pos.z)
     const key = `${x}:${z}`
 
     // Check if the result is already in the cache
     if (ground_block_cache.has(key)) {
+      // console.log('groundblock cache hit', { x, z })
       return ground_block_cache.get(key)
     }
 
     // Check if a request for this key is already in progress
     if (existing_groundblock_requests.has(key)) {
+      console.log('promise already exist', { x, z })
       return existing_groundblock_requests.get(key)
     }
 
     // Create a new ground block request
-    const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z))
+    const ground_pos = new Vector3(x, 0, z)
     const ground_block = WorldCache.getGroundBlock(ground_pos)
 
     // If it's a promise, handle it accordingly
@@ -280,10 +284,7 @@ function get_ground_block({ x, z }, entity_height) {
   const ground_block = request_ground_block({ x, z })
   const parse_block = ({ pos }) => Math.ceil(pos.y + 1) + entity_height * 0.5
 
-  if (ground_block instanceof Promise) {
-    console.log('IS PROMISE')
-    return ground_block.then(parse_block)
-  }
+  if (ground_block instanceof Promise) return ground_block.then(parse_block)
 
   return parse_block(ground_block)
 }

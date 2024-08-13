@@ -33,8 +33,8 @@ export default function () {
           characters.forEach(character => {
             if (
               is_in_team(fight.team1, character.id) ||
-              is_in_team(fight.team2, character.id) ||
-              is_in_team(fight.spectators, character.id)
+              is_in_team(fight.team2, character.id)
+              // is_in_team(fight.spectators, character.id)
             ) {
               context.dispatch('action/join_fight', {
                 character_id: character.id,
