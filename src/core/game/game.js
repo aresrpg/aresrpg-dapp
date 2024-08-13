@@ -382,7 +382,12 @@ renderer.info.autoReset = false
 
 composer.setSize(window.innerWidth, window.innerHeight)
 
+let currently_connecting = false
+
 function connect_ws() {
+  if (currently_connecting) return
+  currently_connecting = true
+
   logger.SOCKET('Connecting to server')
   const connecting_toast = toast.tx(i18n.global.t('WS_CONNECTING_TO_SERVER'))
   return new Promise((resolve, reject) => {
@@ -392,8 +397,17 @@ function connect_ws() {
     const { status } = useWebSocket(
       `${server_url}?address=${selected_address}`,
       {
-        autoReconnect: true,
+        autoReconnect: {
+          retries: () => {
+            if (currently_connecting) return false
+            currently_connecting = true
+
+            return !!context.get_state().sui.selected_address
+          },
+        },
         async onDisconnected(ws, event) {
+          currently_connecting = false
+
           decrease_loading()
           await handle_server_error(event.reason)
           ares_client?.notify_end(event.reason)
@@ -455,7 +469,7 @@ const context = {
   composer,
   // @ts-ignore
   camera_controls: new CameraControls(camera, renderer.domElement),
-  /** @type {import("@aresrpg/aresrpg-protocol/src/types.js").send} */
+  /** @type {ReturnType<import("@aresrpg/aresrpg-protocol")["create_client"]>["send"]} */
   send_packet(type, payload) {
     if (!ares_client || ares_client.controller.signal.aborted) return // not connected
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)
