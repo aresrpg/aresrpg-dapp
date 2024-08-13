@@ -26,8 +26,6 @@ import TwemojiSalt from '~icons/twemoji/salt'
 // @ts-ignore
 import MapGasStation from '~icons/map/gas-station'
 // @ts-ignore
-import TokenSui from '~icons/token/sui'
-// @ts-ignore
 import TwemojiSushi from '~icons/twemoji/sushi'
 // @ts-ignore
 import GameIconsBrokenBottle from '~icons/game-icons/broken-bottle'
@@ -56,6 +54,28 @@ sdk.kiosk_client.addRuleResolver({
     })
   },
 })
+
+const current_server_requests = new Map()
+
+context.events.on('packet/requestResponse', ({ id, message }) => {
+  if (current_server_requests.has(id)) {
+    const resolve = current_server_requests.get(id)
+    resolve(JSON.parse(message))
+    current_server_requests.delete(id)
+  }
+})
+
+async function indexer_request(type, payload) {
+  const id = crypto.randomUUID()
+  let resolve_promise = null
+  const promise = new Promise(resolve => (resolve_promise = resolve))
+  current_server_requests.set(id, resolve_promise)
+  context.send_packet('packet/requestResponse', {
+    id,
+    message: JSON.stringify({ type, payload }),
+  })
+  return promise
+}
 
 const CHARACTER_NAMES = new LRUCache({ max: 1000 })
 
@@ -434,15 +454,9 @@ export async function sui_reveal_craft(finished_craft) {
 
   sdk.add_header(tx)
 
-  const { kioskOwnerCaps } = await sdk.kiosk_client.getOwnedKiosks({
-    address: get_address(),
-  })
+  const { kiosk, personal_kiosk_cap } = await sui_get_aresrpg_kiosk()
 
-  const first_personal_kiosk = kioskOwnerCaps.find(
-    ({ isPersonal }) => !!isPersonal,
-  )
-
-  if (!first_personal_kiosk) {
+  if (!kiosk) {
     toast.error(t('SUI_NO_PERSONAL_KIOSK'))
     return
   }
@@ -451,8 +465,8 @@ export async function sui_reveal_craft(finished_craft) {
     tx,
     recipe: finished_craft.recipe_id,
     finished_craft: finished_craft.id,
-    kiosk: first_personal_kiosk.kioskId,
-    kiosk_cap: first_personal_kiosk.objectId,
+    kiosk: kiosk.id,
+    kiosk_cap: personal_kiosk_cap.id,
   })
 
   tx.setSender(get_address())
@@ -943,7 +957,7 @@ export async function sui_get_kiosks_profits() {
 }
 
 export async function sui_get_aresrpg_kiosk() {
-  return sdk.get_aresrpg_kiosk(get_address())
+  return await indexer_request('get_aresrpg_kiosk', get_address())
 }
 
 export async function sui_claim_kiosks_profits() {

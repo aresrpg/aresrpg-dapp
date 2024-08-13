@@ -723,22 +723,19 @@ export default function () {
                         listing => listing.id === event.id,
                       )
 
-                    // If I didn't list the item
+                    // If I didn't list the item (making sure i'm not buying my own item)
                     if (!my_listing) {
                       try {
                         const item = await sdk.get_item_by_id(event.id)
-                        const {
-                          kioskId: kiosk_id,
-                          objectId: cap_id,
-                          isPersonal: personal,
-                        } = await sui_get_aresrpg_kiosk()
+                        const { kiosk, personal_kiosk_cap } =
+                          await sui_get_aresrpg_kiosk()
 
                         if (item) {
                           context.dispatch('action/sui_add_unlocked_item', {
                             ...item,
-                            kiosk_id,
-                            personal_kiosk_cap_id: cap_id,
-                            is_kiosk_personal: personal,
+                            kiosk_id: kiosk.id,
+                            personal_kiosk_cap_id: personal_kiosk_cap.id,
+                            is_kiosk_personal: true,
                           })
                         } else {
                           const character = await sdk.get_character_by_id(
@@ -751,7 +748,7 @@ export default function () {
                             'action/sui_add_unlocked_character',
                             {
                               ...character,
-                              kiosk_id,
+                              kiosk_id: kiosk.id,
                             },
                           )
                         }
