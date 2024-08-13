@@ -1,5 +1,5 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
-import { WorldCache, WorldUtils } from '@aresrpg/aresrpg-world'
+import { WorldComputeApi, WorldUtils } from '@aresrpg/aresrpg-world'
 import { Vector3 } from 'three'
 import { LRUCache } from 'lru-cache'
 
@@ -57,6 +57,11 @@ const request_ground_block = memoize_ground_block()
 import { world_patch_size } from './world_settings.js'
 
 function get_ground_block({ x, z }, entity_height) {
+  // return WorldComputeApi.instance.computeBlocksBatch([ground_pos])
+  // .then(res=>{
+  //   const block = res[0]
+  //   return parse_block(block)
+  // })
   const ground_block = request_ground_block({ x, z })
   const parse_block = ({ pos }) => Math.ceil(pos.y + 1) + entity_height * 0.5
 

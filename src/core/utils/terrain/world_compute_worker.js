@@ -3,10 +3,8 @@ import {
   Heightmap,
   BlocksPatch,
   WorldCompute,
-  WorldApiName,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
-import { Vector3 } from 'three'
 
 import {
   biome_mapping_conf,
