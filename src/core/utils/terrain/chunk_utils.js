@@ -1,6 +1,7 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import { BlockType, WorldCache, WorldUtils } from '@aresrpg/aresrpg-world'
 import { Vector3, MathUtils, Box3, Vector2 } from 'three'
+import { LRUCache } from 'lru-cache'
 
 import { world_patch_size } from './world_settings.js'
 
@@ -228,10 +229,56 @@ export function gen_chunk_ids(patch, ymin, ymax) {
   return chunk_ids
 }
 
+function memoize_ground_block() {
+  const existing_groundblock_requests = new Map()
+  const ground_block_cache = new LRUCache({ max: 1000 })
+
+  return ({ x, z }) => {
+    const key = `${x}:${z}`
+
+    // Check if the result is already in the cache
+    if (ground_block_cache.has(key)) {
+      return ground_block_cache.get(key)
+    }
+
+    // Check if a request for this key is already in progress
+    if (existing_groundblock_requests.has(key)) {
+      return existing_groundblock_requests.get(key)
+    }
+
+    // Create a new ground block request
+    const ground_pos = new Vector3(Math.floor(x), 0, Math.floor(z))
+    const ground_block = WorldCache.getGroundBlock(ground_pos)
+
+    // If it's a promise, handle it accordingly
+    if (ground_block instanceof Promise) {
+      existing_groundblock_requests.set(key, ground_block)
+
+      // Once the promise resolves, store it in the cache and remove from in-progress map
+      ground_block
+        .then(block => {
+          ground_block_cache.set(key, block)
+          existing_groundblock_requests.delete(key)
+        })
+        .catch(() => {
+          existing_groundblock_requests.delete(key)
+        })
+    } else {
+      // If it's not a promise, store it directly in the cache
+      ground_block_cache.set(key, ground_block)
+    }
+
+    // Store the request in the map and return the ground block (or promise)
+    existing_groundblock_requests.set(key, ground_block)
+    return ground_block
+  }
+}
+
+const request_ground_block = memoize_ground_block()
+
 function get_ground_block({ x, z }, entity_height) {
-  const ground_pos = new Vector3(Math.floor(x), 350, Math.floor(z))
+  const ground_block = request_ground_block({ x, z })
   const parse_block = ({ pos }) => Math.ceil(pos.y + 1) + entity_height * 0.5
-  const ground_block = WorldCache.getGroundBlock(ground_pos)
 
   if (ground_block instanceof Promise) {
     console.log('IS PROMISE')
