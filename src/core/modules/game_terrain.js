@@ -12,11 +12,11 @@ import { Box3, Color, Vector3 } from 'three'
 import {
   BlocksContainer,
   BoardContainer,
+  CacheContainer,
+  PatchContainer,
   PlateauLegacy,
-  WorldApi,
-  WorldCache,
+  WorldComputeApi,
   WorldUtils,
-  WorldWorkerApi,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -43,8 +43,8 @@ const use_legacy_plateau = false
 /** @type {Type.Module} */
 export default function () {
   // World setup
-  const world_worker_api = new WorldWorkerApi(world_worker)
-  WorldApi.usedApi = world_worker_api
+  // use world compute worker version
+  WorldComputeApi.worker = world_worker
 
   // Engine setup
   const map = {
@@ -55,7 +55,7 @@ export default function () {
       return null
     },
     async sampleHeightmap(coords) {
-      const res = await WorldCache.processBlocksBatch(coords)
+      const res = await CacheContainer.processBlocksBatch(coords)
       const data = res.map(block => ({
         altitude: block.level + 0.25,
         color: new Color(blocks_colors[block.type]),
@@ -97,7 +97,7 @@ export default function () {
       // process patch queue to generate and render corresponding chunks
       if (patch_render_queue.length > 0) {
         const patch_key = patch_render_queue.pop()
-        const patch = WorldCache.patchContainer.patchLookup[patch_key]
+        const patch = CacheContainer.instance.patchLookup[patch_key]
         // build engine chunk out of patch
         const chunks = patch
           .toChunks(min_patch_id_y, max_patch_id_y)
@@ -155,14 +155,14 @@ export default function () {
             cache_dims,
           )
           // query patches belonging to visible area and enqueue them for render
-          WorldCache.refresh(cache_box).then(changes => {
+          CacheContainer.instance.refresh(cache_box).then(changes => {
             if (changes.count > 0) {
               console.log(
-                `batch size: ${changes.batch.length} (total cache size ${WorldCache.patchContainer.count})`,
+                `batch size: ${changes.batch.length} (total cache size ${CacheContainer.instance.count})`,
               )
               // cache_pow_radius < world_cache_pow_limit &&
               // cache_pow_radius++
-              const chunks_ids = WorldCache.patchContainer.availablePatches
+              const chunks_ids = CacheContainer.instance.availablePatches
                 .map(patch =>
                   WorldUtils.genChunkIds(
                     patch.coords,
@@ -184,11 +184,11 @@ export default function () {
             last_player_pos = player_position
             // restore previous patches content
             if (board_ref) {
-              const original_patches_container = new BoardContainer(
+              const original_patches_container = new PatchContainer(
                 board_ref.bbox,
               )
-              original_patches_container.fillFromPatches(
-                WorldCache.patchContainer.availablePatches,
+              original_patches_container.populateFromExisting(
+                CacheContainer.instance.availablePatches,
                 true,
               )
               const original_chunks = original_patches_container
@@ -235,7 +235,7 @@ export default function () {
 
                   board_ref = new BoardContainer(board_box)
                   board_ref.fillFromPatches(
-                    WorldCache.patchContainer.availablePatches,
+                    CacheContainer.instance.availablePatches,
                     true,
                   )
                   // merge with board blocks
@@ -248,40 +248,12 @@ export default function () {
                 },
               )
             } else {
-              const board_radius = Math.pow(2, 5)
-              const board_dims = new Vector3(
-                board_radius,
-                board_radius,
-                board_radius,
-              )
-              const board_box = new Box3().setFromCenterAndSize(
-                player_position,
-                board_dims,
-              )
-              board_ref = new BoardContainer(board_box)
-              board_ref.fillFromPatches(
-                WorldCache.patchContainer.availablePatches,
+              board_ref = new BoardContainer(player_position, 48)
+              board_ref.populateFromExisting(
+                CacheContainer.instance.availablePatches,
                 true,
               )
-              let ymin = board_ref.bbox.max.y
-              let ymax = board_ref.bbox.min.y
-              board_ref.availablePatches.forEach(patch => {
-                const blocks = patch.iterOverBlocks(board_box)
-                for (const block of blocks) {
-                  const block_level = block.pos.y
-                  ymin = Math.min(block_level, ymin)
-                  ymax = Math.max(block_level, ymax)
-                }
-              })
-              const avg = Math.round(ymin + (ymax - ymin) / 2)
-              board_ref.availablePatches.forEach(patch => {
-                const blocks = patch.iterOverBlocks(board_box)
-                for (const block of blocks) {
-                  patch.writeBlockAtIndex(block.index, avg, block.type)
-                }
-              })
-              // merge with board blocks
-              // board_patch_container.mergeBoardBlocks(board_blocks_container)
+              board_ref.shapeBoard()
               // render board
               const board_chunks = board_ref
                 .toChunks(min_patch_id_y, max_patch_id_y)
