@@ -10,11 +10,8 @@ import {
 import { aiter } from 'iterator-helper'
 import { Box3, Color, Vector3 } from 'three'
 import {
-  BlocksContainer,
-  BoardContainer,
-  CacheContainer,
   PatchContainer,
-  PlateauLegacy,
+  CacheContainer,
   WorldComputeApi,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
@@ -22,7 +19,11 @@ import {
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
 import { blocks_colors } from '../utils/terrain/world_settings.js'
-import { convert_to_engine_chunk } from '../utils/terrain/world_utils.js'
+import {
+  convert_to_engine_chunk,
+  make_board,
+  make_legacy_board,
+} from '../utils/terrain/world_utils.js'
 
 const world_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
@@ -36,14 +37,13 @@ const min_altitude = -1
 const max_altitude = 400
 
 const patch_render_queue = []
-let board_ref
+let board_container_ref
 let last_player_pos = new Vector3(0, 0, 0)
 
 const use_legacy_plateau = false
 /** @type {Type.Module} */
 export default function () {
-  // World setup
-  // use world compute worker version
+  // Run world-compute module in dedicated worker
   WorldComputeApi.worker = world_worker
 
   // Engine setup
@@ -92,17 +92,24 @@ export default function () {
     voxelmap_viewer.enqueuePatch(chunk.id, chunk)
   }
 
+  const render_patch_container = board_container => {
+    const board_chunks = board_container
+      .toChunks(min_patch_id_y, max_patch_id_y)
+      .map(chunk => convert_to_engine_chunk(chunk))
+    board_chunks.forEach(chunk => chunk_render(chunk))
+  }
+
   return {
     tick() {
-      // process patch queue to generate and render corresponding chunks
+      // Process previously enqueud patches needing chunk generation and rendering
       if (patch_render_queue.length > 0) {
         const patch_key = patch_render_queue.pop()
         const patch = CacheContainer.instance.patchLookup[patch_key]
-        // build engine chunk out of patch
+        // build engine chunks from world patches
         const chunks = patch
           .toChunks(min_patch_id_y, max_patch_id_y)
           .map(chunk => convert_to_engine_chunk(chunk))
-        // send chunks to engine for rendering
+        // feed engine with chunks for rendering
         chunks
           .filter(chunk => voxelmap_viewer.doesPatchRequireVoxelsData(chunk.id))
           .forEach(chunk => chunk_render(chunk))
@@ -143,7 +150,7 @@ export default function () {
         const player_position =
           current_three_character(state)?.position?.clone()
         if (player_position) {
-          // compute viewed area around player to know which patch are required
+          // Specify area around player requiring patch generation
           const cache_radius = state.settings.view_distance
           const cache_dims = new Vector3(
             cache_radius,
@@ -154,7 +161,7 @@ export default function () {
             player_position,
             cache_dims,
           )
-          // query patches belonging to visible area and enqueue them for render
+          // Query patches surrounding player and enqueue them for differred rendering
           CacheContainer.instance.refresh(cache_box).then(changes => {
             if (changes.count > 0) {
               console.log(
@@ -182,83 +189,28 @@ export default function () {
           // Board POC
           if (last_player_pos.distanceTo(player_position) > 2) {
             last_player_pos = player_position
-            // restore previous patches content
-            if (board_ref) {
+            // remove previous board by restoring original terrain patches
+            if (board_container_ref) {
               const original_patches_container = new PatchContainer(
-                board_ref.bbox,
+                board_container_ref.bbox,
               )
               original_patches_container.populateFromExisting(
                 CacheContainer.instance.availablePatches,
                 true,
               )
-              const original_chunks = original_patches_container
-                .toChunks(min_patch_id_y, max_patch_id_y)
-                .map(chunk => convert_to_engine_chunk(chunk))
-              original_chunks.forEach(chunk => chunk_render(chunk))
+              render_patch_container(original_patches_container)
               // unset board ref
-              board_ref = null
+              board_container_ref = null
             }
-            // compute board
+            // build and render updated battle board
             if (use_legacy_plateau) {
-              PlateauLegacy.computePlateau(player_position).then(
-                board_struct => {
-                  const board_dims = new Vector3(
-                    board_struct.size.x,
-                    0,
-                    board_struct.size.z,
-                  )
-                  const board_end = board_struct.origin.clone().add(board_dims)
-                  const board_box = new Box3(board_struct.origin, board_end)
-                  // prepare board
-                  const board_blocks_container = new BlocksContainer(
-                    board_box,
-                    0,
-                  )
-                  const size = Math.sqrt(board_struct.squares.length)
-                  const { min, max } = board_blocks_container.bbox
-                  board_struct.squares.forEach((v, i) => {
-                    const z = Math.floor(i / size)
-                    const x = i % size
-                    const index = z + size * x
-                    const block_level = v.floorY || 0
-                    const block_type = v.materialId
-                    board_blocks_container.groundBlocks.level[index] =
-                      block_level
-                    board_blocks_container.groundBlocks.type[index] = block_type
-                    min.y =
-                      block_level > 0 ? Math.min(min.y, block_level) : min.y
-                    max.y = Math.max(max.y, block_level)
-                  })
-                  const y_diff = max.y - min.y
-                  min.y += Math.round(y_diff / 2)
-                  // create container covering board area filled with patches from cache
-
-                  board_ref = new BoardContainer(board_box)
-                  board_ref.fillFromPatches(
-                    CacheContainer.instance.availablePatches,
-                    true,
-                  )
-                  // merge with board blocks
-                  board_ref.mergeBoardBlocks(board_blocks_container)
-                  // render board
-                  const board_chunks = board_ref
-                    .toChunks(min_patch_id_y, max_patch_id_y)
-                    .map(chunk => convert_to_engine_chunk(chunk))
-                  board_chunks.forEach(chunk => chunk_render(chunk))
-                },
-              )
+              make_legacy_board(player_position).then(board => {
+                board_container_ref = board
+                render_patch_container(board_container_ref)
+              })
             } else {
-              board_ref = new BoardContainer(player_position, 48)
-              board_ref.populateFromExisting(
-                CacheContainer.instance.availablePatches,
-                true,
-              )
-              board_ref.shapeBoard()
-              // render board
-              const board_chunks = board_ref
-                .toChunks(min_patch_id_y, max_patch_id_y)
-                .map(chunk => convert_to_engine_chunk(chunk))
-              board_chunks.forEach(chunk => chunk_render(chunk))
+              board_container_ref = make_board(player_position)
+              render_patch_container(board_container_ref)
             }
           }
         }
