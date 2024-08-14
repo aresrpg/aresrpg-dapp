@@ -92,7 +92,8 @@ export default function () {
       // process patch queue to generate render chunks
       if (patch_render_queue.length > 0) {
         const patch_key = patch_render_queue.pop()
-        const patch = WorldCache.patchLookupIndex[patch_key]
+        console.log(patch_key)
+        const patch = WorldCache.patchContainer.patchLookup[patch_key]
         const chunks_ids = ChunkTools.gen_chunk_ids(
           patch,
           min_patch_id_y,
@@ -159,8 +160,9 @@ export default function () {
           )
           // query patches belonging to visible area and enqueue them for render
           WorldCache.refresh(cache_box).then(changes => {
-            if (changes.count > 0) {
-              const chunks_ids = Object.values(WorldCache.patchLookupIndex)
+            if (changes.length > 0) {
+              console.log(changes)
+              const chunks_ids = WorldCache.patchContainer.availablePatches
                 .map(patch =>
                   ChunkTools.gen_chunk_ids(
                     patch,
@@ -172,9 +174,7 @@ export default function () {
               // declare them as visible, hide the others
               voxelmap_viewer.setVisibility(chunks_ids)
               // add patch keys requiring chunks generation
-              changes.batch.forEach(patch_key =>
-                patch_render_queue.push(patch_key),
-              )
+              changes.forEach(patch_key => patch_render_queue.push(patch_key))
             }
           })
           // // compute all patches that need to be visible and prioritize them
