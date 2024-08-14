@@ -8,8 +8,9 @@ import {
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Box3, Vector3 } from 'three'
-import { world_patch_size } from './world_settings.js'
 import { LRUCache } from 'lru-cache'
+
+import { world_patch_size } from './world_settings.js'
 
 function memoize_ground_block() {
   const existing_groundblock_requests = new Map()
@@ -34,7 +35,9 @@ function memoize_ground_block() {
 
     // Create a new ground block request
     const ground_pos = new Vector3(x, 0, z)
-    const ground_block = WorldComputeApi.instance.computeBlocksBatch([ground_pos])
+    const ground_block = WorldComputeApi.instance
+      .computeBlocksBatch([ground_pos])
+      .then(res => res[0])
 
     // If it's a promise, handle it accordingly
     if (ground_block instanceof Promise) {
@@ -42,8 +45,7 @@ function memoize_ground_block() {
 
       // Once the promise resolves, store it in the cache and remove from in-progress map
       ground_block
-        .then(res => {
-          const block = res[0]
+        .then(block => {
           ground_block_cache.set(key, block)
           existing_groundblock_requests.delete(key)
         })
@@ -101,7 +103,7 @@ const chunk_data_encode = world_chunk_data => {
 
 export const convert_to_engine_chunk = world_chunk => {
   const id = WorldUtils.parseChunkKey(world_chunk.key)
-  const chunk_bbox = WorldUtils.getChunkBboxFromId(id, world_patch_size) // voxelmap_viewer.getPatchVoxelsBox(id)
+  const chunk_bbox = WorldUtils.getBboxFromChunkId(id, world_patch_size) // voxelmap_viewer.getPatchVoxelsBox(id)
   const size = chunk_bbox.getSize(new Vector3())
   const data = world_chunk.data ? chunk_data_encode(world_chunk.data) : []
   const engine_chunk = {
