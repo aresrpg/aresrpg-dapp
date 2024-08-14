@@ -81,7 +81,7 @@ const CHARACTER_NAMES = new LRUCache({ max: 1000 })
 
 export async function sui_get_character_name(id) {
   if (!CHARACTER_NAMES.has(id)) {
-    const character = await sdk.get_character_by_id(id)
+    const character = await indexer_request('sui_get_character_name', id)
     CHARACTER_NAMES.set(id, character.name)
   }
   return CHARACTER_NAMES.get(id)
@@ -89,7 +89,7 @@ export async function sui_get_character_name(id) {
 
 /** @return {Promise<Type.SuiCharacter>} */
 export async function sui_get_character(id) {
-  return sdk.get_character_by_id(id)
+  return indexer_request('sui_get_character', id)
 }
 
 function get_wallet() {
@@ -957,7 +957,7 @@ export async function sui_get_kiosks_profits() {
 }
 
 export async function sui_get_aresrpg_kiosk() {
-  return await indexer_request('get_aresrpg_kiosk', get_address())
+  return await indexer_request('sui_get_aresrpg_kiosk', get_address())
 }
 
 export async function sui_claim_kiosks_profits() {
