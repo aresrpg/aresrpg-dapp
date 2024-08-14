@@ -77,16 +77,18 @@ function get_ground_block({ x, z }, entity_height) {
 // those 2 functions allows for better typings instead of using param options
 
 export async function get_terrain_height({ x, z }, entity_height = 0) {
-  return get_ground_block({ x, z }, entity_height)
+  // FIXME
+  return 140 // get_ground_block({ x, z }, entity_height)
 }
 
 export function get_optional_terrain_height({ x, z }, entity_height = 0) {
-  const ground_block = get_ground_block({ x, z }, entity_height)
+  // FIXME
+  // const ground_block = get_ground_block({ x, z }, entity_height)
 
-  // the height won't always be there
-  if (ground_block instanceof Promise) return null
+  // // the height won't always be there
+  // if (ground_block instanceof Promise) return null
 
-  return ground_block
+  return 140 // ground_block
 }
 
 const chunk_data_encode = world_chunk_data => {
