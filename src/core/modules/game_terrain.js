@@ -26,9 +26,9 @@ import {
 } from '../utils/terrain/world_utils.js'
 
 // config
-const show_board_poc = false
-const show_lod = false
-const use_legacy_plateau = false
+const SHOW_BOARD_POC = false
+const USE_LEGACY_PLATEAU = false
+const SHOW_LOD = true
 // settings
 const min_altitude = -1
 const max_altitude = 400
@@ -92,7 +92,7 @@ export default function () {
     maxLevel: 5,
   })
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = show_lod
+  terrain_viewer.parameters.lod.enabled = SHOW_LOD
 
   const chunk_render = chunk => {
     voxelmap_viewer.invalidatePatch(chunk.id)
@@ -205,7 +205,7 @@ export default function () {
               })
           // Board POC
           if (
-            show_board_poc &&
+            SHOW_BOARD_POC &&
             last_player_pos.distanceTo(player_position) > 2
           ) {
             last_player_pos = player_position
@@ -223,7 +223,7 @@ export default function () {
               board_container_ref = null
             }
             // build and render updated battle board
-            if (use_legacy_plateau) {
+            if (USE_LEGACY_PLATEAU) {
               make_legacy_board(player_position).then(board => {
                 board_container_ref = board
                 render_patch_container(board_container_ref)
