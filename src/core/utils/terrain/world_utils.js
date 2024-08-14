@@ -77,18 +77,16 @@ function get_ground_block({ x, z }, entity_height) {
 // those 2 functions allows for better typings instead of using param options
 
 export async function get_terrain_height({ x, z }, entity_height = 0) {
-  // FIXME
-  return 140 // get_ground_block({ x, z }, entity_height)
+  return get_ground_block({ x, z }, entity_height)
 }
 
 export function get_optional_terrain_height({ x, z }, entity_height = 0) {
-  // FIXME
-  // const ground_block = get_ground_block({ x, z }, entity_height)
+  const ground_block = get_ground_block({ x, z }, entity_height)
 
-  // // the height won't always be there
-  // if (ground_block instanceof Promise) return null
+  // the height won't always be there
+  if (ground_block instanceof Promise) return null
 
-  return 140 // ground_block
+  return ground_block
 }
 
 export function get_ground_level(curr_pos, last_ground_pos, entity_height = 0) {
@@ -98,7 +96,6 @@ export function get_ground_level(curr_pos, last_ground_pos, entity_height = 0) {
       // prevent asking same thing next time
       last_ground_pos.x = ground_pos.x
       last_ground_pos.z = ground_pos.z
-      console.log(`unknown pos `)
       // request pos and update current pos afterwards
       WorldComputeApi.instance.computeBlocksBatch([ground_pos]).then(res => {
         const [ground_block] = res
