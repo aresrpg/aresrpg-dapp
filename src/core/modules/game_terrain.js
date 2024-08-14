@@ -25,6 +25,14 @@ import {
   make_legacy_board,
 } from '../utils/terrain/world_utils.js'
 
+// config
+const show_board_poc = false
+const show_lod = false
+const use_legacy_plateau = false
+// settings
+const min_altitude = -1
+const max_altitude = 400
+
 const world_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
   { type: 'module' },
@@ -33,13 +41,10 @@ const world_worker = new Worker(
 const voxel_materials_list = Object.values(blocks_colors).map(col => ({
   color: new Color(col),
 }))
-const min_altitude = -1
-const max_altitude = 400
 
 let board_container_ref
 let last_player_pos = new Vector3(0, 0, 0)
 
-const use_legacy_plateau = false
 /** @type {Type.Module} */
 export default function () {
   // Run world-compute module in dedicated worker
@@ -55,7 +60,9 @@ export default function () {
       return null
     },
     async sampleHeightmap(coords) {
-      const res = await WorldComputeApi.instance.computeBlocksBatch(coords)
+      const res = await WorldComputeApi.instance.computeBlocksBatch(coords, {
+        includeEntitiesBlocks: true,
+      })
       const data = res.map(block => ({
         altitude: block.pos.y + 0.25,
         color: new Color(blocks_colors[block.type]),
@@ -85,7 +92,7 @@ export default function () {
     maxLevel: 5,
   })
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = true
+  terrain_viewer.parameters.lod.enabled = show_lod
 
   const chunk_render = chunk => {
     voxelmap_viewer.invalidatePatch(chunk.id)
@@ -201,7 +208,10 @@ export default function () {
                 }
               })
           // Board POC
-          if (last_player_pos.distanceTo(player_position) > 2) {
+          if (
+            show_board_poc &&
+            last_player_pos.distanceTo(player_position) > 2
+          ) {
             last_player_pos = player_position
             // remove previous board by restoring original terrain patches
             if (board_container_ref) {
