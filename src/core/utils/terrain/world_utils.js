@@ -91,6 +91,27 @@ export function get_optional_terrain_height({ x, z }, entity_height = 0) {
   return 140 // ground_block
 }
 
+export function get_ground_level(curr_pos, last_ground_pos, entity_height = 0) {
+  if (curr_pos) {
+    const ground_pos = WorldUtils.parseThreeStub(curr_pos).floor()
+    if (!last_ground_pos.equals(ground_pos)) {
+      // prevent asking same thing next time
+      last_ground_pos.x = ground_pos.x
+      last_ground_pos.z = ground_pos.z
+      console.log(`unknown pos `)
+      // request pos and update current pos afterwards
+      WorldComputeApi.instance.computeBlocksBatch([ground_pos]).then(res => {
+        const [ground_block] = res
+        const ground_block_level =
+          Math.ceil(ground_block.pos.y + 1) + entity_height * 0.5
+        curr_pos.y = ground_block_level
+        last_ground_pos.y = curr_pos.y
+      })
+    }
+  }
+  return last_ground_pos.y
+}
+
 const chunk_data_encode = world_chunk_data => {
   const engine_chunk_data = []
   // convert chunk data to engine format

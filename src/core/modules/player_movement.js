@@ -2,12 +2,16 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Object3D, Vector3 } from 'three'
+import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
+import { WorldUtils } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { get_optional_terrain_height } from '../utils/terrain/world_utils.js'
+import {
+  get_ground_level,
+  // get_optional_terrain_height,
+} from '../utils/terrain/world_utils.js'
 import { sea_level } from '../utils/terrain/world_settings.js'
 
 import { play_step_sound } from './game_audio.js'
@@ -50,7 +54,8 @@ export default function () {
         character => character.id === state.selected_character_id,
       )
       if (!player) return
-
+      // FIX remember ground pos to prevent asking again unless different
+      player.last_ground_pos = player.last_ground_pos || new Vector3()
       const { inputs } = state
       const origin = player.position.clone()
       const is_underwater = player.position.y < sea_level
@@ -65,10 +70,16 @@ export default function () {
         .normalize()
 
       if (player.target_position) {
-        const ground_height = get_optional_terrain_height(
+        // FIX remember ground pos to prevent asking again unless different
+        const ground_height = get_ground_level(
           player.target_position,
+          player.last_ground_pos,
           player.height,
         )
+        // get_optional_terrain_height(
+        //   player.target_position,
+        //   player.height,
+        // )
 
         if (ground_height != null) {
           player.target_position.y = ground_height
@@ -173,7 +184,12 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       const { x, z } = dummy.position
-      const ground_height = get_optional_terrain_height({ x, z }, 0)
+      // FIX remember ground pos to prevent asking again unless different
+      const ground_height = get_ground_level(
+        dummy.position,
+        player.last_ground_pos,
+      )
+      // get_optional_terrain_height({ x, z }, 0)
 
       if (ground_height == null) return
 
