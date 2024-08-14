@@ -2,8 +2,8 @@ import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   BlocksContainer,
   BoardContainer,
-  CacheContainer,
   PlateauLegacy,
+  WorldCacheContainer,
   WorldComputeApi,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
@@ -118,7 +118,7 @@ export const convert_to_engine_chunk = world_chunk => {
 export const make_board = player_position => {
   const board_container = new BoardContainer(player_position, 48)
   board_container.populateFromExisting(
-    CacheContainer.instance.availablePatches,
+    WorldCacheContainer.instance.availablePatches,
     true,
   )
   board_container.shapeBoard()
@@ -152,7 +152,7 @@ export const make_legacy_board = async player_position => {
 
   const board_container = new BoardContainer(board_box)
   board_container.fillFromPatches(
-    CacheContainer.instance.availablePatches,
+    WorldCacheContainer.instance.availablePatches,
     true,
   )
   // merge with board blocks

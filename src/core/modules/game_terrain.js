@@ -11,7 +11,7 @@ import { aiter } from 'iterator-helper'
 import { Box3, Color, Vector3 } from 'three'
 import {
   PatchContainer,
-  CacheContainer,
+  WorldCacheContainer,
   WorldComputeApi,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
@@ -44,6 +44,7 @@ const use_legacy_plateau = false
 export default function () {
   // Run world-compute module in dedicated worker
   WorldComputeApi.useWorker(world_worker)
+  WorldCacheContainer.instance.builtInCache = true
 
   // Engine setup
   const map = {
@@ -147,21 +148,21 @@ export default function () {
             cache_dims,
           )
           // Query patches surrounding player
-          !CacheContainer.instance.pendingRefresh &&
-            CacheContainer.instance
-              .refresh(cache_box, true)
+          !WorldCacheContainer.instance.pendingRefresh &&
+            WorldCacheContainer.instance
+              .refresh(cache_box)
               .then(async changes_diff => {
                 const changes_count = Object.keys(changes_diff).length
                 if (changes_count > 0) {
-                  CacheContainer.instance.pendingRefresh = true
+                  WorldCacheContainer.instance.pendingRefresh = true
                   const update_batch = Object.keys(changes_diff).filter(
                     key => changes_diff[key],
                   )
                   console.log(
-                    `batch size: ${update_batch.length} (total cache size ${CacheContainer.instance.count})`,
+                    `batch size: ${update_batch.length} (total cache size ${WorldCacheContainer.instance.count})`,
                   )
                   const chunks_ids = Object.keys(
-                    CacheContainer.instance.patchLookup,
+                    WorldCacheContainer.instance.patchLookup,
                   )
                     .map(patch_key => WorldUtils.parsePatchKey(patch_key))
                     .map(patch_id =>
@@ -174,10 +175,11 @@ export default function () {
                     .flat()
                   voxelmap_viewer.setVisibility(chunks_ids)
                   // this.pendingRefresh = true
-                  const batch_iter =
-                    WorldComputeApi.instance.iterPatchCompute(update_batch)
+                  const cache_patches = WorldComputeApi.instance.builtInCache
+                    ? WorldComputeApi.instance.availablePatches
+                    : WorldComputeApi.instance.iterPatchCompute(update_batch)
                   // for each retrieved patch, generate chunks and render
-                  for await (const patch of batch_iter) {
+                  for await (const patch of cache_patches) {
                     // this.patchLookup[patch.key] = patch
                     // this.bbox.union(patch.bbox)
                     // build engine chunks from world patch
@@ -191,7 +193,7 @@ export default function () {
                       )
                       .forEach(chunk => chunk_render(chunk))
                   }
-                  CacheContainer.instance.pendingRefresh = false
+                  WorldCacheContainer.instance.pendingRefresh = false
                 }
               })
           // Board POC
@@ -203,7 +205,7 @@ export default function () {
                 board_container_ref.bbox,
               )
               original_patches_container.populateFromExisting(
-                CacheContainer.instance.availablePatches,
+                WorldCacheContainer.instance.availablePatches,
                 true,
               )
               render_patch_container(original_patches_container)
