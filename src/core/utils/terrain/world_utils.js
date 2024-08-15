@@ -12,6 +12,9 @@ import { LRUCache } from 'lru-cache'
 
 import { world_patch_size } from './world_settings.js'
 
+const blocks_cache_radius = Math.pow(2, 3)
+// minimal batch size to avoid flooding with too many blocks requests
+const blocks_cache_min_batch_size = Math.pow(2 * blocks_cache_radius, 2) / 2
 /**
  *
  * @param {*} pos central block to request pos from
@@ -54,14 +57,18 @@ function memoize_ground_block() {
 
   return ({ x, z }) => {
     const pos = new Vector3(x, 0, z)
-    const [key, ...other_keys] = get_block_and_neighbours_keys(pos, 4)
+    const [key, ...other_keys] = get_block_and_neighbours_keys(
+      pos,
+      blocks_cache_radius,
+    )
     const requested_keys = [key, ...other_keys].filter(
       key => !ground_block_cache.has(key) && !pending_block_requests.has(key),
     )
 
     let req
     // Request all missing keys around block
-    if (requested_keys.length > 0) {
+    //
+    if (requested_keys.length > blocks_cache_min_batch_size) {
       req = request_blocks(requested_keys)
       // pending_block_requests.set(missing_keys, req)
       req
