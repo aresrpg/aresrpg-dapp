@@ -12,54 +12,78 @@ import { LRUCache } from 'lru-cache'
 
 import { world_patch_size } from './world_settings.js'
 
+/**
+ *
+ * @param {*} pos central block to request pos from
+ * @param {*} cache_radius cache radius around requested block
+ * @returns
+ */
+const get_block_and_neighbours_keys = (pos, cache_radius = 0) => {
+  const block_pos = pos.floor() // WorldUtils.roundToDecAny(pos, 1)
+  const main_key = `${block_pos.x}:${block_pos.z}`
+  const block_keys = [main_key]
+  for (
+    let x = block_pos.x - cache_radius;
+    x <= block_pos.x + cache_radius;
+    x++
+  ) {
+    for (
+      let z = block_pos.z - cache_radius;
+      z <= block_pos.z + cache_radius;
+      z++
+    ) {
+      const neighbour_key = `${x}:${z}`
+      if (neighbour_key !== main_key) block_keys.push(neighbour_key)
+    }
+  }
+  return block_keys
+}
+
+const request_blocks = block_keys => {
+  // build batch
+  const block_pos_batch = block_keys.map(key =>
+    WorldUtils.vect2ToVect3(WorldUtils.parsePatchKey(key)),
+  )
+  // send batch for compute
+  return WorldComputeApi.instance.computeBlocksBatch(block_pos_batch)
+}
+
 function memoize_ground_block() {
-  const existing_groundblock_requests = new Map()
+  const pending_block_requests = new Map()
   const ground_block_cache = new LRUCache({ max: 1000 })
 
-  return pos => {
-    const x = Math.floor(pos.x)
-    const z = Math.floor(pos.z)
-    const key = `${x}:${z}`
+  return ({ x, z }) => {
+    const pos = new Vector3(x, 0, z)
+    const [key, ...other_keys] = get_block_and_neighbours_keys(pos, 4)
+    const requested_keys = [key, ...other_keys].filter(
+      key => !ground_block_cache.has(key) && !pending_block_requests.has(key),
+    )
 
-    // Check if the result is already in the cache
-    if (ground_block_cache.has(key)) {
-      // console.log('groundblock cache hit', { x, z })
-      return ground_block_cache.get(key)
-    }
-
-    // Check if a request for this key is already in progress
-    if (existing_groundblock_requests.has(key)) {
-      console.log('promise already exist', { x, z })
-      return existing_groundblock_requests.get(key)
-    }
-
-    // Create a new ground block request
-    const ground_pos = new Vector3(x, 0, z)
-    const ground_block = WorldComputeApi.instance
-      .computeBlocksBatch([ground_pos])
-      .then(res => res[0])
-
-    // If it's a promise, handle it accordingly
-    if (ground_block instanceof Promise) {
-      existing_groundblock_requests.set(key, ground_block)
-
-      // Once the promise resolves, store it in the cache and remove from in-progress map
-      ground_block
-        .then(block => {
-          ground_block_cache.set(key, block)
-          existing_groundblock_requests.delete(key)
+    let req
+    // Request all missing keys around block
+    if (requested_keys.length > 0) {
+      req = request_blocks(requested_keys)
+      // pending_block_requests.set(missing_keys, req)
+      req
+        .then(([main_block, ...other_blocks]) => {
+          ;[main_block, ...other_blocks].forEach((block, i) => {
+            const key = requested_keys[i]
+            // add to cache
+            ground_block_cache.set(key, block)
+            // remove original request from pending requests
+            pending_block_requests.delete(key)
+          })
+          return main_block
         })
         .catch(() => {
-          existing_groundblock_requests.delete(key)
+          pending_block_requests.delete(key)
         })
-    } else {
-      // If it's not a promise, store it directly in the cache
-      ground_block_cache.set(key, ground_block)
+      requested_keys.forEach(key => pending_block_requests.set(key, req))
     }
 
-    // Store the request in the map and return the ground block (or promise)
-    existing_groundblock_requests.set(key, ground_block)
-    return ground_block
+    return ground_block_cache.has(key)
+      ? ground_block_cache.get(key)
+      : pending_block_requests.get(key)
   }
 }
 
@@ -67,7 +91,9 @@ const request_ground_block = memoize_ground_block()
 
 function get_ground_block({ x, z }, entity_height) {
   const ground_block = request_ground_block({ x, z })
-  const parse_block = ({ pos }) => Math.ceil(pos.y + 1) + entity_height * 0.5
+  const parse_block = ({ pos }) => {
+    return pos && Math.ceil(pos.y + 1) + entity_height * 0.5
+  }
 
   if (ground_block instanceof Promise) return ground_block.then(parse_block)
 
@@ -82,31 +108,7 @@ export async function get_terrain_height({ x, z }, entity_height = 0) {
 
 export function get_optional_terrain_height({ x, z }, entity_height = 0) {
   const ground_block = get_ground_block({ x, z }, entity_height)
-
-  // the height won't always be there
-  if (ground_block instanceof Promise) return null
-
-  return ground_block
-}
-
-export function get_ground_level(curr_pos, last_ground_pos, entity_height = 0) {
-  if (curr_pos) {
-    const ground_pos = WorldUtils.parseThreeStub(curr_pos).floor()
-    if (!last_ground_pos.equals(ground_pos)) {
-      // prevent asking same thing next time
-      last_ground_pos.x = ground_pos.x
-      last_ground_pos.z = ground_pos.z
-      // request pos and update current pos afterwards
-      WorldComputeApi.instance.computeBlocksBatch([ground_pos]).then(res => {
-        const [ground_block] = res
-        const ground_block_level =
-          Math.ceil(ground_block.pos.y + 1) + entity_height * 0.5
-        curr_pos.y = ground_block_level
-        last_ground_pos.y = curr_pos.y
-      })
-    }
-  }
-  return last_ground_pos.y
+  return ground_block instanceof Promise ? null : ground_block
 }
 
 const chunk_data_encode = world_chunk_data => {
@@ -136,7 +138,7 @@ export const convert_to_engine_chunk = world_chunk => {
 }
 
 export const make_board = player_position => {
-  const board_container = new BoardContainer(player_position, 48)
+  const board_container = new BoardContainer(player_position, 32)
   board_container.populateFromExisting(
     WorldCacheContainer.instance.availablePatches,
     true,
