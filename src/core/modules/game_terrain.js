@@ -10,9 +10,11 @@ import {
 import { aiter } from 'iterator-helper'
 import { Box3, Color, Vector3 } from 'three'
 import {
+  ChunkFactory,
   PatchContainer,
   WorldCacheContainer,
   WorldComputeApi,
+  WorldConfig,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 
@@ -20,12 +22,13 @@ import { current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { blocks_colors } from '../utils/terrain/world_settings.js'
 import {
-  convert_to_engine_chunk,
+  chunk_data_encoder,
   make_board,
   make_legacy_board,
+  to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 
-// config
+// global config
 const SHOW_BOARD_POC = false
 const USE_LEGACY_PLATEAU = false
 const SHOW_LOD = true
@@ -47,9 +50,16 @@ let last_player_pos = new Vector3(0, 0, 0)
 
 /** @type {Type.Module} */
 export default function () {
+  // Common settings
+  const patch_size = { xz: 64, y: 64 }
+  const min_patch_id_y = Math.floor(min_altitude / patch_size.y)
+  const max_patch_id_y = Math.floor(max_altitude / patch_size.y)
+  // World setup
   // Run world-compute module in dedicated worker
   WorldComputeApi.useWorker(world_worker)
   WorldCacheContainer.instance.builtInCache = true
+  ChunkFactory.instance.chunkDataEncoder = chunk_data_encoder
+  ChunkFactory.instance.setChunksGenRange(min_patch_id_y, max_patch_id_y)
 
   // Engine setup
   const map = {
@@ -71,9 +81,6 @@ export default function () {
     },
   }
 
-  const patch_size = { xz: 64, y: 64 }
-  const min_patch_id_y = Math.floor(min_altitude / patch_size.y)
-  const max_patch_id_y = Math.floor(max_altitude / patch_size.y)
   const voxelmap_viewer = new VoxelmapViewer(
     min_patch_id_y,
     max_patch_id_y,
@@ -94,15 +101,15 @@ export default function () {
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = SHOW_LOD
 
-  const chunk_render = chunk => {
-    voxelmap_viewer.invalidatePatch(chunk.id)
-    voxelmap_viewer.enqueuePatch(chunk.id, chunk)
+  const chunk_render = world_chunk => {
+    const engine_chunk = to_engine_chunk_format(world_chunk)
+    voxelmap_viewer.invalidatePatch(engine_chunk.id)
+    voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id) &&
+      voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
   }
 
   const render_patch_container = board_container => {
-    const board_chunks = board_container
-      .toChunks(min_patch_id_y, max_patch_id_y)
-      .map(chunk => convert_to_engine_chunk(chunk))
+    const board_chunks = board_container.toChunks()
     board_chunks.forEach(chunk => chunk_render(chunk))
   }
 
@@ -148,23 +155,29 @@ export default function () {
           current_three_character(state)?.position?.clone()
         if (player_position) {
           // Specify area around player requiring patch generation
-          const cache_radius = state.settings.view_distance
-          const cache_dims = new Vector3(
-            cache_radius,
-            cache_radius,
-            cache_radius,
+          const view_center = player_position.clone().floor()
+          const view_radius = state.settings.view_distance
+          const view_dims = new Vector3(
+            view_radius,
+            view_radius,
+            view_radius,
           ).multiplyScalar(2)
-          const cache_box = new Box3().setFromCenterAndSize(
-            player_position,
-            cache_dims,
+          const view_box = new Box3().setFromCenterAndSize(
+            view_center,
+            view_dims,
           )
+          const is_visible_patch = patch_bbox =>
+            WorldUtils.asVect2(patch_bbox.getCenter(new Vector3())).distanceTo(
+              WorldUtils.asVect2(view_center),
+            ) <= view_radius
           // Query patches surrounding player
           !WorldCacheContainer.instance.pendingRefresh &&
             WorldCacheContainer.instance
-              .refresh(cache_box)
+              .refresh(view_box, is_visible_patch)
               .then(async changes_diff => {
                 const changes_count = Object.keys(changes_diff).length
                 if (changes_count > 0) {
+                  // prevent other refresh while pending refresh
                   WorldCacheContainer.instance.pendingRefresh = true
                   const update_batch = Object.keys(changes_diff).filter(
                     key => changes_diff[key],
@@ -177,32 +190,19 @@ export default function () {
                   )
                     .map(patch_key => WorldUtils.parsePatchKey(patch_key))
                     .map(patch_id =>
-                      WorldUtils.genChunkIds(
-                        patch_id,
-                        min_patch_id_y,
-                        max_patch_id_y,
-                      ),
+                      ChunkFactory.instance.genChunksIdsFromPatchId(patch_id),
                     )
                     .flat()
                   voxelmap_viewer.setVisibility(chunks_ids)
                   // this.pendingRefresh = true
-                  const cache_patches = WorldComputeApi.instance.builtInCache
+                  // retrieve patches from cache or compute them
+                  const visible_patches = WorldComputeApi.instance.builtInCache
                     ? WorldComputeApi.instance.availablePatches
                     : WorldComputeApi.instance.iterPatchCompute(update_batch)
-                  // for each retrieved patch, generate chunks and render
-                  for await (const patch of cache_patches) {
-                    // this.patchLookup[patch.key] = patch
-                    // this.bbox.union(patch.bbox)
-                    // build engine chunks from world patch
-                    const chunks = patch
-                      .toChunks(min_patch_id_y, max_patch_id_y)
-                      .map(chunk => convert_to_engine_chunk(chunk))
-                    // feed engine with chunks for rendering
-                    chunks
-                      .filter(chunk =>
-                        voxelmap_viewer.doesPatchRequireVoxelsData(chunk.id),
-                      )
-                      .forEach(chunk => chunk_render(chunk))
+                  // for each patch, generate chunks and render
+                  for await (const patch of visible_patches) {
+                    // build engine chunks from world patch and send to engine for rendering
+                    patch.toChunks().forEach(chunk => chunk_render(chunk))
                   }
                   WorldCacheContainer.instance.pendingRefresh = false
                 }

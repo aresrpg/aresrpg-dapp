@@ -45,7 +45,7 @@ const get_block_and_neighbours_keys = (pos, cache_radius = 0) => {
 const request_blocks = block_keys => {
   // build batch
   const block_pos_batch = block_keys.map(key =>
-    WorldUtils.vect2ToVect3(WorldUtils.parsePatchKey(key)),
+    WorldUtils.asVect3(WorldUtils.parsePatchKey(key)),
   )
   // send batch for compute
   return WorldComputeApi.instance.computeBlocksBatch(block_pos_batch)
@@ -118,23 +118,16 @@ export function get_optional_terrain_height({ x, z }, entity_height = 0) {
   return ground_block instanceof Promise ? null : ground_block
 }
 
-const chunk_data_encode = world_chunk_data => {
-  const engine_chunk_data = []
-  // convert chunk data to engine format
-  world_chunk_data.forEach(
-    (val, i) =>
-      (engine_chunk_data[i] = val
-        ? voxelmapDataPacking.encode(false, val)
-        : voxelmapDataPacking.encodeEmpty()),
-  )
-  return engine_chunk_data
-}
+export const chunk_data_encoder = (val, i) =>
+  val
+    ? voxelmapDataPacking.encode(false, val)
+    : voxelmapDataPacking.encodeEmpty()
 
-export const convert_to_engine_chunk = world_chunk => {
+export const to_engine_chunk_format = world_chunk => {
   const id = WorldUtils.parseChunkKey(world_chunk.key)
   const chunk_bbox = WorldUtils.getBboxFromChunkId(id, world_patch_size) // voxelmap_viewer.getPatchVoxelsBox(id)
   const size = chunk_bbox.getSize(new Vector3())
-  const data = world_chunk.data ? chunk_data_encode(world_chunk.data) : []
+  const data = world_chunk.data ? world_chunk.data : []
   const engine_chunk = {
     id,
     data,
