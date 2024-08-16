@@ -1,6 +1,6 @@
 import { BlockType } from '@aresrpg/aresrpg-world'
 
-// constants
+// World static config
 export const world_patch_size = Math.pow(2, 6)
 // max cache radius as a power of two
 export const world_cache_pow_limit = 2 // 4 => 16 patches radius
