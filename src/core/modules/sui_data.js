@@ -366,49 +366,6 @@ export default function () {
 
       const { t } = i18n.global
 
-      async function update_user_data({
-        update_locked_characters = false,
-        update_unlocked_characters = false,
-        update_balance = false,
-        update_tokens = false,
-        update_locked_items = false,
-        update_unlocked_items = false,
-        update_items_for_sale = false,
-        update_finished_crafts = false,
-      }) {
-        const tasks = [
-          update_locked_characters &&
-            sui_get_locked_characters().then(result => ({
-              locked_characters: result,
-            })),
-          update_unlocked_characters &&
-            sui_get_unlocked_characters().then(result => ({
-              unlocked_characters: result,
-            })),
-          update_balance &&
-            sui_get_sui_balance().then(result => ({ balance: result })),
-          update_locked_items &&
-            sui_get_locked_items().then(result => ({ locked_items: result })),
-          update_unlocked_items &&
-            sui_get_unlocked_items().then(result => ({
-              unlocked_items: result,
-            })),
-          update_items_for_sale &&
-            sui_get_my_listings().then(result => ({ items_for_sale: result })),
-          update_tokens &&
-            sui_get_supported_tokens().then(result => ({ tokens: result })),
-          update_finished_crafts &&
-            sui_get_finished_crafts().then(result => ({
-              finished_crafts: result,
-            })),
-        ].filter(Boolean)
-
-        const results = await Promise.all(tasks)
-        const update = Object.assign({}, ...results)
-
-        context.dispatch('action/sui_data_update', update)
-      }
-
       let tx = null
 
       state_iterator().reduce(
@@ -501,10 +458,6 @@ export default function () {
                       const pet = await sdk.get_item_by_id(pet_id)
                       context.dispatch('action/sui_update_item', pet)
                       // update stats and Sui
-                      update_user_data({
-                        update_locked_characters: true,
-                        update_balance: true,
-                      })
                     } catch (error) {}
                   }
                 }
@@ -594,13 +547,7 @@ export default function () {
                     )
                 }
 
-                async function handle_stats_reset_event(event) {
-                  if (event.sender_is_me)
-                    update_user_data({
-                      update_locked_characters: true,
-                      update_unlocked_items: true,
-                    })
-                }
+                async function handle_stats_reset_event(event) {}
 
                 async function handle_item_mint_event(event) {
                   try {
@@ -797,15 +744,17 @@ export default function () {
                   async ([{ type, payload }]) => {
                     switch (type) {
                       case 'interval':
-                        return update_user_data({
-                          // update_locked_characters: true,
-                          // update_unlocked_characters: true,
-                          update_balance: true,
-                          update_tokens: true,
-                          // update_locked_items: true,
-                          // update_unlocked_items: true,
-                          // update_items_for_sale: true,
-                        })
+                        context.dispatch(
+                          'action/sui_data_update',
+                          await Promise.all([
+                            sui_get_sui_balance(),
+                            sui_get_supported_tokens(),
+                          ]).then(([balance, tokens]) => ({
+                            balance,
+                            tokens,
+                          })),
+                        )
+                        break
                       case 'RecipeCreateEvent':
                         return SUI_EMITTER.emit(type, payload)
                       case 'RecipeDeleteEvent':
@@ -854,23 +803,41 @@ export default function () {
                 )
               })
 
-              const result = await sui_get_admin_caps()
-
-              context.dispatch('action/sui_data_update', {
-                admin_caps: result,
-              })
+              context.dispatch(
+                'action/sui_data_update',
+                Object.assign(
+                  {},
+                  ...(await Promise.all([
+                    sui_get_admin_caps().then(result => ({
+                      admin_caps: result,
+                    })),
+                    sui_get_locked_characters().then(result => ({
+                      locked_characters: result,
+                    })),
+                    sui_get_unlocked_characters().then(result => ({
+                      unlocked_characters: result,
+                    })),
+                    sui_get_sui_balance().then(result => ({ balance: result })),
+                    sui_get_locked_items().then(result => ({
+                      locked_items: result,
+                    })),
+                    sui_get_unlocked_items().then(result => ({
+                      unlocked_items: result,
+                    })),
+                    sui_get_my_listings().then(result => ({
+                      items_for_sale: result,
+                    })),
+                    sui_get_supported_tokens().then(result => ({
+                      tokens: result,
+                    })),
+                    sui_get_finished_crafts().then(result => ({
+                      finished_crafts: result,
+                    })),
+                  ])),
+                ),
+              )
 
               try {
-                await update_user_data({
-                  update_locked_characters: true,
-                  update_unlocked_characters: true,
-                  update_balance: true,
-                  update_locked_items: true,
-                  update_unlocked_items: true,
-                  update_items_for_sale: true,
-                  update_tokens: true,
-                  update_finished_crafts: true,
-                })
                 tx.update('success', t('SUI_DATA_FETCHED'))
                 context.connect_ws()
               } catch (error) {
