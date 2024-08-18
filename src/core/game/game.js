@@ -66,6 +66,7 @@ import { i18n } from '../../i18n.js'
 import game_entites_stroll from '../modules/game_entites_stroll.js'
 import player_entities_interract from '../modules/player_entities_interract.js'
 import game_fights from '../modules/game_fights.js'
+import { listen_for_requests } from '../sui/client.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -205,8 +206,11 @@ export const INITIAL_STATE = {
     /** @type {Type.SuiItem[]} */
     items_for_sale: [],
 
+    /** @type {String} */
     selected_wallet_name: null,
+    /** @type {String} */
     selected_address: null,
+    /** @type {BigInt} */
     balance: null,
     /** @type {Type.SuiToken[]} */
     tokens: [],
@@ -520,6 +524,8 @@ const context = {
     // context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
   },
 }
+
+listen_for_requests()
 
 const modules = MODULES.map(create => create())
 

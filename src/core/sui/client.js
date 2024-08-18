@@ -4,7 +4,7 @@ import { Transaction } from '@mysten/sui/transactions'
 import { BigNumber as BN } from 'bignumber.js'
 import { MIST_PER_SUI, normalizeSuiAddress, toB64 } from '@mysten/sui/utils'
 import { LRUCache } from 'lru-cache'
-import { Network } from '@mysten/kiosk'
+import { KioskTransaction, Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client'
 import { bcs } from '@mysten/sui/bcs'
@@ -12,12 +12,7 @@ import { bcs } from '@mysten/sui/bcs'
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
 import toast from '../../toast.js'
-import {
-  NETWORK,
-  VITE_SPONSOR_URL,
-  VITE_SUI_RPC,
-  VITE_SUI_WSS,
-} from '../../env.js'
+import { NETWORK, VITE_SPONSOR_URL, VITE_SUI_RPC } from '../../env.js'
 // @ts-ignore
 import { i18n } from '../../i18n.js'
 
@@ -38,7 +33,6 @@ const { t } = i18n.global
 
 export const sdk = await SDK({
   rpc_url: VITE_SUI_RPC,
-  wss_url: VITE_SUI_WSS,
   network: Network[NETWORK.toUpperCase()],
 })
 
@@ -57,13 +51,16 @@ sdk.kiosk_client.addRuleResolver({
 
 const current_server_requests = new Map()
 
-context.events.on('packet/requestResponse', ({ id, message }) => {
-  if (current_server_requests.has(id)) {
-    const resolve = current_server_requests.get(id)
-    resolve(JSON.parse(message))
-    current_server_requests.delete(id)
-  }
-})
+// this function has to be called in game.js to avoid circular dependencies
+export function listen_for_requests() {
+  context.events.on('packet/requestResponse', ({ id, message }) => {
+    if (current_server_requests.has(id)) {
+      const resolve = current_server_requests.get(id)
+      resolve(JSON.parse(message))
+      current_server_requests.delete(id)
+    }
+  })
+}
 
 async function indexer_request(type, payload) {
   const id = crypto.randomUUID()
@@ -281,7 +278,7 @@ export async function sui_get_policies_profit() {
 }
 
 export async function sui_get_admin_caps() {
-  return sdk.get_owned_admin_cap(get_address())
+  return indexer_request('sui_get_owned_admin_cap', get_address())
 }
 
 const last_mint = new Map()
@@ -702,8 +699,24 @@ export async function sui_get_sui_balance() {
 }
 
 async function get_bn_sui_balance() {
-  const mists = await sui_get_sui_balance()
+  const mists = context.get_state().sui.balance
   return new BN(mists.toString()).dividedBy(MIST_PER_SUI.toString())
+}
+
+async function sui_enforce_personal_kiosk(tx) {
+  const { kiosk, personal_kiosk_cap } = await sui_get_aresrpg_kiosk()
+
+  if (!kiosk) return sdk.create_personal_kiosk(tx)
+
+  return {
+    kiosk_cap: personal_kiosk_cap.id,
+    kiosk_id: kiosk.id,
+    kiosk_tx: new KioskTransaction({
+      kioskClient: sdk.kiosk_client,
+      transaction: tx,
+      cap: personal_kiosk_cap.id,
+    }),
+  }
 }
 
 export async function sui_create_character({ name, type, sex = 'male' }) {
@@ -711,7 +724,7 @@ export async function sui_create_character({ name, type, sex = 'male' }) {
 
   sdk.add_header(tx)
 
-  const { kiosk_cap, kiosk_id, kiosk_tx } = await sdk.enforce_personal_kiosk({
+  const { kiosk_cap, kiosk_id, kiosk_tx } = await sui_enforce_personal_kiosk({
     tx,
     recipient: get_address(),
   })
@@ -738,16 +751,7 @@ export async function sui_create_character({ name, type, sex = 'male' }) {
 }
 
 export async function sui_is_character_name_taken(name) {
-  try {
-    return sdk.is_character_name_taken({
-      address: get_address(),
-      name,
-    })
-  } catch (error) {
-    if (error.message === 'NO_GAS')
-      toast.error(t('SUI_NO_GAS'), 'Suuuuuu', MapGasStation)
-    else toast.error(error.message, 'Transaction failed')
-  }
+  return indexer_request('sui_is_character_name_taken', name)
 }
 
 // character must be locked in the extension as it's the only way to access the object bypassing the lock
