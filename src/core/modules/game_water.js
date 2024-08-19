@@ -4,14 +4,13 @@ import { on } from 'events'
 import { aiter } from 'iterator-helper'
 import {
   BufferGeometry,
-  Color,
   DoubleSide,
   Float32BufferAttribute,
   LinearFilter,
   LinearMipMapLinearFilter,
   Mesh,
+  MeshStandardMaterial,
   RepeatWrapping,
-  ShaderMaterial,
   TextureLoader,
 } from 'three'
 
@@ -105,31 +104,47 @@ export default function () {
   texture.wrapS = RepeatWrapping
   texture.wrapT = RepeatWrapping
 
-  const material = new ShaderMaterial({
-    side: DoubleSide,
+  const material_uniforms = {
+    uColor: { value: null },
+    uF0: { value: 0 },
+    uEta: { value: 0 },
+    uEnvMap: { value: null },
+    uTime: { value: 0 },
+    uNormalSide: { value: 1 },
+    uTexture: { value: texture },
+  }
+
+  const material = new MeshStandardMaterial({
     transparent: true,
-    uniforms: {
-      uColor: { value: null },
-      uF0: { value: 0 },
-      uEta: { value: 0 },
-      uEnvMap: { value: null },
-      uTime: { value: 0 },
-      uNormalSide: { value: 1 },
-      uTexture: { value: texture },
-      uAmbient: { value: new Color(0xffffff) },
-    },
-    vertexShader: `
-    varying vec2 vUv;
-    varying vec3 vWorldPosition;
+    side: DoubleSide,
+  })
+  material.onBeforeCompile = parameters => {
+    parameters.uniforms = {
+      ...parameters.uniforms,
+      ...material_uniforms,
+    }
 
-    void main(void) {
-        vec4 worldPosition = modelMatrix * vec4(position, 1);
-        gl_Position = projectionMatrix * viewMatrix * worldPosition;
+    parameters.vertexShader = parameters.vertexShader.replace(
+      'void main() {',
+      `
+      varying vec2 vUv;
+      varying vec3 vWorldPosition;
 
-        vUv = uv;
-        vWorldPosition = worldPosition.xyz;
-      }`,
-    fragmentShader: `
+      void main() {
+    `,
+    )
+    parameters.vertexShader = parameters.vertexShader.replace(
+      '#include <begin_vertex>',
+      `
+      #include <begin_vertex>
+      vWorldPosition = transformed.xyz;
+      vUv = uv;
+    `,
+    )
+
+    parameters.fragmentShader = parameters.fragmentShader.replace(
+      'void main() {',
+      `
       uniform vec3 uColor;
       uniform float uF0;
       uniform float uEta;
@@ -137,7 +152,6 @@ export default function () {
       uniform float uTime;
       uniform float uNormalSide;
       uniform sampler2D uTexture;
-      uniform vec3 uAmbient;
 
       varying vec2 vUv;
       varying vec3 vWorldPosition;
@@ -177,48 +191,63 @@ export default function () {
         return foam;
       }
 
-      void main(void) {
-        vec3 worldNormal = getNormal();
+      void main() {
+    `,
+    )
+    parameters.fragmentShader = parameters.fragmentShader.replace(
+      '#include <normal_fragment_begin>',
+      ` 
+      vec3 normal = worldNormal;
+      vec3 nonPerturbedNormal = normal;
+    `,
+    )
+    parameters.fragmentShader = parameters.fragmentShader.replace(
+      '#include <map_fragment>',
+      `
+      vec3 cameraToFragRaw = vWorldPosition - cameraPosition;
+      float cameraDistance = length(cameraToFragRaw);
+      vec3 cameraToFrag = cameraToFragRaw / cameraDistance;
+      float isOverwater = step(0.0, uNormalSide);
 
-        vec3 cameraToFragRaw = vWorldPosition - cameraPosition;
-        float cameraDistance = length(cameraToFragRaw);
-        vec3 cameraToFrag = cameraToFragRaw / cameraDistance;
-        float isOverwater = step(0.0, uNormalSide);
+      vec3 worldNormal = getNormal();
+      float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
+      fresnelFactor = mix(fresnelFactor, 0.5, smoothstep(300.0, 700.0, cameraDistance));
+      vec3 reflectVec = reflect(cameraToFrag, worldNormal);
+      vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
 
-        float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
-        fresnelFactor = mix(fresnelFactor, 0.5, smoothstep(300.0, 700.0, cameraDistance));
-        vec3 reflectVec = reflect(cameraToFrag, worldNormal);
-        vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
+      vec3 envmapVec = mix(refractVec, reflectVec, isOverwater);
+      vec3 envColor = textureCube(uEnvMap, envmapVec).rgb;
+      float env = max(envColor.r, max(envColor.g, envColor.b));
+      env *= smoothstep(0.9, 1.0, env);
 
-        vec3 envmapVec = mix(refractVec, reflectVec, isOverwater);
-        vec3 envColor = textureCube(uEnvMap, envmapVec).rgb;
-        float env = max(envColor.r, max(envColor.g, envColor.b));
-        env *= smoothstep(0.9, 1.0, env);
+      float foam = computeFoam(cameraDistance);
+      vec3 surfaceColor = clamp(uColor + foam, vec3(0), vec3(1));
+      surfaceColor += env;
 
-        float foam = computeFoam(cameraDistance);
-        vec3 surfaceColor = clamp(uColor + foam, vec3(0), vec3(1));
-        surfaceColor *= uAmbient;
-        surfaceColor += env;
+      float alpha = mix(0.2, 0.98, pow(fresnelFactor, 0.4));
+      alpha = mix(1.0, alpha, isOverwater);
+      alpha = clamp(alpha, 0.0, 1.0);
 
-        float alpha = mix(0.2, 1.0, fresnelFactor);
-        alpha = mix(1.0, alpha, isOverwater);
-        gl_FragColor = vec4(surfaceColor, alpha);
-      }`,
-  })
+      diffuseColor = vec4(surfaceColor, alpha);
+    `,
+    )
+  }
 
   return {
-    tick(state) {
-      material.uniforms.uTime.value = performance.now() / 1000
+    tick(state, { scene }) {
+      material.envMap = scene.environment
+
+      material_uniforms.uTime.value = performance.now() / 1000
 
       let eta = 0.8
       if (state.settings.camera.is_underwater) {
-        material.uniforms.uNormalSide.value = -1
+        material_uniforms.uNormalSide.value = -1
         eta = 1 / eta
       } else {
-        material.uniforms.uNormalSide.value = 1
+        material_uniforms.uNormalSide.value = 1
       }
-      material.uniforms.uF0.value = Math.pow((1 - eta) / (1 + eta), 2)
-      material.uniforms.uEta.value = eta
+      material_uniforms.uF0.value = Math.pow((1 - eta) / (1 + eta), 2)
+      material_uniforms.uEta.value = eta
     },
     observe({ scene, get_state, events, signal }) {
       function build_geometry() {
@@ -271,35 +300,26 @@ export default function () {
 
       const mesh = new Mesh(build_geometry(), material)
       mesh.name = 'water'
+      mesh.receiveShadow = true
       mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
       aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
-        ({ last_sky_lights_version, last_water_color }, [state]) => {
-          const lights_changed =
-            state.settings.sky.lights.version !== last_sky_lights_version ||
+        ({ last_water_color }, [state]) => {
+          const color_changed =
             !last_water_color ||
             !last_water_color.equals(state.settings.water.color)
 
-          if (lights_changed) {
-            last_sky_lights_version = state.settings.sky.lights.version
+          if (color_changed) {
             last_water_color = state.settings.water.color
 
-            material.uniforms.uColor.value = state.settings.water.color
-            material.uniforms.uAmbient.value =
-              state.settings.sky.lights.ambient.color
-                .clone()
-                .multiplyScalar(
-                  Math.min(1, state.settings.sky.lights.ambient.intensity),
-                )
+            material_uniforms.uColor.value = state.settings.water.color
           }
 
           return {
-            last_sky_lights_version,
             last_water_color,
           }
         },
         {
-          last_sky_lights_version: 0,
           last_water_color: null,
         },
       )
@@ -323,7 +343,7 @@ export default function () {
           base_size * Math.floor(player_position_z / base_size),
         )
 
-        material.uniforms.uEnvMap.value = scene.environment
+        material_uniforms.uEnvMap.value = scene.environment
 
         if (!mesh.parent) {
           scene.add(mesh)
