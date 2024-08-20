@@ -11,14 +11,13 @@ import {
   sdk,
   sui_get_admin_caps,
   sui_get_aresrpg_kiosk,
+  sui_get_characters,
   sui_get_finished_crafts,
   sui_get_kiosk_cap,
-  sui_get_locked_characters,
   sui_get_locked_items,
   sui_get_my_listings,
   sui_get_sui_balance,
   sui_get_supported_tokens,
-  sui_get_unlocked_characters,
   sui_get_unlocked_items,
   sui_subscribe,
 } from '../sui/client.js'
@@ -368,6 +367,32 @@ export default function () {
 
       let tx = null
 
+      const event_matcher = {
+        character: {
+          create(character) {
+            assert(character, 'Character not found')
+            context.dispatch('action/sui_add_unlocked_character', character)
+          },
+          select(character) {
+            assert(character, 'Character not found')
+            context.dispatch('action/sui_add_locked_character', character)
+            context.dispatch(
+              'action/sui_remove_unlocked_character',
+              character.id,
+            )
+          },
+          unselect(character) {
+            context.dispatch('action/sui_add_unlocked_character', character)
+            context.dispatch('action/sui_remove_locked_character', character.id)
+          },
+        },
+      }
+
+      context.events.on('packet/suiEvent', ({ event, data }) => {
+        const [header, action] = event.split(':')
+        event_matcher[header]?.[action]?.(JSON.parse(data))
+      })
+
       state_iterator().reduce(
         async (last_address, { sui: { selected_address } }) => {
           const address_changed = last_address !== selected_address
@@ -382,12 +407,6 @@ export default function () {
 
               // unsubscription is handled internally
               sui_subscribe(controller).then(emitter => {
-                async function is_kiosk_mine(id) {
-                  const kiosk = await sui_get_kiosk_cap(id)
-
-                  return !!kiosk
-                }
-
                 function is_for_a_visible_character(id) {
                   const state = context.get_state()
                   return state.visible_characters.has(id)
@@ -459,83 +478,6 @@ export default function () {
                       context.dispatch('action/sui_update_item', pet)
                       // update stats and Sui
                     } catch (error) {}
-                  }
-                }
-
-                async function handle_character_create_event(event) {
-                  if (event.sender_is_me) {
-                    try {
-                      const character = await find_character_or_retry(
-                        event.character_id,
-                      )
-
-                      assert(character, 'Character not found')
-
-                      context.dispatch('action/sui_add_unlocked_character', {
-                        ...character,
-                        kiosk_id: event.kiosk_id,
-                      })
-                    } catch (error) {
-                      console.error(error)
-                    }
-                  }
-                }
-
-                async function handle_character_select_event(event) {
-                  if (event.sender_is_me) {
-                    try {
-                      const character = await find_character_or_retry(
-                        event.character_id,
-                      )
-
-                      assert(character, 'Character not found')
-
-                      const cap = await sui_get_kiosk_cap(event.kiosk_id)
-
-                      assert(cap, 'No cap found')
-
-                      context.dispatch('action/sui_add_locked_character', {
-                        ...character,
-                        kiosk_id: event.kiosk_id,
-                        // @ts-ignore
-                        personal_kiosk_cap_id: cap.id,
-                      })
-                      context.dispatch(
-                        'action/sui_remove_unlocked_character',
-                        event.character_id,
-                      )
-                    } catch (error) {
-                      console.error(error)
-                    }
-                  }
-                }
-
-                async function handle_character_unselect_event(event) {
-                  if (event.sender_is_me) {
-                    try {
-                      const character = await find_character_or_retry(
-                        event.character_id,
-                      )
-
-                      assert(character, 'Character not found')
-
-                      const cap = await sui_get_kiosk_cap(event.kiosk_id)
-
-                      assert(cap, 'No cap found')
-
-                      context.dispatch('action/sui_add_unlocked_character', {
-                        ...character,
-                        kiosk_id: event.kiosk_id,
-                        // @ts-ignore
-                        personal_kiosk_cap_id: cap.id,
-                      })
-                      context.dispatch(
-                        'action/sui_remove_locked_character',
-                        event.character_id,
-                      )
-                    } catch (error) {
-                      console.error(error)
-                    }
                   }
                 }
 
@@ -769,12 +711,6 @@ export default function () {
                         return handle_item_unequip_event(payload)
                       case 'PetFeedEvent':
                         return handle_pet_feed_event(payload)
-                      case 'CharacterCreateEvent':
-                        return handle_character_create_event(payload)
-                      case 'CharacterSelectEvent':
-                        return handle_character_select_event(payload)
-                      case 'CharacterUnselectEvent':
-                        return handle_character_unselect_event(payload)
                       case 'CharacterDeleteEvent':
                         return handle_character_delete_event(payload)
                       case 'StatsResetEvent':
@@ -811,12 +747,12 @@ export default function () {
                     sui_get_admin_caps().then(result => ({
                       admin_caps: result,
                     })),
-                    sui_get_locked_characters().then(result => ({
-                      locked_characters: result,
-                    })),
-                    sui_get_unlocked_characters().then(result => ({
-                      unlocked_characters: result,
-                    })),
+                    sui_get_characters().then(
+                      ({ locked_characters, unlocked_characters }) => ({
+                        locked_characters,
+                        unlocked_characters,
+                      }),
+                    ),
                     sui_get_sui_balance().then(result => ({ balance: result })),
                     sui_get_locked_items().then(result => ({
                       locked_items: result,
