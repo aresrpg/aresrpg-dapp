@@ -343,12 +343,8 @@ export async function sui_withdraw_policies_profit() {
   await execute(tx)
 }
 
-export async function sui_get_locked_characters() {
-  return sdk.get_locked_characters(get_address())
-}
-
-export async function sui_get_unlocked_characters() {
-  return sdk.get_unlocked_characters(get_address())
+export async function sui_get_characters() {
+  return indexer_request('sui_get_characters', get_address())
 }
 
 export async function sui_get_kiosk_cap(kiosk_id) {
