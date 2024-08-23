@@ -23,15 +23,17 @@ import { abortable } from '../utils/iterator.js'
 import { blocks_colors } from '../utils/terrain/world_settings.js'
 import {
   chunk_data_encoder,
+  get_patches_changes,
   make_board,
-  make_legacy_board,
+  // make_legacy_board,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 
 // global config
-const SHOW_BOARD_POC = false
-const USE_LEGACY_PLATEAU = false
-const SHOW_LOD = true
+const SHOW_BOARD_POC = true
+// const USE_LEGACY_PLATEAU = false
+const SHOW_LOD = false
+const ON_THE_FLY_GEN = true // when disabled patches will be baked in advance
 // settings
 const min_altitude = -1
 const max_altitude = 400
@@ -58,8 +60,13 @@ export default function () {
   // Run world-compute module in dedicated worker
   WorldComputeApi.useWorker(world_worker)
   WorldCacheContainer.instance.builtInCache = true
-  ChunkFactory.instance.chunkDataEncoder = chunk_data_encoder
-  ChunkFactory.instance.setChunksGenRange(min_patch_id_y, max_patch_id_y)
+  // default chunk factory
+  ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
+  ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
+  // board chunk factory
+  // const board_chunk_factory = new ChunkFactory()
+  // board_chunk_factory.voxelDataEncoder = board_voxel_data_encoder
+  // board_chunk_factory.setChunksGenRange(min_patch_id_y, max_patch_id_y)
 
   // Engine setup
   const map = {
@@ -101,6 +108,7 @@ export default function () {
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = SHOW_LOD
 
+  // feats
   const chunk_render = world_chunk => {
     const engine_chunk = to_engine_chunk_format(world_chunk)
     voxelmap_viewer.invalidatePatch(engine_chunk.id)
@@ -108,9 +116,50 @@ export default function () {
       voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
   }
 
-  const render_patch_container = board_container => {
-    const board_chunks = board_container.toChunks()
+  // const render_board_container = board_container => {
+  //   const board_chunks = board_container.availablePatches
+  //     .map(patch => board_chunk_factory.genChunksFromPatch(patch))
+  //     .flat()
+  //   board_chunks.forEach(chunk => chunk_render(chunk))
+  // }
+
+  const remove_previous_board = previous_board_container => {
+    const original_patches_container = new PatchContainer()
+    original_patches_container.initFromBoxAndMask(previous_board_container.bbox)
+    original_patches_container.populateFromExisting(
+      WorldCacheContainer.instance.availablePatches,
+      true,
+    )
+    // render original patch version
+    const board_chunks = previous_board_container.toChunks()
     board_chunks.forEach(chunk => chunk_render(chunk))
+  }
+
+  const refresh_board = board_pos => {
+    if (last_player_pos.distanceTo(board_pos) > 1) {
+      if (board_container_ref) {
+        remove_previous_board(board_container_ref)
+        // unset board ref
+        board_container_ref = null
+      }
+      if (SHOW_BOARD_POC) {
+        // if (USE_LEGACY_PLATEAU) {
+        //   make_legacy_board(board_pos).then(board => {
+        //     board_container_ref = board
+        //     render_board_container(board_container_ref)
+        //   })
+        // } else {
+        board_container_ref = make_board(board_pos)
+        // render board version of patches
+        const board_chunks = board_container_ref.toChunks()
+        board_chunks.forEach(chunk => chunk_render(chunk))
+        // render_board_container(board_container_ref)
+        // }
+        last_player_pos = board_pos
+      }
+      return true
+    }
+    return false
   }
 
   return {
@@ -154,88 +203,38 @@ export default function () {
         const player_position =
           current_three_character(state)?.position?.clone()
         if (player_position) {
-          // Specify area around player requiring patch generation
-          const view_center = player_position.clone().floor()
-          const view_radius = state.settings.view_distance
-          const view_dims = new Vector3(
-            view_radius,
-            view_radius,
-            view_radius,
-          ).multiplyScalar(2)
-          const view_box = new Box3().setFromCenterAndSize(
-            view_center,
-            view_dims,
-          )
-          const is_visible_patch = patch_bbox =>
-            WorldUtils.asVect2(patch_bbox.getCenter(new Vector3())).distanceTo(
-              WorldUtils.asVect2(view_center),
-            ) <= view_radius
-          // Query patches surrounding player
-          !WorldCacheContainer.instance.pendingRefresh &&
-            WorldCacheContainer.instance
-              .refresh(view_box, is_visible_patch)
-              .then(async changes_diff => {
-                const changes_count = Object.keys(changes_diff).length
-                if (changes_count > 0) {
-                  // prevent other refresh while pending refresh
-                  WorldCacheContainer.instance.pendingRefresh = true
-                  const update_batch = Object.keys(changes_diff).filter(
-                    key => changes_diff[key],
-                  )
-                  console.log(
-                    `batch size: ${update_batch.length} (total cache size ${WorldCacheContainer.instance.count})`,
-                  )
-                  const chunks_ids = Object.keys(
-                    WorldCacheContainer.instance.patchLookup,
-                  )
-                    .map(patch_key => WorldUtils.parsePatchKey(patch_key))
-                    .map(patch_id =>
-                      ChunkFactory.instance.genChunksIdsFromPatchId(patch_id),
-                    )
-                    .flat()
-                  voxelmap_viewer.setVisibility(chunks_ids)
-                  // this.pendingRefresh = true
-                  // retrieve patches from cache or compute them
-                  const visible_patches = WorldComputeApi.instance.builtInCache
-                    ? WorldComputeApi.instance.availablePatches
-                    : WorldComputeApi.instance.iterPatchCompute(update_batch)
-                  // for each patch, generate chunks and render
-                  for await (const patch of visible_patches) {
-                    // build engine chunks from world patch and send to engine for rendering
-                    patch.toChunks().forEach(chunk => chunk_render(chunk))
-                  }
-                  WorldCacheContainer.instance.pendingRefresh = false
-                }
-              })
-          // Board POC
-          if (
-            SHOW_BOARD_POC &&
-            last_player_pos.distanceTo(player_position) > 2
-          ) {
-            last_player_pos = player_position
-            // remove previous board by restoring original terrain patches
-            if (board_container_ref) {
-              const original_patches_container = new PatchContainer(
-                board_container_ref.bbox,
+          if (!WorldCacheContainer.instance.pendingRefresh) {
+            // Query patches around player
+            const view_center = player_position.clone().floor()
+            const view_radius = state.settings.view_distance
+            const patches_changes = await get_patches_changes(
+              view_center,
+              view_radius,
+              ON_THE_FLY_GEN,
+            )
+            if (patches_changes.length !== 0) {
+              WorldCacheContainer.instance.pendingRefresh = true
+              const chunks_ids = Object.keys(
+                WorldCacheContainer.instance.patchLookup,
               )
-              original_patches_container.populateFromExisting(
-                WorldCacheContainer.instance.availablePatches,
-                true,
-              )
-              render_patch_container(original_patches_container)
-              // unset board ref
-              board_container_ref = null
+                .map(patch_key => WorldUtils.parsePatchKey(patch_key))
+                .map(patch_id =>
+                  ChunkFactory.default.genChunksIdsFromPatchId(patch_id),
+                )
+                .flat()
+              voxelmap_viewer.setVisibility(chunks_ids)
+              // Bake world patches and feed engine with chunks
+              for await (const patch of patches_changes) {
+                patch.toChunks().forEach(chunk => chunk_render(chunk))
+                // If not using on-the-fly gen, delay patch processing to prevents
+                // rendering too many chunks at the same time (TODO)
+                // setTimeout(() =>
+                //   patch.toChunks().forEach(chunk => chunk_render(chunk)),
+                // )
+              }
+              WorldCacheContainer.instance.pendingRefresh = false
             }
-            // build and render updated battle board
-            if (USE_LEGACY_PLATEAU) {
-              make_legacy_board(player_position).then(board => {
-                board_container_ref = board
-                render_patch_container(board_container_ref)
-              })
-            } else {
-              board_container_ref = make_board(player_position)
-              render_patch_container(board_container_ref)
-            }
+            refresh_board(player_position)
           }
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)
