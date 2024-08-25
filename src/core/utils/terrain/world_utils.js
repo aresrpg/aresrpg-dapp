@@ -1,5 +1,6 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
+  BlockMode,
   BoardContainer,
   WorldCacheContainer,
   WorldComputeApi,
@@ -124,9 +125,9 @@ export function get_optional_terrain_height({ x, z }, entity_height = 0) {
  * Chunks conversions
  */
 
-export const chunk_data_encoder = (val, i) =>
+export const chunk_data_encoder = (val, mode = BlockMode.DEFAULT) =>
   val
-    ? voxelmapDataPacking.encode(false, val)
+    ? voxelmapDataPacking.encode(mode === BlockMode.BOARD_CONTAINER, val)
     : voxelmapDataPacking.encodeEmpty()
 
 // export const board_voxel_data_encoder = val =>
@@ -192,13 +193,14 @@ export const get_patches_changes = async (
  * Battle boards
  */
 
-export const make_board = player_position => {
-  const board_container = new BoardContainer(player_position, 32)
+export const make_board = board_pos => {
+  const board_container = new BoardContainer(board_pos, 32, 5)
   board_container.populateFromExisting(
     WorldCacheContainer.instance.availablePatches,
     true,
   )
   board_container.shapeBoard()
+  board_container.trimEntities()
   return board_container
 }
 
