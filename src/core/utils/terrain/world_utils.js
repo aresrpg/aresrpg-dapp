@@ -15,9 +15,9 @@ import { world_patch_size } from './world_settings.js'
  * Ground height helpers
  */
 
-const blocks_cache_radius = Math.pow(2, 3)
+const blocks_cache_radius = Math.pow(2, 3) // 8 blocks
 // minimal batch size to avoid flooding with too many blocks requests
-const blocks_cache_min_batch_size = Math.pow(2 * blocks_cache_radius, 2) / 2
+const blocks_cache_min_batch_size = Math.pow(2 * blocks_cache_radius, 2) / 4 // 16*16/4 = 256/4 = 64 blocks batch
 /**
  *
  * @param {*} pos central block to request pos from
@@ -71,7 +71,10 @@ function memoize_ground_block() {
     let req
     // Request all missing keys around block
     //
-    if (requested_keys.length > blocks_cache_min_batch_size) {
+    if (
+      requested_keys.length > blocks_cache_min_batch_size ||
+      !ground_block_cache.has(key)
+    ) {
       req = request_blocks(requested_keys)
       // pending_block_requests.set(missing_keys, req)
       req
@@ -200,7 +203,7 @@ export const make_board = board_pos => {
     true,
   )
   board_container.shapeBoard()
-  board_container.trimEntities()
+  board_container.trimTrees()
   return board_container
 }
 
