@@ -6,7 +6,7 @@ import {
   WorldComputeApi,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
-import { Box3, Vector3 } from 'three'
+import { Box2, Vector2, Vector3 } from 'three'
 import { LRUCache } from 'lru-cache'
 
 import { world_patch_size } from './world_settings.js'
@@ -140,7 +140,7 @@ export const chunk_data_encoder = (val, mode = BlockMode.DEFAULT) =>
 
 export const to_engine_chunk_format = world_chunk => {
   const id = WorldUtils.parseChunkKey(world_chunk.key)
-  const chunk_bbox = WorldUtils.getBboxFromChunkId(id, world_patch_size) // voxelmap_viewer.getPatchVoxelsBox(id)
+  const chunk_bbox = WorldUtils.chunkBoxFromId(id, world_patch_size) // voxelmap_viewer.getPatchVoxelsBox(id)
   const size = chunk_bbox.getSize(new Vector3())
   const data = world_chunk.data ? world_chunk.data : []
   const engine_chunk = {
@@ -161,20 +161,17 @@ export const get_patches_changes = async (
   view_radius,
   on_the_fly = true,
 ) => {
-  const view_dims = new Vector3(
-    view_radius,
-    view_radius,
-    view_radius,
-  ).multiplyScalar(2)
-  const view_box = new Box3().setFromCenterAndSize(view_center, view_dims)
-  const is_visible_patch = patch_bbox =>
-    WorldUtils.asVect2(patch_bbox.getCenter(new Vector3())).distanceTo(
-      WorldUtils.asVect2(view_center),
-    ) <= view_radius
+  view_center = WorldUtils.asVect2(view_center)
+  const view_dims = new Vector2(view_radius, view_radius).multiplyScalar(2)
+  const view_box = new Box2().setFromCenterAndSize(view_center, view_dims)
+  // const is_visible_patch = patch_bbox =>
+  //   WorldUtils.asVect2(patch_bbox.getCenter(new Vector3())).distanceTo(
+  //     view_center,
+  //   ) <= view_radius
   // Query patches around player
   const changes = await WorldCacheContainer.instance.refresh(
     view_box,
-    is_visible_patch,
+    // is_visible_patch,
   )
   const changes_count = Object.keys(changes).length
   if (changes_count > 0) {
@@ -204,6 +201,7 @@ export const make_board = board_pos => {
   )
   board_container.shapeBoard()
   board_container.trimTrees()
+  board_container.genStartPosEntities()
   return board_container
 }
 
