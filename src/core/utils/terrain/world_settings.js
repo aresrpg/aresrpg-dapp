@@ -18,6 +18,9 @@ export const blocks_colors = {
   [BlockType.MUD]: 0x795548,
   [BlockType.ROCK]: 0xababab,
   [BlockType.SNOW]: 0xe5e5e5,
+  [BlockType.DBG_ORANGE]: 0xff9800, // 0x#FFC107
+  [BlockType.DBG_PURPLE]: 0x8a2be2, // 0x673ab7,//0x9c27b0,
+  [BlockType.DBG_BEIGE]: 0xf5deb3,
 }
 
 const temperate = {

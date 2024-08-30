@@ -201,7 +201,8 @@ export const make_board = board_pos => {
   )
   board_container.shapeBoard()
   board_container.trimTrees()
-  board_container.genStartPosEntities()
+  board_container.genStartPositions()
+  board_container.digHoles()
   return board_container
 }
 
