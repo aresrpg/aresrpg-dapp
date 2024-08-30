@@ -1,6 +1,6 @@
 import {
   Biome,
-  BlocksPatchContainer,
+  BlocksPatch,
   Heightmap,
   WorldCompute,
   WorldUtils,
@@ -14,7 +14,7 @@ import {
 } from './world_settings.js'
 
 const init_world = () => {
-  BlocksPatchContainer.patchSize = world_patch_size
+  BlocksPatch.patchSize = world_patch_size
   Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
   Heightmap.instance.heightmap.sampling.harmonicsCount = 6
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
