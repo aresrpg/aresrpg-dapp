@@ -8,12 +8,12 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Box3, Color, Vector3 } from 'three'
+import { Color, Vector3 } from 'three'
 import {
+  BoardContainer,
   ChunkFactory,
   WorldCacheContainer,
   WorldComputeApi,
-  WorldConfig,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 
@@ -23,8 +23,6 @@ import { blocks_colors } from '../utils/terrain/world_settings.js'
 import {
   chunk_data_encoder,
   get_patches_changes,
-  make_board,
-  // make_legacy_board,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 
@@ -62,10 +60,6 @@ export default function () {
   // default chunk factory
   ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
-  // board chunk factory
-  // const board_chunk_factory = new ChunkFactory()
-  // board_chunk_factory.voxelDataEncoder = board_voxel_data_encoder
-  // board_chunk_factory.setChunksGenRange(min_patch_id_y, max_patch_id_y)
 
   // Engine setup
   const map = {
@@ -115,30 +109,31 @@ export default function () {
       voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
   }
 
-  const display_board_container = pos => {
+  // Battle board POC
+  const render_board_container = pos => {
     const board_pos = pos.clone().floor()
     if (
       WorldUtils.asVect2(last_board_pos).distanceTo(
         WorldUtils.asVect2(board_pos),
       ) > 1
     ) {
-      // if (USE_LEGACY_PLATEAU) {
-      //   make_legacy_board(board_pos).then(board => {
-      //     board_container_ref = board
-      //     render_board_container(board_container_ref)
-      //   })
-      // } else {
-      // remove previous board (e.g. rerender original version of patches)
+      // remove previous board: render original version of patches
       board_container_ref
         ?.restoreOriginalPatches()
         .toChunks()
         .forEach(chunk => render_chunk(chunk))
-      // compute new board
-      board_container_ref = make_board(board_pos)
+      // make new board
+      const board_container = new BoardContainer(board_pos, 32, 5)
+      board_container.populateFromExisting(
+        WorldCacheContainer.instance.availablePatches,
+        true,
+      )
+      board_container.initBoard()
       // render board version of patches
-      board_container_ref?.toChunks().forEach(chunk => render_chunk(chunk))
+      board_container.toChunks().forEach(chunk => render_chunk(chunk))
       // render_board_container(board_container_ref)
       // }
+      board_container_ref = board_container
       last_board_pos = board_pos
     }
   }
@@ -215,7 +210,7 @@ export default function () {
               }
               WorldCacheContainer.instance.pendingRefresh = false
             }
-            SHOW_BOARD_POC && display_board_container(player_position)
+            SHOW_BOARD_POC && render_board_container(player_position)
           }
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)
