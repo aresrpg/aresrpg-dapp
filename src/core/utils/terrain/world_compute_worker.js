@@ -3,18 +3,15 @@ import {
   BlocksPatch,
   Heightmap,
   WorldCompute,
+  WorldConf,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Box2, Vector2 } from 'three'
 
-import {
-  biome_mapping_conf,
-  sea_level,
-  world_patch_size,
-} from './world_settings.js'
+import { biome_mapping_conf, sea_level } from './world_settings.js'
 
 const init_world = () => {
-  BlocksPatch.patchSize = world_patch_size
+  BlocksPatch.patchSize = WorldConf.patchSize
   Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
   Heightmap.instance.heightmap.sampling.harmonicsCount = 6
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'

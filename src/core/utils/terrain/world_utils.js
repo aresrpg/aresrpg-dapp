@@ -1,15 +1,13 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   BlockMode,
-  BoardContainer,
   WorldCacheContainer,
   WorldComputeApi,
+  WorldConf,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Box2, Vector2, Vector3 } from 'three'
 import { LRUCache } from 'lru-cache'
-
-import { world_patch_size } from './world_settings.js'
 
 /**
  * Ground height helpers
@@ -140,7 +138,7 @@ export const chunk_data_encoder = (val, mode = BlockMode.DEFAULT) =>
 
 export const to_engine_chunk_format = world_chunk => {
   const id = WorldUtils.parseChunkKey(world_chunk.key)
-  const chunk_bbox = WorldUtils.chunkBoxFromId(id, world_patch_size) // voxelmap_viewer.getPatchVoxelsBox(id)
+  const chunk_bbox = WorldUtils.chunkBoxFromId(id, WorldConf.patchSize) // voxelmap_viewer.getPatchVoxelsBox(id)
   const size = chunk_bbox.getSize(new Vector3())
   const data = world_chunk.data ? world_chunk.data : []
   const engine_chunk = {
@@ -188,55 +186,3 @@ export const get_patches_changes = async (
   }
   return []
 }
-
-/**
- * Battle boards
- */
-
-export const make_board = board_pos => {
-  const board_container = new BoardContainer(board_pos, 32, 5)
-  board_container.populateFromExisting(
-    WorldCacheContainer.instance.availablePatches,
-    true,
-  )
-  board_container.shapeBoard()
-  board_container.trimTrees()
-  board_container.genStartPositions()
-  board_container.digHoles()
-  return board_container
-}
-
-// export const make_legacy_board = async player_position => {
-//   const board_struct = await PlateauLegacy.computePlateau(player_position)
-
-//   const board_dims = new Vector3(board_struct.size.x, 0, board_struct.size.z)
-//   const board_end = board_struct.origin.clone().add(board_dims)
-//   const board_box = new Box3(board_struct.origin, board_end)
-//   // prepare board
-//   const board_blocks_container = new BlocksContainer(board_box, 0)
-//   const size = Math.sqrt(board_struct.squares.length)
-//   const { min, max } = board_blocks_container.bbox
-//   board_struct.squares.forEach((v, i) => {
-//     const z = Math.floor(i / size)
-//     const x = i % size
-//     const index = z + size * x
-//     const block_level = v.floorY || 0
-//     const block_type = v.materialId
-//     board_blocks_container.groundBlocks.level[index] = block_level
-//     board_blocks_container.groundBlocks.type[index] = block_type
-//     min.y = block_level > 0 ? Math.min(min.y, block_level) : min.y
-//     max.y = Math.max(max.y, block_level)
-//   })
-//   const y_diff = max.y - min.y
-//   min.y += Math.round(y_diff / 2)
-//   // create container covering board area filled with patches from cache
-
-//   const board_container = new BoardContainer(board_box)
-//   board_container.fillFromPatches(
-//     WorldCacheContainer.instance.availablePatches,
-//     true,
-//   )
-//   // merge with board blocks
-//   board_container.mergeBoardBlocks(board_blocks_container)
-//   return board_container
-// }
