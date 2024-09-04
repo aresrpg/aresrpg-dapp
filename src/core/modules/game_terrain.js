@@ -10,10 +10,9 @@ import {
 import { aiter } from 'iterator-helper'
 import { Color, Vector3 } from 'three'
 import {
-  BoardContainer,
   ChunkFactory,
   WorldCacheContainer,
-  WorldComputeApi,
+  WorldComputeProxy,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 
@@ -23,13 +22,14 @@ import { blocks_colors } from '../utils/terrain/world_settings.js'
 import {
   chunk_data_encoder,
   get_patches_changes,
+  request_board_data,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 
 // global config
-const SHOW_BOARD_POC = true
+const BOARD_POC = true
 // const USE_LEGACY_PLATEAU = false
-const SHOW_LOD = true
+const SHOW_LOD = false
 const ON_THE_FLY_GEN = true // when disabled patches will be baked in advance
 // settings
 const min_altitude = -1
@@ -55,7 +55,7 @@ export default function () {
   const max_patch_id_y = Math.floor(max_altitude / patch_size.y)
   // World setup
   // Run world-compute module in dedicated worker
-  WorldComputeApi.useWorker(world_worker)
+  WorldComputeProxy.instance.worker = world_worker
   WorldCacheContainer.instance.builtInCache = true
   // default chunk factory
   ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
@@ -70,7 +70,7 @@ export default function () {
       return null
     },
     async sampleHeightmap(coords) {
-      const res = await WorldComputeApi.instance.computeBlocksBatch(coords, {
+      const res = await WorldComputeProxy.instance.computeBlocksBatch(coords, {
         includeEntitiesBlocks: true,
       })
       const data = res.map(block => ({
@@ -102,6 +102,14 @@ export default function () {
   terrain_viewer.parameters.lod.enabled = SHOW_LOD
 
   // Misc
+  const update_chunks_visibility = () => {
+    const chunks_ids = Object.keys(WorldCacheContainer.instance.patchLookup)
+      .map(patch_key => WorldUtils.parsePatchKey(patch_key))
+      .map(patch_id => ChunkFactory.default.genChunksIdsFromPatchId(patch_id))
+      .flat()
+    voxelmap_viewer.setVisibility(chunks_ids)
+  }
+
   const render_chunk = world_chunk => {
     const engine_chunk = to_engine_chunk_format(world_chunk)
     voxelmap_viewer.invalidatePatch(engine_chunk.id)
@@ -109,8 +117,24 @@ export default function () {
       voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
   }
 
+  const render_patch_chunks = (patch, entities_chunks = []) => {
+    // assemble ground and entities to form world chunks
+    const world_patch_chunks = ChunkFactory.defaultInstance.chunkify(
+      patch,
+      entities_chunks,
+    )
+    // feed engine with chunks
+    world_patch_chunks.forEach(world_chunk => render_chunk(world_chunk))
+
+    // If not using on-the-fly gen, delay patch processing to prevents
+    // too many chunks rendering at the same time (TODO)
+    // setTimeout(() =>
+    //   patch.toChunks().forEach(chunk => render_chunk(chunk)),
+    // )
+  }
+
   // Battle board POC
-  const render_board_container = pos => {
+  const request_render_board_container = async pos => {
     const board_pos = pos.clone().floor()
     if (
       WorldUtils.asVect2(last_board_pos).distanceTo(
@@ -122,18 +146,26 @@ export default function () {
         ?.restoreOriginalPatches()
         .toChunks()
         .forEach(chunk => render_chunk(chunk))
-      // make new board
-      const board_container = new BoardContainer(board_pos, 32, 5)
-      board_container.populateFromExisting(
-        WorldCacheContainer.instance.availablePatches,
-        true,
-      )
-      board_container.initBoard()
-      // render board version of patches
-      board_container.toChunks().forEach(chunk => render_chunk(chunk))
-      // render_board_container(board_container_ref)
-      // }
-      board_container_ref = board_container
+      const board_container = await request_board_data(board_pos)
+      const overlapping_patches =
+        WorldCacheContainer.instance.getOverlappingPatches(
+          board_container.bounds,
+        )
+
+      // rerender all patches overlapped by the board
+      for await (const patch of overlapping_patches) {
+        patch.overrideContent(board_container)
+        const entities_chunks = await WorldComputeProxy.instance.bakeEntities(
+          patch.bounds,
+        )
+        // discard overlapping entities
+        const non_overlapping = entities_chunks.filter(
+          entity_chunk =>
+            !board_container.isEntityOverlappingBoard(entity_chunk.entityData),
+        )
+        render_patch_chunks(patch, non_overlapping)
+      }
+      // board_container_ref = board_container
       last_board_pos = board_pos
     }
   }
@@ -190,27 +222,17 @@ export default function () {
             )
             if (patches_changes.length !== 0) {
               WorldCacheContainer.instance.pendingRefresh = true
-              const chunks_ids = Object.keys(
-                WorldCacheContainer.instance.patchLookup,
-              )
-                .map(patch_key => WorldUtils.parsePatchKey(patch_key))
-                .map(patch_id =>
-                  ChunkFactory.default.genChunksIdsFromPatchId(patch_id),
-                )
-                .flat()
-              voxelmap_viewer.setVisibility(chunks_ids)
-              // Bake world patches and feed engine with chunks
+              update_chunks_visibility()
+              // Bake world patches and sends chunks to engine
               for await (const patch of patches_changes) {
-                patch.toChunks().forEach(chunk => render_chunk(chunk))
-                // If not using on-the-fly gen, delay patch processing to prevents
-                // too many chunks rendering at the same time (TODO)
-                // setTimeout(() =>
-                //   patch.toChunks().forEach(chunk => render_chunk(chunk)),
-                // )
+                // request and bake all entities belonging to this patch
+                const entities_chunks =
+                  await WorldComputeProxy.instance.bakeEntities(patch.bounds)
+                render_patch_chunks(patch, entities_chunks)
               }
               WorldCacheContainer.instance.pendingRefresh = false
             }
-            SHOW_BOARD_POC && render_board_container(player_position)
+            BOARD_POC && request_render_board_container(player_position) // render_board_container(player_position)
           }
         }
         terrain_viewer.setLod(camera.position, 50, camera.far)

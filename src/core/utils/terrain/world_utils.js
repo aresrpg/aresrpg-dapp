@@ -2,7 +2,7 @@ import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   BlockMode,
   WorldCacheContainer,
-  WorldComputeApi,
+  WorldComputeProxy,
   WorldConf,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
@@ -49,7 +49,7 @@ const request_blocks = block_keys => {
     WorldUtils.asVect3(WorldUtils.parsePatchKey(key)),
   )
   // send batch for compute
-  return WorldComputeApi.instance.computeBlocksBatch(block_pos_batch)
+  return WorldComputeProxy.instance.computeBlocksBatch(block_pos_batch)
 }
 
 function memoize_ground_block() {
@@ -181,8 +181,21 @@ export const get_patches_changes = async (
     const patches_changes =
       !on_the_fly && WorldCacheContainer.instance.builtInCache
         ? WorldCacheContainer.instance.availablePatches
-        : WorldComputeApi.instance.iterPatchCompute(update_batch)
+        : WorldComputeProxy.instance.iterPatchCompute(update_batch)
     return patches_changes
   }
   return []
+}
+
+export const request_board_data = async pos => {
+  const board_pos = pos.clone().floor()
+  const board_params = {
+    radius: 32,
+    maxThickness: 4,
+    keepLast: true,
+  }
+  return await WorldComputeProxy.instance.requestBattleBoard(
+    board_pos,
+    board_params,
+  )
 }
