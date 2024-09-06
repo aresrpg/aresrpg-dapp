@@ -8,9 +8,11 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Color, Vector3 } from 'three'
+import { Box2, Color, Vector3 } from 'three'
 import {
+  BoardContainer,
   ChunkFactory,
+  DataContainer,
   WorldCacheContainer,
   WorldComputeProxy,
   WorldUtils,
@@ -22,14 +24,13 @@ import { blocks_colors } from '../utils/terrain/world_settings.js'
 import {
   chunk_data_encoder,
   get_patches_changes,
-  request_board_data,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 
 // global config
 const BOARD_POC = true
 // const USE_LEGACY_PLATEAU = false
-const SHOW_LOD = false
+const SHOW_LOD = true
 const ON_THE_FLY_GEN = true // when disabled patches will be baked in advance
 // settings
 const min_altitude = -1
@@ -44,8 +45,21 @@ const voxel_materials_list = Object.values(blocks_colors).map(col => ({
   color: new Color(col),
 }))
 
-let board_container_ref
 let last_board_pos = new Vector3(10, 0, 10)
+let prev_board_bounds = new Box2()
+let pending_board_refresh = false
+const is_pending_task = () => {
+  if (pending_board_refresh) console.log(`pending board refresh: wait`)
+  return pending_board_refresh || WorldCacheContainer.instance.pendingRefresh
+}
+
+const board_needs_refresh = current_pos => {
+  return (
+    WorldUtils.asVect2(last_board_pos).distanceTo(
+      WorldUtils.asVect2(current_pos),
+    ) > 1
+  )
+}
 
 /** @type {Type.Module} */
 export default function () {
@@ -60,6 +74,7 @@ export default function () {
   // default chunk factory
   ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
+  // ground map
 
   // Engine setup
   const map = {
@@ -135,38 +150,46 @@ export default function () {
 
   // Battle board POC
   const request_render_board_container = async pos => {
-    const board_pos = pos.clone().floor()
-    if (
-      WorldUtils.asVect2(last_board_pos).distanceTo(
-        WorldUtils.asVect2(board_pos),
-      ) > 1
-    ) {
-      // remove previous board: render original version of patches
-      board_container_ref
-        ?.restoreOriginalPatches()
-        .toChunks()
-        .forEach(chunk => render_chunk(chunk))
-      const board_container = await request_board_data(board_pos)
+    const current_pos = pos.clone().floor()
+    if (board_needs_refresh(current_pos) && !is_pending_task()) {
+      pending_board_refresh = true
+      const board_params = {
+        radius: 32,
+        thickness: 4,
+      }
+      const board_container = new BoardContainer(
+        current_pos,
+        board_params,
+        prev_board_bounds,
+      )
+      // these steps will call worker under the hood if provided
+      await board_container.fillGroundData()
+      await board_container.populateEntities()
+      // perform board local computations
+      // const board_output_data = board_container.exportBoardData()
+      // console.log(board_output_data)
+      const board_output_bounds = board_container.getOutputContainer().bounds
       const overlapping_patches =
-        WorldCacheContainer.instance.getOverlappingPatches(
-          board_container.bounds,
-        )
-
+        WorldCacheContainer.instance.getOverlappingPatches(board_output_bounds)
       // rerender all patches overlapped by the board
       for await (const patch of overlapping_patches) {
-        patch.overrideContent(board_container)
+        DataContainer.copySourceOverTargetContainer(board_container, patch)
         const entities_chunks = await WorldComputeProxy.instance.bakeEntities(
           patch.bounds,
         )
         // discard overlapping entities
         const non_overlapping = entities_chunks.filter(
           entity_chunk =>
-            !board_container.isEntityOverlappingBoard(entity_chunk.entityData),
+            !board_container.isOverlappingWithBoard(
+              WorldUtils.asBox2(entity_chunk.entityData.bbox),
+            ),
         )
         render_patch_chunks(patch, non_overlapping)
       }
-      // board_container_ref = board_container
-      last_board_pos = board_pos
+      // remember bounds to ease board removal later
+      prev_board_bounds = board_output_bounds
+      last_board_pos = current_pos
+      pending_board_refresh = false
     }
   }
 
@@ -207,7 +230,7 @@ export default function () {
         const player_position =
           current_three_character(state)?.position?.clone()
         if (player_position) {
-          if (!WorldCacheContainer.instance.pendingRefresh) {
+          if (!is_pending_task()) {
             // Query patches around player
             const view_center = player_position.clone().floor()
             const view_radius = state.settings.view_distance
