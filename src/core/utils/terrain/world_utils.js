@@ -174,9 +174,9 @@ export const get_patches_changes = async (
   const changes_count = Object.keys(changes).length
   if (changes_count > 0) {
     const update_batch = Object.keys(changes).filter(key => changes[key])
-    console.log(
-      `batch size: ${update_batch.length} (total cache size ${WorldCacheContainer.instance.count})`,
-    )
+    // console.log(
+    //   `batch size: ${update_batch.length} (total cache size ${WorldCacheContainer.instance.count})`,
+    // )
     // retrieve patches from cache or compute them on the fly
     const patches_changes =
       !on_the_fly && WorldCacheContainer.instance.builtInCache
@@ -185,17 +185,4 @@ export const get_patches_changes = async (
     return patches_changes
   }
   return []
-}
-
-export const request_board_data = async pos => {
-  const board_pos = pos.clone().floor()
-  const board_params = {
-    radius: 32,
-    maxThickness: 4,
-    keepLast: true,
-  }
-  return await WorldComputeProxy.instance.requestBattleBoard(
-    board_pos,
-    board_params,
-  )
 }
