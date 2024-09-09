@@ -162,16 +162,16 @@ export default function () {
         board_params,
         prev_board_bounds,
       )
-      // these steps will call worker under the hood if provided
-      await board_container.fillGroundData()
-      await board_container.populateEntities()
-      // perform board local computations
+      // if provided will call worker under the hood to retrieve data
+      await board_container.retrieveBoardData()
+      // uncomment following line to get board data
       // const board_output_data = board_container.exportBoardData()
       // console.log(board_output_data)
-      const board_output_bounds = board_container.getOutputContainer().bounds
+      // perform board local computations
+      const board_output_bounds = board_container.overridingContainer.bounds
       const overlapping_patches =
         WorldCacheContainer.instance.getOverlappingPatches(board_output_bounds)
-      // rerender all patches overlapped by the board
+
       for await (const patch of overlapping_patches) {
         DataContainer.copySourceOverTargetContainer(board_container, patch)
         const entities_chunks = await WorldComputeProxy.instance.bakeEntities(
@@ -184,6 +184,7 @@ export default function () {
               WorldUtils.asBox2(entity_chunk.entityData.bbox),
             ),
         )
+        // rerender all patches overlapped by the board
         render_patch_chunks(patch, non_overlapping)
       }
       // remember bounds to ease board removal later
