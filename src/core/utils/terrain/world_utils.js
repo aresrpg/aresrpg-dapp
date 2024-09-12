@@ -1,6 +1,8 @@
-import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+import { BoardHandler, voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   BlockMode,
+  BlockType,
+  BoardContainer,
   WorldCacheContainer,
   WorldComputeProxy,
   WorldConf,
@@ -8,6 +10,7 @@ import {
 } from '@aresrpg/aresrpg-world'
 import { Box2, Vector2, Vector3 } from 'three'
 import { LRUCache } from 'lru-cache'
+import * as BoardUtils from '@aresrpg/aresrpg-sdk/board_utils'
 
 /**
  * Ground height helpers
@@ -185,4 +188,104 @@ export const get_patches_changes = async (
     return patches_changes
   }
   return []
+}
+
+/**
+ * BOARDS
+ */
+
+// board config
+const board_params = {
+  radius: 32,
+  thickness: 4,
+}
+
+export const setup_board_container = async current_pos => {
+  const board_container = new BoardContainer(current_pos, board_params)
+  await board_container.make()
+  const board_data_export = board_container.exportBoardData()
+  // translate to board hanlder format
+  const squares = board_data_export.data.map(element =>
+    BoardUtils.format_board_data(element),
+  )
+  const board = { ...board_data_export, squares }
+  board.size = new Vector2(board_data_export.size.y, board_data_export.size.x)
+  if (board.data.length > 0) {
+    const board_handler = new BoardHandler({ board })
+
+    const border_blocks = BoardUtils.extract_border_blocks(board_data_export)
+    const border_elements = border_blocks.map(block =>
+      BoardUtils.format_board_data(block.data),
+    )
+    board_handler.clearSquares()
+    // TODO: DEBUG line crashing below
+    // board_handler.displaySquares(border_elements, new Color(0x00ff00))
+    highlight_board_edges(board_data_export, board_container)
+    highlight_start_pos(board_data_export, board_container)
+  }
+  return board_container
+}
+
+export const highlight_board_blocks = (
+  board_elements,
+  board_container,
+  highlight_color,
+) => {
+  for (const item of board_elements) {
+    if (item) {
+      const block = board_container.getBlock(
+        WorldUtils.parseThreeStub(item.pos),
+      )
+      if (block) {
+        block.data.type = highlight_color
+        block.data.mode = BlockMode.DEFAULT
+        board_container.setBlock(block.pos, block.data)
+      }
+    } else {
+      console.warn(`unexpected `, board_elements)
+    }
+  }
+}
+
+export const highlight_board_edges = (board_data, board_container) => {
+  const border_blocks = BoardUtils.extract_border_blocks(board_data)
+  const sorted_border_blocks = BoardUtils.sort_by_side(
+    border_blocks,
+    board_data,
+  )
+  highlight_board_blocks(
+    sorted_border_blocks.first,
+    board_container,
+    BlockType.DBG_GREEN,
+  )
+  highlight_board_blocks(
+    sorted_border_blocks.second,
+    board_container,
+    BlockType.DBG_LIGHT,
+  )
+}
+
+export const highlight_start_pos = (board_data, board_container) => {
+  const board_items = BoardUtils.iter_board_data(board_data)
+  const sorted_board_items = BoardUtils.sort_by_side(board_items, board_data)
+  const sorted_start_pos = {}
+  sorted_start_pos.first = BoardUtils.random_select_items(
+    sorted_board_items.first,
+    6,
+  )
+  sorted_start_pos.second = BoardUtils.random_select_items(
+    sorted_board_items.second,
+    6,
+  )
+
+  highlight_board_blocks(
+    sorted_start_pos.first,
+    board_container,
+    BlockType.DBG_ORANGE,
+  )
+  highlight_board_blocks(
+    sorted_start_pos.second,
+    board_container,
+    BlockType.DBG_PURPLE,
+  )
 }
