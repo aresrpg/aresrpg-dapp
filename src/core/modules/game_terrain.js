@@ -8,11 +8,11 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Box2, Color, Vector3 } from 'three'
+import { Box2, Color, Vector2, Vector3 } from 'three'
 import {
   ChunkFactory,
   DataContainer,
-  WorldCacheContainer,
+  GroundMap,
   WorldComputeProxy,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
@@ -22,7 +22,6 @@ import { abortable } from '../utils/iterator.js'
 import { blocks_colors } from '../utils/terrain/world_settings.js'
 import {
   chunk_data_encoder,
-  get_patches_changes,
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
@@ -45,10 +44,6 @@ const voxel_materials_list = Object.values(blocks_colors).map(col => ({
 let last_board_pos = new Vector3(10, 0, 10)
 let last_board_bounds = new Box2()
 let pending_task = false
-const is_pending_task = () => {
-  if (pending_task) console.log(`pending task: wait`)
-  return pending_task || WorldCacheContainer.instance.pendingRefresh
-}
 
 const board_refresh_trigger = current_pos => {
   return (
@@ -67,11 +62,11 @@ export default function () {
   const max_patch_id_y = Math.floor(altitude.max / patch_size.y)
   // Run world-compute module in dedicated worker
   WorldComputeProxy.instance.worker = world_worker
-  WorldCacheContainer.instance.builtInCache = true
   // default chunk factory
   ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
-
+  // ground patch container
+  const ground_patches = new GroundMap()
   // ENGINE
   const map = {
     minAltitude: altitude.min,
@@ -115,7 +110,7 @@ export default function () {
 
   // CHUNKS RENDERING
   const update_chunks_visibility = () => {
-    const chunks_ids = Object.keys(WorldCacheContainer.instance.patchLookup)
+    const chunks_ids = Object.keys(ground_patches.patchLookup)
       .map(patch_key => WorldUtils.parsePatchKey(patch_key))
       .map(patch_id => ChunkFactory.default.genChunksIdsFromPatchId(patch_id))
       .flat()
@@ -149,7 +144,7 @@ export default function () {
   const render_board_container = async board_container => {
     const extended_bounds = last_board_bounds.union(board_container.bounds)
     // duplicate and override patches with content from board
-    const overridden_patches = WorldCacheContainer.instance
+    const overridden_patches = ground_patches
       .getOverlappingPatches(extended_bounds)
       .map(patch => patch.duplicate())
     for await (const patch of overridden_patches) {
@@ -210,7 +205,7 @@ export default function () {
         const player_position =
           current_three_character(state)?.position?.clone()
         if (player_position) {
-          if (!is_pending_task()) {
+          if (!pending_task) {
             pending_task = true
             const current_pos = player_position.clone().floor()
             // BOARD REFRSH
@@ -224,16 +219,22 @@ export default function () {
             }
             // PATCHES REFRESH
             // Query patches around player
+            const view_center = WorldUtils.asVect2(current_pos)
             const view_radius = state.settings.view_distance
-            const patches_changes = await get_patches_changes(
-              current_pos,
+            const view_dims = new Vector2(
               view_radius,
-              ON_THE_FLY_GEN,
+              view_radius,
+            ).multiplyScalar(2)
+            const view_box = new Box2().setFromCenterAndSize(
+              view_center,
+              view_dims,
             )
-            if (patches_changes.length !== 0) {
+            const has_changed = ground_patches.rebuildPatchIndex(view_box)
+            if (has_changed) {
+              const changes = await ground_patches.loadEmpty(ON_THE_FLY_GEN)
               update_chunks_visibility()
               // Bake world patches and sends chunks to engine
-              for await (const patch of patches_changes) {
+              for await (const patch of changes) {
                 // request and bake all entities belonging to this patch
                 const entities_chunks =
                   await WorldComputeProxy.instance.bakeEntities(patch.bounds)
