@@ -3,7 +3,6 @@ import {
   BlockMode,
   BlockType,
   BoardContainer,
-  WorldCacheContainer,
   WorldComputeProxy,
   WorldConf,
   WorldUtils,
@@ -151,43 +150,6 @@ export const to_engine_chunk_format = world_chunk => {
     size,
   }
   return engine_chunk
-}
-
-/**
- * World patch baking
- */
-
-export const get_patches_changes = async (
-  view_center,
-  view_radius,
-  on_the_fly = true,
-) => {
-  view_center = WorldUtils.asVect2(view_center)
-  const view_dims = new Vector2(view_radius, view_radius).multiplyScalar(2)
-  const view_box = new Box2().setFromCenterAndSize(view_center, view_dims)
-  // const is_visible_patch = patch_bbox =>
-  //   WorldUtils.asVect2(patch_bbox.getCenter(new Vector3())).distanceTo(
-  //     view_center,
-  //   ) <= view_radius
-  // Query patches around player
-  const changes = await WorldCacheContainer.instance.refresh(
-    view_box,
-    // is_visible_patch,
-  )
-  const changes_count = Object.keys(changes).length
-  if (changes_count > 0) {
-    const update_batch = Object.keys(changes).filter(key => changes[key])
-    // console.log(
-    //   `batch size: ${update_batch.length} (total cache size ${WorldCacheContainer.instance.count})`,
-    // )
-    // retrieve patches from cache or compute them on the fly
-    const patches_changes =
-      !on_the_fly && WorldCacheContainer.instance.builtInCache
-        ? WorldCacheContainer.instance.availablePatches
-        : WorldComputeProxy.instance.iterPatchCompute(update_batch)
-    return patches_changes
-  }
-  return []
 }
 
 /**
