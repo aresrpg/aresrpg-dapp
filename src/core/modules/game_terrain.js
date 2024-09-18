@@ -210,9 +210,11 @@ export default function () {
             const current_pos = player_position.clone().floor()
             // BOARD REFRSH
             if (BOARD_POC && board_refresh_trigger(current_pos)) {
-              const board_container = await setup_board_container(current_pos)
+              const { board_container, board_handler } =
+                await setup_board_container(current_pos)
               // console.log(border_blocks)
               render_board_container(board_container)
+              scene.add(board_handler.container)
               // remember bounds for later board removal
               last_board_bounds = board_container.bounds
               last_board_pos = current_pos
