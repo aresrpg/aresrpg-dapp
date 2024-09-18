@@ -167,71 +167,53 @@ export const setup_board_container = async current_pos => {
   await board_container.make()
   const native_board = board_container.exportBoardData()
   const board_origin = WorldUtils.asVect2(native_board.origin)
-  const to_board_local_pos = pos =>
-    WorldUtils.parseThreeStub(pos).sub(board_origin)
   // translate to board hanlder format
   const squares = native_board.data.map(element =>
     BoardUtils.format_board_data(element),
   )
   const board = { ...native_board, squares }
   board.size = { x: native_board.size.x, z: native_board.size.y }
+  board.origin.y++ // TODO: check where comes the issue
 
   if (board.data.length > 0) {
     const board_handler = new BoardHandler({ board })
-    const border_items = BoardUtils.extract_border_blocks(native_board).map(
-      block => to_board_local_pos(block.pos),
-    )
     board_handler.clearSquares()
-    // TODO: DEBUG line crashing below
-    board_handler.displaySquares(border_items, new Color(0xff0000))
-    // highlight_board_edges(board_data_export, board_container)
-    // highlight_start_pos(board_data_export, board_container)
+    highlight_board_edges(board_handler)
+    highlight_start_pos(board_handler)
     return { board_container, board_handler }
   }
 }
 
-export const highlight_board_blocks = (
-  board_elements,
-  board_container,
-  highlight_color,
-) => {
-  for (const item of board_elements) {
-    if (item) {
-      const block = board_container.getBlock(
-        WorldUtils.parseThreeStub(item.pos),
-      )
-      if (block) {
-        block.data.type = highlight_color
-        block.data.mode = BlockMode.DEFAULT
-        board_container.setBlock(block.pos, block.data)
-      }
-    } else {
-      console.warn(`unexpected `, board_elements)
-    }
-  }
-}
-
-export const highlight_board_edges = (board_data, board_container) => {
-  const border_blocks = BoardUtils.extract_border_blocks(board_data)
+export const highlight_board_edges = board_handler => {
+  const to_local_pos = pos => ({
+    x: pos.x - board_handler.board.origin.x,
+    z: pos.y - board_handler.board.origin.z,
+  })
+  const border_blocks = BoardUtils.extract_border_blocks(board_handler.board)
   const sorted_border_blocks = BoardUtils.sort_by_side(
     border_blocks,
-    board_data,
+    board_handler.board,
   )
-  highlight_board_blocks(
-    sorted_border_blocks.first,
-    board_container,
-    BlockType.DBG_GREEN,
+  const first_player_side = sorted_border_blocks.first.map(block =>
+    to_local_pos(block.pos),
   )
-  highlight_board_blocks(
-    sorted_border_blocks.second,
-    board_container,
-    BlockType.DBG_LIGHT,
+  const second_player_side = sorted_border_blocks.second.map(block =>
+    to_local_pos(block.pos),
   )
+  board_handler.displaySquares(first_player_side, new Color(0x0000ff))
+  board_handler.displaySquares(second_player_side, new Color(0x00ff00))
 }
 
-export const highlight_start_pos = (board_data, board_container) => {
-  const board_items = BoardUtils.iter_board_data(board_data)
-  const sorted_board_items = BoardUtils.sort_by_side(board_items, board_data)
+export const highlight_start_pos = board_handler => {
+  const to_local_pos = pos => ({
+    x: pos.x - board_handler.board.origin.x,
+    z: pos.y - board_handler.board.origin.z,
+  })
+  const board_items = BoardUtils.iter_board_data(board_handler.board)
+  const sorted_board_items = BoardUtils.sort_by_side(
+    board_items,
+    board_handler.board,
+  )
   const sorted_start_pos = {}
   sorted_start_pos.first = BoardUtils.random_select_items(
     sorted_board_items.first,
@@ -241,15 +223,12 @@ export const highlight_start_pos = (board_data, board_container) => {
     sorted_board_items.second,
     6,
   )
-
-  highlight_board_blocks(
-    sorted_start_pos.first,
-    board_container,
-    BlockType.DBG_ORANGE,
+  const first_player_side = sorted_start_pos.first.map(block =>
+    to_local_pos(block.pos),
   )
-  highlight_board_blocks(
-    sorted_start_pos.second,
-    board_container,
-    BlockType.DBG_PURPLE,
+  const second_player_side = sorted_start_pos.second.map(block =>
+    to_local_pos(block.pos),
   )
+  board_handler.displaySquares(first_player_side, new Color(0x0000ff))
+  board_handler.displaySquares(second_player_side, new Color(0x00ff00))
 }

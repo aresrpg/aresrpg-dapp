@@ -43,6 +43,7 @@ const voxel_materials_list = Object.values(blocks_colors).map(col => ({
 
 let last_board_pos = new Vector3(10, 0, 10)
 let last_board_bounds = new Box2()
+let last_board_handler = null
 let pending_task = false
 
 const board_refresh_trigger = current_pos => {
@@ -210,14 +211,22 @@ export default function () {
             const current_pos = player_position.clone().floor()
             // BOARD REFRSH
             if (BOARD_POC && board_refresh_trigger(current_pos)) {
-              const { board_container, board_handler } =
-                await setup_board_container(current_pos)
-              // console.log(border_blocks)
-              render_board_container(board_container)
-              scene.add(board_handler.container)
-              // remember bounds for later board removal
-              last_board_bounds = board_container.bounds
-              last_board_pos = current_pos
+              const res = await setup_board_container(current_pos)
+              if (res) {
+                const { board_container, board_handler } = res
+
+                // console.log(border_blocks)
+                render_board_container(board_container)
+                if (last_board_handler?.container) {
+                  last_board_handler.dispose()
+                  scene.remove(last_board_handler.container)
+                }
+                last_board_handler = board_handler
+                scene.add(board_handler.container)
+                // remember bounds for later board removal
+                last_board_bounds = board_container.bounds
+                last_board_pos = current_pos
+              }
             }
             // PATCHES REFRESH
             // Query patches around player
