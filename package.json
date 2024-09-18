@@ -14,10 +14,10 @@
     "publish:mainnet": "git tag mainnet-$(node -p -e \"require('./package.json').version\") && git push origin mainnet-$(node -p -e \"require('./package.json').version\")"
   },
   "dependencies": {
-    "@aresrpg/aresrpg-engine": "^2.4.1",
+    "@aresrpg/aresrpg-engine": "^2.4.3",
     "@aresrpg/aresrpg-protocol": "5.0.1",
-    "@aresrpg/aresrpg-sdk": "4.1.7",
-    "@aresrpg/aresrpg-world": "1.4.1",
+    "@aresrpg/aresrpg-sdk": "4.1.8",
+    "@aresrpg/aresrpg-world": "1.4.5",
     "@bufbuild/buf": "1.35.1",
     "@bufbuild/protobuf": "2.0.0",
     "@bufbuild/protoc-gen-es": "2.0.0",
