@@ -7,9 +7,9 @@ import {
   WorldConf,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
-import { Box2, Vector2, Vector3 } from 'three'
+import { Color, Vector3 } from 'three'
 import { LRUCache } from 'lru-cache'
-import * as BoardUtils from '@aresrpg/aresrpg-sdk/board_utils'
+import * as BoardUtils from '@aresrpg/aresrpg-sdk/board'
 
 /**
  * Ground height helpers
@@ -165,27 +165,29 @@ const board_params = {
 export const setup_board_container = async current_pos => {
   const board_container = new BoardContainer(current_pos, board_params)
   await board_container.make()
-  const board_data_export = board_container.exportBoardData()
+  const native_board = board_container.exportBoardData()
+  const board_origin = WorldUtils.asVect2(native_board.origin)
+  const to_board_local_pos = pos =>
+    WorldUtils.parseThreeStub(pos).sub(board_origin)
   // translate to board hanlder format
-  const squares = board_data_export.data.map(element =>
+  const squares = native_board.data.map(element =>
     BoardUtils.format_board_data(element),
   )
-  const board = { ...board_data_export, squares }
-  board.size = new Vector2(board_data_export.size.y, board_data_export.size.x)
+  const board = { ...native_board, squares }
+  board.size = { x: native_board.size.x, z: native_board.size.y }
+
   if (board.data.length > 0) {
     const board_handler = new BoardHandler({ board })
-
-    const border_blocks = BoardUtils.extract_border_blocks(board_data_export)
-    const border_elements = border_blocks.map(block =>
-      BoardUtils.format_board_data(block.data),
+    const border_items = BoardUtils.extract_border_blocks(native_board).map(
+      block => to_board_local_pos(block.pos),
     )
     board_handler.clearSquares()
     // TODO: DEBUG line crashing below
-    // board_handler.displaySquares(border_elements, new Color(0x00ff00))
-    highlight_board_edges(board_data_export, board_container)
-    highlight_start_pos(board_data_export, board_container)
+    board_handler.displaySquares(border_items, new Color(0xff0000))
+    // highlight_board_edges(board_data_export, board_container)
+    // highlight_start_pos(board_data_export, board_container)
+    return { board_container, board_handler }
   }
-  return board_container
 }
 
 export const highlight_board_blocks = (
