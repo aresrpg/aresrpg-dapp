@@ -13,6 +13,7 @@ import {
   ChunkFactory,
   DataContainer,
   GroundMap,
+  SchematicLoader,
   WorldComputeProxy,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
@@ -25,6 +26,8 @@ import {
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
+import sprucetree_schem from '../../assets/terrain/SpruceTree_1.schem?url'
+
 // global config
 const BOARD_POC = true
 const SHOW_LOD = false
@@ -245,6 +248,12 @@ export default function () {
                 // request and bake all entities belonging to this patch
                 const entities_chunks =
                   await WorldComputeProxy.instance.bakeEntities(patch.bounds)
+                // schematic test
+                const schem_loader = new SchematicLoader(sprucetree_schem)
+                const schem_data = await schem_loader.parse()
+                const schem_blocks = schem_loader.getBlocks(schem_data)
+                const schem_chunk = schem_loader.chunkConversion(schem_blocks)
+                entities_chunks.push(schem_chunk)
                 render_patch_chunks(patch, entities_chunks)
               }
             }
