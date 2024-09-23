@@ -114,28 +114,28 @@ export default function () {
         },
       )
 
-      window.addEventListener('keyup', event => {
-        if (event.code === 'KeyQ') {
-          const player = current_three_character(get_state())
+      // window.addEventListener('keyup', event => {
+      //   if (event.code === 'KeyQ') {
+      //     const player = current_three_character(get_state())
 
-          const value = Math.floor(200 * (Math.random() - 0.5))
-          const text = value < 0 ? value : `+${value}`
-          const color = value < 0 ? '#E9DA18' : '#0AD300'
-          const target_object = {
-            x: player.position.x,
-            y: player.position.y + 1,
-            z: player.position.z,
-          }
-          const is_critical = Math.abs(value) > 50
+      //     const value = Math.floor(200 * (Math.random() - 0.5))
+      //     const text = value < 0 ? value : `+${value}`
+      //     const color = value < 0 ? '#E9DA18' : '#0AD300'
+      //     const target_object = {
+      //       x: player.position.x,
+      //       y: player.position.y + 1,
+      //       z: player.position.z,
+      //     }
+      //     const is_critical = Math.abs(value) > 50
 
-          events.emit('DISPLAY_DAMAGE_UI', {
-            target_object,
-            text,
-            color,
-            is_critical,
-          })
-        }
-      })
+      //     events.emit('DISPLAY_DAMAGE_UI', {
+      //       target_object,
+      //       text,
+      //       color,
+      //       is_critical,
+      //     })
+      //   }
+      // })
     },
   }
 }
