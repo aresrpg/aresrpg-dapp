@@ -1,10 +1,7 @@
-import { MeshBasicMaterial } from 'three'
-import { Text } from 'troika-three-text'
-
-import { create_billboard_material } from '../game/entities.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { context, current_three_character } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
+import { create_billboard_text } from '../game/rendering/billboard_text.js'
 
 let current_hovered_group = null
 
@@ -22,7 +19,7 @@ export default function () {
     const total_lvl = entities.reduce((acc, mob) => acc + mob.level, 0)
     const names = entities.map(mob => `${mob.name} (${mob.level})`).join('\n')
 
-    current_text = new Text()
+    current_text = create_billboard_text()
     current_text.position.x = position.x
     current_text.position.z = position.z
     current_text.position.y = position.y + 2.5
@@ -33,10 +30,6 @@ export default function () {
     current_text.outlineBlur = '10%'
     current_text.outlineColor = '#283593'
     current_text.outlineWidth = 0.05
-    current_text.material = create_billboard_material(
-      new MeshBasicMaterial(),
-      false,
-    )
     current_text.text = `  [Lvl. ${total_lvl}]\n${names}`
     current_text.layers.set(CartoonRenderpass.non_outlined_layer)
 
