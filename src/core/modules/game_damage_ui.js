@@ -41,7 +41,7 @@ export default function () {
         } else {
           const top_size = 2
           const fadein_duration = 150
-          const topsize_duration = 300
+          const topsize_duration = 100
           const fadeout_duration = 750
 
           if (age < fadein_duration) {
