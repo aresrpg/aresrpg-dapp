@@ -2,10 +2,10 @@ import assert from 'assert'
 
 import { Matrix4, Vector3 } from 'three'
 
-import iop_male from '../../assets/models/characters/iop_male.glb?url'
-import iop_female from '../../assets/models/characters/iop_female.glb?url'
-import sram_male from '../../assets/models/characters/sram_male.glb?url'
-import sram_female from '../../assets/models/characters/sram_female.glb?url'
+import senshi_male from '../../assets/models/characters/senshi_male.glb?url'
+import senshi_female from '../../assets/models/characters/senshi_female.glb?url'
+import yajin_male from '../../assets/models/characters/yajin_male.glb?url'
+import yajin_female from '../../assets/models/characters/yajin_female.glb?url'
 import primemachin from '../../assets/models/characters/primemachin.glb?url'
 import suifren_bullshark from '../../assets/models/pets/suifren_bullshark.glb?url'
 import suifren_capy from '../../assets/models/pets/suifren_capy.glb?url'
@@ -21,10 +21,10 @@ import crescent_sword from '../../assets/models/equipment/crescent_sword.glb?url
 import { load } from '../utils/three/load_model.js'
 
 export const MODELS = {
-  iop_male: await load(iop_male, {}),
-  iop_female: await load(iop_female, {}),
-  sram_male: await load(sram_male, {}),
-  sram_female: await load(sram_female, {}),
+  senshi_male: await load(senshi_male, {}),
+  senshi_female: await load(senshi_female, {}),
+  yajin_male: await load(yajin_male, {}),
+  yajin_female: await load(yajin_female, {}),
 
   primemachin: await load(primemachin, {}),
 
@@ -52,17 +52,17 @@ function apply_matrix({ scale = 1, position = [0, 0, 0] }) {
 
 export const MATRIX = {
   fud_hat: {
-    sram_male: apply_matrix({ scale: 2.8, position: [0, -2.8, 0.05] }),
-    sram_female: apply_matrix({ scale: 5600, position: [0, -6800, 200] }),
-    iop_male: apply_matrix({ scale: 2.9, position: [0, -2.8, 0.2] }),
-    iop_female: apply_matrix({ scale: 250, position: [0, -300, 50] }),
+    yajin_male: apply_matrix({ scale: 2.8, position: [0, -2.8, 0.05] }),
+    yajin_female: apply_matrix({ scale: 5600, position: [0, -6800, 200] }),
+    senshi_male: apply_matrix({ scale: 2.9, position: [0, -2.8, 0.2] }),
+    senshi_female: apply_matrix({ scale: 250, position: [0, -300, 50] }),
     primemachin: apply_matrix({ scale: 1000, position: [0, -1400, 0] }),
   },
   suicunio: {
-    sram_male: apply_matrix({ scale: 2.8, position: [0, -2.8, -0.2] }),
-    sram_female: apply_matrix({ scale: 5600, position: [0, -6800, -200] }),
-    iop_male: apply_matrix({ scale: 2.9, position: [0, -2.8, 0] }),
-    iop_female: apply_matrix({ scale: 250, position: [0, -300, 20] }),
+    yajin_male: apply_matrix({ scale: 2.8, position: [0, -2.8, -0.2] }),
+    yajin_female: apply_matrix({ scale: 5600, position: [0, -6800, -200] }),
+    senshi_male: apply_matrix({ scale: 2.9, position: [0, -2.8, 0] }),
+    senshi_female: apply_matrix({ scale: 250, position: [0, -300, 20] }),
     primemachin: apply_matrix({ scale: 1000, position: [0, -1400, 0] }),
   },
 }

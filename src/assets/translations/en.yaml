@@ -266,12 +266,9 @@ WALLET_SIGN_MESSAGE: "[AresRPG] This is a verification message to prove that you
 SUI_ENOKI_SALT: Enoki failed to deliver the transaction (salt failure). Please try again.
 SUI_NO_GAS: You need Sui in your wallet to perform this action
 SUI_NOT_ENOUGH_FOOD: You do not have enough food!
-SUI_SUBSCRIBED: Connected to Sui
 SUI_PET_ALREADY_FED: This pet is not hungry
 SUI_INV_NOT_EMPTY: You must unequip all items before that
-SUI_SUBSCRIBE_ERROR: The Sui node refused the subscription, please refresh the page to try again
 SUI_NO_PERSONAL_KIOSK: This action requires to create a character first
-SUI_SUBSCRIBE_START: Subscribing to Sui node...
 SUI_FETCHING_DATA: Fetching characters and items..
 SUI_DATA_FETCHED: Successfully fetched characters and items
 SUI_ENOKI_DOWN: The sponsoring service seems to be malfunctioning, please try again later.
@@ -282,5 +279,6 @@ WS_FAILED_TO_CONNECT: Failed to connect to the server, check https://status.ares
 WS_RECONNECTED: Back online!
 WS_CONNECTING_TO_SERVER: Connecting to the server
 WS_CONNECTED_TO_SERVER: Connected to the server
+WS_NOT_CONNECTED: Not connected to the server
 
 BROWSER_NO_PERF: Your device does not support WebGL or it is running under conditions that would cause major performance issues. Please try on a different device or ensure your browser and drivers are up to date.

@@ -267,12 +267,9 @@ WALLET_SIGN_MESSAGE: "[AresRPG] Ceci est un message de vérification pour prouve
 SUI_ENOKI_SALT: Échec de la transaction par Enoki (échec du salt). Veuillez réessayer.
 SUI_NO_GAS: Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action
 SUI_NOT_ENOUGH_FOOD: Vous n'avez pas assez de nourriture !
-SUI_SUBSCRIBED: Connecté à Sui
 SUI_PET_ALREADY_FED: Ce familier n'a pas faim
 SUI_INV_NOT_EMPTY: Vous devez déséquiper tous les objets avant cela
-SUI_SUBSCRIBE_ERROR: Le nœud Sui a refusé la connection, veuillez actualiser la page pour réessayer
 SUI_NO_PERSONAL_KIOSK: Cette action nécessite de créer un personnage d'abord
-SUI_SUBSCRIBE_START: Connexion à Sui
 SUI_FETCHING_DATA: Récupération des personnages et objets...
 SUI_DATA_FETCHED: Personnages et objets récupérés avec succès
 SUI_ENOKI_DOWN: Le service de sponsoring semble mal fonctionner, veuillez réessayer plus tard.
@@ -283,5 +280,6 @@ WS_FAILED_TO_CONNECT: Échec de la connexion au serveur, consultez https://statu
 WS_RECONNECTED: De retour en ligne !
 WS_CONNECTING_TO_SERVER: Connexion au serveur
 WS_CONNECTED_TO_SERVER: Connecté au serveur
+WS_NOT_CONNECTED: Vous n'êtes pas connecté au serveur
 
 BROWSER_NO_PERF: Votre appareil ne prend pas en charge WebGL ou fonctionne dans des conditions qui causeraient des problèmes de performance majeurs. Veuillez essayer sur un autre appareil ou vous assurer que votre navigateur et vos pilotes sont à jour.

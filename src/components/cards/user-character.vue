@@ -192,14 +192,14 @@ async function unselect_character() {
     position: relative
     z-index: 20
 
-  &.iop
-    background: url('https://assets.aresrpg.world/classe/iop_female.jpg') center / cover
+  &.senshi
+    background: url('https://assets.aresrpg.world/classe/senshi_female.jpg') center / cover
     &.male
-      background: url('https://assets.aresrpg.world/classe/iop_male.jpg') center / cover
-  &.sram
-    background: url('https://assets.aresrpg.world/classe/sram_female.jpg') center / cover
+      background: url('https://assets.aresrpg.world/classe/senshi_male.jpg') center / cover
+  &.yajin
+    background: url('https://assets.aresrpg.world/classe/yajin_female.jpg') center / cover
     &.male
-      background: url('https://assets.aresrpg.world/classe/sram_male.jpg') center / cover
+      background: url('https://assets.aresrpg.world/classe/yajin_male.jpg') center / cover
 
   &.locked
     border 1px solid #FFCA28
