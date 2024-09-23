@@ -5,13 +5,6 @@ import { current_three_character } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
-  const critical = {
-    text_size: 4,
-    fadein: {
-      duration: 200,
-    },
-  }
-
   const text_particles_list = []
 
   return {
