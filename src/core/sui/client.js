@@ -4,7 +4,7 @@ import { Transaction } from '@mysten/sui/transactions'
 import { BigNumber as BN } from 'bignumber.js'
 import { MIST_PER_SUI, normalizeSuiAddress, toB64 } from '@mysten/sui/utils'
 import { LRUCache } from 'lru-cache'
-import { Network } from '@mysten/kiosk'
+import { KioskTransaction, Network } from '@mysten/kiosk'
 import { SDK } from '@aresrpg/aresrpg-sdk/sui'
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client'
 import { bcs } from '@mysten/sui/bcs'
@@ -12,12 +12,7 @@ import { bcs } from '@mysten/sui/bcs'
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
 import toast from '../../toast.js'
-import {
-  NETWORK,
-  VITE_SPONSOR_URL,
-  VITE_SUI_RPC,
-  VITE_SUI_WSS,
-} from '../../env.js'
+import { NETWORK, VITE_SPONSOR_URL, VITE_SUI_RPC } from '../../env.js'
 // @ts-ignore
 import { i18n } from '../../i18n.js'
 
@@ -25,8 +20,6 @@ import { i18n } from '../../i18n.js'
 import TwemojiSalt from '~icons/twemoji/salt'
 // @ts-ignore
 import MapGasStation from '~icons/map/gas-station'
-// @ts-ignore
-import TokenSui from '~icons/token/sui'
 // @ts-ignore
 import TwemojiSushi from '~icons/twemoji/sushi'
 // @ts-ignore
@@ -40,7 +33,6 @@ const { t } = i18n.global
 
 export const sdk = await SDK({
   rpc_url: VITE_SUI_RPC,
-  wss_url: VITE_SUI_WSS,
   network: Network[NETWORK.toUpperCase()],
 })
 
@@ -57,11 +49,37 @@ sdk.kiosk_client.addRuleResolver({
   },
 })
 
+const current_server_requests = new Map()
+
+// this function has to be called in game.js to avoid circular dependencies
+export function listen_for_requests() {
+  context.events.on('packet/requestResponse', ({ id, message }) => {
+    if (current_server_requests.has(id)) {
+      const resolve = current_server_requests.get(id)
+      resolve(JSON.parse(message))
+      current_server_requests.delete(id)
+    }
+  })
+}
+
+async function indexer_request(type, payload) {
+  const id = crypto.randomUUID()
+
+  let resolve_promise = null
+  const promise = new Promise(resolve => (resolve_promise = resolve))
+  current_server_requests.set(id, resolve_promise)
+  context.send_packet('packet/requestResponse', {
+    id,
+    message: JSON.stringify({ type, payload }),
+  })
+  return promise
+}
+
 const CHARACTER_NAMES = new LRUCache({ max: 1000 })
 
 export async function sui_get_character_name(id) {
   if (!CHARACTER_NAMES.has(id)) {
-    const character = await sdk.get_character_by_id(id)
+    const character = await indexer_request('sui_get_character_name', id)
     CHARACTER_NAMES.set(id, character.name)
   }
   return CHARACTER_NAMES.get(id)
@@ -69,7 +87,7 @@ export async function sui_get_character_name(id) {
 
 /** @return {Promise<Type.SuiCharacter>} */
 export async function sui_get_character(id) {
-  return sdk.get_character_by_id(id)
+  return indexer_request('sui_get_character', id)
 }
 
 function get_wallet() {
@@ -261,7 +279,7 @@ export async function sui_get_policies_profit() {
 }
 
 export async function sui_get_admin_caps() {
-  return sdk.get_owned_admin_cap(get_address())
+  return indexer_request('sui_get_owned_admin_cap', get_address())
 }
 
 const last_mint = new Map()
@@ -326,12 +344,8 @@ export async function sui_withdraw_policies_profit() {
   await execute(tx)
 }
 
-export async function sui_get_locked_characters() {
-  return sdk.get_locked_characters(get_address())
-}
-
-export async function sui_get_unlocked_characters() {
-  return sdk.get_unlocked_characters(get_address())
+export async function sui_get_characters() {
+  return indexer_request('sui_get_characters', get_address())
 }
 
 export async function sui_get_kiosk_cap(kiosk_id) {
@@ -434,15 +448,9 @@ export async function sui_reveal_craft(finished_craft) {
 
   sdk.add_header(tx)
 
-  const { kioskOwnerCaps } = await sdk.kiosk_client.getOwnedKiosks({
-    address: get_address(),
-  })
+  const { kiosk, personal_kiosk_cap } = await sui_get_aresrpg_kiosk()
 
-  const first_personal_kiosk = kioskOwnerCaps.find(
-    ({ isPersonal }) => !!isPersonal,
-  )
-
-  if (!first_personal_kiosk) {
+  if (!kiosk) {
     toast.error(t('SUI_NO_PERSONAL_KIOSK'))
     return
   }
@@ -451,8 +459,8 @@ export async function sui_reveal_craft(finished_craft) {
     tx,
     recipe: finished_craft.recipe_id,
     finished_craft: finished_craft.id,
-    kiosk: first_personal_kiosk.kioskId,
-    kiosk_cap: first_personal_kiosk.objectId,
+    kiosk: kiosk.id,
+    kiosk_cap: personal_kiosk_cap.id,
   })
 
   tx.setSender(get_address())
@@ -688,16 +696,56 @@ export async function sui_get_sui_balance() {
 }
 
 async function get_bn_sui_balance() {
-  const mists = await sui_get_sui_balance()
+  const mists = context.get_state().sui.balance
   return new BN(mists.toString()).dividedBy(MIST_PER_SUI.toString())
 }
 
-export async function sui_create_character({ name, type, sex = 'male' }) {
+async function sui_enforce_personal_kiosk(tx) {
+  const { kiosk, personal_kiosk_cap } = await sui_get_aresrpg_kiosk()
+
+  console.log('enforced', { kiosk, personal_kiosk_cap })
+
+  if (!kiosk) return sdk.create_personal_kiosk(tx)
+
+  return {
+    kiosk_cap: personal_kiosk_cap.id,
+    kiosk_id: kiosk.id,
+    kiosk_tx: new KioskTransaction({
+      kioskClient: sdk.kiosk_client,
+      transaction: tx,
+      cap: personal_kiosk_cap.id,
+    }),
+  }
+}
+
+// Convert a number to a hex color code
+function number_to_color(num) {
+  return (
+    '#' +
+    Math.max(0, Math.min(16777215, Math.floor(num)))
+      .toString(16)
+      .padStart(6, '0')
+  )
+}
+
+// Convert a hex color code to a number
+function color_to_number(hex) {
+  return parseInt(hex.replace(/^#/, ''), 16)
+}
+
+export async function sui_create_character({
+  name,
+  type,
+  male = true,
+  color_1,
+  color_2,
+  color_3,
+}) {
   const tx = new Transaction()
 
   sdk.add_header(tx)
 
-  const { kiosk_cap, kiosk_id, kiosk_tx } = await sdk.enforce_personal_kiosk({
+  const { kiosk_cap, kiosk_id, kiosk_tx } = await sui_enforce_personal_kiosk({
     tx,
     recipient: get_address(),
   })
@@ -706,9 +754,12 @@ export async function sui_create_character({ name, type, sex = 'male' }) {
     tx,
     name,
     classe: type,
-    sex,
+    male,
     kiosk_cap,
     kiosk_id,
+    color_1: color_to_number(color_1),
+    color_2: color_to_number(color_2),
+    color_3: color_to_number(color_3),
   })
 
   sdk.select_character({
@@ -724,16 +775,7 @@ export async function sui_create_character({ name, type, sex = 'male' }) {
 }
 
 export async function sui_is_character_name_taken(name) {
-  try {
-    return sdk.is_character_name_taken({
-      address: get_address(),
-      name,
-    })
-  } catch (error) {
-    if (error.message === 'NO_GAS')
-      toast.error(t('SUI_NO_GAS'), 'Suuuuuu', MapGasStation)
-    else toast.error(error.message, 'Transaction failed')
-  }
+  return indexer_request('sui_is_character_name_taken', name)
 }
 
 // character must be locked in the extension as it's the only way to access the object bypassing the lock
@@ -943,7 +985,7 @@ export async function sui_get_kiosks_profits() {
 }
 
 export async function sui_get_aresrpg_kiosk() {
-  return sdk.get_aresrpg_kiosk(get_address())
+  return await indexer_request('sui_get_aresrpg_kiosk', get_address())
 }
 
 export async function sui_claim_kiosks_profits() {
@@ -977,10 +1019,7 @@ export async function sui_buy_item(item) {
 
   sdk.add_header(tx)
 
-  const { kiosk_tx, kiosk_cap, kiosk_id } = await sdk.enforce_personal_kiosk({
-    tx,
-    recipient: get_address(),
-  })
+  const { kiosk_tx, kiosk_cap, kiosk_id } = await sui_enforce_personal_kiosk(tx)
 
   const seller_kiosk = tx.object(item.kiosk_id)
 
@@ -1093,63 +1132,6 @@ export async function sui_buy_item(item) {
 
 //   await execute(tx)
 // }
-
-export async function sui_subscribe({ signal }) {
-  const emitter = new EventEmitter()
-  async function try_reset() {
-    if (active_subscription.emitter) {
-      active_subscription.emitter.removeAllListeners()
-      clearInterval(active_subscription.interval)
-      if (active_subscription.unsubscribe)
-        await active_subscription.unsubscribe()
-    }
-  }
-
-  signal.addEventListener('abort', try_reset, { once: true })
-
-  const tx_toast = toast.tx(t('SUI_SUBSCRIBE_START'))
-
-  try {
-    await try_reset()
-    active_subscription.emitter = emitter
-    active_subscription.interval = setInterval(() => {
-      emitter.emit('update', { type: 'interval' })
-    }, 10000)
-
-    active_subscription.unsubscribe = await sdk.subscribe(event => {
-      const { type } = event
-      let [, , event_name] = type.split('::')
-
-      if (event_name.startsWith('ItemListed')) event_name = 'ItemListedEvent'
-
-      if (event_name.startsWith('ItemPurchased'))
-        event_name = 'ItemPurchasedEvent'
-
-      if (event_name.startsWith('ItemDelisted'))
-        event_name = 'ItemDelistedEvent'
-
-      logger.SUI(`rpc event ${event_name}`, event)
-      emitter.emit('update', {
-        type: event_name,
-        payload: {
-          ...event.parsedJson,
-          sender_is_me: event.sender === get_address(),
-        },
-      })
-    })
-    tx_toast.update('success', t('SUI_SUBSCRIBED'))
-  } catch (error) {
-    if (error.message.includes('Invalid params'))
-      console.error(
-        'Unable to subscribe to the Sui node as it is too crowded. Please try again later.',
-      )
-    else console.error('Unable to subscribe to the Sui node', error)
-    tx_toast.update('error', t('SUI_SUBSCRIBE_ERROR'))
-    active_subscription.unsubscribe = null
-  }
-
-  return emitter
-}
 
 // this needs to always resolve mainnet names
 const suins_client =

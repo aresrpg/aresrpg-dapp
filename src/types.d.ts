@@ -13,14 +13,15 @@ declare module 'stream' {
 }
 
 declare module 'three/addons/capabilities/WebGL.js' {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   function isWebGLAvailable(): boolean
 }
 
 declare namespace Type {
   type Module = import('./core/game/game.js').Module
   type State = import('./core/game/game.js').State
-  type Packets = import('@aresrpg/aresrpg-protocol/src/types.js').Packets
-  type Fight = import('@aresrpg/aresrpg-protocol/src/types.js').Fight
+  type Packets = import('@aresrpg/aresrpg-protocol/types').Packets
+  type Fight = import('@aresrpg/aresrpg-protocol/types').Fight
   type GameState = 'MENU' | 'GAME' | 'EDITOR'
   type Await<T> = T extends Promise<infer U> ? U : T
   type Position = { x: number; y: number; z: number }
@@ -55,7 +56,7 @@ declare namespace Type {
   }
 
   type MobGroup = Omit<
-    import('@aresrpg/aresrpg-protocol/src/types.js').EntityGroup,
+    import('@aresrpg/aresrpg-protocol/types').EntityGroup,
     'entities'
   > & {
     entities: (ThreeEntity & {
@@ -139,14 +140,14 @@ declare namespace Type {
     'action/sui_add_unlocked_item': SuiItem
     'action/sui_add_locked_item': SuiItem
     'action/sui_add_item_for_sale': { id: string; list_price: bigint }
-    'action/sui_add_unlocked_character': SuiCharacter
-    'action/sui_add_locked_character': SuiCharacter
+    'action/sui_create_character': SuiCharacter
+    'action/sui_delete_character': string
+    'action/sui_add_unlocked_character': string
+    'action/sui_add_locked_character': string
     'action/add_finished_craft': { id: string; recipe_id: string }
     'action/sui_remove_locked_item': string
     'action/sui_remove_unlocked_item': string
     'action/sui_remove_item_for_sale': { id: string; keep: boolean }
-    'action/sui_remove_unlocked_character': string
-    'action/sui_remove_locked_character': string
     'action/sui_remove_finished_craft': string
     'action/sui_update_item': SuiItem
     'action/sui_split_item': {
@@ -161,7 +162,7 @@ declare namespace Type {
     }
     'action/sui_equip_item': {
       slot: string
-      item_id: string
+      item: SuiItem
       character_id: string
     }
     'action/sui_unequip_item': {
@@ -173,7 +174,7 @@ declare namespace Type {
     'action/join_fight': { character_id: string; fight_id: string }
   } & Packets
 
-  type Events = import('@aresrpg/aresrpg-protocol/src/types.d.ts').TypedEmitter<
+  type Events = import('@aresrpg/aresrpg-protocol/types').TypedEmitter<
     {
       STATE_UPDATED: State // the game state has been updated
       MOVE_MENU_CAMERA: [number, number, number] // move the camera of the menu screen

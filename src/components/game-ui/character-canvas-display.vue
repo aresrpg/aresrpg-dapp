@@ -22,10 +22,10 @@ const running = ref(false);
 
 const props = defineProps(['type']);
 
-let iop = null;
-let sram = null;
-let iop_female = null;
-let sram_female = null;
+let senshi = null;
+let yajin = null;
+let senshi_female = null;
+let yajin_female = null;
 
 let scene = null;
 let renderer = null;
@@ -33,15 +33,15 @@ const light = new DirectionalLight(0xffffff, 2);
 const ambient = new AmbientLight(0xffffff, 1);
 
 function reset_classes() {
-  iop?.remove();
-  sram?.remove();
-  iop_female?.remove();
-  sram_female?.remove();
+  senshi?.remove();
+  yajin?.remove();
+  senshi_female?.remove();
+  yajin_female?.remove();
 
-  iop = null;
-  sram = null;
-  iop_female = null;
-  sram_female = null;
+  senshi = null;
+  yajin = null;
+  senshi_female = null;
+  yajin_female = null;
 }
 
 function setup_classe(classe) {
@@ -52,34 +52,34 @@ function setup_classe(classe) {
 function display_classe(type) {
   reset_classes();
   switch (type) {
-    case 'IOP_MALE':
-      if (!iop) {
-        iop = ENTITIES.iop_male({ id: nanoid(), scene_override: scene });
-        setup_classe(iop);
+    case 'SENSHI_MALE':
+      if (!senshi) {
+        senshi = ENTITIES.senshi_male({ id: nanoid(), scene_override: scene });
+        setup_classe(senshi);
       }
       break;
-    case 'SRAM_MALE':
-      if (!sram) {
-        sram = ENTITIES.sram_male({ id: nanoid(), scene_override: scene });
-        setup_classe(sram);
+    case 'YAJIN_MALE':
+      if (!yajin) {
+        yajin = ENTITIES.yajin_male({ id: nanoid(), scene_override: scene });
+        setup_classe(yajin);
       }
       break;
-    case 'IOP_FEMALE':
-      if (!iop_female) {
-        iop_female = ENTITIES.iop_female({
+    case 'SENSHI_FEMALE':
+      if (!senshi_female) {
+        senshi_female = ENTITIES.senshi_female({
           id: nanoid(),
           scene_override: scene,
         });
-        setup_classe(iop_female);
+        setup_classe(senshi_female);
       }
       break;
-    case 'SRAM_FEMALE':
-      if (!sram_female) {
-        sram_female = ENTITIES.sram_female({
+    case 'YAJIN_FEMALE':
+      if (!yajin_female) {
+        yajin_female = ENTITIES.yajin_female({
           id: nanoid(),
           scene_override: scene,
         });
-        setup_classe(sram_female);
+        setup_classe(yajin_female);
       }
       break;
     default:
@@ -132,10 +132,10 @@ onMounted(() => {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
 
-    iop?.mixer.update(delta);
-    sram?.mixer.update(delta);
-    iop_female?.mixer.update(delta);
-    sram_female?.mixer.update(delta);
+    senshi?.mixer.update(delta);
+    yajin?.mixer.update(delta);
+    senshi_female?.mixer.update(delta);
+    yajin_female?.mixer.update(delta);
 
     renderer.render(scene, camera);
   }

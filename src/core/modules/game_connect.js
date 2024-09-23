@@ -4,6 +4,7 @@ import { i18n } from '../../i18n.js'
 
 /** @type {Type.Module} */
 export default function () {
+  let currently_signing = false
   return {
     reduce(state, { type, payload }) {
       if (type === 'action/set_online')
@@ -20,6 +21,9 @@ export default function () {
       } = i18n
 
       events.on('packet/signatureRequest', async ({ payload }) => {
+        if (currently_signing) return
+        currently_signing = true
+
         const message = `${t('WALLET_SIGN_MESSAGE')}\n\n::${payload}`
         try {
           await sui_sign_payload(message)
@@ -29,6 +33,8 @@ export default function () {
           context.dispatch('action/set_online', true)
           context.dispatch('action/set_online', false)
           ares_client.end('User rejection')
+        } finally {
+          currently_signing = false
         }
       })
     },

@@ -13,7 +13,7 @@ import characterCanvasDisplay from './character-canvas-display.vue';
 import SpellDisplay from './menu_spell_display.vue';
 
 const name_error = ref('');
-const selected_class_type = ref('IOP_MALE');
+const selected_class_type = ref('SENSHI_MALE');
 const create_button_disabled = ref(false);
 
 const new_character_name = ref('');
@@ -23,34 +23,38 @@ const new_character_dialog = inject('new_character_dialog');
 const emits = defineEmits(['cancel']);
 const { t } = useI18n();
 
+const color1 = ref('#FFFFFF');
+const color2 = ref('#FF9999');
+const color3 = ref('#111FFF');
+
 const characters = [
   {
-    type: 'IOP_MALE',
-    class: 'iop',
-    image: 'https://assets.aresrpg.world/classe/iop_male.jpg',
-    name: 'Iop (male)',
-    desc: "Knights of the realm, the Iop's are as brave as they are brawn. With a penchant for charging headfirst into battle, their formidable strength is an asset in close combat. Though not the most strategic fighters, an Iop's presence on the battlefield can change the tide with a swing of their mighty sword.",
+    type: 'SENSHI_MALE',
+    class: 'senshi',
+    image: 'https://assets.aresrpg.world/classe/senshi_male.jpg',
+    name: 'senshi (male)',
+    desc: "Knights of the realm, the senshi's are as brave as they are brawn. With a penchant for charging headfirst into battle, their formidable strength is an asset in close combat. Though not the most strategic fighters, an senshi's presence on the battlefield can change the tide with a swing of their mighty sword.",
   },
   {
-    type: 'IOP_FEMALE',
-    class: 'iop',
-    image: 'https://assets.aresrpg.world/classe/iop_female.jpg',
-    name: 'Iop (female)',
-    desc: 'The female Iop stands tall among her peers, blending grace with overwhelming power. Her sword, a whirlwind of steel, carves through enemies with precision and might. While often underestimated, her strategic prowess and indomitable courage make her a true force to be reckoned with.',
+    type: 'SENSHI_FEMALE',
+    class: 'senshi',
+    image: 'https://assets.aresrpg.world/classe/senshi_female.jpg',
+    name: 'senshi (female)',
+    desc: 'The female senshi stands tall among her peers, blending grace with overwhelming power. Her sword, a whirlwind of steel, carves through enemies with precision and might. While often underestimated, her strategic prowess and indomitable courage make her a true force to be reckoned with.',
   },
   {
-    type: 'SRAM_MALE',
-    class: 'sram',
-    image: 'https://assets.aresrpg.world/classe/sram_male.jpg',
-    name: 'Sram (male)',
-    desc: "Emerging from the shadows, the male Sram is the embodiment of death's guile. A master of stealth and deceit, he can vanish from sight to strike when least expected. With the power to summon skeletal warriors and lay cunning traps, he ensures that the battlefield is always in his favor.",
+    type: 'YAJIN_MALE',
+    class: 'yajin',
+    image: 'https://assets.aresrpg.world/classe/yajin_male.jpg',
+    name: 'yajin (male)',
+    desc: "Emerging from the shadows, the male yajin is the embodiment of death's guile. A master of stealth and deceit, he can vanish from sight to strike when least expected. With the power to summon skeletal warriors and lay cunning traps, he ensures that the battlefield is always in his favor.",
   },
   {
-    type: 'SRAM_FEMALE',
-    class: 'sram',
-    image: 'https://assets.aresrpg.world/classe/sram_female.jpg',
-    name: 'Sram (female)',
-    desc: 'The female Sram, a specter of stealth and subterfuge, wields the powers of invisibility and necromancy with sinister finesse. Her traps ensnare the unwary, and her summoned minions rise from the earth to do her bidding. In the art of silent assassination, she has no equal.',
+    type: 'YAJIN_FEMALE',
+    class: 'yajin',
+    image: 'https://assets.aresrpg.world/classe/yajin_female.jpg',
+    name: 'yajin (female)',
+    desc: 'The female yajin, a specter of stealth and subterfuge, wields the powers of invisibility and necromancy with sinister finesse. Her traps ensnare the unwary, and her summoned minions rise from the earth to do her bidding. In the art of silent assassination, she has no equal.',
   },
   {
     type: 'XELOR',
@@ -81,14 +85,14 @@ const characters = [
 ];
 
 function get_character_skin({ classe, female }) {
-  if (classe === 'IOP')
+  if (classe === 'SENSHI')
     return female
-      ? 'https://assets.aresrpg.world/classe/iop_female.jpg'
-      : 'https://assets.aresrpg.world/classe/iop_male.jpg';
-  if (classe === 'SRAM')
+      ? 'https://assets.aresrpg.world/classe/senshi_female.jpg'
+      : 'https://assets.aresrpg.world/classe/senshi_male.jpg';
+  if (classe === 'yajin')
     return female
-      ? 'https://assets.aresrpg.world/classe/sram_female.jpg'
-      : 'https://assets.aresrpg.world/classe/sram_male.jpg';
+      ? 'https://assets.aresrpg.world/classe/yajin_female.jpg'
+      : 'https://assets.aresrpg.world/classe/yajin_male.jpg';
 }
 
 const selected_class_data = computed(() => {
@@ -144,7 +148,9 @@ watch(new_character_name, value => {
 async function create_character() {
   create_button_disabled.value = true;
   const female = selected_class_type.value.includes('FEMALE');
-  const classe = selected_class_type.value.includes('IOP') ? 'iop' : 'sram';
+  const classe = selected_class_type.value.includes('SENSHI')
+    ? 'senshi'
+    : 'yajin';
 
   if (await sui_is_character_name_taken(new_character_name.value)) {
     name_error.value = t('APP_CHARACTER_NAME_TAKEN');
@@ -159,7 +165,10 @@ async function create_character() {
     await sui_create_character({
       name: new_character_name.value,
       type: classe,
-      sex: female ? 'female' : 'male',
+      male: !female,
+      color_1: color1.value,
+      color_2: color2.value,
+      color_3: color3.value,
     });
     tx.update('success', t('APP_CHARACTER_CREATE_OK'));
 
@@ -197,8 +206,19 @@ vs-dialog(v-model="new_character_dialog" full-screen)
     .desc {{ selected_class_data.desc }}
     .perso
       characterCanvasDisplay(:type="selected_class_type")
-    .spells
-      SpellDisplay(:spells="selected_class_data.spells")
+    .right
+      .spells
+        SpellDisplay(:spells="selected_class_data.spells")
+      .colors
+        .color
+          label(for="color1")
+          input(type="color" id="color1" v-model="color1")
+        .color
+          label(for="color2")
+          input(type="color" id="color2" v-model="color2")
+        .color
+          label(for="color3")
+          input(type="color" id="color3" v-model="color3")
     vs-input.name(block placeholder="Enter your name" v-model="new_character_name" @keyup.enter="create_character")
       template(#message-danger v-if="name_error") {{ name_error }}
     vs-button.cancel(type="transparent" size="xl" color="#E74C3C" @click="cancel") {{ t('APP_CHARACTER_CANCEL_BUTTON') }}
@@ -299,13 +319,35 @@ vs-dialog(v-model="new_character_dialog" full-screen)
     grid-area perso
     place-self stretch
     margin 1em
-  .spells
+  .right
     grid-area spells
     place-self stretch
     margin 1em 3em
-    background rgba(0,0,0,0.2)
-    border 1px solid #8b7355 // A border color that fits the game's aesthetic
-    border-radius 6px // Slight rounding of corners
+    .spells
+      background rgba(0,0,0,0.2)
+      border 1px solid #8b7355 // A border color that fits the game's aesthetic
+      border-radius 6px // Slight rounding of corners
+    .colors
+      display flex
+      flex-flow row wrap
+      justify-content space-around
+      margin 1em
+      .color
+        display flex
+        flex-direction column
+        align-items center
+        margin 1em
+        input[type="color"]
+          width 50px
+          height 50px
+          border 1px solid #8b7355
+          border-radius 5px
+          cursor pointer
+          &::-webkit-color-swatch-wrapper
+            padding 0
+          &::-webkit-color-swatch
+            border none
+            border-radius 5px
 
   .name
     grid-area name

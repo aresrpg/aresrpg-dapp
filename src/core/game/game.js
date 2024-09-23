@@ -65,6 +65,7 @@ import { i18n } from '../../i18n.js'
 import game_entites_stroll from '../modules/game_entites_stroll.js'
 import player_entities_interract from '../modules/player_entities_interract.js'
 import game_fights from '../modules/game_fights.js'
+import { listen_for_requests } from '../sui/client.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -204,8 +205,11 @@ export const INITIAL_STATE = {
     /** @type {Type.SuiItem[]} */
     items_for_sale: [],
 
+    /** @type {String} */
     selected_wallet_name: null,
+    /** @type {String} */
     selected_address: null,
+    /** @type {BigInt} */
     balance: null,
     /** @type {Type.SuiToken[]} */
     tokens: [],
@@ -380,7 +384,12 @@ renderer.info.autoReset = false
 
 composer.setSize(window.innerWidth, window.innerHeight)
 
+let currently_connecting = false
+
 function connect_ws() {
+  if (currently_connecting) return
+  currently_connecting = true
+
   logger.SOCKET('Connecting to server')
   const connecting_toast = toast.tx(i18n.global.t('WS_CONNECTING_TO_SERVER'))
   return new Promise((resolve, reject) => {
@@ -390,8 +399,17 @@ function connect_ws() {
     const { status } = useWebSocket(
       `${server_url}?address=${selected_address}`,
       {
-        autoReconnect: true,
+        autoReconnect: {
+          retries: () => {
+            if (currently_connecting) return false
+            currently_connecting = true
+
+            return !!context.get_state().sui.selected_address
+          },
+        },
         async onDisconnected(ws, event) {
+          currently_connecting = false
+
           decrease_loading()
           await handle_server_error(event.reason)
           ares_client?.notify_end(event.reason)
@@ -453,9 +471,13 @@ const context = {
   composer,
   // @ts-ignore
   camera_controls: new CameraControls(camera, renderer.domElement),
-  /** @type {import("@aresrpg/aresrpg-protocol/src/types.js").send} */
+  /** @type {ReturnType<import("@aresrpg/aresrpg-protocol")["create_client"]>["send"]} */
   send_packet(type, payload) {
-    if (!ares_client || ares_client.controller.signal.aborted) return // not connected
+    if (!ares_client || ares_client.controller.signal.aborted) {
+      logger.SOCKET('Cannot send packet, not connected', { type, payload })
+      toast.error(i18n.global.t('WS_NOT_CONNECTED'), 'Oh no!', MdiClippy)
+      return
+    }
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)
     ares_client.send(type, payload)
   },
@@ -504,6 +526,8 @@ const context = {
     // context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
   },
 }
+
+listen_for_requests()
 
 const modules = MODULES.map(create => create())
 
