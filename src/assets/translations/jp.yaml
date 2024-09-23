@@ -266,12 +266,9 @@ WALLET_SIGN_MESSAGE: "[AresRPG] これはこのアドレスを所有している
 SUI_ENOKI_SALT: Enokiのトランザクションに失敗しました（塩の失敗）。もう一度お試しください。
 SUI_NO_GAS: このアクションを実行するにはウォレットにSuiが必要です。
 SUI_NOT_ENOUGH_FOOD: 十分な食べ物がありません！
-SUI_SUBSCRIBED: Suiに接続しました
 SUI_PET_ALREADY_FED: このペットはお腹が空いていません
 SUI_INV_NOT_EMPTY: その前にすべてのアイテムを解除する必要があります
-SUI_SUBSCRIBE_ERROR: Suiノードがサブスクリプションを拒否しました。ページをリフレッシュしてもう一度お試しください。
 SUI_NO_PERSONAL_KIOSK: このアクションを実行するにはまずキャラクターを作成する必要があります。
-SUI_SUBSCRIBE_START: Suiノードにサブスクライブ中...
 SUI_FETCHING_DATA: キャラクターとアイテムを取得中...
 SUI_DATA_FETCHED: キャラクターとアイテムを正常に取得しました。
 SUI_ENOKI_DOWN: スポンサリングサービスが不具合を起こしているようです。後ほどもう一度お試しください。
@@ -282,5 +279,6 @@ WS_FAILED_TO_CONNECT: サーバーへの接続に失敗しました。詳細はh
 WS_RECONNECTED: オンラインに戻りました！
 WS_CONNECTING_TO_SERVER: サーバーに接続中
 WS_CONNECTED_TO_SERVER: サーバーに接続しました。
+WS_NOT_CONNECTED: サーバーに接続していません
 
 BROWSER_NO_PERF: お使いのデバイスはWebGLをサポートしていないか、パフォーマンス上の大きな問題が発生する状態で実行されています。別のデバイスを試すか、ブラウザとドライバが最新であることを確認してください。
