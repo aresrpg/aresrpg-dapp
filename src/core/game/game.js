@@ -49,6 +49,7 @@ import game_audio from '../modules/game_audio.js'
 import game_entities from '../modules/game_entities.js'
 import game_terrain from '../modules/game_terrain.js'
 import game_water from '../modules/game_water.js'
+import game_damage_ui from '../modules/game_damage_ui.js'
 import logger from '../../logger.js'
 import { VITE_SERVER_URL } from '../../env.js'
 import sui_data from '../modules/sui_data.js'
@@ -302,6 +303,7 @@ const MODULES = [
   game_water,
   game_connect,
   game_entites_stroll,
+  game_damage_ui,
 
   game_fights,
 ]

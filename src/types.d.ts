@@ -1,3 +1,5 @@
+import { Vector3Like } from 'three'
+
 declare module '*.ogg'
 declare module '*.png'
 declare module '*.jpg'
@@ -182,6 +184,7 @@ declare namespace Type {
       CHUNKS_LOADED: void // notify that the loading of new chunks is finished
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
+      DISPLAY_DAMAGE_UI: { targetObject: Vector3Like; text: string; color: string; is_critical: boolean } // display a floating damage text
     } & Packets &
       Actions
   >
