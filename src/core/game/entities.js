@@ -1,11 +1,4 @@
-import {
-  BoxGeometry,
-  Group,
-  LoopOnce,
-  Mesh,
-  Quaternion,
-  Vector3,
-} from 'three'
+import { BoxGeometry, Group, LoopOnce, Mesh, Quaternion, Vector3 } from 'three'
 
 import dispose from '../utils/three/dispose.js'
 
