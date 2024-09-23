@@ -1,4 +1,4 @@
-import { Vector3Like } from 'three'
+import { type Vector3Like } from 'three'
 
 declare module '*.ogg'
 declare module '*.png'
