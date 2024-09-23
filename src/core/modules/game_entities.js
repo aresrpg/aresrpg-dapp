@@ -325,52 +325,27 @@ export default function () {
         })
       }
 
-      SUI_EMITTER.on(
-        'ItemEquipEvent',
-        async ({ item_id, character_id, slot }) => {
-          const { visible_characters } = get_state()
-          const character = visible_characters.get(character_id)
-
-          if (!character) return
-
-          const item = await sui_get_item(item_id)
-
-          character[slot] = item
-
-          if (item.item_category === ITEM_CATEGORY.PET) {
-            spawn_pet(character)
-          }
-
-          if (item.item_category === ITEM_CATEGORY.HAT) {
-            character.equip_hat(item)
-          }
-
-          const skin = get_item_skin(character)
-
-          if (skin !== character.skin)
-            update_skin({ visible_characters, character, skin })
-        },
-      )
-
-      SUI_EMITTER.on('ItemUnequipEvent', ({ character_id, slot }) => {
+      SUI_EMITTER.on('ItemEquipEvent', async ({ item, character_id, slot }) => {
         const { visible_characters } = get_state()
         const character = visible_characters.get(character_id)
 
         if (!character) return
 
-        // characters should be initialized with their equipment
-        // so this should never be null
-        const item = character[slot]
+        const current_item = character[slot]
+        character[slot] = item
 
-        if (item.item_category === ITEM_CATEGORY.PET) {
-          despawn_pet(character)
+        if (current_item && current_item !== item) {
+          if (current_item.item_category === ITEM_CATEGORY.PET)
+            despawn_pet(character)
+          if (current_item.item_category === ITEM_CATEGORY.HAT)
+            character.equip_hat(null)
         }
 
-        if (item.item_category === ITEM_CATEGORY.HAT) {
-          character.equip_hat(null)
+        if (item) {
+          if (item.item_category === ITEM_CATEGORY.PET) spawn_pet(character)
+          if (item.item_category === ITEM_CATEGORY.HAT)
+            character.equip_hat(item)
         }
-
-        character[slot] = null
 
         const skin = get_item_skin(character)
 
