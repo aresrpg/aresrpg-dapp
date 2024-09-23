@@ -64,6 +64,7 @@ export function listen_for_requests() {
 
 async function indexer_request(type, payload) {
   const id = crypto.randomUUID()
+
   let resolve_promise = null
   const promise = new Promise(resolve => (resolve_promise = resolve))
   current_server_requests.set(id, resolve_promise)
@@ -702,6 +703,8 @@ async function get_bn_sui_balance() {
 async function sui_enforce_personal_kiosk(tx) {
   const { kiosk, personal_kiosk_cap } = await sui_get_aresrpg_kiosk()
 
+  console.log('enforced', { kiosk, personal_kiosk_cap })
+
   if (!kiosk) return sdk.create_personal_kiosk(tx)
 
   return {
@@ -715,7 +718,29 @@ async function sui_enforce_personal_kiosk(tx) {
   }
 }
 
-export async function sui_create_character({ name, type, sex = 'male' }) {
+// Convert a number to a hex color code
+function number_to_color(num) {
+  return (
+    '#' +
+    Math.max(0, Math.min(16777215, Math.floor(num)))
+      .toString(16)
+      .padStart(6, '0')
+  )
+}
+
+// Convert a hex color code to a number
+function color_to_number(hex) {
+  return parseInt(hex.replace(/^#/, ''), 16)
+}
+
+export async function sui_create_character({
+  name,
+  type,
+  male = true,
+  color_1,
+  color_2,
+  color_3,
+}) {
   const tx = new Transaction()
 
   sdk.add_header(tx)
@@ -729,9 +754,12 @@ export async function sui_create_character({ name, type, sex = 'male' }) {
     tx,
     name,
     classe: type,
-    sex,
+    male,
     kiosk_cap,
     kiosk_id,
+    color_1: color_to_number(color_1),
+    color_2: color_to_number(color_2),
+    color_3: color_to_number(color_3),
   })
 
   sdk.select_character({
@@ -991,10 +1019,7 @@ export async function sui_buy_item(item) {
 
   sdk.add_header(tx)
 
-  const { kiosk_tx, kiosk_cap, kiosk_id } = await sdk.enforce_personal_kiosk({
-    tx,
-    recipient: get_address(),
-  })
+  const { kiosk_tx, kiosk_cap, kiosk_id } = await sui_enforce_personal_kiosk(tx)
 
   const seller_kiosk = tx.object(item.kiosk_id)
 
@@ -1107,63 +1132,6 @@ export async function sui_buy_item(item) {
 
 //   await execute(tx)
 // }
-
-export async function sui_subscribe({ signal }) {
-  const emitter = new EventEmitter()
-  async function try_reset() {
-    if (active_subscription.emitter) {
-      active_subscription.emitter.removeAllListeners()
-      clearInterval(active_subscription.interval)
-      if (active_subscription.unsubscribe)
-        await active_subscription.unsubscribe()
-    }
-  }
-
-  signal.addEventListener('abort', try_reset, { once: true })
-
-  const tx_toast = toast.tx(t('SUI_SUBSCRIBE_START'))
-
-  try {
-    await try_reset()
-    active_subscription.emitter = emitter
-    active_subscription.interval = setInterval(() => {
-      emitter.emit('update', { type: 'interval' })
-    }, 10000)
-
-    active_subscription.unsubscribe = await sdk.subscribe(event => {
-      const { type } = event
-      let [, , event_name] = type.split('::')
-
-      if (event_name.startsWith('ItemListed')) event_name = 'ItemListedEvent'
-
-      if (event_name.startsWith('ItemPurchased'))
-        event_name = 'ItemPurchasedEvent'
-
-      if (event_name.startsWith('ItemDelisted'))
-        event_name = 'ItemDelistedEvent'
-
-      logger.SUI(`rpc event ${event_name}`, event)
-      emitter.emit('update', {
-        type: event_name,
-        payload: {
-          ...event.parsedJson,
-          sender_is_me: event.sender === get_address(),
-        },
-      })
-    })
-    tx_toast.update('success', t('SUI_SUBSCRIBED'))
-  } catch (error) {
-    if (error.message.includes('Invalid params'))
-      console.error(
-        'Unable to subscribe to the Sui node as it is too crowded. Please try again later.',
-      )
-    else console.error('Unable to subscribe to the Sui node', error)
-    tx_toast.update('error', t('SUI_SUBSCRIBE_ERROR'))
-    active_subscription.unsubscribe = null
-  }
-
-  return emitter
-}
 
 // this needs to always resolve mainnet names
 const suins_client =

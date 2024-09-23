@@ -161,25 +161,25 @@ export const ENTITIES = {
 
   // ====== CHARACTERS ======
 
-  iop_male: spawn_entity(MODELS.iop_male, {
+  senshi_male: spawn_entity(MODELS.senshi_male, {
     height: 1.5,
     radius: 0.8,
-    skin: 'iop_male',
+    skin: 'senshi_male',
   }),
-  iop_female: spawn_entity(MODELS.iop_female, {
+  senshi_female: spawn_entity(MODELS.senshi_female, {
     height: 1.5,
     radius: 0.8,
-    skin: 'iop_female',
+    skin: 'senshi_female',
   }),
-  sram_male: spawn_entity(MODELS.sram_male, {
+  yajin_male: spawn_entity(MODELS.yajin_male, {
     height: 1.5,
     radius: 0.8,
-    skin: 'sram_male',
+    skin: 'yajin_male',
   }),
-  sram_female: spawn_entity(MODELS.sram_female, {
+  yajin_female: spawn_entity(MODELS.yajin_female, {
     height: 1.5,
     radius: 0.8,
-    skin: 'sram_female',
+    skin: 'yajin_female',
   }),
   primemachin: spawn_entity(MODELS.primemachin, {
     height: 1.5,
