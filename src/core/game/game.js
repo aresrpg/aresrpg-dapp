@@ -475,7 +475,11 @@ const context = {
   camera_controls: new CameraControls(camera, renderer.domElement),
   /** @type {ReturnType<import("@aresrpg/aresrpg-protocol")["create_client"]>["send"]} */
   send_packet(type, payload) {
-    if (!ares_client || ares_client.controller.signal.aborted) return // not connected
+    if (!ares_client || ares_client.controller.signal.aborted) {
+      logger.SOCKET('Cannot send packet, not connected', { type, payload })
+      toast.error(i18n.global.t('WS_NOT_CONNECTED'), 'Oh no!', MdiClippy)
+      return
+    }
     if (!FILTER_PACKET_IN_LOGS.includes(type)) logger.NETWORK_OUT(type, payload)
     ares_client.send(type, payload)
   },
