@@ -140,7 +140,11 @@ export const chunk_data_encoder = (val, mode = BlockMode.DEFAULT) =>
 
 export const to_engine_chunk_format = world_chunk => {
   const id = WorldUtils.parseChunkKey(world_chunk.key)
-  const chunk_bbox = WorldUtils.chunkBoxFromId(id, WorldConf.patchSize) // voxelmap_viewer.getPatchVoxelsBox(id)
+  const chunk_bbox = WorldUtils.chunkBoxFromKey(
+    world_chunk.key,
+    WorldConf.defaultChunkDimensions,
+  ) // voxelmap_viewer.getPatchVoxelsBox(id)
+  chunk_bbox.expandByScalar(1)
   const size = chunk_bbox.getSize(new Vector3())
   const data = world_chunk.data ? world_chunk.data : []
   const engine_chunk = {
@@ -150,6 +154,14 @@ export const to_engine_chunk_format = world_chunk => {
     size,
   }
   return engine_chunk
+}
+
+export const export_chunk_to_zyx_format = world_chunk => {
+  // const dimensions = chunkBox.getSize(new Vector3())
+  // const getTargetIndex = (localPos) => localPos.z * dimensions.x * dimensions.y +
+  //   localPos.y * dimensions.x +
+  //   localPos.x
+  // read yBuffer at z,x pos
 }
 
 /**
