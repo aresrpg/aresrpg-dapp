@@ -11,10 +11,11 @@ import { aiter } from 'iterator-helper'
 import { Box2, Color, Vector2, Vector3 } from 'three'
 import {
   ChunkFactory,
-  DataContainer,
+  PatchContainer,
   GroundMap,
-  SchematicLoader,
+  OvergroundEntities,
   WorldComputeProxy,
+  WorldObjectType,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 
@@ -26,10 +27,9 @@ import {
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
-import sprucetree_schem from '../../assets/terrain/SpruceTree_1.schem?url'
 
 // global config
-const BOARD_POC = true
+const BOARD_POC = false
 const SHOW_LOD = false
 const ON_THE_FLY_GEN = true // when disabled patches will be baked in advance
 // settings
@@ -130,7 +130,7 @@ export default function () {
 
   const render_patch_chunks = (patch, entities_chunks = []) => {
     // assemble ground and entities to form world chunks
-    const world_patch_chunks = ChunkFactory.defaultInstance.chunkify(
+    const world_patch_chunks = ChunkFactory.defaultInstance.chunkifyPatch(
       patch,
       entities_chunks,
     )
@@ -152,7 +152,7 @@ export default function () {
       .getOverlappingPatches(extended_bounds)
       .map(patch => patch.duplicate())
     for await (const patch of overridden_patches) {
-      DataContainer.copySourceOverTargetContainer(board_container, patch)
+      PatchContainer.copySourceOverTargetContainer(board_container, patch)
       const entities_chunks = await WorldComputeProxy.instance.bakeEntities(
         patch.bounds,
       )
@@ -249,12 +249,12 @@ export default function () {
                 const entities_chunks =
                   await WorldComputeProxy.instance.bakeEntities(patch.bounds)
                 // schematic test
-                const schem_loader = new SchematicLoader(sprucetree_schem)
-                const schem_data = await schem_loader.parse()
-                const schem_blocks = schem_loader.getBlocks(schem_data)
-                const schem_chunk = schem_loader.chunkConversion(schem_blocks)
-                entities_chunks.push(schem_chunk)
-                render_patch_chunks(patch, entities_chunks)
+                const spawned_entities =
+                  OvergroundEntities.querySpawnedEntities(
+                    WorldObjectType.SpruceTree_schem,
+                    patch.bounds,
+                  )
+                render_patch_chunks(patch, spawned_entities)
               }
             }
             pending_task = false

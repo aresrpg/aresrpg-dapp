@@ -1,4 +1,14 @@
-import { BlockType, WorldConf } from '@aresrpg/aresrpg-world'
+import {
+  BlockType,
+  OvergroundEntities,
+  ProceduralGenerators,
+  PseudoDistributionMap,
+  SchematicLoader,
+  WorldConf,
+  WorldObjectType,
+} from '@aresrpg/aresrpg-world'
+
+import sprucetree_schem from '../../../assets/terrain/SpruceTree_1.schem?url'
 
 // World static config
 WorldConf.patchPowSize = 6 // as a power of two (6 => 64 blocks)
@@ -10,6 +20,7 @@ WorldConf.debug.patch.borderHighlightColor = BlockType.NONE // BlockType.DBG_LIG
 // TODO remove hardcoding and retrieve dynamic value from world
 export const sea_level = 76
 
+// mapping world block types to color
 export const blocks_colors = {
   [BlockType.NONE]: 0x000000,
   [BlockType.WATER]: 0x74ccf4,
@@ -29,6 +40,26 @@ export const blocks_colors = {
   [BlockType.DBG_GREEN]: 0xcddc39,
   [BlockType.DBG_PURPLE]: 0x8a2be2, // 0x673ab7,//0x9c27b0,
 }
+
+// mapping world object types to models
+// WorldObject.factory = {
+//   [WorldObjectType.PineTree_10_5]: () =>
+//     new ProceduralGenerators.PineTree(10, 5),
+//   [WorldObjectType.AppleTree_10_5]: () =>
+//     new ProceduralGenerators.AppleTree(10, 5),
+//   [WorldObjectType.SpruceTree_schem]: async () =>
+//     await SchematicLoader.asWorldObject(sprucetree_schem),
+// }
+// populate world objects
+SchematicLoader.createChunkContainer(sprucetree_schem).then(template => {
+  const type = WorldObjectType.SpruceTree_schem
+  const entity = {
+    type,
+    template,
+  }
+  const spawner = new PseudoDistributionMap()
+  OvergroundEntities.registerEntity({ entity, spawner })
+})
 
 const temperate = {
   deep_ocean: {
