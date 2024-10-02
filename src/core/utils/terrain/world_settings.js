@@ -7,7 +7,7 @@ WorldConf.cachePowLimit = 2 // as a power of two (4 => 16 patches radius)
 // debug vars
 WorldConf.debug.patch.borderHighlightColor = BlockType.NONE // BlockType.DBG_LIGHT
 
-// TODO remove hardcoding and retrieve dynamic value from world
+// TODO: remove hardcoding and retrieve dynamic value from world
 export const sea_level = 76
 
 export const blocks_colors = {
