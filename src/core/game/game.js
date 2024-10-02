@@ -392,7 +392,9 @@ function connect_ws() {
     const { status } = useWebSocket(
       `${server_url}?address=${selected_address}`,
       {
-        autoReconnect: true,
+        autoReconnect: {
+          retries: () => !!context.get_state().sui.selected_address,
+        },
         async onDisconnected(ws, event) {
           decrease_loading()
           await handle_server_error(event.reason)

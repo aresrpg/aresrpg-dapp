@@ -1,10 +1,13 @@
-import { BlockType } from '@aresrpg/aresrpg-world'
+import { BlockType, WorldConf } from '@aresrpg/aresrpg-world'
 
-// constants
-export const world_patch_size = Math.pow(2, 6)
-// max cache radius as a power of two
-export const world_cache_pow_limit = 4 // 4 => 16 patches radius
+// World static config
+WorldConf.patchPowSize = 6 // as a power of two (6 => 64 blocks)
+// max cache radius
+WorldConf.cachePowLimit = 2 // as a power of two (4 => 16 patches radius)
+// debug vars
+WorldConf.debug.patch.borderHighlightColor = BlockType.NONE // BlockType.DBG_LIGHT
 
+// TODO: remove hardcoding and retrieve dynamic value from world
 export const sea_level = 76
 
 export const blocks_colors = {
@@ -19,6 +22,12 @@ export const blocks_colors = {
   [BlockType.MUD]: 0x795548,
   [BlockType.ROCK]: 0xababab,
   [BlockType.SNOW]: 0xe5e5e5,
+  [BlockType.BOARD_HOLE]: 0x101010,
+  [BlockType.DBG_LIGHT]: 0xf5deb3,
+  [BlockType.DBG_DARK]: 0x101010,
+  [BlockType.DBG_ORANGE]: 0xff9800, // 0x#FFC107
+  [BlockType.DBG_GREEN]: 0xcddc39,
+  [BlockType.DBG_PURPLE]: 0x8a2be2, // 0x673ab7,//0x9c27b0,
 }
 
 const temperate = {

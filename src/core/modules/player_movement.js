@@ -2,12 +2,16 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Object3D, Vector3 } from 'three'
+import { Object3D, Vector2, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
+import { WorldUtils } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
+import {
+  get_optional_terrain_height,
+  // get_optional_terrain_height,
+} from '../utils/terrain/world_utils.js'
 import { sea_level } from '../utils/terrain/world_settings.js'
 
 import { play_step_sound } from './game_audio.js'
@@ -50,7 +54,6 @@ export default function () {
         character => character.id === state.selected_character_id,
       )
       if (!player) return
-
       const { inputs } = state
       const origin = player.position.clone()
       const is_underwater = player.position.y < sea_level
@@ -65,12 +68,17 @@ export default function () {
         .normalize()
 
       if (player.target_position) {
-        player.target_position.y = get_terrain_height(
+        // FIX to handle async block request
+        const ground_height = get_optional_terrain_height(
           player.target_position,
           player.height,
         )
-        player.move(player.target_position)
-        player.target_position = null
+
+        if (ground_height != null) {
+          player.target_position.y = ground_height
+          player.move(player.target_position)
+          player.target_position = null
+        }
         return
       }
 
@@ -169,9 +177,10 @@ export default function () {
       dummy.position.copy(origin.clone().add(movement))
 
       const { x, z } = dummy.position
-      const ground_height = get_terrain_height({ x, z }, 0)
+      // FIX to handle async block request
+      const ground_height = get_optional_terrain_height({ x, z }, 0)
 
-      if (!ground_height) return
+      if (ground_height == null) return
 
       const target_y = ground_height + player.height * 0.5
       const dummy_bottom_y = dummy.position.y - player.height * 0.5

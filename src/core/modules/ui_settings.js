@@ -1,9 +1,8 @@
-import { PatchBlocksCache } from '@aresrpg/aresrpg-world'
 import { GUI } from 'dat.gui'
 import { Vector3 } from 'three'
 
 import { INITIAL_STATE, current_three_character } from '../game/game.js'
-import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
+import { get_terrain_height } from '../utils/terrain/world_utils.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -58,7 +57,7 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
 
-                const ground_level = get_terrain_height(
+                const ground_level = await get_terrain_height(
                   new Vector3(Math.floor(x), 0, Math.floor(z)),
                 )
 
