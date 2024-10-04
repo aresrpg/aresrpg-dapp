@@ -15,8 +15,8 @@ import {
   GroundMap,
   OvergroundEntities,
   WorldComputeProxy,
-  WorldObjectType,
   WorldUtils,
+  SchematicLoader,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -27,6 +27,10 @@ import {
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
+import {
+  schem_blocks_mapping,
+  schem_files,
+} from '../utils/terrain/schematics_conf.js'
 
 // global config
 const BOARD_POC = false
@@ -69,6 +73,9 @@ export default function () {
   // default chunk factory
   ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
+  // schematics loading
+  SchematicLoader.worldBlocksMapping = schem_blocks_mapping
+  OvergroundEntities.loadSchematics(schem_files, chunk_data_encoder)
   // ground patch container
   const ground_patches = new GroundMap()
   // ENGINE
@@ -102,6 +109,7 @@ export default function () {
         method: EComputationMethod.CPU_MULTITHREADED,
         threadsCount: 4,
       },
+      voxelsChunkOrdering: 'zxy',
     },
   )
   const heightmap_viewer = new HeightmapViewer(map, {
@@ -128,11 +136,11 @@ export default function () {
       voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
   }
 
-  const render_patch_chunks = (patch, entities_chunks = []) => {
+  const render_patch_chunks = (patch, items) => {
     // assemble ground and entities to form world chunks
     const world_patch_chunks = ChunkFactory.defaultInstance.chunkifyPatch(
       patch,
-      entities_chunks,
+      items,
     )
     // feed engine with chunks
     world_patch_chunks.forEach(world_chunk => render_chunk(world_chunk))
@@ -245,16 +253,12 @@ export default function () {
               update_chunks_visibility()
               // Bake world patches and sends chunks to engine
               for await (const patch of changes) {
-                // request and bake all entities belonging to this patch
-                const entities_chunks =
-                  await WorldComputeProxy.instance.bakeEntities(patch.bounds)
-                // schematic test
-                const spawned_entities =
-                  OvergroundEntities.querySpawnedEntities(
-                    WorldObjectType.SpruceTree_schem,
+                // request all entities belonging to this patch
+                const overground_items =
+                  await WorldComputeProxy.instance.queryOvergroundItems(
                     patch.bounds,
                   )
-                render_patch_chunks(patch, spawned_entities)
+                render_patch_chunks(patch, overground_items)
               }
             }
             pending_task = false
