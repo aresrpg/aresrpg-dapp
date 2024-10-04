@@ -1,23 +1,19 @@
 import {
   BlockType,
-  OvergroundEntities,
   ProceduralGenerators,
-  PseudoDistributionMap,
-  SchematicLoader,
   WorldConf,
-  WorldObjectType,
+  WorldItem,
 } from '@aresrpg/aresrpg-world'
 
-import sprucetree_schem from '../../../assets/terrain/SpruceTree_1.schem?url'
-
-// World static config
+// World static config override
 WorldConf.patchPowSize = 6 // as a power of two (6 => 64 blocks)
 // max cache radius
 WorldConf.cachePowLimit = 2 // as a power of two (4 => 16 patches radius)
-// debug vars
-WorldConf.debug.patch.borderHighlightColor = BlockType.DBG_LIGHT // BlockType.DBG_LIGHT
+// uncomment following lines to enable debugging vars
+WorldConf.debug.patch.borderHighlightColor = BlockType.DBG_LIGHT
+// WorldConf.debug.schematics.missingBlockType = BlockType.DBG_DARK
 
-// TODO remove hardcoding and retrieve dynamic value from world
+// TODO: remove hardcoding and retrieve dynamic value from world
 export const sea_level = 76
 
 // mapping world block types to color
@@ -41,25 +37,14 @@ export const blocks_colors = {
   [BlockType.DBG_PURPLE]: 0x8a2be2, // 0x673ab7,//0x9c27b0,
 }
 
-// mapping world object types to models
-// WorldObject.factory = {
-//   [WorldObjectType.PineTree_10_5]: () =>
-//     new ProceduralGenerators.PineTree(10, 5),
-//   [WorldObjectType.AppleTree_10_5]: () =>
-//     new ProceduralGenerators.AppleTree(10, 5),
-//   [WorldObjectType.SpruceTree_schem]: async () =>
-//     await SchematicLoader.asWorldObject(sprucetree_schem),
+// World items
+// const { PineTree_10_5, AppleTree_10_5 } = WorldItem
+// export const world_proc_items = {
+//   [PineTree_10_5]: new ProceduralGenerators.PineTree(10, 5),
+//   [AppleTree_10_5]: new ProceduralGenerators.AppleTree(10, 5),
 // }
-// populate world objects
-SchematicLoader.createChunkContainer(sprucetree_schem).then(template => {
-  const type = WorldObjectType.SpruceTree_schem
-  const entity = {
-    type,
-    template,
-  }
-  const spawner = new PseudoDistributionMap()
-  OvergroundEntities.registerEntity({ entity, spawner })
-})
+
+const { SpruceTree_schem } = WorldItem
 
 const temperate = {
   deep_ocean: {
@@ -97,7 +82,7 @@ const temperate = {
     y: 0.43,
     type: BlockType.GRASS,
     subtype: BlockType.NONE,
-    entities: ['apple_tree'],
+    entities: [SpruceTree_schem],
     fadeIn: 0,
     fadeOut: 20,
   },
@@ -181,7 +166,7 @@ const artic = {
     y: 0.4,
     type: BlockType.SNOW,
     subtype: BlockType.ICE,
-    entities: ['pine_tree'],
+    entities: [SpruceTree_schem],
     fadeIn: 1,
     fadeOut: 5,
   },
@@ -191,7 +176,7 @@ const artic = {
     y: 0.45,
     type: BlockType.SNOW,
     subtype: BlockType.ROCK,
-    entities: ['pine_tree'],
+    entities: [SpruceTree_schem],
     fadeIn: 5,
     fadeOut: 30,
   },

@@ -2,14 +2,17 @@ import {
   Biome,
   GroundPatch,
   Heightmap,
+  OvergroundEntities,
+  SchematicLoader,
   WorldCompute,
   WorldConf,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 
+import { schem_blocks_mapping, schem_files } from './schematics_conf.js'
 import { biome_mapping_conf, sea_level } from './world_original_settings.js'
 
-const init_world = () => {
+const init_world = async () => {
   GroundPatch.patchSize = WorldConf.patchSize
   Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
   Heightmap.instance.heightmap.sampling.harmonicsCount = 6
@@ -17,6 +20,8 @@ const init_world = () => {
   // Biome (blocks mapping)
   Biome.instance.parseBiomesConfig(biome_mapping_conf)
   Biome.instance.params.seaLevel = sea_level
+  SchematicLoader.worldBlocksMapping = schem_blocks_mapping
+  await OvergroundEntities.loadSchematics(schem_files)
 }
 
 init_world()

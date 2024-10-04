@@ -1,13 +1,15 @@
-import { BlockType, WorldConf } from '@aresrpg/aresrpg-world'
+import { BlockType, WorldConf, WorldItem } from '@aresrpg/aresrpg-world'
+const { SpruceTree_schem } = WorldItem
 
-// World static config
+// World static config override
 WorldConf.patchPowSize = 6 // as a power of two (6 => 64 blocks)
 // max cache radius
 WorldConf.cachePowLimit = 2 // as a power of two (4 => 16 patches radius)
-// debug vars
-WorldConf.debug.patch.borderHighlightColor = BlockType.DBG_LIGHT // BlockType.DBG_LIGHT
+// uncomment following lines to enable debugging vars
+WorldConf.debug.patch.borderHighlightColor = BlockType.DBG_LIGHT
+// WorldConf.debug.schematics.missingBlockType = BlockType.DBG_DARK
 
-// TODO remove hardcoding and retrieve dynamic value from world
+// TODO: remove hardcoding and retrieve dynamic value from world
 export const sea_level = 76
 
 export const blocks_colors = {
@@ -66,7 +68,7 @@ const temperate = {
     y: 0.42,
     type: BlockType.GRASS,
     subtype: BlockType.MUD,
-    entities: ['apple_tree'],
+    entities: [SpruceTree_schem],
     fadeIn: 0,
     fadeOut: 0.2,
   },
@@ -76,7 +78,7 @@ const temperate = {
     y: 0.52,
     type: BlockType.ROCK,
     subtype: BlockType.GRASS,
-    entities: ['pine_tree'],
+    entities: [SpruceTree_schem],
     mixratio: 0.1,
     fadeIn: 0,
     fadeOut: 25,
@@ -131,7 +133,7 @@ const artic = {
     y: 0.42,
     type: BlockType.SNOW,
     subtype: BlockType.ICE,
-    entities: ['pine_tree'],
+    entities: [SpruceTree_schem],
     fadeIn: 1,
     fadeOut: 5,
   },
@@ -141,7 +143,7 @@ const artic = {
     y: 0.45,
     type: BlockType.SNOW,
     subtype: BlockType.ROCK,
-    entities: ['pine_tree'],
+    entities: [SpruceTree_schem],
     fadeIn: 5,
     fadeOut: 30,
   },

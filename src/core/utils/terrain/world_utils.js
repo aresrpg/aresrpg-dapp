@@ -1,4 +1,7 @@
-import { BoardHandler, voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+import {
+  BoardOverlaysHandler,
+  voxelmapDataPacking,
+} from '@aresrpg/aresrpg-engine'
 import {
   BlockMode,
   BlockType,
@@ -152,6 +155,7 @@ export const to_engine_chunk_format = world_chunk => {
     data,
     isEmpty: !world_chunk.data,
     size,
+    dataOrdering: 'zxy',
   }
   return engine_chunk
 }
@@ -188,7 +192,7 @@ export const setup_board_container = async current_pos => {
   board.origin.y++ // TODO: check where comes the issue
 
   if (board.data.length > 0) {
-    const board_handler = new BoardHandler({ board })
+    const board_handler = new BoardOverlaysHandler({ board })
     board_handler.clearSquares()
     highlight_board_edges(board_handler)
     highlight_start_pos(board_handler)
