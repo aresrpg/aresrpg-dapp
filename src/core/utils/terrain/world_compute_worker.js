@@ -2,7 +2,8 @@ import {
   Biome,
   GroundPatch,
   Heightmap,
-  OvergroundEntities,
+  ItemsInventory,
+  PseudoDistributionMap,
   SchematicLoader,
   WorldCompute,
   WorldConf,
@@ -10,7 +11,9 @@ import {
 } from '@aresrpg/aresrpg-world'
 
 import { schem_blocks_mapping, schem_files } from './schematics_conf.js'
-import { biome_mapping_conf, sea_level } from './world_original_settings.js'
+import { proc_items_conf, sea_level } from './world_conf.js'
+import { biome_mapping_conf } from './world_original_settings.js'
+import { chunk_data_encoder } from './world_utils.js'
 
 const init_world = async () => {
   GroundPatch.patchSize = WorldConf.patchSize
@@ -20,8 +23,14 @@ const init_world = async () => {
   // Biome (blocks mapping)
   Biome.instance.parseBiomesConfig(biome_mapping_conf)
   Biome.instance.params.seaLevel = sea_level
+  // populate items inventory: import schematics and procedural objects
   SchematicLoader.worldBlocksMapping = schem_blocks_mapping
-  await OvergroundEntities.loadSchematics(schem_files)
+  ItemsInventory.importProceduralObjects(proc_items_conf)
+  await ItemsInventory.importSchematics(schem_files, chunk_data_encoder)
+  // define spawn distribution for items
+  Object.keys(ItemsInventory.catalog).forEach(item_id => {
+    ItemsInventory.spawners[item_id] = new PseudoDistributionMap()
+  })
 }
 
 init_world()

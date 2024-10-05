@@ -6,7 +6,7 @@ import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
 
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import { sea_level } from '../utils/terrain/world_settings.js'
+import { sea_level } from '../utils/terrain/world_conf.js'
 
 import { is_hovering_mob_group } from './player_entities_interract.js'
 

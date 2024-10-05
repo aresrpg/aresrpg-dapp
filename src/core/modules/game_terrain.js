@@ -13,15 +13,14 @@ import {
   ChunkFactory,
   PatchContainer,
   GroundMap,
-  OvergroundEntities,
   WorldComputeProxy,
   WorldUtils,
   SchematicLoader,
+  ItemsInventory,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
-import { blocks_colors } from '../utils/terrain/world_settings.js'
 import {
   chunk_data_encoder,
   setup_board_container,
@@ -31,6 +30,7 @@ import {
   schem_blocks_mapping,
   schem_files,
 } from '../utils/terrain/schematics_conf.js'
+import { blocks_colors, proc_items_conf } from '../utils/terrain/world_conf.js'
 
 // global config
 const BOARD_POC = false
@@ -73,9 +73,11 @@ export default function () {
   // default chunk factory
   ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
-  // schematics loading
+  // populate items inventory from schematics and procedural objects
   SchematicLoader.worldBlocksMapping = schem_blocks_mapping
-  OvergroundEntities.loadSchematics(schem_files, chunk_data_encoder)
+  ItemsInventory.importProceduralObjects(proc_items_conf, chunk_data_encoder)
+  ItemsInventory.importSchematics(schem_files, chunk_data_encoder)
+
   // ground patch container
   const ground_patches = new GroundMap()
   // ENGINE

@@ -2,9 +2,8 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Object3D, Vector2, Vector3 } from 'three'
+import { Object3D, Vector3 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import { WorldUtils } from '@aresrpg/aresrpg-world'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
@@ -12,7 +11,7 @@ import {
   get_optional_terrain_height,
   // get_optional_terrain_height,
 } from '../utils/terrain/world_utils.js'
-import { sea_level } from '../utils/terrain/world_settings.js'
+import { sea_level } from '../utils/terrain/world_conf.js'
 
 import { play_step_sound } from './game_audio.js'
 
