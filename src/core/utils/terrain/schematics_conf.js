@@ -1,10 +1,11 @@
-import { BlockType, WorldItem } from '@aresrpg/aresrpg-world'
+import { BlockType } from '@aresrpg/aresrpg-world'
 
 import sprucetree_schem from '../../../assets/terrain/SpruceTree_1.schem?url'
 
-// supported schematics types
-const { SpruceTree_schem } = WorldItem
-
+// available schematics
+export const schem_items = {
+  SpruceTree: 'sprucetree',
+}
 // export const schem_types = {
 
 // }
@@ -18,5 +19,5 @@ export const schem_blocks_mapping = {
 
 // schematics external definition files
 export const schem_files = {
-  [SpruceTree_schem]: sprucetree_schem,
+  [schem_items.SpruceTree]: sprucetree_schem,
 }
