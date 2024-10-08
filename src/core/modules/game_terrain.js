@@ -235,7 +235,7 @@ export default function () {
     tick() {
       terrain_viewer.update()
     },
-    observe({ camera, events, signal, scene, get_state }) {
+    observe({ camera, events, signal, scene, get_state, physics }) {
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
       events.emit('CHUNKS_LOADED')
@@ -347,6 +347,7 @@ export default function () {
               dataOrdering: 'zyx',
             }
             // feed engine with chunk
+            physics.voxelmap_collider.setChunk(patch_id, chunk)
             voxelmap_viewer.enqueuePatch(patch_id, chunk)
             // query the map (asynchronous) to get data for this patch
             // const chunkdata_promise = map.getLocalMapData(
