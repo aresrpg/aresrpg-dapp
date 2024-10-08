@@ -3,6 +3,7 @@ import { setInterval } from 'timers/promises'
 
 import {
   EComputationMethod,
+  HeightmapViewer,
   TerrainViewer,
   VoxelmapViewer,
   VoxelmapVisibilityComputer,
@@ -147,7 +148,7 @@ export default function () {
     },
   }
 
-  const patch_size = { xz: 64, y: 64 }
+  const patch_size = { xz: world_patch_size, y: world_patch_size }
   const min_patch_id_y = Math.floor(min_altitude / patch_size.y)
   const max_patch_id_y = Math.floor(max_altitude / patch_size.y)
   const voxelmap_viewer = new VoxelmapViewer(
@@ -162,7 +163,12 @@ export default function () {
       },
     },
   )
-  const terrain_viewer = new TerrainViewer(map, voxelmap_viewer)
+  const heightmap_viewer = new HeightmapViewer(map, {
+    basePatchSize: patch_size.xz,
+    voxelRatio: 2,
+    maxLevel: 5,
+  })
+  const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = true
 
   const voxelmap_visibility_computer = new VoxelmapVisibilityComputer(
@@ -334,7 +340,12 @@ export default function () {
             const data = fill_chunk_from_patch(cached_patch, chunk_bbox)
             const size = Math.round(Math.pow(data.length, 1 / 3))
             const dimensions = new Vector3(size, size, size)
-            const chunk = { data, size: dimensions, isEmpty: false }
+            const chunk = {
+              data,
+              size: dimensions,
+              isEmpty: false,
+              dataOrdering: 'zyx',
+            }
             // feed engine with chunk
             voxelmap_viewer.enqueuePatch(patch_id, chunk)
             // query the map (asynchronous) to get data for this patch
