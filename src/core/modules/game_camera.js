@@ -17,7 +17,9 @@ const CAMERA_MAX_DISTANCE = 50
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick(state, { camera_controls, dispatch, camera }, delta) {
+    tick(state, { dispatch, camera }, delta) {
+      const { camera_controls } = camera
+
       const player = current_three_character(state)
       if (!player?.position) return
 
@@ -64,7 +66,10 @@ export default function () {
 
       return state
     },
-    observe({ events, camera, camera_controls, renderer, signal }) {
+    observe({ events, camera, renderer, signal }) {
+      const { three_camera } = camera
+      const { camera_controls } = camera
+
       function set_camera_padding(top, right, bottom, left) {
         const full_width = window.innerWidth - left + right
         const full_height = window.innerHeight - top + bottom
@@ -72,7 +77,7 @@ export default function () {
         const height_offset = -top + bottom
         const view_width = window.innerWidth
         const view_height = window.innerHeight
-        camera.setViewOffset(
+        three_camera.setViewOffset(
           full_width,
           full_height,
           width_offset,
@@ -80,7 +85,7 @@ export default function () {
           view_width,
           view_height,
         )
-        camera.updateProjectionMatrix()
+        three_camera.updateProjectionMatrix()
       }
 
       camera_controls.dollyDragInverted = true
@@ -168,8 +173,8 @@ export default function () {
 
       state_iterator().reduce((was_in_fight, { current_fight }) => {
         if (was_in_fight !== !!current_fight) {
-          if (current_fight) context.switch_to_isometric()
-          else context.switch_to_perspective()
+          if (current_fight) camera.switch_to_isometric()
+          else camera.switch_to_perspective()
         }
 
         return !!current_fight

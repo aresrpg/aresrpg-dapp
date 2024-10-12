@@ -71,8 +71,8 @@ import { world_patch_size } from '../utils/terrain/world_settings.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
+import { GameCamera } from './rendering/camera.js'
 
-// @ts-ignore
 import MdiClippy from '~icons/mdi/clippy'
 
 export const GRAVITY = 9.81
@@ -352,13 +352,8 @@ const composer = new EffectComposer(
     depthTexture: new DepthTexture(renderer_size.x, renderer_size.y),
   }),
 )
-const camera = new PerspectiveCamera(
-  70, // Field of view
-  window.innerWidth / window.innerHeight, // Aspect ratio
-  0.1, // Near clipping plane
-  3000, // Far clipping plane
-)
-camera.layers.enableAll()
+
+const camera = new GameCamera(renderer)
 
 /** @type {Type.Events} */
 // @ts-ignore
@@ -463,8 +458,7 @@ const context = {
   events,
   actions,
   composer,
-  // @ts-ignore
-  camera_controls: new CameraControls(camera, renderer.domElement),
+  camera,
   /** @type {import("@aresrpg/aresrpg-protocol/src/types.js").send} */
   send_packet(type, payload) {
     if (!ares_client || ares_client.controller.signal.aborted) return // not connected
@@ -481,12 +475,10 @@ const context = {
     actions.write({ type, payload })
   },
   frustum: new Frustum(),
-  mouse_raycaster: new Raycaster(),
   mouse_position: new Vector2(),
   get_state,
   scene,
   renderer,
-  camera,
   signal: controller.signal,
   controller,
   on_game_show: handler => {
@@ -494,26 +486,6 @@ const context = {
   },
   on_game_hide: handler => {
     game_visible_emitter.on('hide', handler)
-  },
-  switch_to_isometric() {
-    console.log('SWITCH TO ISOMETRIC')
-
-    // Set constraints to maintain isometric-like view
-    context.camera_controls.maxPolarAngle = Math.PI / 4 // Limit vertical rotation
-    context.camera_controls.minPolarAngle = Math.PI / 4 // Limit vertical rotation
-    context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
-    context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
-    context.camera_controls.enableDamping = true // Enable smooth camera movement
-    context.camera_controls.dampingFactor = 0.05 // Adjust damping factor as needed
-  },
-  switch_to_perspective() {
-    // context.camera = camera
-    // context.camera_controls.camera = camera
-    // // Reset constraints for free movement in perspective view
-    // context.camera_controls.maxPolarAngle = Math.PI // Allow full vertical rotation
-    // context.camera_controls.minPolarAngle = 0 // Allow full vertical rotation
-    // context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
-    // context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
   },
   physics: {
     voxelmap_collider,
@@ -579,11 +551,7 @@ function animate() {
     const state = get_state()
     const delta = Math.min(clock.getDelta(), 0.5)
 
-    context.frustum.setFromProjectionMatrix(
-      reusable_matrix4
-        .identity()
-        .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
-    )
+    context.frustum.setFromProjectionMatrix(camera.view_projection_matrix)
 
     modules
       .map(({ tick }) => tick)

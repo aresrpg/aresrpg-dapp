@@ -28,10 +28,11 @@ export default function () {
     },
 
     observe({ scene, signal, composer, camera }) {
+      const { three_camera } = camera
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
 
-      const renderpass = new RenderPass(scene, camera)
-      const cartoon_renderpass = new CartoonRenderpass(scene, camera)
+      const renderpass = new RenderPass(scene, three_camera)
+      const cartoon_renderpass = new CartoonRenderpass(scene, three_camera)
       const gamma_correction = new ShaderPass(GammaCorrectionShader)
 
       const bloompass = new UnrealBloomPass(

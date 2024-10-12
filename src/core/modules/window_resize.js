@@ -7,8 +7,7 @@ export default function () {
         () => {
           const { innerWidth, innerHeight } = window
           renderer.setSize(innerWidth, innerHeight)
-          camera.aspect = innerWidth / innerHeight
-          camera.updateProjectionMatrix()
+          camera.aspect_ratio = innerWidth / innerHeight
           composer.setSize(innerWidth, innerHeight)
         },
         { signal },

@@ -55,15 +55,6 @@ export default function () {
       const origin = player.position.clone()
       const is_underwater = player.position.y < sea_level
 
-      const camera_forward = new Vector3(0, 0, -1)
-        .applyQuaternion(camera.quaternion)
-        .setY(0)
-        .normalize()
-      const camera_right = new Vector3(1, 0, 0)
-        .applyQuaternion(camera.quaternion)
-        .setY(0)
-        .normalize()
-
       if (player.target_position) {
         player.target_position.y = get_terrain_height(
           player.target_position,
@@ -87,6 +78,9 @@ export default function () {
       }
 
       const movement = new Vector3()
+
+      const camera_forward = camera.forward
+      const camera_right = camera.right
 
       if (inputs.forward || (inputs.mouse_left && inputs.mouse_right))
         movement.add(camera_forward)

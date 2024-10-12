@@ -1,3 +1,5 @@
+import { Raycaster } from 'three'
+
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { context, current_three_character } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
@@ -44,11 +46,13 @@ export default function () {
     }
   }
 
+  const mouse_raycaster = new Raycaster()
+
   return {
     tick(state, context) {
       if (document.pointerLockElement) return
 
-      const { mouse_position, mouse_raycaster, frustum, camera } = context
+      const { mouse_position, frustum, camera } = context
       const { visible_mobs_group } = state
 
       const mobs_in_frame = [...visible_mobs_group.values()]
@@ -59,7 +63,7 @@ export default function () {
         )
 
       if (mobs_in_frame.length) {
-        mouse_raycaster.setFromCamera(mouse_position, camera)
+        camera.set_raycaster(mouse_raycaster, mouse_position)
 
         let intersects_with_mob = null
 
