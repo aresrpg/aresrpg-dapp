@@ -183,6 +183,9 @@ declare namespace Type {
       CHUNKS_LOADED: void // notify that the loading of new chunks is finished
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
+      SIGNATURE_NOT_VERIFIED: void // the signature was not verified
+      RECONNECT_TO_SERVER: void // triggered when clicking on the reconnect button
+      USER_LOGOUT: void // triggered when the user logs out
     } & Packets &
       Actions
   >

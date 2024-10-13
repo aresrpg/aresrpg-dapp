@@ -15,6 +15,7 @@ function create_notification(
   button = false,
   button_text = 'Button Text',
   button_action = () => {},
+  icon = '',
 ) {
   let removed = false
 
@@ -25,6 +26,7 @@ function create_notification(
     button,
     button_text,
     button_action,
+    icon,
   })
 
   const notification_instance = VsNotification({
@@ -67,7 +69,7 @@ function create_notification(
 }
 
 export default {
-  tx(content, title, button, button_text, button_action) {
+  tx(content, title, button, button_text, button_action, icon) {
     return create_notification(
       'loading',
       content,
@@ -75,6 +77,7 @@ export default {
       button,
       button_text,
       button_action,
+      icon,
     )
   },
   success(content, title = 'AresRPG', icon = "<i class='bx bx-check'></i>") {
