@@ -32,6 +32,7 @@ export default function () {
           console.error('Failed to sign message:', error)
           context.dispatch('action/set_online', true)
           context.dispatch('action/set_online', false)
+          events.emit('SIGNATURE_NOT_VERIFIED')
           ares_client.end('User rejection')
         } finally {
           currently_signing = false

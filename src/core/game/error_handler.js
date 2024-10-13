@@ -1,7 +1,7 @@
 import { i18n } from '../../i18n.js'
 import toast from '../../toast.js'
 
-import { ws_status } from './game.js'
+import { context, ws_status } from './game.js'
 
 // @ts-ignore
 import FluentEmojiSkull from '~icons/fluent-emoji/skull'
@@ -22,29 +22,32 @@ export async function handle_server_error(reason) {
     if (!server_down_toast)
       server_down_toast = toast.tx(t('WS_CONNECTING_TO_SERVER'))
     server_down_toast.update('loading', t('WS_CONNECTING_TO_SERVER'))
-    return
+    return true
   }
 
   switch (reason) {
+    case 'User rejection':
+      return false
+    case 'ADDRESS_CHANGED':
     case 'USER_DISCONNECTED':
-      return
+      return true
     case 'ALREADY_ONLINE':
       toast.error(
         t('SERVER_ALREADY_ONLINE'),
         'Oh no!',
         "<i class='bx bx-key'/>",
       )
-      break
+      return false
     case 'EARLY_ACCESS_KEY_REQUIRED':
       toast.error(
         t('SERVER_EARLY_ACCESS_KEY_REQUIRED'),
         'Oh no!',
         "<i class='bx bx-key'/>",
       )
-      break
+      return false
     case 'MAX_PLAYERS':
       toast.info(t('SERVER_MAX_PLAYERS'), 'Suuuuu', "<i class='bx bxs-hot'/>")
-      break
+      return false
     case 'SIGNATURE_TIMEOUT':
       if (ws_status.value === 'CLOSED')
         toast.error(
@@ -52,23 +55,25 @@ export async function handle_server_error(reason) {
           'Aaaaaaaah 🫠',
           "<i class='bx bxs-timer'/>",
         )
-      break
+      context.events.emit('SIGNATURE_NOT_VERIFIED')
+      return false
     case 'INVALID_SIGNATURE':
       toast.error(t('SERVER_INVALID_SIGNATURE'))
-      break
+      return false
     case 'CHARACTER_INVALID':
       toast.error(t('SERVER_MOVE_FIRST'))
-      break
+      return true
     case 'CHARACTER_UNLOCKED':
       toast.error(t('SERVER_CHARACTER_UNLOCKED'), '...', FluentEmojiSkull)
-      break
+      return false
     case 'INVALID_CONTRACT':
       toast.error(t('SUI_INVALID_CONTRACT'))
-      break
+      return false
     case 'MAX_CHARACTERS_PER_PLAYER':
       toast.error(t('SERVER_MAX_CHARACTERS_PER_PLAYER'))
-      break
+      return false
     default:
       toast.error(reason)
+      return true
   }
 }

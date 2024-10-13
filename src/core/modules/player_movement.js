@@ -245,7 +245,10 @@ export default function () {
     observe({ events, signal, dispatch, send_packet }) {
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
         last_position => {
-          const player = current_three_character()
+          const state = context.get_state()
+          if (!state.online) return last_position
+
+          const player = current_three_character(state)
 
           if (!player?.position) return last_position
 
