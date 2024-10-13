@@ -6,6 +6,9 @@ SERVER_INVALID_SIGNATURE: Invalid signature
 SERVER_MOVE_FIRST: Please move before doing this action, the server must acknowledge your existence first
 SERVER_CHARACTER_UNLOCKED: Did you unlock your character ?
 SERVER_MAX_CHARACTERS_PER_PLAYER: You can't play with that many characters!
+SERVER_NOT_CONNECTED: Not connected
+SERVER_CLICK_TO_CONNECT: You are currently offline
+SERVER_RECONNECT_BUTTON: Reconnect
 
 APP_LOGIN_AGAIN: Please login again
 APP_WALLET_NOT_FOUND: Wallet not found
@@ -274,6 +277,9 @@ SUI_DATA_FETCHED: Successfully fetched characters and items
 SUI_ENOKI_DOWN: The sponsoring service seems to be malfunctioning, please try again later.
 SUI_ITEM_SOLD: was sold
 SUI_INVALID_CONTRACT: The contract is invalid, is your app up to date ? Try to refresh the page
+SUI_WAITING_SIGNATURE: Verifying your address signature
+SUI_SIGNATURE_ADDRESS_MISMATCH: The signature address does not match the connected wallet
+SUI_SIGNATURE_SUCCESS: Signature verified
 
 WS_FAILED_TO_CONNECT: Failed to connect to the server, check https://status.aresrpg.world for more information
 WS_RECONNECTED: Back online!

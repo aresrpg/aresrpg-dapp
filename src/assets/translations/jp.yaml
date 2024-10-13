@@ -6,6 +6,9 @@ SERVER_INVALID_SIGNATURE: 無効な署名です。
 SERVER_MOVE_FIRST: このアクションを実行する前に移動してください。サーバーはまずあなたの存在を確認する必要があります。
 SERVER_CHARACTER_UNLOCKED: キャラクターを解除しましたか？
 SERVER_MAX_CHARACTERS_PER_PLAYER: これほど多くのキャラクターを使用することはできません！
+SERVER_NOT_CONNECTED: オフラインです
+SERVER_CLICK_TO_CONNECT: サーバーに接続していません
+SERVER_RECONNECT_BUTTON: 再接続
 
 APP_LOGIN_AGAIN: もう一度ログインしてください。
 APP_WALLET_NOT_FOUND: ウォレットが見つかりません。
@@ -274,6 +277,9 @@ SUI_DATA_FETCHED: キャラクターとアイテムを正常に取得しまし�
 SUI_ENOKI_DOWN: スポンサリングサービスが不具合を起こしているようです。後ほどもう一度お試しください。
 SUI_ITEM_SOLD: が売れました。
 SUI_INVALID_CONTRACT: コントラクトが無効です。アプリが最新か確認してください。ページをリフレッシュしてみてください。
+SUI_WAITING_SIGNATURE: アドレス署名を確認中
+SUI_SIGNATURE_ADDRESS_MISMATCH: 署名アドレスが接続されたウォレットと一致しません
+SUI_SIGNATURE_SUCCESS: 署名が確認されました
 
 WS_FAILED_TO_CONNECT: サーバーへの接続に失敗しました。詳細はhttps://status.aresrpg.worldをご確認ください。
 WS_RECONNECTED: オンラインに戻りました！
