@@ -1,7 +1,8 @@
 <template lang="pug">
 div.notification-loader
   .spin
-    LoadingSpinner(:status="status")
+    GameIconsCrocSword(v-if="icon === 'sword'")
+    LoadingSpinner(:status="status" v-else)
   .left
     .title {{ title }}
     .text {{ text }}
@@ -14,9 +15,12 @@ import { VsButton } from 'vuesax-alpha';
 
 import LoadingSpinner from './control-spinner.vue';
 
+import GameIconsCrocSword from '~icons/game-icons/croc-sword';
+
 const props = defineProps({
   status: String,
   text: String,
+  icon: String,
   title: String,
   button: {
     type: Boolean,
