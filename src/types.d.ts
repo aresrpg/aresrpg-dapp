@@ -191,6 +191,9 @@ declare namespace Type {
         color: string
         is_critical: boolean
       } // display a floating damage text
+      SIGNATURE_NOT_VERIFIED: void // the signature was not verified
+      RECONNECT_TO_SERVER: void // triggered when clicking on the reconnect button
+      USER_LOGOUT: void // triggered when the user logs out
     } & Packets &
       Actions
   >
