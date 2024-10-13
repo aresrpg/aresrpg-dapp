@@ -387,10 +387,17 @@ renderer.info.autoReset = false
 composer.setSize(window.innerWidth, window.innerHeight)
 
 let currently_connecting = false
+let reconnect_toast = null
+
+events.on('USER_LOGOUT', () => {
+  reconnect_toast?.remove()
+})
 
 function connect_ws() {
   if (currently_connecting) return
   currently_connecting = true
+
+  if (reconnect_toast) reconnect_toast.remove()
 
   logger.SOCKET('Connecting to server')
   const connecting_toast = toast.tx(i18n.global.t('WS_CONNECTING_TO_SERVER'))
@@ -401,19 +408,12 @@ function connect_ws() {
     const { status } = useWebSocket(
       `${server_url}?address=${selected_address}`,
       {
-        autoReconnect: {
-          retries: () => {
-            if (currently_connecting) return false
-            currently_connecting = true
-
-            return !!context.get_state().sui.selected_address
-          },
-        },
+        autoReconnect: false,
         async onDisconnected(ws, event) {
           currently_connecting = false
 
           decrease_loading()
-          await handle_server_error(event.reason)
+          const should_reconnect = await handle_server_error(event.reason)
           ares_client?.notify_end(event.reason)
           logger.SOCKET(`disconnected: ${event.reason}`)
 
@@ -428,6 +428,23 @@ function connect_ws() {
             entities.forEach(mob => mob.remove()),
           )
           visible_mobs_group.clear()
+
+          if (context.get_state().sui.selected_address && should_reconnect)
+            setTimeout(() => {
+              connect_ws().catch(error => {
+                console.error('Failed to reconnect:', error)
+              })
+            }, 100)
+          else if (context.get_state().sui.selected_address) {
+            reconnect_toast = toast.tx(
+              i18n.global.t('SERVER_CLICK_TO_CONNECT'),
+              i18n.global.t('SERVER_NOT_CONNECTED'),
+              true,
+              i18n.global.t('SERVER_RECONNECT_BUTTON'),
+              () => events.emit('RECONNECT_TO_SERVER'),
+              'sword',
+            )
+          }
 
           reject(new Error('Disconnected from server'))
         },
@@ -636,12 +653,12 @@ export function pause_game() {
   game_visible_emitter.emit('hide')
 }
 
-export function disconnect_ws() {
+export function disconnect_ws(reason = 'USER_DISCONNECTED') {
   const { online } = get_state()
   if (online) {
     logger.SOCKET('Disconnecting from server')
 
-    ares_client.end('USER_DISCONNECTED')
+    ares_client.end(reason)
     context.dispatch('action/set_online', false)
   }
 }
