@@ -17,6 +17,7 @@ import {
   WorldUtils,
   SchematicLoader,
   ItemsInventory,
+  ProceduralItemGenerator,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -26,11 +27,11 @@ import {
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
+import { block_type, proc_items_conf } from '../utils/terrain/world_conf.js'
 import {
+  SCHEMPACKS,
   schem_blocks_mapping,
-  schem_files,
-} from '../utils/terrain/schematics_conf.js'
-import { blocks_colors, proc_items_conf } from '../utils/terrain/world_conf.js'
+} from '../utils/terrain/schem_conf.js'
 
 // global config
 const BOARD_POC = false
@@ -44,8 +45,8 @@ const world_worker = new Worker(
   { type: 'module' },
 )
 
-const voxel_materials_list = Object.values(blocks_colors).map(col => ({
-  color: new Color(col),
+const voxel_materials_list = Object.values(block_type).map(item => ({
+  color: new Color(item.color),
 }))
 
 let last_board_pos = new Vector3(10, 0, 10)
@@ -71,12 +72,17 @@ export default function () {
   // Run world-compute module in dedicated worker
   WorldComputeProxy.instance.worker = world_worker
   // default chunk factory
-  ChunkFactory.default.voxelDataEncoder = chunk_data_encoder
+  ChunkFactory.default.chunkDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
   // populate items inventory from schematics and procedural objects
   SchematicLoader.worldBlocksMapping = schem_blocks_mapping
-  ItemsInventory.importProceduralObjects(proc_items_conf, chunk_data_encoder)
-  ItemsInventory.importSchematics(schem_files, chunk_data_encoder)
+  SchematicLoader.chunkDataEncoder = chunk_data_encoder
+  ProceduralItemGenerator.chunkDataEncoder = chunk_data_encoder
+  ItemsInventory.externalResources.procItemsConfigs = proc_items_conf
+  ItemsInventory.externalResources.schemFileUrls = { ...SCHEMPACKS.TREES.files }
+  // ItemsInventory.importProceduralObjects(proc_items_conf, chunk_data_encoder)
+  // ItemsInventory.importSchematics(schempacks.files.trees.eu, chunk_data_encoder)
+  // ItemsInventory.importSchematics(schempacks.files.trees.misc, chunk_data_encoder)
 
   // ground patch container
   const ground_patches = new GroundMap()
@@ -90,12 +96,16 @@ export default function () {
     },
     async sampleHeightmap(coords) {
       console.log(`block batch compute size: ${coords.length}`)
-      const res = await WorldComputeProxy.instance.computeBlocksBatch(coords, {
-        includeEntitiesBlocks: true,
-      })
+      const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
+      const res = await WorldComputeProxy.instance.computeBlocksBatch(
+        pos_batch,
+        {
+          includeEntitiesBlocks: true,
+        },
+      )
       const data = res.map(block => ({
         altitude: block.pos.y + 0.25,
-        color: new Color(blocks_colors[block.data.type]),
+        color: new Color(block_type[block.data.type]),
       }))
       return data
     },
@@ -138,15 +148,14 @@ export default function () {
       voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
   }
 
-  const render_patch_chunks = (patch, items) => {
+  const render_patch_chunks = async (patch, items) => {
     // assemble ground and entities to form world chunks
-    const world_patch_chunks = ChunkFactory.defaultInstance.chunkifyPatch(
+    const world_patch_chunks = await ChunkFactory.instance.chunkifyPatch(
       patch,
       items,
     )
     // feed engine with chunks
     world_patch_chunks.forEach(world_chunk => render_chunk(world_chunk))
-
     // If not using on-the-fly gen, delay patch processing to prevents
     // too many chunks rendering at the same time (TODO)
     // setTimeout(() =>
