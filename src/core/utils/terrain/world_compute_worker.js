@@ -10,10 +10,9 @@ import {
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 
-import { schem_blocks_mapping, schem_files } from './schematics_conf.js'
 import { proc_items_conf, sea_level } from './world_conf.js'
-import { biome_mapping_conf } from './world_original_settings.js'
-import { chunk_data_encoder } from './world_utils.js'
+import { SCHEMPACKS, schem_blocks_mapping } from './schem_conf.js'
+import { biome_conf_mappings } from './biome_conf_mappings.original.js'
 
 const init_world = async () => {
   GroundPatch.patchSize = WorldConf.patchSize
@@ -21,12 +20,16 @@ const init_world = async () => {
   Heightmap.instance.heightmap.sampling.harmonicsCount = 6
   Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
   // Biome (blocks mapping)
-  Biome.instance.parseBiomesConfig(biome_mapping_conf)
+  Biome.instance.parseBiomesConfig(biome_conf_mappings)
   Biome.instance.params.seaLevel = sea_level
   // populate items inventory: import schematics and procedural objects
   SchematicLoader.worldBlocksMapping = schem_blocks_mapping
-  ItemsInventory.importProceduralObjects(proc_items_conf)
-  await ItemsInventory.importSchematics(schem_files, chunk_data_encoder)
+  ItemsInventory.externalResources.procItemsConfigs = proc_items_conf
+  ItemsInventory.externalResources.schemFileUrls = { ...SCHEMPACKS.TREES.files }
+  // SchematicLoader.worldBlocksMapping = schem_blocks_mapping
+  // ItemsInventory.importProceduralObjects(proc_items_conf)
+  // await ItemsInventory.importSchematics(schempacks.files.trees.eu, chunk_data_encoder)
+  // await ItemsInventory.importSchematics(schempacks.files.trees.misc, chunk_data_encoder)
   // define spawn distribution for items
   Object.keys(ItemsInventory.catalog).forEach(item_id => {
     ItemsInventory.spawners[item_id] = new PseudoDistributionMap()
@@ -45,13 +48,17 @@ addEventListener('unhandledrejection', e => {
   self.postMessage({ type: 'error', message: e.reason })
 })
 
-addEventListener('message', ({ data: input }) => {
+addEventListener('message', async ({ data: input }) => {
   const output = {
     id: input.id,
   }
   const { apiName: api_name } = input
-  const args = input.args.map(arg => WorldUtils.parseThreeStub(arg))
-  const res_stub = WorldCompute[api_name](...args)
-  output.data = res_stub
+  const args = input.args.map(arg =>
+    arg instanceof Array
+      ? arg.map(item => WorldUtils.parseThreeStub(item))
+      : WorldUtils.parseThreeStub(arg),
+  )
+  const res = WorldCompute[api_name](...args)
+  output.data = res instanceof Promise ? await res : res
   postMessage(output)
 })

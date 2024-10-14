@@ -4,13 +4,12 @@ import {
 } from '@aresrpg/aresrpg-engine'
 import {
   BlockMode,
-  BlockType,
   BoardContainer,
   WorldComputeProxy,
   WorldConf,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
-import { Color, Vector3 } from 'three'
+import { Color, Vector2, Vector3 } from 'three'
 import { LRUCache } from 'lru-cache'
 import * as BoardUtils from '@aresrpg/aresrpg-sdk/board'
 
@@ -29,7 +28,7 @@ const blocks_cache_min_batch_size = Math.pow(2 * blocks_cache_radius, 2) / 4 // 
  */
 const get_block_and_neighbours_keys = (pos, cache_radius = 0) => {
   const block_pos = pos.floor() // WorldUtils.roundToDecAny(pos, 1)
-  const main_key = `${block_pos.x}:${block_pos.z}`
+  const main_key = `${block_pos.x}:${block_pos.y}`
   const block_keys = [main_key]
   for (
     let x = block_pos.x - cache_radius;
@@ -37,11 +36,11 @@ const get_block_and_neighbours_keys = (pos, cache_radius = 0) => {
     x++
   ) {
     for (
-      let z = block_pos.z - cache_radius;
-      z <= block_pos.z + cache_radius;
-      z++
+      let y = block_pos.y - cache_radius;
+      y <= block_pos.y + cache_radius;
+      y++
     ) {
-      const neighbour_key = `${x}:${z}`
+      const neighbour_key = `${x}:${y}`
       if (neighbour_key !== main_key) block_keys.push(neighbour_key)
     }
   }
@@ -50,9 +49,7 @@ const get_block_and_neighbours_keys = (pos, cache_radius = 0) => {
 
 const request_blocks = block_keys => {
   // build batch
-  const block_pos_batch = block_keys.map(key =>
-    WorldUtils.asVect3(WorldUtils.parsePatchKey(key)),
-  )
+  const block_pos_batch = block_keys.map(key => WorldUtils.parsePatchKey(key))
   // send batch for compute
   return WorldComputeProxy.instance.computeBlocksBatch(block_pos_batch)
 }
@@ -62,7 +59,7 @@ function memoize_ground_block() {
   const ground_block_cache = new LRUCache({ max: 1000 })
 
   return ({ x, z }) => {
-    const pos = new Vector3(x, 0, z)
+    const pos = new Vector2(x, z)
     const [key, ...other_keys] = get_block_and_neighbours_keys(
       pos,
       blocks_cache_radius,
@@ -112,6 +109,8 @@ function get_ground_block({ x, z }, entity_height) {
   }
 
   if (ground_block instanceof Promise) return ground_block.then(parse_block)
+
+  // WorldComputeProxy.instance.computeBlocksBatch(block_pos_batch)
 
   return parse_block(ground_block)
 }
