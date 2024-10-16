@@ -5,140 +5,58 @@ import {
 import {
   BlockMode,
   BoardContainer,
-  WorldComputeProxy,
+  GroundCache,
   WorldConf,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
-import { LRUCache } from 'lru-cache'
 import * as BoardUtils from '@aresrpg/aresrpg-sdk/board'
+const cache_query_params = { cacheIfMissing: true, precacheRadius: 10 }
 
 /**
- * Ground height helpers
+ * Sync or async ground height
+ * @param {*} pos vector 2
+ * @returns ground height if available or promise if block not yet in cache
  */
+export function get_ground_height(pos) {
+  const ground_block = GroundCache.instance.queryBlock(pos, cache_query_params)
+  return ground_block instanceof Promise
+    ? ground_block.then(block => block.pos.y)
+    : ground_block.pos.y
+}
 
-const blocks_cache_radius = Math.pow(2, 3) // 8 blocks
-// minimal batch size to avoid flooding with too many blocks requests
-const blocks_cache_min_batch_size = Math.pow(2 * blocks_cache_radius, 2) / 4 // 16*16/4 = 256/4 = 64 blocks batch
 /**
- *
- * @param {*} pos central block to request pos from
- * @param {*} cache_radius cache radius around requested block
- * @returns
+ * Sync only
+ * @param {*} param0
+ * @param {*} entity_height
+ * @returns height if in cache or NaN
  */
-const get_block_and_neighbours_keys = (pos, cache_radius = 0) => {
-  const block_pos = pos.floor() // WorldUtils.roundToDecAny(pos, 1)
-  const main_key = `${block_pos.x}:${block_pos.y}`
-  const block_keys = [main_key]
-  for (
-    let x = block_pos.x - cache_radius;
-    x <= block_pos.x + cache_radius;
-    x++
-  ) {
-    for (
-      let y = block_pos.y - cache_radius;
-      y <= block_pos.y + cache_radius;
-      y++
-    ) {
-      const neighbour_key = `${x}:${y}`
-      if (neighbour_key !== main_key) block_keys.push(neighbour_key)
-    }
-  }
-  return block_keys
-}
-
-const request_blocks = block_keys => {
-  // build batch
-  const block_pos_batch = block_keys.map(key => WorldUtils.parsePatchKey(key))
-  // send batch for compute
-  return WorldComputeProxy.instance.computeBlocksBatch(block_pos_batch)
-}
-
-function memoize_ground_block() {
-  const pending_block_requests = new Map()
-  const ground_block_cache = new LRUCache({ max: 1000 })
-
-  return ({ x, z }) => {
-    const pos = new Vector2(x, z)
-    const [key, ...other_keys] = get_block_and_neighbours_keys(
-      pos,
-      blocks_cache_radius,
-    )
-    const requested_keys = [key, ...other_keys].filter(
-      key => !ground_block_cache.has(key) && !pending_block_requests.has(key),
-    )
-
-    let req
-    // Request all missing keys around block
-    //
-    if (
-      requested_keys.length > blocks_cache_min_batch_size ||
-      !ground_block_cache.has(key)
-    ) {
-      req = request_blocks(requested_keys)
-      // pending_block_requests.set(missing_keys, req)
-      req
-        .then(([main_block, ...other_blocks]) => {
-          ;[main_block, ...other_blocks].forEach((block, i) => {
-            const key = requested_keys[i]
-            // add to cache
-            ground_block_cache.set(key, block)
-            // remove original request from pending requests
-            pending_block_requests.delete(key)
-          })
-          return main_block
-        })
-        .catch(() => {
-          pending_block_requests.delete(key)
-        })
-      requested_keys.forEach(key => pending_block_requests.set(key, req))
-    }
-
-    return ground_block_cache.has(key)
-      ? ground_block_cache.get(key)
-      : pending_block_requests.get(key)
-  }
-}
-
-const request_ground_block = memoize_ground_block()
-
-function get_ground_block({ x, z }, entity_height) {
-  const ground_block = request_ground_block({ x, z })
-  const parse_block = ({ pos }) => {
-    return pos && Math.ceil(pos.y + 1) + entity_height * 0.5
-  }
-
-  if (ground_block instanceof Promise) return ground_block.then(parse_block)
-
-  // WorldComputeProxy.instance.computeBlocksBatch(block_pos_batch)
-
-  return parse_block(ground_block)
-}
-
-// those 2 functions allows for better typings instead of using param options
-
-export async function get_terrain_height({ x, z }, entity_height = 0) {
-  return get_ground_block({ x, z }, entity_height)
-}
-
-export function get_optional_terrain_height({ x, z }, entity_height = 0) {
-  const ground_block = get_ground_block({ x, z }, entity_height)
-  return ground_block instanceof Promise ? null : ground_block
+export function get_height({ x, z }, entity_height = 0) {
+  const ground_height = get_ground_height(new Vector2(x, z))
+  return ground_height instanceof Promise
+    ? NaN
+    : ground_height + entity_height * 0.5
 }
 
 /**
- * Chunks conversions
+ * Async version
+ * @param {*} param0
+ * @param {*} entity_height
+ * @returns async height
+ */
+export async function get_height_async({ x, z }, entity_height = 0) {
+  const ground_height = await get_ground_height(new Vector2(x, z))
+  return ground_height + entity_height * 0.5
+}
+
+/**
+ * Chunks
  */
 
 export const chunk_data_encoder = (val, mode = BlockMode.DEFAULT) =>
   val
     ? voxelmapDataPacking.encode(mode === BlockMode.BOARD_CONTAINER, val)
     : voxelmapDataPacking.encodeEmpty()
-
-// export const board_voxel_data_encoder = val =>
-//   val
-//     ? voxelmapDataPacking.encode(true, val)
-//     : voxelmapDataPacking.encodeEmpty()
 
 export const to_engine_chunk_format = world_chunk => {
   const id = WorldUtils.parseChunkKey(world_chunk.key)
@@ -159,19 +77,10 @@ export const to_engine_chunk_format = world_chunk => {
   return engine_chunk
 }
 
-export const export_chunk_to_zyx_format = world_chunk => {
-  // const dimensions = chunkBox.getSize(new Vector3())
-  // const getTargetIndex = (localPos) => localPos.z * dimensions.x * dimensions.y +
-  //   localPos.y * dimensions.x +
-  //   localPos.x
-  // read yBuffer at z,x pos
-}
-
 /**
- * BOARDS
+ * Boards
  */
 
-// board config
 const board_params = {
   radius: 32,
   thickness: 4,

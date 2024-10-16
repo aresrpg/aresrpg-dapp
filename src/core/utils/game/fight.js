@@ -1,4 +1,4 @@
-import { get_terrain_height } from '../terrain/world_utils.js'
+import { get_height } from '../terrain/world_utils.js'
 
 export async function get_fight_position(fight) {
   const position = {
@@ -7,6 +7,6 @@ export async function get_fight_position(fight) {
   }
   return {
     ...position,
-    y: await get_terrain_height(position, 1),
+    y: await get_height(position, 1),
   }
 }
