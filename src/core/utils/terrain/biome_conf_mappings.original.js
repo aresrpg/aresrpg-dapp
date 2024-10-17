@@ -157,7 +157,7 @@ artic.END = { x: 1, y: 0.7 }
  * Desert
  */
 
-const desert = biome_conf_mappings[BiomeType.Artic]
+const desert = biome_conf_mappings[BiomeType.Desert]
 
 desert.SEA = {
   id: 0,
