@@ -27,7 +27,10 @@ import {
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
-import { block_type, proc_items_conf } from '../utils/terrain/world_conf.js'
+import {
+  block_color_mapping,
+  proc_items_conf,
+} from '../utils/terrain/world_conf.js'
 import {
   SCHEMPACKS,
   schem_blocks_mapping,
@@ -35,18 +38,25 @@ import {
 
 // global config
 const BOARD_POC = false
-const SHOW_LOD = false
+const SHOW_LOD = true
 const ON_THE_FLY_GEN = true // when disabled patches will be baked in advance
 // settings
 const altitude = { min: -1, max: 400 }
 
+// primary world worker
 const world_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
   { type: 'module' },
 )
 
-const voxel_materials_list = Object.values(block_type).map(item => ({
-  color: new Color(item.color),
+// delegate to another worker to avoid monopolizing primary worker
+const delegated_world_worker = new Worker(
+  new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
+  { type: 'module' },
+)
+
+const voxel_materials_list = Object.values(block_color_mapping).map(col => ({
+  color: new Color(col),
 }))
 
 let last_board_pos = new Vector3(10, 0, 10)
@@ -71,6 +81,9 @@ export default function () {
   const max_patch_id_y = Math.floor(altitude.max / patch_size.y)
   // Run world-compute module in dedicated worker
   WorldComputeProxy.instance.worker = world_worker
+  // alternative proxy to handle subsidiary tasks
+  const world_delegated_proxy = new WorldComputeProxy()
+  world_delegated_proxy.worker = delegated_world_worker
   // default chunk factory
   ChunkFactory.default.chunkDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
@@ -97,15 +110,12 @@ export default function () {
     async sampleHeightmap(coords) {
       console.log(`block batch compute size: ${coords.length}`)
       const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
-      const res = await WorldComputeProxy.instance.computeBlocksBatch(
-        pos_batch,
-        {
-          includeEntitiesBlocks: true,
-        },
-      )
+      const res = await world_delegated_proxy.computeBlocksBatch(pos_batch, {
+        includeEntitiesBlocks: true,
+      })
       const data = res.map(block => ({
         altitude: block.pos.y + 0.25,
-        color: new Color(block_type[block.data.type]),
+        color: new Color(block_color_mapping[block.data.type]),
       }))
       return data
     },
