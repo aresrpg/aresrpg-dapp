@@ -36,10 +36,17 @@ import {
   schem_blocks_mapping,
 } from '../utils/terrain/schem_conf.js'
 
-// global config
-const BOARD_POC = false
-const SHOW_LOD = true
-const ON_THE_FLY_GEN = true // when disabled patches will be baked in advance
+const LOD_MODE = {
+  NONE: 0,
+  STATIC: 1,
+  DYNAMIC: 2,
+}
+// used to turn on/ turn off specific feat
+const FLAGS = {
+  LOD_MODE: LOD_MODE.STATIC, // should be set to STATIC to avoid unneeded computations
+  BOARD_POC: false, // temporary toggle until board integration is done
+  OTF_GEN: true, // when enabled patches will be baked progressively
+}
 // settings
 const altitude = { min: -1, max: 400 }
 
@@ -49,8 +56,8 @@ const world_worker = new Worker(
   { type: 'module' },
 )
 
-// delegate to another worker to avoid monopolizing primary worker
-const delegated_world_worker = new Worker(
+// used for delegating LOD computations to avoid monopolizing primary worker
+const delegated_tasks_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
   { type: 'module' },
 )
@@ -59,14 +66,16 @@ const voxel_materials_list = Object.values(block_color_mapping).map(col => ({
   color: new Color(col),
 }))
 
-let last_board_pos = new Vector3(10, 0, 10)
-let last_board_bounds = new Box2()
-let last_board_handler = null
+const last_board = {
+  pos: new Vector3(10, 0, 10),
+  bounds: new Box2(),
+  handler: null,
+}
 let pending_task = false
 
 const board_refresh_trigger = current_pos => {
   return (
-    WorldUtils.asVect2(last_board_pos).distanceTo(
+    WorldUtils.asVect2(last_board.pos).distanceTo(
       WorldUtils.asVect2(current_pos),
     ) > 1
   )
@@ -81,21 +90,18 @@ export default function () {
   const max_patch_id_y = Math.floor(altitude.max / patch_size.y)
   // Run world-compute module in dedicated worker
   WorldComputeProxy.instance.worker = world_worker
-  // alternative proxy to handle subsidiary tasks
+  // alternative proxy to route to secondary worker
   const world_delegated_proxy = new WorldComputeProxy()
-  world_delegated_proxy.worker = delegated_world_worker
+  world_delegated_proxy.worker = delegated_tasks_worker
   // default chunk factory
   ChunkFactory.default.chunkDataEncoder = chunk_data_encoder
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
-  // populate items inventory from schematics and procedural objects
+  // populate inventory with schematics and procedural objects
   SchematicLoader.worldBlocksMapping = schem_blocks_mapping
   SchematicLoader.chunkDataEncoder = chunk_data_encoder
   ProceduralItemGenerator.chunkDataEncoder = chunk_data_encoder
   ItemsInventory.externalResources.procItemsConfigs = proc_items_conf
   ItemsInventory.externalResources.schemFileUrls = { ...SCHEMPACKS.TREES.files }
-  // ItemsInventory.importProceduralObjects(proc_items_conf, chunk_data_encoder)
-  // ItemsInventory.importSchematics(schempacks.files.trees.eu, chunk_data_encoder)
-  // ItemsInventory.importSchematics(schempacks.files.trees.misc, chunk_data_encoder)
 
   // ground patch container
   const ground_patches = new GroundMap()
@@ -140,7 +146,7 @@ export default function () {
     maxLevel: 5,
   })
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = SHOW_LOD
+  terrain_viewer.parameters.lod.enabled = FLAGS.LOD_MODE > 0
 
   // CHUNKS RENDERING
   const update_chunks_visibility = () => {
@@ -175,7 +181,7 @@ export default function () {
 
   // BATTLE BOARD POC
   const render_board_container = async board_container => {
-    const extended_bounds = last_board_bounds.union(board_container.bounds)
+    const extended_bounds = last_board.bounds.union(board_container.bounds)
     // duplicate and override patches with content from board
     const overridden_patches = ground_patches
       .getOverlappingPatches(extended_bounds)
@@ -238,22 +244,22 @@ export default function () {
             pending_task = true
             const current_pos = player_position.clone().floor()
             // BOARD REFRSH
-            if (BOARD_POC && board_refresh_trigger(current_pos)) {
+            if (FLAGS.BOARD_POC && board_refresh_trigger(current_pos)) {
               const res = await setup_board_container(current_pos)
               if (res) {
                 const { board_container, board_handler } = res
 
                 // console.log(border_blocks)
                 render_board_container(board_container)
-                if (last_board_handler?.container) {
-                  last_board_handler.dispose()
-                  scene.remove(last_board_handler.container)
+                if (last_board.handler?.container) {
+                  last_board.handler.dispose()
+                  scene.remove(last_board.handler.container)
                 }
-                last_board_handler = board_handler
+                last_board.handler = board_handler
                 scene.add(board_handler.container)
                 // remember bounds for later board removal
-                last_board_bounds = board_container.bounds
-                last_board_pos = current_pos
+                last_board.bounds = board_container.bounds
+                last_board.pos = current_pos
               }
             }
             // PATCHES REFRESH
@@ -270,7 +276,7 @@ export default function () {
             )
             const has_changed = ground_patches.rebuildPatchIndex(view_box)
             if (has_changed) {
-              const changes = await ground_patches.loadEmpty(ON_THE_FLY_GEN)
+              const changes = await ground_patches.loadEmpty(FLAGS.OTF_GEN)
               update_chunks_visibility()
               // Bake world patches and sends chunks to engine
               for await (const patch of changes) {
@@ -281,11 +287,13 @@ export default function () {
                   )
                 render_patch_chunks(patch, overground_items)
               }
+              terrain_viewer.setLod(camera.position, 50, camera.far)
             }
             pending_task = false
           }
         }
-        terrain_viewer.setLod(camera.position, 50, camera.far)
+        FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
+          terrain_viewer.setLod(camera.position, 50, camera.far)
       })
     },
   }
