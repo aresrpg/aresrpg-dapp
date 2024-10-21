@@ -45,7 +45,7 @@ const LOD_MODE = {
 }
 
 const FLAGS = {
-  LOD_MODE: LOD_MODE.DISABLED,
+  LOD_MODE: LOD_MODE.STATIC,
   BOARD_POC: false, // POC toggle until board integration is finished
   OTF_GEN: true, // bake patch progressively
 }
