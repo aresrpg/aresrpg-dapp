@@ -1,3 +1,5 @@
+import { BlockType } from '@aresrpg/aresrpg-world'
+
 import { TREE_SCHEMPACK } from './schempack_trees.js'
 import { block_type } from './world_conf.js'
 
@@ -7,7 +9,7 @@ export const SCHEMPACKS = {
 
 // mapping from minecraft to world block types
 export const schem_blocks_mapping = {
-  air: block_type.NONE,
+  air: BlockType.NONE,
   // grass: block_type.GRASS,
   // LOG
   acacia_log: block_type.TREE_TRUNK_3,

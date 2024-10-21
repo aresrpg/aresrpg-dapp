@@ -36,16 +36,18 @@ import {
   schem_blocks_mapping,
 } from '../utils/terrain/schem_conf.js'
 
+// NB: LOD should be set to STATIC to limit over-computations
+// and remove graphical issues
 const LOD_MODE = {
-  NONE: 0,
+  DISABLED: 0,
   STATIC: 1,
   DYNAMIC: 2,
 }
-// used to turn on/ turn off specific feat
+
 const FLAGS = {
-  LOD_MODE: LOD_MODE.STATIC, // should be set to STATIC to avoid unneeded computations
-  BOARD_POC: false, // temporary toggle until board integration is done
-  OTF_GEN: true, // when enabled patches will be baked progressively
+  LOD_MODE: LOD_MODE.DISABLED,
+  BOARD_POC: false, // POC toggle until board integration is finished
+  OTF_GEN: true, // bake patch progressively
 }
 // settings
 const altitude = { min: -1, max: 400 }
@@ -56,7 +58,8 @@ const world_worker = new Worker(
   { type: 'module' },
 )
 
-// used for delegating LOD computations to avoid monopolizing primary worker
+// secondary worker used for delegating LOD computations
+// and avoid monopolizing primary world worker
 const delegated_tasks_worker = new Worker(
   new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
   { type: 'module' },
@@ -164,12 +167,9 @@ export default function () {
       voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
   }
 
-  const render_patch_chunks = async (patch, items) => {
+  const render_patch_chunks = (patch, items) => {
     // assemble ground and entities to form world chunks
-    const world_patch_chunks = await ChunkFactory.instance.chunkifyPatch(
-      patch,
-      items,
-    )
+    const world_patch_chunks = ChunkFactory.instance.chunkifyPatch(patch, items)
     // feed engine with chunks
     world_patch_chunks.forEach(world_chunk => render_chunk(world_chunk))
     // If not using on-the-fly gen, delay patch processing to prevents
@@ -177,6 +177,22 @@ export default function () {
     // setTimeout(() =>
     //   patch.toChunks().forEach(chunk => render_chunk(chunk)),
     // )
+  }
+
+  const transform_items_to_chunks = async overground_items => {
+    const res = []
+    for await (const [item_type, spawn_places] of Object.entries(
+      overground_items,
+    )) {
+      for await (const spawn_origin of spawn_places) {
+        const item_chunk = await ItemsInventory.getInstancedChunk(
+          item_type,
+          spawn_origin,
+        )
+        res.push(item_chunk)
+      }
+    }
+    return res
   }
 
   // BATTLE BOARD POC
@@ -188,18 +204,20 @@ export default function () {
       .map(patch => patch.duplicate())
     for await (const patch of overridden_patches) {
       PatchContainer.copySourceOverTargetContainer(board_container, patch)
-      const entities_chunks = await WorldComputeProxy.instance.bakeEntities(
-        patch.bounds,
-      )
+      // request all entities belonging to this patch
+      const overground_items =
+        await WorldComputeProxy.instance.queryOvergroundItems(patch.bounds)
+      // transform to chunk list
+      const items_chunk_list = await transform_items_to_chunks(overground_items)
       // discard entities overlapping with the board
-      const entities = entities_chunks.filter(
-        entity_chunk =>
+      const non_overlapping_chunks = items_chunk_list.filter(
+        item_chunk =>
           !board_container.isOverlappingWithBoard(
-            WorldUtils.asBox2(entity_chunk.entityData.bbox),
+            WorldUtils.asBox2(item_chunk.bounds),
           ),
       )
       // rerender all patches overlapped by the board
-      render_patch_chunks(patch, entities)
+      render_patch_chunks(patch, non_overlapping_chunks)
     }
   }
 
@@ -285,7 +303,10 @@ export default function () {
                   await WorldComputeProxy.instance.queryOvergroundItems(
                     patch.bounds,
                   )
-                render_patch_chunks(patch, overground_items)
+                // transform to chunk list
+                const items_chunk_list =
+                  await transform_items_to_chunks(overground_items)
+                render_patch_chunks(patch, items_chunk_list)
               }
               terrain_viewer.setLod(camera.position, 50, camera.far)
             }
