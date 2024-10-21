@@ -1,11 +1,11 @@
 import {
+  BlockType,
   ProcItemCategory,
   ProcItemType,
   WorldConf,
 } from '@aresrpg/aresrpg-world'
 
 export const block_type = {
-  NONE: 0,
   WATER: 0,
   ICE: 0,
   TREE_TRUNK: 0,
@@ -13,8 +13,6 @@ export const block_type = {
   TREE_TRUNK_3: 0,
   TREE_TRUNK_WHITE: 0,
   TREE_TRUNK_DARK: 0,
-  TREE_FOLIAGE: 0,
-  TREE_FOLIAGE_2: 0,
   SAND: 0,
   GRASS: 0,
   MUD: 0,
@@ -29,10 +27,17 @@ export const block_type = {
 }
 
 // assing an enum id to each type
-Object.keys(block_type).forEach((key, i) => (block_type[key] = i))
+Object.keys(block_type).forEach(
+  (key, i) => (block_type[key] = BlockType.LAST_PLACEHOLDER + i),
+)
 
 export const block_color_mapping = {
-  [block_type.NONE]: 0x000000,
+  [BlockType.NONE]: 0x000000,
+  [BlockType.MUD]: 0x795548,
+  [BlockType.TRUNK]: 0x795548,
+  [BlockType.HOLE]: 0x000000,
+  [BlockType.FOLIAGE_LIGHT]: 0x558b2f,
+  [BlockType.FOLIAGE_DARK]: 0x33691e,
   [block_type.WATER]: 0x74ccf4,
   [block_type.ICE]: 0x74ccf4,
   [block_type.TREE_TRUNK]: 0x795548,
@@ -40,8 +45,6 @@ export const block_color_mapping = {
   [block_type.TREE_TRUNK_3]: 0x585349,
   [block_type.TREE_TRUNK_WHITE]: 0xded3d5,
   [block_type.TREE_TRUNK_DARK]: 0x3f311d,
-  [block_type.TREE_FOLIAGE]: 0x558b2f,
-  [block_type.TREE_FOLIAGE_2]: 0x33691e,
   [block_type.SAND]: 0xc2b280,
   [block_type.GRASS]: 0x41980a,
   [block_type.MUD]: 0x795548,
@@ -64,7 +67,7 @@ WorldConf.patchPowSize = 6 // as a power of two (6 => 64 blocks)
 // max cache radius
 WorldConf.cachePowLimit = 2 // as a power of two (4 => 16 patches radius)
 // uncomment following lines to enable debugging vars
-WorldConf.debug.patch.borderHighlightColor = block_type.NONE
+// WorldConf.debug.patch.borderHighlightColor = block_type.DBG_LIGHT
 // WorldConf.debug.schematics.missingBlockType = block_type.DBG_DARK
 
 // World items
