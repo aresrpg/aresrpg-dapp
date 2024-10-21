@@ -97,27 +97,23 @@ export const setup_board_container = async current_pos => {
   )
   const board = { ...native_board, squares }
   board.size = { x: native_board.size.x, z: native_board.size.y }
-  board.origin.y++ // TODO: check where comes the issue
 
   if (board.data.length > 0) {
     const board_handler = new BoardOverlaysHandler({ board })
     board_handler.clearSquares()
-    highlight_board_edges(board_handler)
-    highlight_start_pos(board_handler)
+    highlight_board_edges(board_handler, board)
+    highlight_start_pos(board_handler, board)
     return { board_container, board_handler }
   }
 }
 
-export const highlight_board_edges = board_handler => {
+export const highlight_board_edges = (board_handler, board) => {
   const to_local_pos = pos => ({
-    x: pos.x - board_handler.board.origin.x,
-    z: pos.y - board_handler.board.origin.z,
+    x: pos.x - board.origin.x,
+    z: pos.y - board.origin.z,
   })
-  const border_blocks = BoardUtils.extract_border_blocks(board_handler.board)
-  const sorted_border_blocks = BoardUtils.sort_by_side(
-    border_blocks,
-    board_handler.board,
-  )
+  const border_blocks = BoardUtils.extract_border_blocks(board)
+  const sorted_border_blocks = BoardUtils.sort_by_side(border_blocks, board)
   const first_player_side = sorted_border_blocks.first.map(block =>
     to_local_pos(block.pos),
   )
@@ -128,16 +124,13 @@ export const highlight_board_edges = board_handler => {
   board_handler.displaySquares(second_player_side, new Color(0x00ff00))
 }
 
-export const highlight_start_pos = board_handler => {
+export const highlight_start_pos = (board_handler, board) => {
   const to_local_pos = pos => ({
-    x: pos.x - board_handler.board.origin.x,
-    z: pos.y - board_handler.board.origin.z,
+    x: pos.x - board.origin.x,
+    z: pos.y - board.origin.z,
   })
-  const board_items = BoardUtils.iter_board_data(board_handler.board)
-  const sorted_board_items = BoardUtils.sort_by_side(
-    board_items,
-    board_handler.board,
-  )
+  const board_items = BoardUtils.iter_board_data(board)
+  const sorted_board_items = BoardUtils.sort_by_side(board_items, board)
   const sorted_start_pos = {}
   sorted_start_pos.first = BoardUtils.random_select_items(
     sorted_board_items.first,
