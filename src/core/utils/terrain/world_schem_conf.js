@@ -1,7 +1,7 @@
 import { BlockType } from '@aresrpg/aresrpg-world'
 
 import { TREE_SCHEMPACK } from './schempack_trees.js'
-import { block_type } from './world_conf.js'
+import { block_type } from './world_static_conf.js'
 
 export const SCHEMPACKS = {
   TREES: TREE_SCHEMPACK,
@@ -37,7 +37,7 @@ export const schem_blocks_mapping = {
   cherry_leaves: BlockType.FOLIAGE_LIGHT,
   mangrove_leaves: BlockType.FOLIAGE_DARK,
   oak_leaves: BlockType.FOLIAGE_LIGHT,
-  dark_oak_leaves: block_type.GRASS,
+  dark_oak_leaves: BlockType.GRASS,
   spruce_leaves: BlockType.FOLIAGE_DARK,
   // STONES
   andesite: block_type.ROCK,

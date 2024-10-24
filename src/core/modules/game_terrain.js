@@ -8,7 +8,7 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Box2, Color, Vector2, Vector3 } from 'three'
+import { Box2, Box3, Color, LOD, Vector2, Vector3 } from 'three'
 import {
   ChunkFactory,
   PatchContainer,
@@ -18,6 +18,8 @@ import {
   SchematicLoader,
   ItemsInventory,
   ProceduralItemGenerator,
+  Biome,
+  Heightmap,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -27,14 +29,8 @@ import {
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
-import {
-  block_color_mapping,
-  proc_items_conf,
-} from '../utils/terrain/world_conf.js'
-import {
-  SCHEMPACKS,
-  schem_blocks_mapping,
-} from '../utils/terrain/schem_conf.js'
+import { block_color_mapping } from '../utils/terrain/world_static_conf.js'
+import { setup_world_modules } from '../utils/terrain/world_setup.js'
 
 // NB: LOD should be set to STATIC to limit over-computations
 // and remove graphical issues
@@ -45,7 +41,7 @@ const LOD_MODE = {
 }
 
 const FLAGS = {
-  LOD_MODE: LOD_MODE.STATIC,
+  LOD_MODE: LOD_MODE.DISABLED,
   BOARD_POC: false, // POC toggle until board integration is finished
   OTF_GEN: true, // bake patch progressively
 }
@@ -96,15 +92,18 @@ export default function () {
   // alternative proxy to route to secondary worker
   const world_delegated_proxy = new WorldComputeProxy()
   world_delegated_proxy.worker = delegated_tasks_worker
-  // default chunk factory
-  ChunkFactory.default.chunkDataEncoder = chunk_data_encoder
+  // common world setup
+  setup_world_modules({
+    heightmapInstance: Heightmap.instance,
+    biomeInstance: Biome.instance,
+    SchematicLoader,
+    ItemsInventory,
+  })
+  // chunk related conf
   ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
-  // populate inventory with schematics and procedural objects
-  SchematicLoader.worldBlocksMapping = schem_blocks_mapping
+  ChunkFactory.default.chunkDataEncoder = chunk_data_encoder
   SchematicLoader.chunkDataEncoder = chunk_data_encoder
   ProceduralItemGenerator.chunkDataEncoder = chunk_data_encoder
-  ItemsInventory.externalResources.procItemsConfigs = proc_items_conf
-  ItemsInventory.externalResources.schemFileUrls = { ...SCHEMPACKS.TREES.files }
 
   // ground patch container
   const ground_patches = new GroundMap()
@@ -117,7 +116,8 @@ export default function () {
       return null
     },
     async sampleHeightmap(coords) {
-      console.log(`block batch compute size: ${coords.length}`)
+      FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
+        console.log(`block batch compute size: ${coords.length}`)
       const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
       const res = await world_delegated_proxy.computeBlocksBatch(pos_batch, {
         includeEntitiesBlocks: true,

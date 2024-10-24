@@ -10,7 +10,7 @@
  *
  */
 
-import { SCHEMPACKS } from './schem_conf.js'
+import { SCHEMPACKS } from './world_schem_conf.js'
 
 const TREES = SCHEMPACKS.TREES.types
 
