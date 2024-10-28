@@ -64,25 +64,7 @@ export default function () {
 
       return state
     },
-    observe({ events, camera, camera_controls, renderer, signal }) {
-      function set_camera_padding(top, right, bottom, left) {
-        const full_width = window.innerWidth - left + right
-        const full_height = window.innerHeight - top + bottom
-        const width_offset = -left + right
-        const height_offset = -top + bottom
-        const view_width = window.innerWidth
-        const view_height = window.innerHeight
-        camera.setViewOffset(
-          full_width,
-          full_height,
-          width_offset,
-          height_offset,
-          view_width,
-          view_height,
-        )
-        camera.updateProjectionMatrix()
-      }
-
+    observe({ events, camera_controls, renderer, signal }) {
       camera_controls.dollyDragInverted = true
       camera_controls.dollyToCursor = true
       camera_controls.maxDistance = CAMERA_MAX_DISTANCE
@@ -90,8 +72,6 @@ export default function () {
       camera_controls.smoothTime = 0.1
       camera_controls.dollyTo(8)
       camera_controls.rotate(0, 1)
-
-      set_camera_padding(200, 0, 0, 0)
 
       // let is_dragging = false
 
@@ -140,7 +120,6 @@ export default function () {
                 on_mouse_down,
               )
               renderer.domElement.removeEventListener('wheel', on_mouse_wheel)
-              set_camera_padding(0, 0, 0, 0)
               // @ts-ignore
               camera_controls.mouseButtons.right = CameraControls.ACTION.TRUCK
               // @ts-ignore
@@ -154,7 +133,6 @@ export default function () {
               renderer.domElement.addEventListener('wheel', on_mouse_wheel, {
                 signal,
               })
-              set_camera_padding(200, 0, 0, 0)
               set_distance(camera_controls.distance)
               // @ts-ignore
               camera_controls.mouseButtons.right = CameraControls.ACTION.ROTATE
