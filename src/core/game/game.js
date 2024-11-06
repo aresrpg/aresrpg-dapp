@@ -32,6 +32,7 @@ import CameraControls from 'camera-controls'
 import { create_client } from '@aresrpg/aresrpg-protocol'
 import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
+import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
 
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
@@ -66,6 +67,7 @@ import { i18n } from '../../i18n.js'
 import game_entites_stroll from '../modules/game_entites_stroll.js'
 import player_entities_interract from '../modules/player_entities_interract.js'
 import game_fights from '../modules/game_fights.js'
+import { world_patch_size } from '../utils/terrain/world_settings.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -449,6 +451,14 @@ function connect_ws() {
   })
 }
 
+const voxelmap_collider = new VoxelmapCollider({
+  chunkSize: { x: world_patch_size, y: world_patch_size, z: world_patch_size },
+  voxelsChunkOrdering: 'zyx',
+})
+const voxelmap_collisions = new VoxelmapCollisions({
+  voxelmapCollider: voxelmap_collider,
+})
+
 const context = {
   events,
   actions,
@@ -504,6 +514,10 @@ const context = {
     // context.camera_controls.minPolarAngle = 0 // Allow full vertical rotation
     // context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
     // context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
+  },
+  physics: {
+    voxelmap_collider,
+    voxelmap_collisions,
   },
 }
 

@@ -2,50 +2,94 @@
 import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
-import { Object3D, Vector3 } from 'three'
-import { lerp } from 'three/src/math/MathUtils.js'
+import {
+  // CylinderGeometry,
+  Group,
+  // Mesh,
+  // MeshPhongMaterial,
+  Object3D,
+  Vector3,
+} from 'three'
+import { VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
 
-import { GRAVITY, context, current_three_character } from '../game/game.js'
+import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { get_terrain_height } from '../utils/terrain/chunk_utils.js'
 import { sea_level } from '../utils/terrain/world_settings.js'
 
 import { play_step_sound } from './game_audio.js'
 
-const SPEED = 10
+const RUN_SPEED = 10
 const WALK_SPEED = 6
 const SWIM_SPEED = 10
-const WATER_GRAVITY = 3
-const JUMP_FORCE = 10
-const ASCENT_GRAVITY_FACTOR = 3
-const APEX_GRAVITY_FACTOR = 0.3
-const DESCENT_GRAVITY_FACTOR = 5
+const GRAVITY = 50
+const GRAVITY_UNDERWATER = 5
+const JUMP_FORCE = 13
 const JUMP_FORWARD_IMPULSE = 3
-const JUMP_COOLDWON = 0.1 // one jump every 100ms
+const JUMP_COOLDOWN = 0.1 // one jump every 100ms
 
-const jump_states = {
-  ASCENT: 'ASCENT',
-  APEX: 'APEX',
-  DESCENT: 'DESCENT',
-  NONE: 'NONE',
+function compute_inputs_horizontal_movement(camera, inputs) {
+  const inputs_horizontal_movement_camera = new Vector3(
+    Number(inputs.right) - Number(inputs.left),
+    0,
+    Number(inputs.forward || (inputs.mouse_left && inputs.mouse_right)) -
+      Number(inputs.backward),
+  )
+  const has_inputs_horizontal_movement =
+    inputs_horizontal_movement_camera.lengthSq() > 0
+  if (has_inputs_horizontal_movement) {
+    inputs_horizontal_movement_camera.normalize()
+  }
+
+  const camera_forward = new Vector3(0, 0, -1)
+    .applyQuaternion(camera.quaternion)
+    .setY(0)
+    .normalize()
+  const camera_right = new Vector3(1, 0, 0)
+    .applyQuaternion(camera.quaternion)
+    .setY(0)
+    .normalize()
+  const inputs_horizontal_movement_world = new Vector3()
+  inputs_horizontal_movement_world.addScaledVector(
+    camera_forward,
+    inputs_horizontal_movement_camera.z,
+  )
+  inputs_horizontal_movement_world.addScaledVector(
+    camera_right,
+    inputs_horizontal_movement_camera.x,
+  )
+  return inputs_horizontal_movement_world
 }
 
 /** @type {Type.Module} */
 export default function () {
   const velocity = new Vector3()
 
-  let jump_state = jump_states.NONE
   let jump_cooldown = 0
-  let on_ground = false
-  let chunks_loaded = false
   let current_action = 'IDLE'
   let last_action = 'IDLE'
   let already_cancelled = false
 
   const dummy = new Object3D()
 
+  const player_collider_object = new Group()
+  const player_collider_radius = 0.25
+  const player_collider_height = 1.1
+  // {
+  // const player_collider_mesh = new Mesh(
+  //   new CylinderGeometry(
+  //     player_collider_radius,
+  //     player_collider_radius,
+  //     player_collider_height,
+  //   ),
+  //   new MeshPhongMaterial({ color: 0xcccccc }),
+  // )
+  // player_collider_mesh.position.y = 0.5 * player_collider_height
+  // player_collider_object.add(player_collider_mesh)
+  // }
+
   return {
-    tick(state, { camera }, delta) {
+    tick(state, { camera, physics }, delta) {
       const player = state.characters.find(
         character => character.id === state.selected_character_id,
       )
@@ -55,15 +99,6 @@ export default function () {
       const origin = player.position.clone()
       const is_underwater = player.position.y < sea_level
 
-      const camera_forward = new Vector3(0, 0, -1)
-        .applyQuaternion(camera.quaternion)
-        .setY(0)
-        .normalize()
-      const camera_right = new Vector3(1, 0, 0)
-        .applyQuaternion(camera.quaternion)
-        .setY(0)
-        .normalize()
-
       if (player.target_position) {
         player.target_position.y = get_terrain_height(
           player.target_position,
@@ -71,12 +106,34 @@ export default function () {
         )
         player.move(player.target_position)
         player.target_position = null
+        player_collider_object.position.copy(player.position)
         return
       }
 
-      // we don't want to go futher if no chunks are loaded
-      // this check must be after the target_position check
-      if (!chunks_loaded) return
+      const /** @type VoxelmapCollisions */ { voxelmap_collisions } = physics
+      const player_collisions = voxelmap_collisions.entityMovement(
+        {
+          radius: player_collider_radius,
+          height: player_collider_height,
+          position: player.position
+            .clone()
+            .sub({ x: 0, y: 0.5 * player.height, z: 0 }),
+          velocity,
+        },
+        {
+          deltaTime: delta,
+          gravity: is_underwater ? GRAVITY_UNDERWATER : GRAVITY,
+          considerMissingVoxelAs: 'blocking',
+        },
+      )
+
+      if (player_collisions.computationStatus === 'partial') {
+        // some required voxeldata was missing -> abort
+        return
+      }
+
+      player.position.copy(player_collisions.position).y += 0.5 * player.height
+      velocity.copy(player_collisions.velocity)
 
       // Avoid falling to hell
       // TODO: tp to nether if falling to hell
@@ -86,127 +143,76 @@ export default function () {
         return
       }
 
+      const inputs_horizontal_movement = compute_inputs_horizontal_movement(
+        camera,
+        inputs,
+      )
+      const has_inputs_horizontal_movement =
+        inputs_horizontal_movement.lengthSq() > 0
+
       const movement = new Vector3()
 
-      if (inputs.forward || (inputs.mouse_left && inputs.mouse_right))
-        movement.add(camera_forward)
-      if (inputs.backward) movement.sub(camera_forward)
-      if (inputs.right) movement.add(camera_right)
-      if (inputs.left) movement.sub(camera_right)
+      current_action = 'IDLE'
 
-      const speed = inputs.walk ? WALK_SPEED : SPEED
+      if (is_underwater) {
+        const water_movement = inputs_horizontal_movement
+          .clone()
+          .multiplyScalar(SWIM_SPEED)
+        velocity.x = water_movement.x
+        velocity.z = water_movement.z
+        player.rotate(water_movement)
 
-      // normalize sideways movement
-      if (movement.length()) movement.normalize().multiplyScalar(speed * delta)
-
-      // Apply jump force
-      if (on_ground) {
-        if (jump_cooldown > 0) jump_cooldown -= delta
-        if (inputs.jump && jump_cooldown <= 0) {
-          velocity.y = JUMP_FORCE
-
-          const forward_impulse = movement
-            .clone()
-            .normalize()
-            .multiplyScalar(JUMP_FORWARD_IMPULSE)
-
-          velocity.x += forward_impulse.x
-          velocity.z += forward_impulse.z
-
-          jump_state = jump_states.ASCENT
-          jump_cooldown = JUMP_COOLDWON
-          on_ground = false
+        if (inputs.jump) {
+          velocity.y = 1.5 * GRAVITY_UNDERWATER
         } else {
-          jump_state = jump_states.NONE
+          velocity.y = -GRAVITY_UNDERWATER
+        }
+        current_action = 'RUN'
+      } else {
+        if (player_collisions.isOnGround) {
+          const ground_movement = inputs_horizontal_movement
+            .clone()
+            .multiplyScalar(inputs.walk ? WALK_SPEED : RUN_SPEED)
+          velocity.x = ground_movement.x
+          velocity.z = ground_movement.z
 
-          // reset jump impulse
-          velocity.x = 0
-          velocity.z = 0
-          velocity.y = 0
+          if (has_inputs_horizontal_movement) {
+            if (inputs.walk) {
+              current_action = 'WALK'
+            } else {
+              current_action = 'RUN'
+            }
+
+            player.rotate(ground_movement)
+            play_step_sound()
+          }
+
+          // Apply jump force
+          if (jump_cooldown > 0) {
+            jump_cooldown -= delta
+          }
+          if (inputs.jump && jump_cooldown <= 0) {
+            const forward_impulse = inputs_horizontal_movement
+              .clone()
+              .multiplyScalar(JUMP_FORWARD_IMPULSE)
+            velocity.x += forward_impulse.x
+            velocity.y = JUMP_FORCE
+            velocity.z += forward_impulse.z
+
+            jump_cooldown = JUMP_COOLDOWN
+          }
+        } else {
+          if (velocity.y > 0) {
+            current_action = 'JUMP_RUN'
+          } else {
+            current_action = 'FALL'
+          }
         }
       }
 
-      switch (jump_state) {
-        case jump_states.ASCENT:
-          if (current_action !== 'JUMP_RUN') current_action = 'FALL'
-          // if started jumping, apply normal gravity
-          velocity.y -= GRAVITY * ASCENT_GRAVITY_FACTOR * delta
-          // prepare apex phase
-          if (velocity.y <= 0.2) jump_state = jump_states.APEX
-          break
-        case jump_states.APEX:
-          // ignore falling if jumping while running
-          if (current_action !== 'JUMP_RUN') current_action = 'FALL'
-          // if apex phase, apply reduced gravity
-          velocity.y -= GRAVITY * APEX_GRAVITY_FACTOR * delta
-          // prepare descent phase
-          if (velocity.y <= 0) jump_state = jump_states.DESCENT
-          break
-        case jump_states.DESCENT:
-          // ignore falling if jumping while running
-          if (current_action !== 'JUMP_RUN') current_action = 'FALL'
-          // if descent phase, apply increased gravity
-          velocity.y -= GRAVITY * DESCENT_GRAVITY_FACTOR * delta
-          // and also cancel forward impulse
-          velocity.x = lerp(velocity.x, 0, 0.1)
-          velocity.z = lerp(velocity.z, 0, 0.1)
-          break
-        case jump_states.NONE:
-        default:
-          current_action = 'IDLE'
-          // if not jumping, apply normal gravity as long as chunks are there
-          if (on_ground) velocity.y = -GRAVITY * delta
-          else velocity.y -= GRAVITY * DESCENT_GRAVITY_FACTOR * delta
-      }
-
-      if (is_underwater) {
-        jump_state = jump_states.NONE
-
-        velocity.y = -WATER_GRAVITY
-        if (inputs.jump) velocity.y += SWIM_SPEED
-      }
-      movement.addScaledVector(velocity, delta)
       dummy.position.copy(origin.clone().add(movement))
 
-      const { x, z } = dummy.position
-      const ground_height = get_terrain_height({ x, z }, 0)
-
-      if (!ground_height) return
-
-      const target_y = ground_height + player.height * 0.5
-      const dummy_bottom_y = dummy.position.y - player.height * 0.5
-      const ground_height_distance = ground_height - dummy_bottom_y
-
-      if (dummy_bottom_y <= ground_height) {
-        dummy.position.y = lerp(dummy.position.y, target_y, 0.2)
-        velocity.y = 0
-        on_ground = true
-      } else {
-        on_ground = false
-      }
-
-      if (ground_height_distance > 2) dummy.position.copy(origin)
-
-      if (player.position.distanceTo(dummy.position) > 0.01) {
-        player.move(dummy.position)
-      }
-
       const is_moving_horizontally = movement.x !== 0 || movement.z !== 0
-
-      if (is_moving_horizontally) {
-        player.rotate(movement)
-        current_action = 'RUN'
-
-        if (on_ground) {
-          if (inputs.walk) current_action = 'WALK'
-        } else if (jump_state === jump_states.ASCENT)
-          current_action = 'JUMP_RUN'
-
-        if (on_ground) play_step_sound()
-      }
-
-      if (!is_underwater && !(dummy_bottom_y - 4 < ground_height))
-        current_action = 'FALL'
 
       const should_cancel_other_actions =
         is_moving_horizontally &&
@@ -242,7 +248,9 @@ export default function () {
       }
       return state
     },
-    observe({ events, signal, dispatch, send_packet }) {
+    observe({ events, signal, dispatch, send_packet, scene }) {
+      scene.add(player_collider_object)
+
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
         last_position => {
           const player = current_three_character()
@@ -273,10 +281,6 @@ export default function () {
         },
         { x: 0, y: 0, z: 0 },
       )
-
-      events.once('CHUNKS_LOADED', () => {
-        chunks_loaded = true
-      })
 
       // @ts-ignore
       dispatch('') // dispatch meaningless action to trigger the first state change and allow player_spawn.js to register the player
