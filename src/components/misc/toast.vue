@@ -6,12 +6,20 @@ div.notification-loader
   .left
     .title {{ title }}
     .text {{ text }}
+    a.tx-link(
+      v-if="props.digest"
+      :href="`https://suiscan.xyz/${NETWORK}/tx/${props.digest}`"
+      target="_blank"
+      rel="noopener noreferrer"
+    ) {{ props.digest }}
   .right(v-if="button")
     vs-button(@click="button_action" type="gradient" size="small" color="#43A047") {{ button_text }}
 </template>
 
 <script setup>
 import { VsButton } from 'vuesax-alpha';
+
+import { NETWORK } from '../../env.js';
 
 import LoadingSpinner from './control-spinner.vue';
 
@@ -33,6 +41,10 @@ const props = defineProps({
   button_text: {
     type: String,
     default: 'Button Text',
+  },
+  digest: {
+    type: String,
+    default: '',
   },
 });
 </script>
@@ -62,6 +74,13 @@ const props = defineProps({
     .text
       font-size .8em
       opacity .7
+    .tx-link
+      font-size .7em
+      color #ddd
+      text-decoration underline
+      opacity .7
+      &:hover
+        color #2980B9
   .right
     display flex
     justify-content center

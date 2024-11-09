@@ -1,6 +1,6 @@
 <template lang="pug">
 .container
-  span(v-if="!current_wallet && !props.allow_offline") {{ t('APP_PLEASE_CONNECT') }}
+  span(v-if="!online && !props.allow_offline") {{ t('APP_PLEASE_CONNECT') }}
   slot(v-else)
 </template>
 
@@ -11,7 +11,7 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const props = defineProps(['allow_offline']);
 
-const current_wallet = inject('current_wallet');
+const online = inject('online');
 </script>
 
 <style lang="stylus" scoped>
