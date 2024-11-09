@@ -93,7 +93,7 @@ function is_equipped(item) {
     item.id === selected_character.value.belt?.id ||
     item.id === selected_character.value.boots?.id ||
     item.id === selected_character.value.hat?.id ||
-    item.id === selected_character.value.cloack?.id ||
+    item.id === selected_character.value.cloak?.id ||
     item.id === selected_character.value.pet?.id ||
     item.id === selected_character.value.left_ring?.id ||
     item.id === selected_character.value.right_ring?.id ||
@@ -125,8 +125,8 @@ function is_slot_valid(slot, item) {
       return item.item_category === ITEM_CATEGORY.BOOTS;
     case 'hat':
       return item.item_category === ITEM_CATEGORY.HAT;
-    case 'cloack':
-      return item.item_category === ITEM_CATEGORY.CLOACK;
+    case 'cloak':
+      return item.item_category === ITEM_CATEGORY.CLOAK;
     case 'pet':
       return item.item_category === ITEM_CATEGORY.PET;
   }

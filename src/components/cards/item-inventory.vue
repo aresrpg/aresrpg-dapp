@@ -243,10 +243,10 @@ function equip_item(item) {
       );
       break;
     }
-    case ITEM_CATEGORY.CLOACK: {
-      if (edit_mode_equipment.cloack)
-        edit_mode_equipment.equipments.push(edit_mode_equipment.cloack);
-      edit_mode_equipment.cloack = item;
+    case ITEM_CATEGORY.CLOAK: {
+      if (edit_mode_equipment.cloak)
+        edit_mode_equipment.equipments.push(edit_mode_equipment.cloak);
+      edit_mode_equipment.cloak = item;
       edit_mode_equipment.equipments = edit_mode_equipment.equipments.filter(
         i => i.id !== item.id,
       );

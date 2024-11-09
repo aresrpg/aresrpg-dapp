@@ -129,7 +129,7 @@ function has_equipment(character) {
     character.belt ||
     character.boots ||
     character.hat ||
-    character.cloack ||
+    character.cloak ||
     character.pet ||
     character.left_ring ||
     character.right_ring ||

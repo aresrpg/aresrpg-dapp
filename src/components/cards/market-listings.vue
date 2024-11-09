@@ -39,7 +39,6 @@ import { useI18n } from 'vue-i18n';
 import { BigNumber as BN } from 'bignumber.js';
 import { MIST_PER_SUI } from '@mysten/sui/utils';
 
-import { VITE_INDEXER_URL } from '../../env.js';
 import { sui_buy_item, mists_to_sui } from '../../core/sui/client.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
 import toast from '../../toast.js';
@@ -92,15 +91,18 @@ function start_buy_item(item) {
 }
 
 function final_item_price(item) {
-  if (!item.is_aresrpg_item && !item.is_aresrpg_character)
+  if (!item.is_aresrpg_item && item.item_category !== 'character') {
+    if (item.item_type === 'vaporeon')
+      return new BN(mists_to_sui(item.list_price)).times(1.1);
     return new BN(mists_to_sui(item.list_price));
+  }
 
   // Convert mists to Sui and create a BN instance of the price
   const price_in_sui = new BN(mists_to_sui(item.list_price));
 
   // Determine the royalty rate
   const royalty_rate =
-    item.is_aresrpg_character || item.is_aresrpg_item ? 0.1 : 0;
+    item.item_category === 'character' || item.is_aresrpg_item ? 0.1 : 0;
 
   // Calculate the royalty amount
   const calculated_royalty = price_in_sui.times(royalty_rate);
@@ -129,21 +131,21 @@ async function buy_item() {
   buy_dialog.value = false;
 }
 
-async function fetch_listings() {
-  const result = await fetch(
-    `${VITE_INDEXER_URL}/listings/${selected_item_type.value}`,
-  );
-  const { items, cursor } = await result.json();
-  listings.value = items;
-  if (items.length) select_item(items[0]);
+function fetch_listings() {
+  context.send_packet('packet/marketItemListingsRequest', {
+    item_type: selected_item_type.value,
+    start: 0,
+    limit: 50,
+  });
 }
 
 watch(
   selected_item_type,
-  async (type, last_type) => {
+  (type, last_type) => {
     if (type === last_type) return;
+    console.log('selected_item_type', type);
     listings.value = [];
-    await fetch_listings();
+    fetch_listings();
   },
   { immediate: true },
 );
@@ -151,11 +153,11 @@ watch(
 watch(filtered_category, () => {
   if (filtered_category.value !== listings.value[0]?.item_category) {
     listings.value = [];
-    // fetch_listings();
   }
 });
 
-function on_item_purchased({ id }) {
+function on_item_purchased({ item, character = null }) {
+  const id = item?.id || character?.id;
   const listing_index = listings.value.findIndex(listing => listing.id === id);
 
   if (listing_index !== -1) {
@@ -168,25 +170,30 @@ function on_item_purchased({ id }) {
 }
 
 function on_item_delisted(item) {
-  on_item_purchased(item);
+  on_item_purchased({ item });
 }
 
-function on_item_listed(item) {
-  setTimeout(() => {
-    fetch_listings();
-  }, 7000);
+function on_listings_response(payload) {
+  const items = payload.listings.map(listing => JSON.parse(listing));
+  listings.value = [
+    ...listings.value.filter(({ id }) => !items.some(item => item.id === id)),
+    ...items,
+  ];
+  select_item(items[0]);
 }
 
 onMounted(async () => {
+  context.events.on('packet/marketItemListings', on_listings_response);
   SUI_EMITTER.on('ItemPurchasedEvent', on_item_purchased);
   SUI_EMITTER.on('ItemDelistedEvent', on_item_delisted);
-  SUI_EMITTER.on('ItemListedEvent', on_item_listed);
+  SUI_EMITTER.on('ItemListedEvent', fetch_listings);
 });
 
 onUnmounted(() => {
+  context.events.off('packet/marketItemListings', on_listings_response);
   SUI_EMITTER.off('ItemPurchasedEvent', on_item_purchased);
   SUI_EMITTER.off('ItemDelistedEvent', on_item_delisted);
-  SUI_EMITTER.off('ItemListedEvent', on_item_listed);
+  SUI_EMITTER.off('ItemListedEvent', fetch_listings);
 });
 </script>
 
