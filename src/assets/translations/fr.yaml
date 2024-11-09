@@ -5,6 +5,7 @@ SERVER_SIGNATURE_TIMEOUT: Veuillez signer le message plus rapidement !
 SERVER_INVALID_SIGNATURE: Signature invalide
 SERVER_MOVE_FIRST: Veuillez bouger avant de faire cette action, le serveur doit d'abord reconnaître votre existence
 SERVER_CHARACTER_UNLOCKED: Avez-vous débloqué votre personnage ?
+SERVER_CHARACTER_NOT_FOUND: Ce personnage semble ne pas exister (non indexé)
 SERVER_MAX_CHARACTERS_PER_PLAYER: Vous ne pouvez pas jouer avec autant de personnages !
 SERVER_NOT_CONNECTED: Hors ligne
 SERVER_CLICK_TO_CONNECT: Vous n'êtes actuellement pas connecté
@@ -90,7 +91,7 @@ APP_ITEM_RELIC: Relique
 APP_ITEM_RUNE: Rune
 APP_ITEM_MOUNT: Monture
 APP_ITEM_HAT: Coiffe
-APP_ITEM_CLOACK: Cape
+APP_ITEM_CLOAK: Cape
 APP_ITEM_AMULET: Amulette
 APP_ITEM_RING: Anneau
 APP_ITEM_BELT: Ceinture
@@ -224,7 +225,7 @@ APP_GAME_INVENTORY_CLAIM_ALL: Tout récupérer
 
 APP_ZONE_PLAYERS: Joueurs
 
-APP_PLEASE_CONNECT: Bienvenue sur AresRPG, veuillez vous connecter pour commencer
+APP_PLEASE_CONNECT: Bienvenue sur AresRPG, veuillez vous connecter au serveur pour commencer
 
 APP_SIDEBAR_SHOP: Hôtel des ventes
 APP_SIDEBAR_SETTINGS: Paramètres
@@ -253,6 +254,16 @@ APP_TOP_BAR_FAUCET_CLAIM: Récupération de Sui en cours
 APP_TOP_BAR_FAUCET_CLAIMED: Sui récupéré avec succès
 APP_TOP_BAR_FAUCET_FAILED: Échec de la récupération de Sui
 APP_TOP_BAR_FAUCET: Miner quelques Sui
+APP_TOP_BAR_WITHDRAW: Retirer
+APP_TOP_BAR_WITHDRAW_SEND: Envoyer
+APP_TOP_BAR_WITHDRAW_RECIPIENT: Addresse
+APP_TOP_BAR_WITHDRAW_AMOUNT: Montant
+APP_TOP_BAR_WITHDRAW_DESC: Vous êtes sur le point d'envoyer des Sui vers un autre portefeuille, veuillez vous assurer que l'adresse est correcte car cette action est irréversible
+APP_TOP_BAR_INVALID_ADDRESS: Adresse invalide
+APP_TOP_BAR_WITHDRAW_SUCCESS: Sui {0} ont été envoyés à {1}
+APP_TOP_BAR_WITHDRAW_FAILED: Échec de l'envoi de Sui
+APP_TOP_BAR_WITHDRAWING: Envoi à {0}
+APP_TOP_BAR_INVALID_AMOUNT: Montant invalide
 
 APP_WALLET_CONNECT: Connecter un portefeuille
 APP_WALLET_WHAT: Qu'est-ce qu'un portefeuille ?

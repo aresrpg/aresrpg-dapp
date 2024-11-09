@@ -5,6 +5,7 @@ SERVER_SIGNATURE_TIMEOUT: メッセージの署名をもっと早く行ってく
 SERVER_INVALID_SIGNATURE: 無効な署名です。
 SERVER_MOVE_FIRST: このアクションを実行する前に移動してください。サーバーはまずあなたの存在を確認する必要があります。
 SERVER_CHARACTER_UNLOCKED: キャラクターを解除しましたか？
+SERVER_CHARACTER_NOT_FOUND: このキャラクターは存在しないようです
 SERVER_MAX_CHARACTERS_PER_PLAYER: これほど多くのキャラクターを使用することはできません！
 SERVER_NOT_CONNECTED: オフラインです
 SERVER_CLICK_TO_CONNECT: サーバーに接続していません
@@ -89,7 +90,7 @@ APP_ITEM_RELIC: レリック
 APP_ITEM_RUNE: ルーン
 APP_ITEM_MOUNT: マウント
 APP_ITEM_HAT: 帽子
-APP_ITEM_CLOACK: マント
+APP_ITEM_CLOAK: マント
 APP_ITEM_AMULET: アミュレット
 APP_ITEM_RING: 指輪
 APP_ITEM_BELT: ベルト
@@ -223,7 +224,7 @@ APP_GAME_INVENTORY_CLAIM_ALL: すべてを請求
 
 APP_ZONE_PLAYERS: プレイヤー
 
-APP_PLEASE_CONNECT: AresRPGへようこそ。始めるにはログインしてください。
+APP_PLEASE_CONNECT: AresRPGへようこそ。始めるにはサーバーに接続してください。
 
 APP_SIDEBAR_SHOP: マーケット
 APP_SIDEBAR_SETTINGS: 設定
@@ -252,6 +253,16 @@ APP_TOP_BAR_FAUCET_CLAIM: テストSuiを印刷中
 APP_TOP_BAR_FAUCET_CLAIMED: Suiを請求しました
 APP_TOP_BAR_FAUCET_FAILED: Suiの請求に失敗しました
 APP_TOP_BAR_FAUCET: Suiを入手
+APP_TOP_BAR_WITHDRAW: 撤回する
+APP_TOP_BAR_WITHDRAW_SEND: 送信
+APP_TOP_BAR_WITHDRAW_RECIPIENT: 受取人
+APP_TOP_BAR_WITHDRAW_AMOUNT: 金額
+APP_TOP_BAR_WITHDRAW_DESC: 別のウォレットに Sui を送信しようとしています。この操作は元に戻せないため、アドレスが正しいことを確認してください。
+APP_TOP_BAR_INVALID_ADDRESS: 無効なアドレス
+APP_TOP_BAR_WITHDRAW_SUCCESS: Sui {0} を {1} に送信しました
+APP_TOP_BAR_WITHDRAW_FAILED: Sui の送信に失敗しました
+APP_TOP_BAR_WITHDRAWING: Sui を {0} に送信しています
+APP_TOP_BAR_INVALID_AMOUNT: 無効な金額
 
 APP_WALLET_CONNECT: ウォレットを接続
 APP_WALLET_WHAT: ウォレットとは？
