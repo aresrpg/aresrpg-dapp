@@ -53,7 +53,7 @@ const equipment = reactive({
   right_ring: null,
   boots: null,
   hat: null,
-  cloack: null,
+  cloak: null,
   pet: null,
 });
 
@@ -75,7 +75,7 @@ const edit_mode_equipment = reactive({
   right_ring: null,
   boots: null,
   hat: null,
-  cloack: null,
+  cloak: null,
   pet: null,
   dragged_item: null,
   dragg_started_from: null,
@@ -295,7 +295,7 @@ function update_all(
         right_ring,
         boots,
         hat,
-        cloack,
+        cloak,
         pet,
       } = character;
 
@@ -372,9 +372,9 @@ function update_all(
         equipment.hat = hat;
       }
       // @ts-ignore
-      if (cloack?.id !== equipment.cloack?.id) {
+      if (cloak?.id !== equipment.cloak?.id) {
         equipment_changed = true;
-        equipment.cloack = cloack;
+        equipment.cloak = cloak;
       }
       // @ts-ignore
       if (pet?.id !== equipment.pet?.id) {
@@ -415,8 +415,8 @@ function update_all_(state) {
 async function refresh_listed_item_names() {
   try {
     // fetch names of item listed (to allow search)
-    const result = await fetch(`${VITE_INDEXER_URL}/items/category-map`);
-    currently_listed_items_names.value = await result.json();
+    // const result = await fetch(`${VITE_INDEXER_URL}/items/category-map`);
+    // currently_listed_items_names.value = await result.json();
   } catch (error) {
     console.error('Failed to fetch listed items names', error);
   }

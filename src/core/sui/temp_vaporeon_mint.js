@@ -4,7 +4,7 @@ import { MIST_PER_SUI } from '@mysten/sui/utils'
 import { NETWORK } from '../../env.js'
 import { context } from '../game/game.js'
 
-import { execute, sdk } from './client.js'
+import { execute, sdk, sui_enforce_personal_kiosk } from './client.js'
 
 function get_vaporeon_package_id() {
   const [package_id_raw] = Object.entries(sdk.SUPPORTED_NFTS).find(
@@ -57,10 +57,9 @@ export async function sui_get_vaporeon_mint_keys() {
 export async function sui_mint_vaporeon(key) {
   const tx = new Transaction()
 
-  const { kiosk_tx, kiosk_id, kiosk_cap } = await sdk.enforce_personal_kiosk({
-    tx,
-    recipient: context.get_state().sui.selected_address,
-  })
+  const { kiosk_tx, kiosk_id, kiosk_cap } = await sui_enforce_personal_kiosk(tx)
+
+  console.log({ kiosk_tx, kiosk_id, kiosk_cap })
 
   if (key)
     tx.moveCall({
@@ -68,7 +67,7 @@ export async function sui_mint_vaporeon(key) {
       arguments: [
         tx.object(key),
         tx.object(vaporeon_registry_id()),
-        kiosk_id,
+        typeof kiosk_id === 'string' ? tx.object(kiosk_id) : kiosk_id,
         kiosk_cap,
         tx.object(vaporeon_transfer_policy()),
         tx.object('0x6'),
@@ -80,7 +79,7 @@ export async function sui_mint_vaporeon(key) {
       arguments: [
         coinWithBalance({ balance: 60n * MIST_PER_SUI, useGasCoin: true }),
         tx.object(vaporeon_registry_id()),
-        kiosk_id,
+        typeof kiosk_id === 'string' ? tx.object(kiosk_id) : kiosk_id,
         kiosk_cap,
         tx.object(vaporeon_transfer_policy()),
         tx.object('0x6'),

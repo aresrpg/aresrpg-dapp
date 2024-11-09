@@ -22,13 +22,13 @@ export default function () {
           characters: state.characters.filter(({ id }) => id !== payload),
         }
       if (type === 'action/add_character') {
-        const three_character = ENTITIES.from_character(payload)
+        const { three_character, sui_character } = payload
 
-        const level = experience_to_level(payload.experience)
+        const level = experience_to_level(sui_character.experience)
 
-        three_character.floating_title.text = `${payload.name} (${level})`
+        three_character.floating_title.text = `${sui_character.name} (${level})`
 
-        three_character.target_position = payload.position
+        three_character.target_position = sui_character.position
 
         return {
           ...state,
@@ -81,7 +81,17 @@ export default function () {
           })
 
           added.forEach(sui_character => {
-            context.dispatch('action/add_character', sui_character)
+            ENTITIES.from_character(sui_character)
+              .then(three_character => {
+                context.dispatch('action/add_character', {
+                  sui_character,
+                  three_character,
+                })
+                return three_character.set_hair()
+              })
+              .catch(error => {
+                console.error('Error adding character', sui_character, error)
+              })
           })
 
           return locked_characters

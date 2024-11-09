@@ -237,8 +237,9 @@ export default function () {
           character => character.id === payload.id,
         )
         // and if it's the current controlled character
-        if (target_character)
+        if (target_character) {
           target_character.target_position = payload.position
+        }
       }
       return state
     },
@@ -261,11 +262,13 @@ export default function () {
           const y = Math.round(position.y * 100) / 100
           const z = Math.round(position.z * 100) / 100
 
-          if (
+          const player_not_default = player.id !== 'default'
+          const position_changed =
             last_position.x !== x ||
             last_position.y !== y ||
             last_position.z !== z
-          ) {
+
+          if (player_not_default && position_changed) {
             send_packet('packet/characterPosition', {
               id: player.id,
               position: { x, y, z },

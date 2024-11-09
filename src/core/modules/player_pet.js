@@ -73,7 +73,7 @@ export default function () {
         }
         return selected_address
       })
-      state_iterator().forEach(state => {
+      state_iterator().forEach(async state => {
         const character = current_locked_character(state)
 
         if (!character) return
@@ -86,14 +86,15 @@ export default function () {
             pets.delete(character.id)
           }
           if (character.pet) {
-            const spawned_pet = ENTITIES[character.pet.item_type]({
+            const spawned_pet = await ENTITIES[character.pet.item_type]({
               id: character.pet.id,
               name: character.pet.name,
             })
 
             if (
               character.pet.item_type === 'vaporeon' &&
-              character.pet.name.includes('shiny')
+              // @ts-ignore
+              character.pet.shiny
             )
               spawned_pet.set_variant('shiny')
 
