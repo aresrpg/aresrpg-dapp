@@ -3,6 +3,12 @@ import { ref, inject, onMounted, onUnmounted, watch } from 'vue';
 import useBreakpoints from 'vue-next-breakpoints';
 import { useI18n } from 'vue-i18n';
 import Dropdown from 'v-dropdown';
+import {
+  isValidSuiAddress,
+  isValidSuiNSName,
+  MIST_PER_SUI,
+} from '@mysten/sui/utils';
+import { BigNumber as BN } from 'bignumber.js';
 
 import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
 import { context, disconnect_ws } from '../../core/game/game.js';
@@ -10,6 +16,8 @@ import {
   mists_to_sui,
   sui_get_kiosks_profits,
   sui_claim_kiosks_profits,
+  sui_send,
+  sui_to_mists,
 } from '../../core/sui/client.js';
 import logger from '../../logger.js';
 import { enoki_login_url } from '../../core/sui/enoki.js';
@@ -42,6 +50,11 @@ const breakpoints = useBreakpoints({
 const login_dialog = ref(false);
 // dialog to choose the Sui Wallet
 const sui_wallet_dialog = ref(false);
+const withdraw_sui_dialog = ref(false);
+const withdraw_amount = ref('0');
+const withdraw_recipient = ref('');
+const withdraw_invalid_address = ref(false);
+const withdraw_invalid_amount = ref(false);
 const dropdown = ref(null);
 
 const available_accounts = inject('available_accounts');
@@ -127,7 +140,61 @@ async function claim_faucet() {
   }, 1000);
 }
 
+watch(withdraw_recipient, () => {
+  if (withdraw_invalid_address.value) withdraw_invalid_address.value = false;
+});
+
+watch(withdraw_amount, () => {
+  if (withdraw_invalid_amount.value) withdraw_invalid_amount.value = false;
+});
+
+async function withdraw_sui() {
+  if (
+    !isValidSuiAddress(withdraw_recipient.value) &&
+    !isValidSuiNSName(withdraw_recipient.value)
+  ) {
+    withdraw_invalid_address.value = true;
+    return;
+  }
+
+  if (withdraw_amount.value > get_maximum_sendable_amount()) {
+    withdraw_invalid_amount.value = true;
+    return;
+  }
+
+  withdraw_sui_dialog.value = false;
+
+  const tx = toast.tx(
+    t('APP_TOP_BAR_WITHDRAWING', [withdraw_recipient.value]),
+    `${withdraw_amount.value} Sui`,
+  );
+
+  try {
+    const digest = await sui_send({
+      recipient: withdraw_recipient.value,
+      amount: sui_to_mists(withdraw_amount.value),
+    });
+    tx.update(
+      'success',
+      `${t('APP_TOP_BAR_WITHDRAW_SUCCESS', [withdraw_amount.value, withdraw_recipient.value])}`,
+      { digest },
+    );
+  } catch (error) {
+    tx.update('error', t('APP_TOP_BAR_WITHDRAW_FAILED'));
+    console.error(error);
+  } finally {
+    withdraw_amount.value = '';
+  }
+}
+
 watch(current_address, refresh_kiosk_profits);
+
+function get_maximum_sendable_amount() {
+  const balance = BN(sui_balance.value).dividedBy(MIST_PER_SUI.toString());
+  const minus_gas = balance.minus(0.01);
+  if (minus_gas.isLessThanOrEqualTo(0)) return '0';
+  return minus_gas.toFixed(3).toString();
+}
 
 onMounted(() => {
   refresh_kiosk_profits();
@@ -140,6 +207,13 @@ onUnmounted(() => {
 </script>
 
 <template lang="pug">
+mixin sui_balance(template)
+  span {{ (+mists_to_sui(sui_balance)).toFixed(3) }}
+  img.icon(src="../../assets/sui/sui-logo.png")
+  if template
+    template(#animate)
+      span.withdraw {{ t('APP_TOP_BAR_WITHDRAW') }}
+
 nav(:class="{ small: breakpoints.mobile.matches }")
   .beware-tesnet(v-if="NETWORK !== 'mainnet'") {{ t('APP_TOP_BAR_TESTNET') }}
   .beware-mainnet(v-if="NETWORK === 'mainnet'") {{ t('APP_TOP_BAR_MAINNET') }} #[a(href="https://testnet.aresrpg.world") https://testnet.aresrpg.world]
@@ -149,9 +223,10 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       i.bx.bx-droplet
       span {{ t('APP_TOP_BAR_CONNECT') }}
     vs-row.row(v-else justify="end")
-      .sui-balance(v-if="sui_balance != null")
-        span {{ (+mists_to_sui(sui_balance)).toFixed(3) }}
-        img.icon(src="../../assets/sui/sui-logo.png")
+      vs-button.btn.sui-balance(type="transparent" color="#fff" v-if="current_wallet?.name === 'Enoki' && sui_balance != null && +mists_to_sui(sui_balance) > 0.05"  animation-type="vertical" @click="withdraw_sui_dialog = true")
+        +sui_balance(true)
+      .btn.sui-balance(type="transparent" color="#fff" v-else-if="+mists_to_sui(sui_balance) > 0.05"  animation-type="vertical")
+        +sui_balance
       vs-button.sui-faucet(v-if="NETWORK === 'testnet'" type="gradient" size="small" color="#64B5F6" @click="claim_faucet" :disabled="claiming_faucet")
         span.profit {{ t('APP_TOP_BAR_FAUCET') }}
       vs-button(
@@ -214,9 +289,33 @@ nav(:class="{ small: breakpoints.mobile.matches }")
   vs-dialog(v-model="sui_wallet_dialog" overlay-blur not-padding)
     suiWalletSelector(@connection_done="sui_wallet_dialog = false")
 
+  // dialog to withdraw sui
+
+  vs-dialog(v-model="withdraw_sui_dialog" overlay-blur)
+    template(#header)
+      .desc {{ t('APP_TOP_BAR_WITHDRAW_DESC') }}
+    vs-row(justify="center")
+      vs-input.amount(v-model="withdraw_recipient" :placeholder="t('APP_TOP_BAR_WITHDRAW_RECIPIENT')" color="#26C6DA")
+        template(#icon)
+          i.bx.bx-user
+        template(#message-danger v-if="withdraw_invalid_address") {{ t('APP_TOP_BAR_INVALID_ADDRESS') }}
+    vs-row(style="margin-top: .3em" justify="center")
+      vs-input.recipient(v-model="withdraw_amount" type="number" :placeholder="t('APP_TOP_BAR_WITHDRAW_AMOUNT')" color="#03A9F4")
+        template(#icon)
+          i.bx.bx-droplet
+        template(#message-danger v-if="withdraw_invalid_amount") {{ t('APP_TOP_BAR_INVALID_AMOUNT') }}
+      vs-button.max(size="sm" type="transparent" color="#ddd" @click="withdraw_amount = get_maximum_sendable_amount()") {{(+mists_to_sui(sui_balance)).toFixed(3)}}
+    template(#footer)
+      vs-row(justify="end")
+        vs-button(type="gradient" size="small" color="#1ABC9C" @click="withdraw_sui")
+          span {{ t('APP_TOP_BAR_WITHDRAW_SEND') }}
+        vs-button(type="gradient" size="small" color="#E74C3C" @click="withdraw_sui_dialog = false")
+          span {{ t('APP_USER_CANCEL') }}
 </template>
 
 <style lang="stylus" scoped>
+.desc
+  max-width 300px
 .profit
   color #212121
 .beware-tesnet, .beware-mainnet
@@ -276,6 +375,8 @@ span.alt
 
 .sui-faucet
   margin-right .25em
+.sui-withdraw
+  color #ddd
 
 nav
   padding 1em
