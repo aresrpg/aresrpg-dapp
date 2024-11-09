@@ -5,6 +5,7 @@ SERVER_SIGNATURE_TIMEOUT: Please sign the message faster!
 SERVER_INVALID_SIGNATURE: Invalid signature
 SERVER_MOVE_FIRST: Please move before doing this action, the server must acknowledge your existence first
 SERVER_CHARACTER_UNLOCKED: Did you unlock your character ?
+SERVER_CHARACTER_NOT_FOUND: This character doesn't seem to exist (not indexed)
 SERVER_MAX_CHARACTERS_PER_PLAYER: You can't play with that many characters!
 SERVER_NOT_CONNECTED: Not connected
 SERVER_CLICK_TO_CONNECT: You are currently offline
@@ -35,7 +36,7 @@ APP_UNLOCKED_CHARACTERS_DESC: These one are only in your wallet, you can freely 
 APP_CHARACTER_NEW: New character
 
 APP_TAB_SHOP_SELL: Sell
-APP_TAB_SHOP_BUY: Buy"
+APP_TAB_SHOP_BUY: Buy
 APP_TAB_SHOP_FAUCET: Faucet
 APP_TAB_SHOP_WRONG_PRICE: Invalid price
 APP_TAB_SHOP_LISTING: Listing in the market
@@ -89,7 +90,7 @@ APP_ITEM_RELIC: Relic
 APP_ITEM_RUNE: Rune
 APP_ITEM_MOUNT: Mount
 APP_ITEM_HAT: Hat
-APP_ITEM_CLOACK: Cloack
+APP_ITEM_CLOAK: Cloak
 APP_ITEM_AMULET: Amulet
 APP_ITEM_RING: Ring
 APP_ITEM_BELT: Belt
@@ -223,7 +224,7 @@ APP_GAME_INVENTORY_CLAIM_ALL: Claim all
 
 APP_ZONE_PLAYERS: Players
 
-APP_PLEASE_CONNECT: Welcome on AresRPG, please login to get started
+APP_PLEASE_CONNECT: Welcome on AresRPG, please connect to the server to get started
 
 APP_SIDEBAR_SHOP: Market
 APP_SIDEBAR_SETTINGS: Settings
@@ -252,6 +253,16 @@ APP_TOP_BAR_FAUCET_CLAIM: Printing some test Sui
 APP_TOP_BAR_FAUCET_CLAIMED: Sui claimed
 APP_TOP_BAR_FAUCET_FAILED: Failed to claim Sui
 APP_TOP_BAR_FAUCET: Get some Sui
+APP_TOP_BAR_WITHDRAW: Withdraw
+APP_TOP_BAR_WITHDRAW_SEND: Send
+APP_TOP_BAR_WITHDRAW_RECIPIENT: Address
+APP_TOP_BAR_WITHDRAW_AMOUNT: Amount
+APP_TOP_BAR_WITHDRAW_DESC: You are about to send some Sui to another wallet, please make sure the address is correct as this action is irreversible
+APP_TOP_BAR_WITHDRAW_FAILED: Failed to send Sui
+APP_TOP_BAR_WITHDRAWING: Sending to {0}
+APP_TOP_BAR_INVALID_ADDRESS: Invalid address
+APP_TOP_BAR_WITHDRAW_SUCCESS: Sent {0} Sui to {1}
+APP_TOP_BAR_INVALID_AMOUNT: Invalid amount
 
 APP_WALLET_CONNECT: Connect a Wallet
 APP_WALLET_WHAT: What is a Wallet
