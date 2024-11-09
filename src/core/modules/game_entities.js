@@ -5,11 +5,7 @@ import { aiter } from 'iterator-helper'
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
 import { abortable } from '../utils/iterator.js'
-import {
-  sui_get_character,
-  sui_get_character_name,
-  sui_get_item,
-} from '../sui/client.js'
+import { sui_get_character, sui_get_character_name } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { current_three_character } from '../game/game.js'
 import { ENTITIES } from '../game/entities.js'
@@ -36,23 +32,22 @@ export default function () {
   }
 
   /** @param {import("@aresrpg/aresrpg-sdk/types").SuiCharacter} character */
-  function spawn_pet(character) {
+  async function spawn_pet(character) {
     despawn_pet(character)
 
-    const spawned_pet = ENTITIES[character.pet.item_type]({
+    const spawned_pet = await ENTITIES[character.pet.item_type]({
       name: character.pet.name,
       id: character.pet.id,
     })
 
     if (
       character.pet.item_type === 'vaporeon' &&
-      character.pet.name.includes('shiny')
+      // @ts-ignore
+      character.pet.shiny
     )
       spawned_pet.set_variant('shiny')
 
-    sui_get_character_name(character.id).then(name => {
-      spawned_pet.floating_title.text = `${character.pet.name} (${name})`
-    })
+    spawned_pet.floating_title.text = `${character.pet.name} (${character.name})`
 
     spawned_pet.target_position = new Vector3()
       .copy(character.position)
@@ -96,7 +91,7 @@ export default function () {
     observe({ events, get_state, signal }) {
       // listening for character movements with the goal of registering new entities
       // the logic is only triggered when the character has never been seen before
-      events.on('packet/characterPosition', ({ id, position }) => {
+      events.on('packet/characterPosition', async ({ id, position }) => {
         const {
           visible_characters,
           sui: { locked_characters },
@@ -106,52 +101,48 @@ export default function () {
         )
 
         if (!visible_characters.has(id) && !character_is_mine) {
-          const default_three_character = ENTITIES.from_character(
-            DEFAULT_SUI_CHARACTER(),
-          )
-
-          // it's okay to manipulate visible_characters without dispatching action
-          // because it's a map and never changed, and as it manages others players, it's accessed very often and needed sequentially
-          // @ts-ignore
-          visible_characters.set(id, {
-            ...DEFAULT_SUI_CHARACTER(),
-            ...default_three_character,
-          })
-
-          default_three_character.move(position)
-
-          sui_get_character(id)
-            .then(sui_data => {
-              default_three_character.remove()
-
-              const skin = get_item_skin(sui_data)
-              const level = experience_to_level(sui_data.experience)
-              const content = {
-                ...sui_data,
-                name: `${sui_data.name} (${level})`,
-              }
-              /** @type {Type.ThreeEntity} */
-              const three_character = skin
-                ? ENTITIES[skin](content)
-                : ENTITIES.from_character(content)
-
-              if (sui_data.pet) spawn_pet(sui_data)
-              if (sui_data.hat) three_character.equip_hat(sui_data.hat)
-
-              three_character.move(default_three_character.object3d.position)
-
-              visible_characters.set(id, {
-                ...visible_characters.get(id),
-                ...sui_data,
-                ...three_character,
-              })
-            })
-            .catch(error =>
-              console.error(
-                'Error updatintg character through Sui data:',
-                error,
-              ),
+          try {
+            const default_three_character = await ENTITIES.from_character(
+              DEFAULT_SUI_CHARACTER(),
             )
+
+            // it's okay to manipulate visible_characters without dispatching action
+            // because it's a map and never changed, and as it manages others players, it's accessed very often and needed sequentially
+            // @ts-ignore
+            visible_characters.set(id, {
+              ...DEFAULT_SUI_CHARACTER(),
+              ...default_three_character,
+            })
+
+            default_three_character.move(position)
+
+            const sui_data = await sui_get_character(id)
+            default_three_character.remove()
+
+            const skin = get_item_skin(sui_data)
+            const level = experience_to_level(sui_data.experience)
+            const content = {
+              ...sui_data,
+              name: `${sui_data.name} (${level})`,
+            }
+            /** @type {Type.ThreeEntity} */
+            const three_character = skin
+              ? await ENTITIES[skin](content)
+              : await ENTITIES.from_character(content)
+
+            if (sui_data.pet) await spawn_pet(sui_data)
+            if (sui_data.hat) await three_character.equip_hat(sui_data.hat)
+
+            three_character.move(default_three_character.object3d.position)
+
+            visible_characters.set(id, {
+              ...visible_characters.get(id),
+              ...sui_data,
+              ...three_character,
+            })
+          } catch (error) {
+            console.error('Error updatintg character through Sui data:', error)
+          }
         }
       })
 
@@ -181,44 +172,50 @@ export default function () {
 
       events.on(
         'packet/entityGroupSpawn',
-        ({ id: group_id, position: spawn_position, entities }) => {
+        async ({ id: group_id, position: spawn_position, entities }) => {
           const { visible_mobs_group } = get_state()
 
           spawn_position.y = get_terrain_height(spawn_position, 1)
 
-          visible_mobs_group.set(group_id, {
-            id: group_id,
-            position: spawn_position,
-            entities: entities.map(({ name, id, level, skin, size }) => {
-              const spawned_mob = {
-                ...ENTITIES[skin]({
-                  id,
-                  name: `${name} (${level})`,
-                  scale_factor: size,
+          try {
+            visible_mobs_group.set(group_id, {
+              id: group_id,
+              position: spawn_position,
+              entities: await Promise.all(
+                entities.map(async ({ name, id, level, skin, size }) => {
+                  const spawned_mob = {
+                    ...(await ENTITIES[skin]({
+                      id,
+                      name: `${name} (${level})`,
+                      scale_factor: size,
+                    })),
+                    name,
+                    level,
+                    mob_group_id: group_id,
+                    spawn_position,
+                  }
+
+                  // find a position in 4 block range of entity position
+                  const position = new Vector3(
+                    spawn_position.x + Math.random() * 4 - 2,
+                    0,
+                    spawn_position.z + Math.random() * 4 - 2,
+                  )
+
+                  const ground_height = get_terrain_height(
+                    position,
+                    spawned_mob.height,
+                  )
+
+                  position.setY(ground_height)
+                  spawned_mob.move(position)
+                  return spawned_mob
                 }),
-                name,
-                level,
-                mob_group_id: group_id,
-                spawn_position,
-              }
-
-              // find a position in 4 block range of entity position
-              const position = new Vector3(
-                spawn_position.x + Math.random() * 4 - 2,
-                0,
-                spawn_position.z + Math.random() * 4 - 2,
-              )
-
-              const ground_height = get_terrain_height(
-                position,
-                spawned_mob.height,
-              )
-
-              position.setY(ground_height)
-              spawned_mob.move(position)
-              return spawned_mob
-            }),
-          })
+              ),
+            })
+          } catch (error) {
+            console.error('Error spawning mob group:', error)
+          }
         },
       )
 
@@ -304,7 +301,7 @@ export default function () {
         }
       })
 
-      function update_skin({ visible_characters, character, skin }) {
+      async function update_skin({ visible_characters, character, skin }) {
         character.remove()
 
         const level = experience_to_level(character.experience)
@@ -313,8 +310,8 @@ export default function () {
           name: `${character.name} (${level})`,
         }
         const three_character = skin
-          ? ENTITIES[skin](content)
-          : ENTITIES.from_character(content)
+          ? await ENTITIES[skin](content)
+          : await ENTITIES.from_character(content)
 
         three_character.move(character.position)
         three_character.animate(character.action)
@@ -338,19 +335,28 @@ export default function () {
           if (current_item.item_category === ITEM_CATEGORY.PET)
             despawn_pet(character)
           if (current_item.item_category === ITEM_CATEGORY.HAT)
-            character.equip_hat(null)
+            await character.equip_hat(null)
         }
 
         if (item) {
-          if (item.item_category === ITEM_CATEGORY.PET) spawn_pet(character)
+          if (item.item_category === ITEM_CATEGORY.PET)
+            await spawn_pet(character).catch(error => {
+              console.error('Error spawning pet:', error)
+            })
           if (item.item_category === ITEM_CATEGORY.HAT)
-            character.equip_hat(item)
+            await character.equip_hat(item).catch(error => {
+              console.error('Error equipping hat:', error)
+            })
         }
 
         const skin = get_item_skin(character)
 
         if (skin !== character.skin)
-          update_skin({ visible_characters, character, skin })
+          await update_skin({ visible_characters, character, skin }).catch(
+            error => {
+              console.error('Error updating skin:', error)
+            },
+          )
       })
     },
   }
