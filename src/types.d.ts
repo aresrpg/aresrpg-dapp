@@ -52,7 +52,8 @@ declare namespace Type {
     audio: import('three').PositionalAudio
     skin: string
     set_variant: (variant: string) => Promise<void>
-    equip_hat(hat: SuiItem): void
+    equip_hat(hat: SuiItem): Promise<void>
+    set_hair(): Promise<void>
     mob_group_id?: string
     current_fight_id?: string
   }
@@ -121,7 +122,10 @@ declare namespace Type {
     'action/free_camera': boolean
     'action/camera_went_underwater': boolean
     'action/sky_lights_change': State['settings']['sky_lights']
-    'action/add_character': SuiCharacter & { skin?: string }
+    'action/add_character': {
+      sui_character: SuiCharacter & { skin?: string }
+      three_character: ThreeEntity
+    }
     'action/add_visible_character': FullCharacter
     'action/remove_visible_character': string
     'action/remove_character': string
@@ -174,6 +178,7 @@ declare namespace Type {
     'action/set_online': boolean
     'action/character_action': { id: string; action: string }
     'action/join_fight': { character_id: string; fight_id: string }
+    'action/character_update': Partial<SuiCharacter> & { id: string }
   } & Packets
 
   type Events = import('@aresrpg/aresrpg-protocol/types').TypedEmitter<

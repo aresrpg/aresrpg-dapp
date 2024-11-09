@@ -50,17 +50,23 @@ registerSW({
       const new_user = !registration.active
 
       if (registration.waiting) {
-        const update_params = [
-          'A new version of AresRPG is available',
-          '',
-          true,
-          'Click here to update',
-          () => {
+        const options = {
+          show_button: true,
+          button_text: 'Click here to update',
+          button_action: () => {
             registration.waiting.postMessage({ type: 'SKIP_WAITING' })
             window.location.reload()
           },
-        ]
-        toast.tx(...update_params).update('success', ...update_params)
+        }
+        toast
+          .tx(
+            'A new version of AresRPG is available',
+            '',
+            options.show_button,
+            options.button_text,
+            options.button_action,
+          )
+          .update('success', 'A new version of AresRPG is available', options)
       }
 
       registration.addEventListener('updatefound', () => {
@@ -79,13 +85,14 @@ registerSW({
                 notification.update(
                   'success',
                   'The new version has been installed',
-                  '',
-                  true,
-                  'Click here to update',
-                  () => {
-                    installing_worker.postMessage({ type: 'SKIP_WAITING' })
-                    notification.remove()
-                    window.location.reload()
+                  {
+                    show_button: true,
+                    button_text: 'Click here to update',
+                    button_action: () => {
+                      installing_worker.postMessage({ type: 'SKIP_WAITING' })
+                      notification.remove()
+                      window.location.reload()
+                    },
                   },
                 )
               }
