@@ -40,7 +40,7 @@ sectionContainer
               :disabled="!selected_item || !is_price_valid || selected_currently_listing"
             ) {{ t('APP_TAB_SHOP_SELL') }}
             vs-button(
-              v-if="selected_item && get_item_total_amount(selected_item) >= 10"
+              v-if="selected_item && get_item_total_amount(selected_item) >= 10 && select_item?.stackable"
               type="gradient"
               size="small"
               color="#60A917"
@@ -48,7 +48,7 @@ sectionContainer
               :disabled="!selected_item || !is_price_valid || selected_currently_listing"
             ) {{ t('APP_TAB_SHOP_SELL') }} x10
             vs-button(
-              v-if="selected_item && get_item_total_amount(selected_item) >= 100"
+              v-if="selected_item && get_item_total_amount(selected_item) >= 100 && select_item?.stackable"
               type="gradient"
               size="small"
               color="#008A00"
@@ -104,6 +104,7 @@ provide('filtered_category', filtered_category);
 
 const selected_item = inject('selected_item');
 const selected_category = inject('selected_category');
+const online = inject('online');
 
 const mints = ref([]);
 const reveal_dialog = ref(false);

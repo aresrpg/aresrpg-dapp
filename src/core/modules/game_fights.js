@@ -22,7 +22,7 @@ export default function () {
       return state
     },
     observe() {
-      context.events.on('packet/fightSpawn', fight => {
+      context.events.on('packet/fightSpawn', async fight => {
         const { visible_fights, characters } = context.get_state()
 
         fight.start_time = +fight.start_time
@@ -42,7 +42,14 @@ export default function () {
           }
         })
 
-        fight_swords.set(fight.id, spawn_crescent_sword(fight, context.scene))
+        try {
+          fight_swords.set(
+            fight.id,
+            await spawn_crescent_sword(fight, context.scene),
+          )
+        } catch (error) {
+          console.error('Failed to spawn fight sword', error)
+        }
       })
 
       context.events.on('packet/fightsDespawn', ({ ids }) => {

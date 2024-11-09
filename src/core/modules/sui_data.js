@@ -1,4 +1,4 @@
-import { EventEmitter, on } from 'events'
+import { EventEmitter, on, once } from 'events'
 import assert from 'assert'
 import { setInterval } from 'timers/promises'
 
@@ -10,15 +10,12 @@ import {
   pretty_print_mists,
   sdk,
   sui_get_admin_caps,
-  sui_get_aresrpg_kiosk,
   sui_get_characters,
   sui_get_finished_crafts,
-  sui_get_kiosk_cap,
-  sui_get_locked_items,
+  sui_get_items,
   sui_get_my_listings,
   sui_get_sui_balance,
   sui_get_supported_tokens,
-  sui_get_unlocked_items,
 } from '../sui/client.js'
 import { abortable, state_iterator } from '../utils/iterator.js'
 import toast from '../../toast.js'
@@ -53,216 +50,6 @@ export const DEFAULT_SUI_CHARACTER = () => ({
   _type: null,
 })
 
-function is_owned_item(id) {
-  const state = context.get_state()
-  return state.sui.unlocked_items.some(item => item.id === id)
-}
-
-async function handle_item_merge_event(event) {
-  if (event.sender_is_me) {
-    try {
-      context.dispatch('action/sui_merge_item', {
-        target_item_id: event.target_item_id,
-        item_id: event.item_id,
-        final_amount: event.final_amount,
-      })
-    } catch (error) {
-      console.error(error)
-    }
-    SUI_EMITTER.emit('ItemMergeEvent', event)
-  }
-}
-
-async function handle_pet_feed_event({ pet_id, sender_is_me }) {
-  if (sender_is_me) {
-    try {
-      const pet = await sdk.get_item_by_id(pet_id)
-      context.dispatch('action/sui_update_item', pet)
-      // update stats and Sui
-    } catch (error) {}
-  }
-}
-
-async function handle_item_split_event({
-  item_id,
-  new_item_id,
-  sender_is_me,
-  amount,
-}) {
-  if (sender_is_me) {
-    context.dispatch('action/sui_split_item', {
-      item_id,
-      new_item_id,
-      amount,
-    })
-  }
-}
-
-async function handle_item_mint_event(event) {
-  try {
-    if (await is_kiosk_mine(event.kiosk_id)) {
-      const item = await find_item_or_retry(event.item_id)
-      const cap = await sui_get_kiosk_cap(event.kiosk_id)
-
-      assert(item, 'Item not found')
-
-      if (event.sender_is_me) {
-        const final_item = {
-          ...item,
-          kiosk_id: event.kiosk_id,
-          // @ts-ignore
-          personal_kiosk_cap_id: cap.id,
-          // @ts-ignore
-          is_kiosk_personal: cap.personal,
-        }
-        context.dispatch('action/sui_add_unlocked_item', final_item)
-        SUI_EMITTER.emit('ItemRevealedEvent', final_item)
-      } else
-        context.dispatch('action/sui_add_locked_item', {
-          ...item,
-          kiosk_id: event.kiosk_id,
-        })
-    }
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-async function handle_item_withdraw_event(event) {
-  try {
-    if (event.sender_is_me) {
-      const item = await sdk.get_item_by_id(event.item_id)
-
-      context.dispatch('action/sui_add_unlocked_item', {
-        ...item,
-        kiosk_id: event.kiosk_id,
-      })
-      context.dispatch('action/sui_remove_locked_item', event.item_id)
-    }
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-async function handle_item_listed_event(event) {
-  if (+event.price === 0) return
-
-  try {
-    if (event.sender_is_me) {
-      context.dispatch('action/sui_add_item_for_sale', {
-        id: event.id,
-        list_price: event.price,
-      })
-
-      context.dispatch('action/sui_remove_unlocked_item', event.id)
-    }
-  } catch (error) {
-    console.error(error)
-  }
-  SUI_EMITTER.emit('ItemListedEvent', event)
-}
-
-async function handle_item_destroy_event(event) {
-  if (event.sender_is_me) {
-    context.dispatch('action/sui_remove_unlocked_item', event.item_id)
-    SUI_EMITTER.emit('ItemDestroyEvent', event)
-  }
-}
-
-async function handle_item_purchased_event(event) {
-  if (+event.price === 0) return
-  // If I'm the seller
-  if (await is_kiosk_mine(event.kiosk)) {
-    const my_listing = context
-      .get_state()
-      .sui.items_for_sale.find(listing => listing.id === event.id)
-
-    // if the price isn't 0
-    toast.info(
-      // @ts-ignore
-      `${my_listing.name} ${t('SUI_ITEM_SOLD')}`,
-      // @ts-ignore
-      `+${pretty_print_mists(my_listing.list_price)} Sui`,
-      EmojioneMoneyBag,
-    )
-    context.dispatch('action/sui_remove_item_for_sale', {
-      id: event.id,
-      keep: false,
-    })
-
-    SUI_EMITTER.emit('ItemSoldEvent', my_listing)
-  }
-
-  // If I'm the buyer
-  if (event.sender_is_me) {
-    const my_listing = context
-      .get_state()
-      .sui.items_for_sale.find(listing => listing.id === event.id)
-
-    // If I didn't list the item (making sure i'm not buying my own item)
-    if (!my_listing) {
-      try {
-        const item = await sdk.get_item_by_id(event.id)
-        const { kiosk, personal_kiosk_cap } = await sui_get_aresrpg_kiosk()
-
-        if (item) {
-          context.dispatch('action/sui_add_unlocked_item', {
-            ...item,
-            kiosk_id: kiosk.id,
-            personal_kiosk_cap_id: personal_kiosk_cap.id,
-            is_kiosk_personal: true,
-          })
-        } else {
-          const character = await sdk.get_character_by_id(event.id)
-
-          assert(character, 'Character not found')
-
-          context.dispatch('action/sui_add_unlocked_character', {
-            ...character,
-            kiosk_id: kiosk.id,
-          })
-        }
-      } catch (error) {
-        console.error(error)
-      }
-    }
-  }
-
-  SUI_EMITTER.emit('ItemPurchasedEvent', event)
-}
-
-async function handle_item_delisted_event(event) {
-  if (event.sender_is_me) {
-    context.dispatch('action/sui_remove_item_for_sale', {
-      id: event.id,
-      keep: true,
-    })
-  }
-  SUI_EMITTER.emit('ItemDelistedEvent', event)
-}
-
-async function handle_finished_craft_event(event) {
-  if (event.sender_is_me)
-    context.dispatch('action/add_finished_craft', {
-      id: event.id,
-      recipe_id: event.recipe_id,
-    })
-}
-
-async function handle_vaporeon_mint_event(event) {
-  if (event.sender_is_me) {
-    const item = await sdk.get_item_by_id(event.id)
-    SUI_EMITTER.emit('VaporeonMintEvent', {
-      item,
-      shiny: event.shiny,
-    })
-    context.dispatch('action/sui_add_unlocked_item', {
-      ...item,
-      kiosk_id: event.kiosk_id,
-    })
-  }
-}
-
 export const SUI_EMITTER = new EventEmitter()
 
 /** @type {Type.Module} */
@@ -281,6 +68,17 @@ export default function () {
             character.health = existing_character.health
         })
 
+        if (payload.unlocked_characters) {
+          // @ts-ignore
+          payload.unlocked_items = [
+            ...payload?.unlocked_items,
+            ...payload.unlocked_characters.map(character => ({
+              ...character,
+              image_url: `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`,
+            })),
+          ]
+        }
+
         return {
           ...state,
           sui: {
@@ -288,6 +86,24 @@ export default function () {
             ...payload,
           },
         }
+      }
+      if (type === 'action/character_update') {
+        const character = state.sui.locked_characters.find(
+          ({ id }) => id === payload.id,
+        )
+        if (character)
+          return {
+            ...state,
+            sui: {
+              ...state.sui,
+              locked_characters: state.sui.locked_characters
+                .filter(({ id }) => id !== payload.id)
+                .concat({
+                  ...character,
+                  ...payload,
+                }),
+            },
+          }
       }
       if (type === 'action/sui_add_unlocked_item') {
         return {
@@ -324,12 +140,7 @@ export default function () {
           sui: {
             ...state.sui,
             unlocked_items: state.sui.unlocked_items.map(item =>
-              item.id === payload.id
-                ? {
-                    ...item,
-                    ...payload,
-                  }
-                : item,
+              item.id === payload.id ? payload : item,
             ),
           },
         }
@@ -398,15 +209,18 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_characters: [...state.sui.unlocked_characters, payload],
+            locked_characters: [...state.sui.locked_characters, payload],
           },
         }
       }
       if (type === 'action/sui_add_unlocked_character') {
-        const character = state.sui.locked_characters.find(
-          character => character.id === payload,
-        )
-        if (character)
+        const character =
+          typeof payload === 'string'
+            ? state.sui.locked_characters.find(
+                character => character.id === payload,
+              )
+            : payload
+        if (character) {
           return {
             ...state,
             sui: {
@@ -418,9 +232,16 @@ export default function () {
               locked_characters: state.sui.locked_characters.filter(
                 character => character.id !== payload,
               ),
-              unlocked_items: [...state.sui.unlocked_items, character],
+              unlocked_items: [
+                ...state.sui.unlocked_items,
+                {
+                  ...character,
+                  image_url: `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`,
+                },
+              ],
             },
           }
+        }
       }
       if (type === 'action/sui_add_locked_character') {
         const character = state.sui.unlocked_characters.find(
@@ -431,7 +252,7 @@ export default function () {
             ...state,
             sui: {
               ...state.sui,
-              locked_characters: [...state.sui.locked_characters, payload],
+              locked_characters: [...state.sui.locked_characters, character],
               unlocked_characters: state.sui.unlocked_characters.filter(
                 character => character.id !== payload,
               ),
@@ -440,6 +261,23 @@ export default function () {
               ),
             },
           }
+      }
+      if (type === 'action/sui_delete_character') {
+        return {
+          ...state,
+          sui: {
+            ...state.sui,
+            locked_characters: state.sui.locked_characters.filter(
+              character => character.id !== payload,
+            ),
+            unlocked_characters: state.sui.unlocked_characters.filter(
+              character => character.id !== payload,
+            ),
+            unlocked_items: state.sui.unlocked_items.filter(
+              item => item.id !== payload,
+            ),
+          },
+        }
       }
       if (type === 'action/sui_split_item') {
         const item = state.sui.unlocked_items.find(
@@ -550,12 +388,13 @@ export default function () {
 
       return state
     },
-    async observe({ signal }) {
+    async observe({ signal, events }) {
       let controller = new AbortController()
 
       const { t } = i18n.global
 
       let tx = null
+      let await_connection_success_toast = null
 
       const event_matcher = {
         character: {
@@ -572,11 +411,197 @@ export default function () {
           delete(character_id) {
             context.dispatch('action/sui_delete_character', character_id)
           },
+          delist({ sender, character_id }) {
+            if (sender === context.get_state().sui.selected_address)
+              context.dispatch('action/sui_remove_item_for_sale', {
+                id: character_id,
+                keep: true,
+              })
+            SUI_EMITTER.emit('ItemDelistedEvent', { id: character_id })
+          },
           equip_item({ slot, item, id, self }) {
             const payload = { slot, item, character_id: id }
-            if (self) context.dispatch('action/sui_equip_item', payload)
-            else SUI_EMITTER.emit('ItemEquipEvent', payload)
+            if (self) {
+              if (payload.item)
+                context.dispatch('action/sui_equip_item', payload)
+              else context.dispatch('action/sui_unequip_item', payload)
+            } else SUI_EMITTER.emit('ItemEquipEvent', payload)
           },
+          list({ sender, character, price }) {
+            if (+price === 0) return
+
+            if (sender === context.get_state().sui.selected_address) {
+              context.dispatch('action/sui_add_item_for_sale', {
+                id: character.id,
+                list_price: price,
+              })
+
+              context.dispatch('action/sui_remove_unlocked_item', character.id)
+            }
+            SUI_EMITTER.emit('ItemListedEvent', { character, price })
+          },
+          update(character) {
+            context.dispatch('action/character_update', character)
+          },
+          purchase({ character, price, seller, sender }) {
+            if (+price === 0) return
+            const state = context.get_state()
+            // If I'm the seller
+            if (seller === state.sui.selected_address) {
+              const my_listing = state.sui.items_for_sale.find(
+                listing => listing.id === character.id,
+              )
+
+              // if the price isn't 0
+              toast.info(
+                // @ts-ignore
+                `${my_listing.name} ${t('SUI_ITEM_SOLD')}`,
+                // @ts-ignore
+                `+${pretty_print_mists(my_listing.list_price)} Sui`,
+                EmojioneMoneyBag,
+              )
+              context.dispatch('action/sui_remove_item_for_sale', {
+                id: character.id,
+                keep: false,
+              })
+
+              SUI_EMITTER.emit('ItemSoldEvent', my_listing)
+            }
+
+            // If I'm the buyer
+            if (sender === state.sui.selected_address) {
+              const my_listing = context
+                .get_state()
+                .sui.items_for_sale.find(listing => listing.id === character.id)
+
+              // If I didn't list the item (making sure i'm not buying my own item)
+              if (!my_listing) {
+                context.dispatch('action/sui_add_unlocked_character', character)
+              }
+            }
+            SUI_EMITTER.emit('ItemPurchasedEvent', { character, price, seller })
+          },
+          withdraw_item(item) {
+            context.dispatch('action/sui_add_unlocked_item', item)
+            context.dispatch('action/sui_remove_locked_item', item.id)
+          },
+        },
+        vaporeon: {
+          mint(item) {
+            SUI_EMITTER.emit('VaporeonMintEvent', {
+              item,
+              shiny: item.shiny,
+            })
+            context.dispatch('action/sui_add_unlocked_item', item)
+          },
+        },
+        item: {
+          create(item) {
+            if (item.in_extension)
+              context.dispatch('action/sui_add_locked_item', item)
+            else {
+              context.dispatch('action/sui_add_unlocked_item', item)
+              SUI_EMITTER.emit('ItemRevealedEvent', item)
+            }
+          },
+          delete(item) {
+            context.dispatch('action/sui_remove_unlocked_item', item.id)
+          },
+          update(item) {
+            context.dispatch('action/sui_update_item', item)
+          },
+          merge({ target_item, item_id }) {
+            context.dispatch('action/sui_merge_item', {
+              target_item_id: target_item.id,
+              item_id,
+              final_amount: target_item.amount,
+            })
+            SUI_EMITTER.emit('ItemMergeEvent', event)
+          },
+          split({ new_item, item }) {
+            context.dispatch('action/sui_split_item', {
+              item_id: item.id,
+              new_item_id: new_item.id,
+              amount: new_item.amount,
+            })
+          },
+          list({ item, price }) {
+            if (+price === 0) return
+
+            if (item.owner === context.get_state().sui.selected_address) {
+              context.dispatch('action/sui_add_item_for_sale', {
+                id: item.id,
+                list_price: price,
+              })
+
+              context.dispatch('action/sui_remove_unlocked_item', item.id)
+            }
+            SUI_EMITTER.emit('ItemListedEvent', { item, price })
+          },
+          delist(item) {
+            if (item.owner === context.get_state().sui.selected_address)
+              context.dispatch('action/sui_remove_item_for_sale', {
+                id: item.id,
+                keep: true,
+              })
+            SUI_EMITTER.emit('ItemDelistedEvent', item)
+          },
+          purchase({ item, price, seller }) {
+            if (+price === 0) return
+            const state = context.get_state()
+            // If I'm the seller
+            if (seller === state.sui.selected_address) {
+              const my_listing = state.sui.items_for_sale.find(
+                listing => listing.id === item.id,
+              )
+
+              // if the price isn't 0
+              toast.info(
+                // @ts-ignore
+                `${my_listing.name} ${t('SUI_ITEM_SOLD')}`,
+                // @ts-ignore
+                `+${pretty_print_mists(my_listing.list_price)} Sui`,
+                EmojioneMoneyBag,
+              )
+              context.dispatch('action/sui_remove_item_for_sale', {
+                id: item.id,
+                keep: false,
+              })
+
+              SUI_EMITTER.emit('ItemSoldEvent', my_listing)
+            }
+
+            // If I'm the buyer
+            if (item.owner === state.sui.selected_address) {
+              const my_listing = context
+                .get_state()
+                .sui.items_for_sale.find(listing => listing.id === item.id)
+
+              // If I didn't list the item (making sure i'm not buying my own item)
+              if (!my_listing) {
+                context.dispatch('action/sui_add_unlocked_item', {
+                  ...item,
+                  is_kiosk_personal: true,
+                })
+              }
+            }
+
+            SUI_EMITTER.emit('ItemPurchasedEvent', { item, price, seller })
+          },
+        },
+        recipe: {
+          create() {},
+          delete() {},
+        },
+        craft: {
+          finish(craft) {
+            context.dispatch('action/add_finished_craft', craft)
+          },
+        },
+        admin: {
+          // when an admin cap appears in a checkpoint (might be new)
+          update() {},
+          delete() {},
         },
       }
 
@@ -601,111 +626,114 @@ export default function () {
         },
       )
 
+      async function connect_and_fetch(selected_address) {
+        if (selected_address) {
+          await context.connect_ws()
+
+          await_connection_success_toast?.remove()
+          await_connection_success_toast = toast.tx(t('SUI_WAITING_SIGNATURE'))
+
+          const [result] = await Promise.race([
+            once(events, 'packet/connectionAccepted'),
+            once(events, 'SIGNATURE_NOT_VERIFIED'),
+          ])
+
+          if (!result?.address) {
+            await_connection_success_toast?.remove()
+            return selected_address
+          }
+
+          if (result.address !== selected_address) {
+            await_connection_success_toast.update(
+              'error',
+              t('SUI_SIGNATURE_ADDRESS_MISMATCH'),
+            )
+            return selected_address
+          }
+
+          await_connection_success_toast.update(
+            'success',
+            t('SUI_SIGNATURE_SUCCESS'),
+          )
+
+          if (tx) tx.remove()
+
+          tx = toast.tx(t('SUI_FETCHING_DATA'))
+
+          context.dispatch(
+            'action/sui_data_update',
+            Object.assign(
+              {},
+              ...(await Promise.all([
+                sui_get_admin_caps().then(result => ({
+                  admin_caps: result,
+                })),
+                sui_get_characters().then(
+                  ({ locked_characters, unlocked_characters }) => {
+                    return {
+                      locked_characters,
+                      unlocked_characters,
+                    }
+                  },
+                ),
+                sui_get_sui_balance().then(result => ({
+                  balance: result,
+                })),
+                sui_get_items().then(({ locked_items, unlocked_items }) => {
+                  console.log({ locked_items, unlocked_items })
+                  return {
+                    locked_items,
+                    unlocked_items,
+                  }
+                }),
+                sui_get_my_listings().then(result => ({
+                  items_for_sale: result,
+                })),
+                sui_get_supported_tokens().then(result => ({
+                  tokens: result,
+                })),
+                sui_get_finished_crafts().then(result => ({
+                  finished_crafts: result,
+                })),
+              ])),
+            ),
+          )
+
+          tx.update('success', t('SUI_DATA_FETCHED'))
+        } else {
+          if (tx) tx.update('error', t('APP_LOGIN_AGAIN'))
+          controller.abort()
+          controller = new AbortController()
+
+          events.emit('USER_LOGOUT')
+
+          context.dispatch('action/sui_data_update', {
+            locked_characters: [DEFAULT_SUI_CHARACTER()],
+            unlocked_characters: [],
+            locked_items: [],
+            unlocked_items: [],
+            items_for_sale: [],
+            balance: 0n,
+            admin_caps: [],
+          })
+        }
+
+        return selected_address
+      }
+
+      events.on('RECONNECT_TO_SERVER', () =>
+        connect_and_fetch(context.get_state().sui.selected_address).catch(
+          error => console.error(error),
+        ),
+      )
+
       state_iterator().reduce(
         async (last_address, { sui: { selected_address } }) => {
           const address_changed = last_address !== selected_address
 
           if (address_changed) {
-            disconnect_ws()
-
-            if (selected_address) {
-              await context.connect_ws()
-
-              if (tx) tx.remove()
-
-              tx = toast.tx(t('SUI_FETCHING_DATA'))
-
-              // unsubscription is handled internally
-              // sui_subscribe(controller).then(emitter => {
-              //   return aiter(on(emitter, 'update')).forEach(
-              //     async ([{ type, payload }]) => {
-              //       switch (type) {
-              //         case 'RecipeCreateEvent':
-              //           return SUI_EMITTER.emit(type, payload)
-              //         case 'RecipeDeleteEvent':
-              //           return SUI_EMITTER.emit(type, payload)
-              //         case 'ItemMergeEvent':
-              //           return handle_item_merge_event(payload)
-              //         case 'ItemSplitEvent':
-              //           return handle_item_split_event(payload)
-              //         case 'PetFeedEvent':
-              //           return handle_pet_feed_event(payload)
-              //         case 'StatsResetEvent':
-              //           return handle_stats_reset_event(payload)
-              //         case 'ItemMintEvent':
-              //           return handle_item_mint_event(payload)
-              //         case 'ItemWithdrawEvent':
-              //           return handle_item_withdraw_event(payload)
-              //         case 'ItemListedEvent':
-              //           return handle_item_listed_event(payload)
-              //         case 'ItemDestroyEvent':
-              //           return handle_item_destroy_event(payload)
-              //         case 'ItemPurchasedEvent':
-              //           return handle_item_purchased_event(payload)
-              //         case 'ItemDelistedEvent':
-              //           return handle_item_delisted_event(payload)
-              //         case 'FinishedCraftEvent':
-              //           return handle_finished_craft_event(payload)
-              //         case 'VaporeonMintEvent':
-              //           return handle_vaporeon_mint_event(payload)
-              //         default:
-              //           console.warn('Unhandled event', type, payload)
-              //           break
-              //       }
-              //     },
-              //   )
-              // })
-
-              context.dispatch(
-                'action/sui_data_update',
-                Object.assign(
-                  {},
-                  ...(await Promise.all([
-                    sui_get_admin_caps().then(result => ({
-                      admin_caps: result,
-                    })),
-                    sui_get_characters().then(
-                      ({ locked_characters, unlocked_characters }) => ({
-                        locked_characters,
-                        unlocked_characters,
-                      }),
-                    ),
-                    sui_get_sui_balance().then(result => ({ balance: result })),
-                    sui_get_locked_items().then(result => ({
-                      locked_items: result,
-                    })),
-                    sui_get_unlocked_items().then(result => ({
-                      unlocked_items: result,
-                    })),
-                    sui_get_my_listings().then(result => ({
-                      items_for_sale: result,
-                    })),
-                    sui_get_supported_tokens().then(result => ({
-                      tokens: result,
-                    })),
-                    sui_get_finished_crafts().then(result => ({
-                      finished_crafts: result,
-                    })),
-                  ])),
-                ),
-              )
-
-              tx.update('success', t('SUI_DATA_FETCHED'))
-            } else {
-              if (tx) tx.update('error', t('APP_LOGIN_AGAIN'))
-              controller.abort()
-              controller = new AbortController()
-
-              context.dispatch('action/sui_data_update', {
-                locked_characters: [DEFAULT_SUI_CHARACTER()],
-                unlocked_characters: [],
-                locked_items: [],
-                unlocked_items: [],
-                items_for_sale: [],
-                balance: 0n,
-                admin_caps: [],
-              })
-            }
+            disconnect_ws('ADDRESS_CHANGED')
+            return await connect_and_fetch(selected_address)
           }
 
           return selected_address

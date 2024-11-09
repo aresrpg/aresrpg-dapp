@@ -17,7 +17,7 @@ export default function () {
         current_equipments.delete(character_id)
       })
 
-      state_iterator().forEach(state => {
+      state_iterator().forEach(async state => {
         const character = current_locked_character(state)
         const three_character = current_three_character(state)
 
@@ -30,9 +30,9 @@ export default function () {
 
         if (hat?.id !== current_equipment.hat?.id) {
           // remove current hat
-          if (current_equipment.hat) three_character.equip_hat(null)
           // if new hat, equip it
-          if (hat) three_character.equip_hat(hat)
+          if (hat) await three_character.equip_hat(hat)
+          else await three_character.set_hair()
 
           current_equipments.set(character.id, { ...current_equipment, hat })
         }
