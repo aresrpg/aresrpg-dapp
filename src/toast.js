@@ -46,7 +46,17 @@ function create_notification(
   }
 
   return {
-    update(status, text, title, show_button, button_text, button_action) {
+    update(
+      status,
+      text,
+      {
+        title = '',
+        show_button = false,
+        button_text = '',
+        button_action = () => {},
+        digest = null,
+      } = {},
+    ) {
       if (removed) return
 
       if (status != null) vnode.component.props.status = status
@@ -56,9 +66,10 @@ function create_notification(
       if (button_text != null) vnode.component.props.button_text = button_text
       if (button_action != null)
         vnode.component.props.button_action = button_action
+      if (digest != null) vnode.component.props.digest = digest
 
       if (status !== 'loading' && !show_button) {
-        const duration = status === 'success' ? 2000 : 7000
+        const duration = status === 'success' ? (digest ? 7000 : 2000) : 7000
         setTimeout(() => {
           remove()
         }, duration)
