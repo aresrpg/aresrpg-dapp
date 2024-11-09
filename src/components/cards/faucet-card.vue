@@ -1,6 +1,6 @@
 <template lang="pug">
 .faucet-card
-  vs-button.wth(:disabled="!allow_claim" type="gradient" size="small" color="#4A148C" @click="claim") {{ t('APP_FAUCET_CLAIM') }} #[b ${{ token.name }}]
+  vs-button.wth(:disabled="!allow_claim" type="gradient" size="small" color="#4A148C" @click="claim") {{ t('APP_FAUCET_CLAIM') }} #[b ${{ token.symbol }}]
 </template>
 
 <script setup>
@@ -14,16 +14,16 @@ const { t } = useI18n();
 const props = defineProps(['token']);
 
 const background_image = computed(() => {
-  return `url(${props.token?.image_url})` || '';
+  return `url(${props.token?.iconUrl})` || '';
 });
 
 const allow_claim = ref(true);
 
 async function claim() {
-  const tx = toast.tx(t('APP_FAUCET_CLAIMING'), `$${props.token.name}`);
+  const tx = toast.tx(t('APP_FAUCET_CLAIMING'), `$${props.token.symbol}`);
   try {
     allow_claim.value = false;
-    const result = await sui_faucet_mint(props.token.name.toLowerCase());
+    const result = await sui_faucet_mint(props.token.symbol.toLowerCase());
     if (result === 'WAIT_A_MINUTE') tx.remove();
     else tx.update('success', t('APP_FAUCET_CLAIMED'));
   } catch (error) {

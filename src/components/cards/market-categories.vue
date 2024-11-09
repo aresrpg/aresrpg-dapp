@@ -24,13 +24,13 @@
             v-for="item in MISC"
             :label="t(`APP_ITEM_${item.toUpperCase()}`)" :value="item"
           )
-    .names
-      span {{ t('APP_MARKET_NAME') }}:
-      vs-select(filter default-first-option v-model="filtered_name" :placeholder="t('APP_MARKET_CHOOSE_NAME')")
-        vs-option(
-          v-for="item_name in Object.keys(currently_listed_items_names)"
-          :label="item_name" :value="item_name" :key="item_name"
-        )
+    //- .names
+    //-   span {{ t('APP_MARKET_NAME') }}:
+    //-   vs-select(filter default-first-option v-model="filtered_name" :placeholder="t('APP_MARKET_CHOOSE_NAME')")
+    //-     vs-option(
+    //-       v-for="item_name in Object.keys(currently_listed_items_names)"
+    //-       :label="item_name" :value="item_name" :key="item_name"
+    //-     )
   .all
     .none(v-if="!available_types.length") {{ t('APP_MARKET_NO_ITEMS') }}
     .type.material-1(v-else v-for="available_type in available_types" :key="available_type.name" @click="() => select_item(available_type)")
@@ -55,12 +55,13 @@ import {
   CONSUMABLES,
   MISC,
 } from '@aresrpg/aresrpg-sdk/items';
-import { watch, ref, inject } from 'vue';
+import { watch, ref, inject, onMounted, onUnmounted } from 'vue';
 
 import { VITE_INDEXER_URL } from '../../env.js';
 import { pretty_print_mists } from '../../core/sui/client.js';
-
 // @ts-ignore
+import { context } from '../../core/game/game.js';
+
 import TokenSui from '~icons/token/sui';
 
 const { t } = useI18n();
@@ -85,16 +86,45 @@ watch(filtered_name, name => {
 
 watch(
   filtered_category,
-  async (category, last_category) => {
+  (category, last_category) => {
     if (category === last_category) return;
     selected_item.value = null;
-    const types = await fetch(
-      `${VITE_INDEXER_URL}/item-types/${category}`,
-    ).then(res => res.json());
-    available_types.value = types;
+    available_types.value = [];
+    context.send_packet('packet/marketCategoryItemsRequest', {
+      category,
+    });
   },
   { immediate: true },
 );
+
+function handle_market_category_items_response({ items }) {
+  const received_types = items.map(item => item.item_type);
+  // update available types with new items and keep non updated ones
+  available_types.value = [
+    ...available_types.value.filter(
+      available_type => !received_types.includes(available_type.item_type),
+    ),
+    // filtering out items without image_url because the server will send `null` if there are no more items (to remove them)
+    ...items.filter(({ image_url }) => !!image_url),
+  ];
+}
+
+onMounted(() => {
+  context.events.on(
+    'packet/marketCategoryItems',
+    handle_market_category_items_response,
+  );
+});
+
+onUnmounted(() => {
+  context.events.off(
+    'packet/marketCategoryItems',
+    handle_market_category_items_response,
+  );
+  context.send_packet('packet/marketCategoryItemsRequest', {
+    category: null,
+  });
+});
 </script>
 
 <style lang="stylus" scoped>

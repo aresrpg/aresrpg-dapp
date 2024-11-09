@@ -24,7 +24,7 @@
     equipmentSlot.boots(:slot="'boots'" :background="slot_boots" :highlighted="is_dragging_boots")
   .right
     equipmentSlot.hat(:slot="'hat'" :background="slot_hat" :highlighted="is_dragging_hat")
-    equipmentSlot.cloack(:slot="'cloack'" :background="slot_cloack" :highlighted="is_dragging_cloack")
+    equipmentSlot.cloak(:slot="'cloak'" :background="slot_cloak" :highlighted="is_dragging_cloak")
     equipmentSlot.pet(:slot="'pet'" :background="slot_pet" :highlighted="is_dragging_pet")
 </template>
 
@@ -50,7 +50,7 @@ import slot_boots from '../../assets/ui/slot_boots.png';
 // @ts-ignore
 import slot_hat from '../../assets/ui/slot_hat.png';
 // @ts-ignore
-import slot_cloack from '../../assets/ui/slot_cloack.png';
+import slot_cloak from '../../assets/ui/slot_cloak.png';
 // @ts-ignore
 import slot_pet from '../../assets/ui/slot_pet.png';
 import {
@@ -139,7 +139,7 @@ function is_equipped(item) {
     item.id === selected_character.value.belt?.id ||
     item.id === selected_character.value.boots?.id ||
     item.id === selected_character.value.hat?.id ||
-    item.id === selected_character.value.cloack?.id ||
+    item.id === selected_character.value.cloak?.id ||
     item.id === selected_character.value.pet?.id ||
     item.id === selected_character.value.left_ring?.id ||
     item.id === selected_character.value.right_ring?.id ||
@@ -195,9 +195,9 @@ const is_dragging_hat = computed(() => {
   return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.HAT;
 });
 
-const is_dragging_cloack = computed(() => {
+const is_dragging_cloak = computed(() => {
   return (
-    edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.CLOACK
+    edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.CLOAK
   );
 });
 
