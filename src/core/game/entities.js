@@ -2,7 +2,7 @@ import { BoxGeometry, Group, LoopOnce, Mesh, Quaternion, Vector3 } from 'three'
 
 import dispose from '../utils/three/dispose.js'
 
-import { MATRIX, MODELS, find_head_bone } from './models.js'
+import { MODELS, find_head_bone } from './models.js'
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
 import { context } from './game.js'
 import { create_billboard_text } from './rendering/billboard_text.js'
@@ -31,9 +31,12 @@ function fade_to_animation(from, to, duration = 0.3) {
 //   'WALK',
 // ]
 
-function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
-  return ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
-    const { model, compute_animations, set_variant } = clone_model()
+function entity_spawner(
+  load_model,
+  { skin, height, radius, scale = 1, hair = null },
+) {
+  return async ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
+    const { model, compute_animations, set_variant } = await load_model()
     const { mixer, actions } = compute_animations()
 
     model.scale.set(
@@ -79,6 +82,16 @@ function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
     if (actions.JUMP) actions.JUMP.setLoop(LoopOnce, 1)
 
     current_animation?.play()
+
+    async function equip_hat(hat) {
+      const head = find_head_bone(model)
+      head.clear()
+
+      if (!hat) return
+
+      const { model: hat_model } = await MODELS[hat.item_type]
+      head.add(hat_model)
+    }
 
     return {
       id,
@@ -131,70 +144,65 @@ function spawn_entity(clone_model, { skin, height, radius, scale = 1 }) {
       position: origin.position,
       target_position: null,
       set_variant,
-      equip_hat(hat) {
-        const head = find_head_bone(model)
-
-        if (!hat) {
-          head.clear()
-          return
-        }
-
-        const { model: hat_model } = MODELS[hat.item_type]()
-        const apply_matrix = MATRIX[hat.item_type][skin]
-
-        apply_matrix(hat_model)
-
-        head.add(hat_model)
+      equip_hat,
+      async set_hair() {
+        if (id === 'default') return
+        await equip_hat({ item_type: hair })
       },
     }
   }
 }
 
 export const ENTITIES = {
-  /** @return {Type.ThreeEntity} */
-  from_character({ name, id, classe, sex, skin = null }) {
+  /** @return {Promise<Type.ThreeEntity>} */
+  async from_character({ name, id, classe, sex, skin = null }) {
     const type = ENTITIES[skin || `${classe}_${sex}`]
 
-    if (type) return type({ name, id })
-    return ENTITIES.afegg({ name: 'Oeuftermath', id })
+    if (type) return await type({ name, id })
+    return await ENTITIES.afegg({ name: 'Oeuftermath', id })
   },
 
   // ====== CHARACTERS ======
 
-  senshi_male: spawn_entity(MODELS.senshi_male, {
+  senshi_male: entity_spawner(() => MODELS.senshi_male, {
     height: 1.5,
     radius: 0.8,
     skin: 'senshi_male',
+    hair: 'senshi_male_hair',
   }),
-  senshi_female: spawn_entity(MODELS.senshi_female, {
+  senshi_female: entity_spawner(() => MODELS.senshi_female, {
     height: 1.5,
     radius: 0.8,
     skin: 'senshi_female',
+    hair: 'senshi_female_hair',
   }),
-  yajin_male: spawn_entity(MODELS.yajin_male, {
+  yajin_male: entity_spawner(() => MODELS.yajin_male, {
     height: 1.5,
     radius: 0.8,
     skin: 'yajin_male',
+    hair: 'yajin_male_hair',
   }),
-  yajin_female: spawn_entity(MODELS.yajin_female, {
+  yajin_female: entity_spawner(() => MODELS.yajin_female, {
     height: 1.5,
     radius: 0.8,
     skin: 'yajin_female',
+    hair: 'yajin_female_hair',
   }),
-  primemachin: spawn_entity(MODELS.primemachin, {
+  primemachin: entity_spawner(() => MODELS.primemachin, {
     height: 1.5,
     radius: 0.8,
     skin: 'primemachin',
+    hair: 'primemachin_hair',
   }),
 
   // ====== MOBS ======
 
-  chafer: spawn_entity(MODELS.chafer, {
+  chafer: entity_spawner(() => MODELS.chafer, {
     height: 1.5,
     radius: 0.8,
     skin: 'chafer',
   }),
-  hop_bunny: spawn_entity(MODELS.hop_bunny, {
+  hop_bunny: entity_spawner(() => MODELS.hop_bunny, {
     height: 1.5,
     radius: 0.8,
     skin: 'hop_bunny',
@@ -203,34 +211,34 @@ export const ENTITIES = {
 
   // ====== PETS ======
 
-  suifren_capy: spawn_entity(MODELS.suifren_capy, {
+  suifren_capy: entity_spawner(() => MODELS.suifren_capy, {
     height: 0.75,
     radius: 0.75,
     skin: 'suifren_capy',
   }),
-  suifren_bullshark: spawn_entity(MODELS.suifren_bullshark, {
+  suifren_bullshark: entity_spawner(() => MODELS.suifren_bullshark, {
     height: 0.75,
     radius: 0.75,
     skin: 'suifren_bullshark',
   }),
-  afegg: spawn_entity(MODELS.afegg, {
+  afegg: entity_spawner(() => MODELS.afegg, {
     height: 0.75,
     radius: 0.75,
     skin: 'afegg',
   }),
-  vaporeon: spawn_entity(MODELS.vaporeon, {
+  vaporeon: entity_spawner(() => MODELS.vaporeon, {
     height: 0.85,
     radius: 0.75,
     skin: 'vaporeon',
     scale: 0.9,
   }),
-  suicune: spawn_entity(MODELS.suicune, {
+  suicune: entity_spawner(() => MODELS.suicune, {
     height: 0.85,
     radius: 0.75,
     skin: 'suicune',
     scale: 0.9,
   }),
-  pirate_parrot: spawn_entity(MODELS.pirate_parrot, {
+  pirate_parrot: entity_spawner(() => MODELS.pirate_parrot, {
     height: 0.75,
     radius: 0.75,
     skin: 'pirate_parrot',

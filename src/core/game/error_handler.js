@@ -66,6 +66,9 @@ export async function handle_server_error(reason) {
     case 'CHARACTER_UNLOCKED':
       toast.error(t('SERVER_CHARACTER_UNLOCKED'), '...', FluentEmojiSkull)
       return false
+    case 'CHARACTER_NOT_FOUND':
+      toast.error(t('SERVER_CHARACTER_NOT_FOUND'))
+      return false
     case 'INVALID_CONTRACT':
       toast.error(t('SUI_INVALID_CONTRACT'))
       return false

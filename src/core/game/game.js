@@ -388,6 +388,7 @@ composer.setSize(window.innerWidth, window.innerHeight)
 
 let currently_connecting = false
 let reconnect_toast = null
+let connecting_toast = null
 
 events.on('USER_LOGOUT', () => {
   reconnect_toast?.remove()
@@ -400,7 +401,9 @@ function connect_ws() {
   if (reconnect_toast) reconnect_toast.remove()
 
   logger.SOCKET('Connecting to server')
-  const connecting_toast = toast.tx(i18n.global.t('WS_CONNECTING_TO_SERVER'))
+
+  if (!connecting_toast)
+    connecting_toast = toast.tx(i18n.global.t('WS_CONNECTING_TO_SERVER'))
   return new Promise((resolve, reject) => {
     const { selected_address } = get_state().sui
     const server_url = VITE_SERVER_URL.replaceAll('http', 'ws')
@@ -417,7 +420,6 @@ function connect_ws() {
           ares_client?.notify_end(event.reason)
           logger.SOCKET(`disconnected: ${event.reason}`)
 
-          context.dispatch('action/set_online', true)
           context.dispatch('action/set_online', false)
 
           const { visible_characters, visible_mobs_group } = context.get_state()
@@ -434,7 +436,7 @@ function connect_ws() {
               connect_ws().catch(error => {
                 console.error('Failed to reconnect:', error)
               })
-            }, 100)
+            }, 1000)
           else if (context.get_state().sui.selected_address) {
             reconnect_toast = toast.tx(
               i18n.global.t('SERVER_CLICK_TO_CONNECT'),
@@ -502,6 +504,10 @@ const context = {
   },
   /** @type {() => Promise<void>} */
   connect_ws,
+  // Indicates if the user is connected to the websocket
+  is_online() {
+    return get_state().online
+  },
   /**
    * @template {keyof Type.Actions} K
    * @param {K} type
@@ -562,9 +568,10 @@ aiter(combine(actions, packets))
       const state = modules
         .map(({ reduce }) => reduce)
         .filter(Boolean)
-        .reduce((intermediate, fn) => {
-          const result = fn(intermediate, action)
-          if (!result) throw new Error(`Reducer ${fn} didn't return a state`)
+        .reduce((intermediate, reducer) => {
+          const result = reducer(intermediate, action)
+          if (!result)
+            throw new Error(`Reducer ${reducer} didn't return a state`)
           return result
         }, last_state)
       if (action.type.includes('action/')) {
