@@ -49,36 +49,46 @@ function setup_classe(classe) {
   classe.animate('WALK');
 }
 
-function display_classe(type) {
+async function display_classe(type) {
   reset_classes();
   switch (type) {
     case 'SENSHI_MALE':
       if (!senshi) {
-        senshi = ENTITIES.senshi_male({ id: nanoid(), scene_override: scene });
+        senshi = await ENTITIES.senshi_male({
+          id: nanoid(),
+          scene_override: scene,
+        });
+        await senshi.set_hair();
         setup_classe(senshi);
       }
       break;
     case 'YAJIN_MALE':
       if (!yajin) {
-        yajin = ENTITIES.yajin_male({ id: nanoid(), scene_override: scene });
+        yajin = await ENTITIES.yajin_male({
+          id: nanoid(),
+          scene_override: scene,
+        });
+        await yajin.set_hair();
         setup_classe(yajin);
       }
       break;
     case 'SENSHI_FEMALE':
       if (!senshi_female) {
-        senshi_female = ENTITIES.senshi_female({
+        senshi_female = await ENTITIES.senshi_female({
           id: nanoid(),
           scene_override: scene,
         });
+        await senshi_female.set_hair();
         setup_classe(senshi_female);
       }
       break;
     case 'YAJIN_FEMALE':
       if (!yajin_female) {
-        yajin_female = ENTITIES.yajin_female({
+        yajin_female = await ENTITIES.yajin_female({
           id: nanoid(),
           scene_override: scene,
         });
+        await yajin_female.set_hair();
         setup_classe(yajin_female);
       }
       break;
@@ -87,9 +97,16 @@ function display_classe(type) {
   }
 }
 
-watch(props, ({ type }) => display_classe(type), { immediate: true });
+watch(
+  props,
+  ({ type }) =>
+    display_classe(type).catch(error => {
+      console.error('Failed to display classe', error);
+    }),
+  { immediate: true },
+);
 
-onMounted(() => {
+onMounted(async () => {
   const width = canvas.value?.clientWidth;
   const height = canvas.value?.clientHeight;
   const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -125,7 +142,7 @@ onMounted(() => {
 
   const clock = new Clock();
 
-  display_classe(props.type);
+  await display_classe(props.type);
 
   function animate() {
     if (!running.value) return;
