@@ -143,7 +143,6 @@ watch(
   selected_item_type,
   (type, last_type) => {
     if (type === last_type) return;
-    console.log('selected_item_type', type);
     listings.value = [];
     fetch_listings();
   },

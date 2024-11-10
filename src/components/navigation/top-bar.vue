@@ -223,9 +223,9 @@ nav(:class="{ small: breakpoints.mobile.matches }")
       i.bx.bx-droplet
       span {{ t('APP_TOP_BAR_CONNECT') }}
     vs-row.row(v-else justify="end")
-      vs-button.btn.sui-balance(type="transparent" color="#fff" v-if="current_wallet?.name === 'Enoki' && sui_balance != null && +mists_to_sui(sui_balance) > 0.05"  animation-type="vertical" @click="withdraw_sui_dialog = true")
+      vs-button.btn.sui-balance(type="transparent" color="#fff" v-if="current_wallet?.name === 'Enoki' && sui_balance != null && +mists_to_sui(sui_balance) > 0.1"  animation-type="vertical" @click="withdraw_sui_dialog = true")
         +sui_balance(true)
-      .btn.sui-balance(type="transparent" color="#fff" v-else-if="+mists_to_sui(sui_balance) > 0.05"  animation-type="vertical")
+      .btn.sui-balance(type="transparent" color="#fff" v-else-if="+mists_to_sui(sui_balance) > 0.1"  animation-type="vertical")
         +sui_balance
       vs-button.sui-faucet(v-if="NETWORK === 'testnet'" type="gradient" size="small" color="#64B5F6" @click="claim_faucet" :disabled="claiming_faucet")
         span.profit {{ t('APP_TOP_BAR_FAUCET') }}
