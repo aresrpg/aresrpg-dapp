@@ -1,5 +1,4 @@
 import { setInterval } from 'timers/promises'
-import { on } from 'events'
 
 import { aiter } from 'iterator-helper'
 import {
@@ -14,7 +13,7 @@ import {
   TextureLoader,
 } from 'three'
 
-import { abortable } from '../utils/iterator.js'
+import { abortable, typed_on } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import texture_url from '../../assets/water/texture.png?url'
@@ -196,7 +195,7 @@ export default function () {
     )
     parameters.fragmentShader = parameters.fragmentShader.replace(
       '#include <normal_fragment_begin>',
-      ` 
+      `
       vec3 normal = worldNormal;
       vec3 nonPerturbedNormal = normal;
     `,
@@ -303,7 +302,7 @@ export default function () {
       mesh.receiveShadow = true
       mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
-      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
         ({ last_water_color }, [state]) => {
           const color_changed =
             !last_water_color ||

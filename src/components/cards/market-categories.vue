@@ -62,6 +62,7 @@ import { pretty_print_mists } from '../../core/sui/client.js';
 // @ts-ignore
 import { context } from '../../core/game/game.js';
 
+// @ts-ignore
 import TokenSui from '~icons/token/sui';
 
 const { t } = useI18n();

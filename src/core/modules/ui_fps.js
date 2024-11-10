@@ -3,7 +3,7 @@ import { on } from 'events'
 import Stats from 'stats.js'
 import { aiter } from 'iterator-helper'
 
-import { abortable } from '../utils/iterator.js'
+import { abortable, typed_on } from '../utils/iterator.js'
 import { get_spawned_entities_count } from '../utils/game/entities.js'
 
 /** @type {Type.Module} */
@@ -96,14 +96,8 @@ export default function () {
     observe({ events, signal, get_state, on_game_show, on_game_hide }) {
       const { show_fps } = get_state().settings
 
-      aiter(abortable(on(events, 'STATE_UPDATED', { signal })))
-        .map(
-          ([
-            {
-              settings: { show_fps },
-            },
-          ]) => show_fps,
-        )
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal })))
+        .map(({ settings: { show_fps } }) => show_fps)
         .reduce((last_show_fps, show_fps) => {
           if (show_fps !== last_show_fps) show_stats(show_fps)
 

@@ -648,7 +648,9 @@ export default function () {
           await_connection_success_toast = toast.tx(t('SUI_WAITING_SIGNATURE'))
 
           const [result] = await Promise.race([
+            // @ts-ignore
             once(events, 'packet/connectionAccepted'),
+            // @ts-ignore
             once(events, 'SIGNATURE_NOT_VERIFIED'),
           ])
 

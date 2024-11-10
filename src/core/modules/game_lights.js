@@ -3,7 +3,7 @@ import { on } from 'events'
 import { AmbientLight, CameraHelper, DirectionalLight, Vector3 } from 'three'
 import { aiter } from 'iterator-helper'
 
-import { abortable } from '../utils/iterator.js'
+import { abortable, typed_on } from '../utils/iterator.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { current_three_character } from '../game/game.js'
 
@@ -87,7 +87,7 @@ export default function () {
         }
       }
 
-      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
         (
           {
             last_sky_lights_version,
@@ -95,7 +95,7 @@ export default function () {
             last_player_position,
             last_water_color,
           },
-          [state],
+          state,
         ) => {
           const lights_changed =
             state.settings.sky.lights.version !== last_sky_lights_version ||

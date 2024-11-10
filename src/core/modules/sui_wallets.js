@@ -5,6 +5,7 @@ import { aiter, iter } from 'iterator-helper'
 import { get_alias } from '../sui/client.js'
 import { initialize_wallets, wallet_emitter } from '../sui/wallet.js'
 import { context } from '../game/game.js'
+import { typed_on } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -91,13 +92,9 @@ export default function () {
         localStorage.setItem('last_selected_wallet', name)
       })
 
-      aiter(on(context.events, 'STATE_UPDATED'))
+      aiter(typed_on(context.events, 'STATE_UPDATED'))
         .map(
-          ([
-            {
-              sui: { selected_wallet_name, wallets, selected_address },
-            },
-          ]) => ({
+          ({ sui: { selected_wallet_name, wallets, selected_address } }) => ({
             selected_wallet_name,
             wallets,
             selected_address,

@@ -4,7 +4,7 @@ import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
 import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
 
-import { abortable, state_iterator } from '../utils/iterator.js'
+import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
 import { sea_level } from '../utils/terrain/world_settings.js'
 
@@ -100,15 +100,8 @@ export default function () {
         signal,
       })
 
-      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
-        (
-          last_free_camera,
-          [
-            {
-              settings: { camera },
-            },
-          ],
-        ) => {
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
+        (last_free_camera, { settings: { camera } }) => {
           const free_camera = camera.is_free
           if (last_free_camera !== free_camera) {
             if (free_camera) {

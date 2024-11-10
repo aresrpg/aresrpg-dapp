@@ -17,6 +17,22 @@ export async function* named_on(events, event, options) {
 }
 
 /**
+ * @template {import("@aresrpg/aresrpg-protocol/types").EventMap} T
+ * @template {import("@aresrpg/aresrpg-protocol/types").EventName<T>} K
+ * @param {import("@aresrpg/aresrpg-protocol/types").TypedEmitter<T>} emitter
+ * @param {K} event
+ * @param {object} [options]
+ * @param {AbortSignal} [options.signal]
+ * @returns {AsyncIterableIterator<T[K]>}
+ */
+export async function* typed_on(emitter, event, options) {
+  // @ts-expect-error TypedEmitter is compatible with EventEmitter
+  for await (const [value] of on(emitter, event, options)) {
+    yield value
+  }
+}
+
+/**
  * @template T
  * @param {AsyncIterableIterator<T> | AsyncIterable<T>} iterator
  * @returns {AsyncIterator<T>}
@@ -30,5 +46,5 @@ export async function* abortable(iterator) {
 }
 
 export function state_iterator() {
-  return aiter(on(context.events, 'STATE_UPDATED')).map(([state]) => state)
+  return aiter(typed_on(context.events, 'STATE_UPDATED')).map(state => state)
 }

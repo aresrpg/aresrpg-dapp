@@ -17,12 +17,11 @@ div.notification-loader
 </template>
 
 <script setup>
-import { VsButton } from 'vuesax-alpha';
-
 import { NETWORK } from '../../env.js';
 
 import LoadingSpinner from './control-spinner.vue';
 
+// @ts-ignore
 import GameIconsCrocSword from '~icons/game-icons/croc-sword';
 
 const props = defineProps({
