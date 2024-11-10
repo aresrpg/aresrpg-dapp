@@ -57,7 +57,6 @@ import {
 } from '@aresrpg/aresrpg-sdk/items';
 import { watch, ref, inject, onMounted, onUnmounted } from 'vue';
 
-import { VITE_INDEXER_URL } from '../../env.js';
 import { pretty_print_mists } from '../../core/sui/client.js';
 // @ts-ignore
 import { context } from '../../core/game/game.js';

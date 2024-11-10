@@ -26,7 +26,7 @@ import sectionHeader from '../components/misc/section-header.vue';
 import recipeVue from '../components/cards/recipe.vue';
 import itemInventory from '../components/cards/item-inventory.vue';
 import itemDescription from '../components/cards/item-description.vue';
-import { NETWORK, VITE_INDEXER_URL } from '../env.js';
+import { NETWORK } from '../env.js';
 // @ts-ignore
 import tailor_icon from '../assets/jobs/tailor.png';
 // @ts-ignore
@@ -42,15 +42,6 @@ const jobs = [
   { name: t('APP_TAB_WORKSHOP_TAILOR'), level: 1, icon: tailor_icon },
   { name: t('APP_TAB_WORKSHOP_WOODCUTTER'), level: 1, icon: woodcutter_icon },
 ];
-
-async function refresh_recipes() {
-  const result = await fetch(`${VITE_INDEXER_URL}/recipes`);
-  const { recipes, cursor } = await result.json();
-
-  recipes.forEach(recipe => recipe.ingredients);
-
-  indexed_recipes.value = recipes;
-}
 
 function on_recipe_create(recipe) {
   indexed_recipes.value.push(recipe);
