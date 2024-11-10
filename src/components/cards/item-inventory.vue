@@ -11,7 +11,7 @@
     @dblclick="() => equip_item(item)"
   )
     .amount(v-if="item.amount > 1") {{ pretty_amount(item) }}
-    img(:src="item?.image_url" :draggable="!props.disable_edit && selected_category === 'equipment'")
+    img(:src="item?.image_url || item?.iconUrl" :draggable="!props.disable_edit && selected_category === 'equipment'")
 
   /// delete dialog
   vs-dialog(v-model="deletion_dialog")
