@@ -1,5 +1,5 @@
 <template lang="pug">
-sectionContainer(v-if="NETWORK === 'testnet'")
+sectionContainer
   sectionHeader(:title="t('APP_TAB_WORKSHOP')" :desc="t('APP_TAB_WORKSHOP_DESC')" color="#673AB7" rows="true")
     .recipes
       .recipe-name {{ t('APP_TAB_WORKSHOP_RECIPES') }}:
@@ -18,7 +18,7 @@ sectionContainer(v-if="NETWORK === 'testnet'")
 </template>
 
 <script setup>
-import { inject, onUnmounted, watch } from 'vue';
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import sectionContainer from '../components/misc/section-container.vue';
@@ -32,10 +32,11 @@ import tailor_icon from '../assets/jobs/tailor.png';
 // @ts-ignore
 import woodcutter_icon from '../assets/jobs/woodcutter.png';
 import { SUI_EMITTER } from '../core/modules/sui_data.js';
+import { sui_get_recipes } from '../core/sui/client.js';
 
 const { t } = useI18n();
 const indexed_recipes = inject('recipes');
-const current_wallet = inject('current_wallet');
+const online = inject('online');
 
 const jobs = [
   { name: t('APP_TAB_WORKSHOP_TAILOR'), level: 1, icon: tailor_icon },
@@ -51,33 +52,26 @@ async function refresh_recipes() {
   indexed_recipes.value = recipes;
 }
 
-function on_recipe_create() {
-  setTimeout(() => {
-    refresh_recipes();
-  }, 7000);
+function on_recipe_create(recipe) {
+  indexed_recipes.value.push(recipe);
 }
 
-function on_recipe_delete() {
-  setTimeout(() => {
-    refresh_recipes();
-  }, 7000);
+function on_recipe_delete(recipe_id) {
+  indexed_recipes.value = indexed_recipes.value.filter(
+    recipe => recipe.id !== recipe_id,
+  );
 }
 
-watch(
-  current_wallet,
-  () => {
-    SUI_EMITTER.off('RecipeCreateEvent', on_recipe_create);
-    SUI_EMITTER.off('RecipeDeleteEvent', on_recipe_delete);
+watch(online, async () => {
+  if (online.value) {
+    indexed_recipes.value = await sui_get_recipes();
+  }
+});
 
-    if (current_wallet.value) {
-      refresh_recipes();
-
-      SUI_EMITTER.on('RecipeCreateEvent', on_recipe_create);
-      SUI_EMITTER.on('RecipeDeleteEvent', on_recipe_delete);
-    }
-  },
-  { immediate: true },
-);
+onMounted(() => {
+  SUI_EMITTER.on('RecipeCreateEvent', on_recipe_create);
+  SUI_EMITTER.on('RecipeDeleteEvent', on_recipe_delete);
+});
 
 onUnmounted(() => {
   SUI_EMITTER.off('RecipeCreateEvent', on_recipe_create);
