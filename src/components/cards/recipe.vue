@@ -52,7 +52,6 @@ import {
 import toast from '../../toast.js';
 import { context } from '../../core/game/game.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
-import { NETWORK } from '../../env.js';
 
 import itemDescription from './item-description.vue';
 
@@ -163,14 +162,17 @@ const admin = inject('admin');
 async function delete_recipe() {
   if (!admin.admin_caps.length) return;
   const [admin_cap] = admin.admin_caps;
-  await sui_delete_recipe({ admin_cap, recipe_id: props.recipe.id });
+  await sui_delete_recipe({
+    admin_cap: admin_cap.id,
+    recipe_id: props.recipe.id,
+  });
 }
 
 function item_icon(item_type) {
   const known_token = sdk.SUPPORTED_TOKENS[item_type];
 
   // @ts-ignore
-  if (known_token) return known_token.image_url;
+  if (known_token) return known_token.iconUrl;
   return `https://assets.aresrpg.world/item/${item_type}.png`;
 }
 </script>
