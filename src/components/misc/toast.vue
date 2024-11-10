@@ -17,6 +17,9 @@ div.notification-loader
 </template>
 
 <script setup>
+// @ts-ignore
+import { VsButton } from 'vuesax-alpha';
+
 import { NETWORK } from '../../env.js';
 
 import LoadingSpinner from './control-spinner.vue';
