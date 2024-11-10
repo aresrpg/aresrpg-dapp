@@ -19,7 +19,7 @@ import {
 } from '@aresrpg/aresrpg-world'
 
 import { context, current_three_character } from '../game/game.js'
-import { abortable } from '../utils/iterator.js'
+import { abortable, typed_on } from '../utils/iterator.js'
 import {
   biome_mapping_conf,
   blocks_colors,
@@ -236,14 +236,10 @@ export default function () {
 
       scene.add(terrain_viewer.container)
 
-      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
         async (
           { last_view_distance, last_far_view_distance },
-          [
-            {
-              settings: { view_distance, far_view_distance },
-            },
-          ],
+          { settings: { view_distance, far_view_distance } },
         ) => {
           if (last_view_distance) {
             if (

@@ -390,7 +390,6 @@ export async function sui_craft_item(recipe) {
       // @ts-ignore
       if (item.is_token) {
         const [coin] = coinWithBalance({
-          tx,
           type: item_type,
           balance: amount,
         })(tx)
@@ -521,7 +520,6 @@ export async function sui_feed_pet(pet) {
         if (new BN(balance.totalBalance).isLessThan(5000000000)) return
 
         const [payment] = coinWithBalance({
-          tx,
           type: sdk.HSUI.address,
           balance: 5000000000,
         })(tx)
@@ -921,12 +919,21 @@ export async function sui_list_item({ item, price, amount }) {
     tx,
   })
 
-  const item_id = get_item_with_amount({ tx, item, amount, kiosks })
+  const kiosk_cap_ref = new Map()
+
+  function get_kiosk_cap_ref(kiosk_id) {
+    if (!kiosk_cap_ref.has(kiosk_id)) {
+      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
+    }
+    return kiosk_cap_ref.get(kiosk_id)
+  }
+
+  const item_id = get_item_with_amount({ tx, item, amount, get_kiosk_cap_ref })
 
   sdk.list_item({
     tx,
     kiosk: item.kiosk_id,
-    kiosk_cap: kiosks.get(item.kiosk_id)(),
+    kiosk_cap: get_kiosk_cap_ref(item.kiosk_id),
     item_id,
     item_type: item._type,
     price: BigInt(
@@ -949,10 +956,19 @@ export async function sui_delist_item(item) {
     tx,
   })
 
+  const kiosk_cap_ref = new Map()
+
+  function get_kiosk_cap_ref(kiosk_id) {
+    if (!kiosk_cap_ref.has(kiosk_id)) {
+      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
+    }
+    return kiosk_cap_ref.get(kiosk_id)
+  }
+
   sdk.delist_item({
     tx,
     kiosk: item.kiosk_id,
-    kiosk_cap: kiosks.get(item.kiosk_id)(),
+    kiosk_cap: get_kiosk_cap_ref(item.kiosk_id),
     item_id: item.id,
     item_type: item._type,
   })
@@ -960,8 +976,8 @@ export async function sui_delist_item(item) {
   merge_all_items({
     tx,
     item,
-    kiosks,
     items: context.get_state().sui.unlocked_items,
+    get_kiosk_cap_ref,
   })
 
   finalize()
@@ -1127,6 +1143,8 @@ export async function sui_buy_item(item) {
       kiosk: typeof kiosk_id === 'string' ? tx.object(kiosk_id) : kiosk_id,
       kioskCap:
         typeof kiosk_cap === 'string' ? tx.object(kiosk_cap) : kiosk_cap,
+      extraArgs: {},
+      transactionBlock: tx,
     })
   }
 
