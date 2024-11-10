@@ -303,7 +303,7 @@ export default function () {
       mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
       aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
-        ({ last_water_color }, [state]) => {
+        ({ last_water_color }, state) => {
           const color_changed =
             !last_water_color ||
             !last_water_color.equals(state.settings.water.color)

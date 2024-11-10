@@ -1,5 +1,3 @@
-import { type Vector3Like } from 'three'
-
 declare module '*.ogg'
 declare module '*.png'
 declare module '*.jpg'
@@ -191,7 +189,7 @@ declare namespace Type {
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
       DISPLAY_DAMAGE_UI: {
-        targetObject: Vector3Like
+        target_object: import('three').Vector3Like
         text: string
         color: string
         is_critical: boolean
