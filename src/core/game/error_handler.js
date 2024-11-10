@@ -31,6 +31,11 @@ export async function handle_server_error(reason) {
     case 'ADDRESS_CHANGED':
     case 'USER_DISCONNECTED':
       return true
+    case 'CONNECTION_NOT_APPROVED':
+      console.error(
+        'The app sent an indexer_request before the server approved the connection',
+      )
+      return false
     case 'ALREADY_ONLINE':
       toast.error(
         t('SERVER_ALREADY_ONLINE'),

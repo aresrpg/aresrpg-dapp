@@ -12,8 +12,8 @@ sectionContainer
   sectionHeader(title="Admin caps")
     .caps
       .cap.material-2(v-for="(cap, index) in admin.admin_caps" :key="index")
-        a.id(@click="() => open_explorer(item.id)") {{ short_id(cap) }}
-        vs-button.amount(@click="() => sui_delete_admin_cap(cap)" type="gradient" color="#D32F2F" size="small") Delete
+        a.id(@click="() => open_explorer(item.id)") {{ short_id(cap.id) }}
+        vs-button.amount(@click="() => sui_delete_admin_cap(cap.id)" type="gradient" color="#D32F2F" size="small") Delete
 
 </template>
 

@@ -1,12 +1,12 @@
 <template lang="pug">
 .description-container(v-if="item")
   .header
-    .name {{ item.name }}
+    .name {{ item.name || item.symbol }}
     .set(v-if="item.item_set !== 'none'") ({{ t('APP_ITEM_SET') }} {{ item.item_set }})
     .lvl Lvl. {{ item.level || experience_to_level(item.experience) }}
   .content
     .left-content
-      img.icon(:src="item?.image_url")
+      img.icon(:src="item?.image_url || item?.iconUrl")
       .category {{ t(`APP_ITEM_${item.item_category.toUpperCase()}` || 'not found') }}
       a.id(v-if="item.id" @click="() => open_explorer(item.id)") {{ short_id(item.id) }}
       .bottom(v-if="item.critical_chance") cc: {{ item.critical_chance }} / {{ item.critical_outcomes }}
