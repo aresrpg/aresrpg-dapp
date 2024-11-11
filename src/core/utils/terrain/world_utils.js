@@ -31,7 +31,7 @@ export function get_ground_height(pos) {
  * @param {*} entity_height
  * @returns height if in cache or NaN
  */
-export function get_height({ x, z }, entity_height = 0) {
+export function get_ground_height_sync({ x, z }, entity_height = 0) {
   const ground_height = get_ground_height(new Vector2(x, z))
   return ground_height instanceof Promise
     ? NaN
@@ -44,7 +44,7 @@ export function get_height({ x, z }, entity_height = 0) {
  * @param {*} entity_height
  * @returns async height
  */
-export async function get_height_async({ x, z }, entity_height = 0) {
+export async function get_ground_height_async({ x, z }, entity_height = 0) {
   const ground_height = await get_ground_height(new Vector2(x, z))
   return ground_height + entity_height * 0.5
 }
@@ -82,7 +82,7 @@ export const to_engine_chunk_format = world_chunk => {
  */
 
 const board_params = {
-  radius: 32,
+  radius: 16,
   thickness: 4,
 }
 
@@ -120,8 +120,8 @@ export const highlight_board_edges = (board_handler, board) => {
   const second_player_side = sorted_border_blocks.second.map(block =>
     to_local_pos(block.pos),
   )
-  board_handler.displaySquares(first_player_side, new Color(0x0000ff))
-  board_handler.displaySquares(second_player_side, new Color(0x00ff00))
+  board_handler.displaySquares(first_player_side, new Color(0x212121))
+  board_handler.displaySquares(second_player_side, new Color(0x212121))
 }
 
 export const highlight_start_pos = (board_handler, board) => {
@@ -146,6 +146,6 @@ export const highlight_start_pos = (board_handler, board) => {
   const second_player_side = sorted_start_pos.second.map(block =>
     to_local_pos(block.pos),
   )
-  board_handler.displaySquares(first_player_side, new Color(0x0000ff))
-  board_handler.displaySquares(second_player_side, new Color(0x00ff00))
+  board_handler.displaySquares(first_player_side, new Color(0x1976d2))
+  board_handler.displaySquares(second_player_side, new Color(0xd32f2f))
 }

@@ -5,11 +5,11 @@ import { aiter } from 'iterator-helper'
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
 import { abortable } from '../utils/iterator.js'
-import { sui_get_character, sui_get_character_name } from '../sui/client.js'
+import { sui_get_character } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { current_three_character } from '../game/game.js'
 import { ENTITIES } from '../game/entities.js'
-import { get_height_async } from '../utils/terrain/world_utils.js'
+import { get_ground_height_async } from '../utils/terrain/world_utils.js'
 
 import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
 import { tick_pet } from './player_pet.js'
@@ -175,9 +175,8 @@ export default function () {
         async ({ id: group_id, position: spawn_position, entities }) => {
           const { visible_mobs_group } = get_state()
 
-          spawn_position.y = await get_height_async(spawn_position, 1)
-
           try {
+            spawn_position.y = await get_ground_height_async(spawn_position, 1)
             visible_mobs_group.set(group_id, {
               id: group_id,
               position: spawn_position,
@@ -202,7 +201,7 @@ export default function () {
                     spawn_position.z + Math.random() * 4 - 2,
                   )
 
-                  const ground_height = await get_height_async(
+                  const ground_height = await get_ground_height_async(
                     position,
                     spawned_mob.height,
                   )

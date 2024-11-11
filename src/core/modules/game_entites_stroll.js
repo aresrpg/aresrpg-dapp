@@ -5,7 +5,10 @@ import { Vector3 } from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import { get_height, get_height_async } from '../utils/terrain/world_utils.js'
+import {
+  get_ground_height_sync,
+  get_ground_height_async,
+} from '../utils/terrain/world_utils.js'
 
 const MOVE_INTERVAL = 5000 // 5 seconds in milliseconds
 const MOVE_PROBABILITY = 0.1 // 10% chance to move
@@ -21,7 +24,7 @@ function get_random_offset(max_distance) {
 export default function () {
   return {
     tick(state, _, delta) {
-      const { visible_mobs_group, characters } = state
+      const { visible_mobs_group } = state
       const character = current_three_character(state)
       for (const { entities } of visible_mobs_group.values()) {
         for (const mob of entities) {
@@ -35,9 +38,12 @@ export default function () {
               const movement = direction.multiplyScalar(MOB_SPEED * delta)
 
               const new_position = mob.position.clone().add(movement)
-              const ground_height = get_height(new_position, mob.height)
+              const ground_height = get_ground_height_sync(
+                new_position,
+                mob.height,
+              )
 
-              if (isNaN(ground_height)) continue
+              if (Number.isNaN(ground_height)) continue
 
               new_position.setY(ground_height)
 
@@ -64,8 +70,10 @@ export default function () {
       aiter(
         abortable(setInterval(MOVE_INTERVAL, null, { signal: context.signal })),
       ).forEach(async () => {
-        visible_mobs_group.forEach(async ({ entities }) => {
-          await Promise.all(
+        visible_mobs_group.forEach(({ entities }) => {
+          // this kinda is background task, we do not need to wait for it (it has a catch block)
+          // ? Could it become a problem if the get_ground_height takes more time than MOVE_INTERVAL?
+          Promise.all(
             entities.map(async mob => {
               // 10% chance to move the mob
               const should_move = Math.random() < MOVE_PROBABILITY
@@ -83,7 +91,7 @@ export default function () {
                 ).add(new Vector3(offset_x, 0, offset_z))
 
                 target_position.setY(
-                  await get_height_async(target_position, mob.height),
+                  await get_ground_height_async(target_position, mob.height),
                 )
 
                 mob.target_position = target_position

@@ -1,7 +1,6 @@
 import { MathUtils } from 'three'
 
 import { create_billboard_text } from '../game/rendering/billboard_text.js'
-import { current_three_character } from '../game/game.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -75,7 +74,7 @@ export default function () {
       }
     },
 
-    observe({ events, get_state, signal, scene }) {
+    observe({ events, scene }) {
       events.on(
         'DISPLAY_DAMAGE_UI',
         ({ target_object, text, color, is_critical }) => {

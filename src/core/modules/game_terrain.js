@@ -1,4 +1,3 @@
-import { on } from 'events'
 import { setInterval } from 'timers/promises'
 
 import {
@@ -8,7 +7,7 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Box2, Box3, Color, LOD, Vector2, Vector3 } from 'three'
+import { Box2, Color, Vector2, Vector3 } from 'three'
 import {
   ChunkFactory,
   PatchContainer,
@@ -42,7 +41,7 @@ const LOD_MODE = {
 
 const FLAGS = {
   LOD_MODE: LOD_MODE.DISABLED,
-  BOARD_POC: false, // POC toggle until board integration is finished
+  BOARD_POC: true, // POC toggle until board integration is finished
   OTF_GEN: true, // bake patch progressively
 }
 // settings

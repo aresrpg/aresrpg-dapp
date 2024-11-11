@@ -6,7 +6,7 @@ import {
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
 import { ENTITIES } from '../game/entities.js'
-import { get_height } from '../utils/terrain/world_utils.js'
+import { get_ground_height_sync } from '../utils/terrain/world_utils.js'
 
 const PET_SPEED = 8.0 // Adjust this value to set the pet's movement speed
 
@@ -35,9 +35,9 @@ export function tick_pet(character, pet, delta) {
     const movement = direction.multiplyScalar(PET_SPEED * delta)
 
     const new_position = pet.position.clone().add(movement)
-    const terrain_height = get_height(new_position, pet.height)
+    const terrain_height = get_ground_height_sync(new_position, pet.height)
 
-    if (!isNaN(terrain_height)) {
+    if (!Number.isNaN(terrain_height)) {
       new_position.setY(terrain_height)
 
       pet.move(new_position)

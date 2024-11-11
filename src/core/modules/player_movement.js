@@ -7,7 +7,7 @@ import { lerp } from 'three/src/math/MathUtils.js'
 
 import { GRAVITY, context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { get_height } from '../utils/terrain/world_utils.js'
+import { get_ground_height_sync } from '../utils/terrain/world_utils.js'
 import { sea_level } from '../utils/terrain/world_static_conf.js'
 
 import { play_step_sound } from './game_audio.js'
@@ -65,9 +65,12 @@ export default function () {
 
       if (player.target_position) {
         // FIX to handle async block request
-        const ground_height = get_height(player.target_position, player.height)
+        const ground_height = get_ground_height_sync(
+          player.target_position,
+          player.height,
+        )
 
-        if (!isNaN(ground_height)) {
+        if (!Number.isNaN(ground_height)) {
           player.target_position.y = ground_height
           player.move(player.target_position)
           player.target_position = null
@@ -171,9 +174,9 @@ export default function () {
 
       const { x, z } = dummy.position
       // FIX to handle async block request
-      const ground_height = get_height({ x, z }, 0)
+      const ground_height = get_ground_height_sync({ x, z }, 0)
 
-      if (isNaN(ground_height)) return
+      if (Number.isNaN(ground_height)) return
 
       const target_y = ground_height + player.height * 0.5
       const dummy_bottom_y = dummy.position.y - player.height * 0.5
