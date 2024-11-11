@@ -237,8 +237,6 @@ export default function () {
     },
     observe({ camera, events, signal, scene, get_state, physics }) {
       window.dispatchEvent(new Event('assets_loading'))
-      // this notify the player_movement module that the terrain is ready
-      events.emit('CHUNKS_LOADED')
 
       scene.add(terrain_viewer.container)
 

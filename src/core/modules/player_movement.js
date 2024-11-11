@@ -100,10 +100,12 @@ export default function () {
       const is_underwater = player.position.y < sea_level
 
       if (player.target_position) {
-        player.target_position.y = get_terrain_height(
-          player.target_position,
-          player.height,
-        )
+        const terrain_height = get_terrain_height(player.target_position, 0)
+        if (terrain_height < 5) {
+          // chances are, the chunk is not loaded yet. Wait a bit
+          return
+        }
+        player.target_position.y = terrain_height + 0.5 * player.height
         player.move(player.target_position)
         player.target_position = null
         player_collider_object.position.copy(player.position)
