@@ -7,16 +7,17 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Box2, Color, Vector2, Vector3 } from 'three'
+import { Box2, Color, Vector2 } from 'three'
 import {
-  ChunkFactory,
-  PatchContainer,
-  GroundMap,
   WorldComputeProxy,
   SchematicLoader,
   ItemsInventory,
-  ProceduralItemGenerator,
+  Biome,
   Heightmap,
+  BoardContainer,
+  ChunkContainer,
+  WorldConf,
+  WorldChunkIndexer,
 } from '@aresrpg/aresrpg-world'
 import { Biome } from '@aresrpg/aresrpg-world/biomes'
 import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
@@ -24,8 +25,9 @@ import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
 import {
+  build_board_chunk,
   chunk_data_encoder,
-  setup_board_container,
+  highlight_board,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 import { setup_world_modules } from '../utils/terrain/world_setup.js'
@@ -65,28 +67,23 @@ const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
 }))
 
 const last_board = {
-  pos: new Vector3(10, 0, 10),
+  pos: new Vector2(10, 10),
   bounds: new Box2(),
   handler: null,
 }
 let pending_task = false
 
-const board_refresh_trigger = current_pos => {
-  return (
-    WorldUtils.asVect2(last_board.pos).distanceTo(
-      WorldUtils.asVect2(current_pos),
-    ) > 1
-  )
-}
+const board_refresh_trigger = current_pos =>
+  last_board.pos.distanceTo(current_pos) > 1
 
 /** @type {Type.Module} */
 export default function () {
   // WORLD
-  // Common settings
+  // common settings
   const patch_size = { xz: 64, y: 64 }
   const min_patch_id_y = Math.floor(altitude.min / patch_size.y)
   const max_patch_id_y = Math.floor(altitude.max / patch_size.y)
-  // Run world-compute module in dedicated worker
+  // run world-compute module in dedicated worker
   WorldComputeProxy.instance.worker = world_worker
   // alternative proxy to route to secondary worker
   const world_delegated_proxy = new WorldComputeProxy()
@@ -97,15 +94,19 @@ export default function () {
     biomeInstance: Biome.instance,
     SchematicLoader,
     ItemsInventory,
+    ChunkContainer,
   })
-  // chunk related conf
-  ChunkFactory.default.setChunksGenRange(min_patch_id_y, max_patch_id_y)
-  ChunkFactory.default.chunkDataEncoder = chunk_data_encoder
-  SchematicLoader.chunkDataEncoder = chunk_data_encoder
-  ProceduralItemGenerator.chunkDataEncoder = chunk_data_encoder
+  // chunks related
+  WorldConf.instance.chunkSettings.genRange.yMinId = min_patch_id_y
+  WorldConf.instance.chunkSettings.genRange.yMaxId = max_patch_id_y
+  ChunkContainer.defaultDataEncoder = chunk_data_encoder
 
-  // ground patch container
-  const ground_patches = new GroundMap()
+  // patch containers
+  const chunks_indexer = new WorldChunkIndexer()
+  // const board_container = new BoardContainer(
+  //   board_params.radius,
+  //   board_params.thickness,
+  // )
   // ENGINE
   const map = {
     minAltitude: altitude.min,
@@ -146,6 +147,14 @@ export default function () {
   })
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = FLAGS.LOD_MODE > 0
+
+  // chunks rendering
+  const render_chunk = world_chunk => {
+    const engine_chunk = to_engine_chunk_format(world_chunk)
+    voxelmap_viewer.invalidatePatch(engine_chunk.id)
+    voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id) &&
+      voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
+  }
 
   return {
     tick() {
@@ -270,55 +279,69 @@ export default function () {
           if (!pending_task) {
             pending_task = true
             const current_pos = player_position.clone().floor()
-            // BOARD REFRSH
-            if (FLAGS.BOARD_POC && board_refresh_trigger(current_pos)) {
-              const res = await setup_board_container(current_pos)
-              if (res) {
-                const { board_container, board_handler } = res
-
-                // console.log(border_blocks)
-                render_board_container(board_container)
-                if (last_board.handler?.container) {
-                  last_board.handler.dispose()
-                  scene.remove(last_board.handler.container)
-                }
-                last_board.handler = board_handler
-                scene.add(board_handler.container)
-                // remember bounds for later board removal
-                last_board.bounds = board_container.bounds
-                last_board.pos = current_pos
-              }
-            }
-            // PATCHES REFRESH
-            // Query patches around player
+            // Query chunks around player position
             const view_center = WorldUtils.asVect2(current_pos)
             const view_radius = state.settings.view_distance
-            const view_dims = new Vector2(
-              view_radius,
-              view_radius,
-            ).multiplyScalar(2)
-            const view_box = new Box2().setFromCenterAndSize(
+            const chunks_indexing_changes = chunks_indexer.reindexAroundPos(
               view_center,
-              view_dims,
+              view_radius,
             )
-            const has_changed = ground_patches.rebuildPatchIndex(view_box)
-            if (has_changed) {
-              const changes = await ground_patches.loadEmpty(FLAGS.OTF_GEN)
-              update_chunks_visibility()
-              // Bake world patches and sends chunks to engine
-              for await (const patch of changes) {
-                // request all entities belonging to this patch
-                const overground_items =
-                  await WorldComputeProxy.instance.queryOvergroundItems(
-                    patch.bounds,
-                  )
-                // transform to chunk list
-                const items_chunk_list =
-                  await transform_items_to_chunks(overground_items)
-                render_patch_chunks(patch, items_chunk_list)
+            if (chunks_indexing_changes) {
+              chunks_indexer.chunksLookup = chunks_indexing_changes
+              const chunk_ids = chunks_indexer.populateChunkIndex()
+              voxelmap_viewer.setVisibility(chunk_ids)
+              // process ground surface chunks first
+              const surface_chunks_otf_gen =
+                await chunks_indexer.otfGroundSurfaceChunksGen()
+              for await (const world_chunk of surface_chunks_otf_gen) {
+                render_chunk(world_chunk)
+              }
+              // process undeground surface chunks after
+              const undeground_chunks_otf_gen =
+                await chunks_indexer.otfUndegroundChunksGen()
+              for await (const world_chunk of undeground_chunks_otf_gen) {
+                render_chunk(world_chunk)
               }
               terrain_viewer.setLod(camera.position, 50, camera.far)
             }
+            // BOARD PATCHES
+            // if (FLAGS.BOARD_POC && board_refresh_trigger(view_center)) {
+            //   board_container.setupBoard(view_center)
+            //   const board_content = await board_container.genBoardContent()
+            //   const otf_gen = await board_container.otfGen()
+            //   for await (const board_patch of otf_gen) {
+            //     // process external board items chunks
+            //     const items_chunks = []
+            //     const items_otf_gen = board_patch.itemsChunksOtfGen()
+            //     for await (const item_chunk of items_otf_gen) {
+            //       items_chunks.push(item_chunk)
+            //     }
+            //     const board_chunks = ChunkUtils.getWorldChunksFromPatchId(
+            //       board_patch.id,
+            //     )
+            //     // generate board chunks
+            //     for await (const board_chunk of board_chunks) {
+            //       for (const item_chunk of items_chunks) {
+            //         ChunkContainer.copySourceToTarget(item_chunk, board_chunk)
+            //       }
+            //       build_board_chunk(board_patch, board_chunk)
+            //       // send chunk for render
+            //       render_chunk(board_chunk)
+            //     }
+            //   }
+            //   const board_handler = highlight_board(board_content)
+            //   if (last_board.handler?.container) {
+            //     last_board.handler.dispose()
+            //     scene.remove(last_board.handler.container)
+            //   }
+            //   if (board_handler) {
+            //     last_board.handler = board_handler
+            //     scene.add(board_handler.container)
+            //   }
+            //   // remember bounds for later board removal
+            //   last_board.bounds = board_container.boardBounds
+            //   last_board.pos = view_center
+            // }
             pending_task = false
           }
         }

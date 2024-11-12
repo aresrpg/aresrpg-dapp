@@ -5,6 +5,10 @@ import {
   SCHEMATICS_BLOCKS_MAPPING,
   sea_level,
 } from './world_settings.js'
+// import { SCHEMATICS_BLOCKS_MAPPING } from './config/blocks.js'
+// import { SCHEMATICS_FILES } from './config/schematics_files.js'
+// import { LANDSCAPE, sea_level } from './config/biomes_landscapes.js'
+import { chunk_data_encoder } from './world_utils.js'
 
 /**
  * Unified setup to ensure having same settings everywhere (workers, main thread)
@@ -14,6 +18,7 @@ export const setup_world_modules = ({
   biomeInstance,
   SchematicLoader,
   ItemsInventory,
+  ChunkContainer,
 }) => {
   // GroundPatch.patchSize = WorldConf.patchSize
   // Tune heightmap settings
@@ -27,4 +32,5 @@ export const setup_world_modules = ({
   SchematicLoader.worldBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
   ItemsInventory.externalResources.procItemsConfigs = proc_items_conf
   ItemsInventory.externalResources.schemFileUrls = SCHEMATICS_FILES
+  ChunkContainer.defaultDataEncoder = chunk_data_encoder
 }

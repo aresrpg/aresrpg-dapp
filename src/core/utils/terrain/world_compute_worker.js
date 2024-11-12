@@ -1,10 +1,11 @@
 import {
+  Biome,
+  ChunkContainer,
   Heightmap,
   ItemsInventory,
   SchematicLoader,
   WorldCompute,
 } from '@aresrpg/aresrpg-world'
-import { Biome } from '@aresrpg/aresrpg-world/biomes'
 import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 
 import { setup_world_modules } from './world_setup.js'
@@ -14,6 +15,7 @@ const world_modules = {
   biomeInstance: Biome.instance,
   SchematicLoader,
   ItemsInventory,
+  ChunkContainer,
 }
 setup_world_modules(world_modules)
 
