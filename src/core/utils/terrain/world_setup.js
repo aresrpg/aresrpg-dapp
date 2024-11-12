@@ -9,6 +9,7 @@ import {
 // import { SCHEMATICS_FILES } from './config/schematics_files.js'
 // import { LANDSCAPE, sea_level } from './config/biomes_landscapes.js'
 import { chunk_data_encoder } from './world_utils.js'
+import { BIOMES_LANDSCAPES_ORIG } from './config/biomes_landscapes.original.js'
 
 /**
  * Unified setup to ensure having same settings everywhere (workers, main thread)
@@ -27,7 +28,7 @@ export const setup_world_modules = ({
   heightmapInstance.amplitude.sampling.seed = 'amplitude_mod'
   // External configuration
   biomeInstance.params.seaLevel = sea_level
-  biomeInstance.parseBiomesConfig(LANDSCAPE)
+  biomeInstance.parseBiomesConfig(BIOMES_LANDSCAPES_ORIG)
   // populate inventory with schematics and procedural objects
   SchematicLoader.worldBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
   ItemsInventory.externalResources.procItemsConfigs = proc_items_conf
