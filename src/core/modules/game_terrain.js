@@ -28,8 +28,8 @@ import {
   setup_board_container,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
-import { block_color_mapping } from '../utils/terrain/world_static_conf.js'
 import { setup_world_modules } from '../utils/terrain/world_setup.js'
+import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/config/blocks.js'
 
 // NB: LOD should be set to STATIC to limit over-computations
 // and remove graphical issues
@@ -41,7 +41,7 @@ const LOD_MODE = {
 
 const FLAGS = {
   LOD_MODE: LOD_MODE.DISABLED,
-  BOARD_POC: true, // POC toggle until board integration is finished
+  BOARD_POC: false, // POC toggle until board integration is finished
   OTF_GEN: true, // bake patch progressively
 }
 // settings
@@ -60,7 +60,7 @@ const delegated_tasks_worker = new Worker(
   { type: 'module' },
 )
 
-const voxel_materials_list = Object.values(block_color_mapping).map(col => ({
+const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
   color: new Color(col),
 }))
 
@@ -123,7 +123,7 @@ export default function () {
       })
       const data = res.map(block => ({
         altitude: block.pos.y + 0.25,
-        color: new Color(block_color_mapping[block.data.type]),
+        color: new Color(BLOCKS_COLOR_MAPPING[block.data.type]),
       }))
       return data
     },

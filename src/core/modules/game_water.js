@@ -17,7 +17,7 @@ import { abortable, typed_on } from '../utils/iterator.js'
 import { current_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import texture_url from '../../assets/water/texture.png?url'
-import { sea_level } from '../utils/terrain/world_static_conf.js'
+import { sea_level } from '../utils/terrain/config/biomes_landscapes.js'
 
 const noise = `//	Simplex 3D Noise
 //	by Ian McEwan, Ashima Arts
