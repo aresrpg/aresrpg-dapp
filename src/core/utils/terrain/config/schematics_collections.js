@@ -12,10 +12,10 @@
 
 export const SCHEMATICS_COLLECTIONS = {
   temperate_forest: {
-    tree1: 1,
-    tree2: 1,
-    tree3: 1,
-    tree4: 1,
-    tree5: 1,
+    'trees/tree1': 1,
+    'trees/tree2': 1,
+    'trees/tree3': 1,
+    'trees/tree4': 1,
+    'trees/tree5': 1,
   },
 }
