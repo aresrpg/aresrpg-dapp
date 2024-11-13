@@ -1,13 +1,14 @@
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
-import { Vector2 } from 'three'
+import { Color, PointLight, Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { state_iterator } from '../utils/iterator.js'
 import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
+import { GodraysPass } from '../game/rendering/godrays_pass.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -27,7 +28,7 @@ export default function () {
       }
     },
 
-    observe({ scene, signal, composer, camera }) {
+    observe({ scene, signal, composer, camera, directional_light }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
 
       const renderpass = new RenderPass(scene, camera)
@@ -47,9 +48,11 @@ export default function () {
       smaapass.renderToScreen = true
 
       const underwater_pass = new UnderwaterPass()
+      const godraysPass = new GodraysPass(camera);
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
+      composer.addPass(godraysPass);
       composer.addPass(underwater_pass)
       composer.addPass(bloompass)
       composer.addPass(gamma_correction)
@@ -61,6 +64,8 @@ export default function () {
             last_postprocessing_version,
             last_camera_is_underwater,
             last_water_color,
+
+            last_sky_lights_version,
           },
           state,
         ) => {
@@ -80,6 +85,11 @@ export default function () {
 
             renderpass.enabled = !cartoon_renderpass.enabled
 
+            godraysPass.enabled = postprocessing.godrays_pass.enabled
+            godraysPass.exposure = postprocessing.godrays_pass.exposure
+            godraysPass.samplesCount = postprocessing.godrays_pass.samplesCount
+            godraysPass.density = postprocessing.godrays_pass.density
+
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
 
@@ -93,16 +103,27 @@ export default function () {
             underwater_pass.color = last_water_color
           }
 
+          const lights_changed =
+          state.settings.sky.lights.version !== last_sky_lights_version
+          if (lights_changed) {
+            last_sky_lights_version = state.settings.sky.lights.version
+            godraysPass.light_direction = state.settings.sky.lights.directional.position.clone();
+            godraysPass.light_color = new Color().lerp(state.settings.sky.lights.directional.color, state.settings.sky.lights.directional.intensity);
+          }
+
           return {
             last_postprocessing_version,
             last_camera_is_underwater,
             last_water_color,
+            last_sky_lights_version,
           }
         },
         {
           last_postprocessing_version: 0,
           last_camera_is_underwater: false,
           last_water_color: null,
+
+          last_sky_lights_version: 0,
         },
       )
 

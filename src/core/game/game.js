@@ -25,6 +25,8 @@ import {
   HalfFloatType,
   LinearFilter,
   Frustum,
+  PCFSoftShadowMap,
+  DirectionalLight,
 } from 'three'
 import { aiter } from 'iterator-helper'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
@@ -167,8 +169,15 @@ export const INITIAL_STATE = {
         thick_lines: window.devicePixelRatio >= 1.3,
       },
 
-      bloom_pass: {
+      godrays_pass: {
         enabled: true,
+        exposure: 0.1,
+        samplesCount: 75,
+        density: 0.5,
+      },
+
+      bloom_pass: {
+        enabled: false,
         strength: 0.2,
       },
 
@@ -376,12 +385,15 @@ const controller = new AbortController()
 scene.background = new Color('#000000')
 scene.fog = new Fog('#000000', 0.25 * camera.far, 0.98 * camera.far)
 
+const directional_light = new DirectionalLight(0xffffff, 1)
+
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setClearColor(0x263238 / 2, 1)
 renderer.shadowMap.enabled = true
+renderer.shadowMap.type = PCFSoftShadowMap
+renderer.shadowMap.autoUpdate = true
 renderer.outputColorSpace = SRGBColorSpace
-// renderer.shadowMap.type = VSMShadowMap
 renderer.toneMapping = ACESFilmicToneMapping
 renderer.toneMappingExposure = Math.pow(0.6, 4.0)
 renderer.info.autoReset = false
@@ -539,6 +551,7 @@ const context = {
   scene,
   renderer,
   camera,
+  directional_light,
   signal: controller.signal,
   controller,
   on_game_show: handler => {
