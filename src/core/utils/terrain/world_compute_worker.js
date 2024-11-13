@@ -1,11 +1,11 @@
 import {
-  Biome,
   Heightmap,
   ItemsInventory,
   SchematicLoader,
   WorldCompute,
-  WorldUtils,
 } from '@aresrpg/aresrpg-world'
+import { Biome } from '@aresrpg/aresrpg-world/biomes'
+import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 
 import { setup_world_modules } from './world_setup.js'
 

@@ -106,7 +106,7 @@ export default function () {
       })
 
       terrain_folder
-        .add(settings, 'view_distance', 50, 400, 50)
+        .add(settings, 'view_distance', 50, 1000, 50)
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
 

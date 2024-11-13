@@ -1,5 +1,5 @@
 // schematics_files.js
-const schematic_files = import.meta.glob('/src/assets/terrain/**/*.schematic', {
+const schematic_files = import.meta.glob('/src/assets/terrain/**/*.schem', {
   eager: true,
   import: 'default',
   query: '?url',

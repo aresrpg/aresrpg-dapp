@@ -13,13 +13,13 @@ import {
   PatchContainer,
   GroundMap,
   WorldComputeProxy,
-  WorldUtils,
   SchematicLoader,
   ItemsInventory,
   ProceduralItemGenerator,
-  Biome,
   Heightmap,
 } from '@aresrpg/aresrpg-world'
+import { Biome } from '@aresrpg/aresrpg-world/biomes'
+import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
@@ -29,7 +29,7 @@ import {
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 import { setup_world_modules } from '../utils/terrain/world_setup.js'
-import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/config/blocks.js'
+import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/world_settings.js'
 
 // NB: LOD should be set to STATIC to limit over-computations
 // and remove graphical issues
