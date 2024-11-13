@@ -6,13 +6,13 @@ import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
 
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import { sea_level } from '../utils/terrain/config/biomes_landscapes.js'
+import { sea_level } from '../utils/terrain/world_settings.js'
 
 import { is_hovering_mob_group } from './player_entities_interract.js'
 
 const CAMERA_MIN_DISTANCE = 0.001
 const CAMERA_DISTANCE_STEP = 1
-const CAMERA_MAX_DISTANCE = 50
+const CAMERA_MAX_DISTANCE = 2000
 
 /** @type {Type.Module} */
 export default function () {

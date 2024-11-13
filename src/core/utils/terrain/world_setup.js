@@ -1,7 +1,10 @@
 import { proc_items_conf } from './proc_items.js'
-import { SCHEMATICS_BLOCKS_MAPPING } from './config/blocks.js'
-import { SCHEMATICS_FILES } from './config/schematics_files.js'
-import { LANDSCAPE, sea_level } from './config/biomes_landscapes.js'
+import { SCHEMATICS_FILES } from './schematics_files.js'
+import {
+  LANDSCAPE,
+  SCHEMATICS_BLOCKS_MAPPING,
+  sea_level,
+} from './world_settings.js'
 
 /**
  * Unified setup to ensure having same settings everywhere (workers, main thread)

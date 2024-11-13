@@ -1,97 +1,112 @@
-import { BiomeType, BlockType, WorldConf } from '@aresrpg/aresrpg-world'
+import { BlockType } from '@aresrpg/aresrpg-world/biomes'
 
-import { SCHEMATICS_COLLECTIONS } from './schematics_collections.js'
+import { SCHEMATICS_COLLECTIONS } from '../schematics_collections.js'
 
-// World static config override
-WorldConf.patchPowSize = 6 // as a power of two (6 => 64 blocks)
-// TODO: remove hardcoding and retrieve dynamic value from world
-export const sea_level = 76
-
-const TEMPERATE = {
+export default {
   deep_ocean: {
-    id: 0,
     x: 0,
     y: 0,
     type: BlockType.WATER,
-    subtype: BlockType.NONE,
+    subtype: BlockType.ROCK,
     fadeIn: 0,
     fadeOut: 2,
   },
-  ocean_cliff_bottom: { x: 0.12, y: 0.1 },
-  ocean_cliff_top: { x: 0.15, y: 0.13 },
   beach: {
-    id: 1,
-    x: 0.2,
-    y: 0.26,
+    x: 0.1,
+    y: 0.12,
     type: BlockType.SAND,
-    subtype: BlockType.NONE,
+    subtype: BlockType.ROCK,
     fadeIn: 0,
     fadeOut: 2,
-  },
-  cliff: {
-    id: 3,
-    x: 0.25,
-    y: 0.33,
-    type: BlockType.ROCK,
-    subtype: BlockType.NONE,
-    fadeIn: 0,
-    fadeOut: 2,
+    flora: { ...SCHEMATICS_COLLECTIONS.beach_house },
   },
   valley: {
-    id: 4,
-    x: 0.31,
-    y: 0.43,
-    type: BlockType.GRASS,
-    subtype: BlockType.NONE,
-    flora: { ...SCHEMATICS_COLLECTIONS.temperate_forest },
-    fadeIn: 0,
-    fadeOut: 20,
-  },
-  hill: {
-    id: 5,
-    x: 0.62,
-    y: 0.48,
+    x: 0.7,
+    y: 0.7,
     type: BlockType.GRASS,
     subtype: BlockType.ROCK,
-    mixratio: 0.1,
-    fadeIn: 20,
-    fadeOut: 40,
   },
-  peak: {
-    id: 6,
-    x: 0.75,
-    y: 0.53,
-    type: BlockType.GRASS,
-    subtype: BlockType.MUD,
-    fadeIn: 5,
-    fadeOut: 20,
-  },
-  mountain: {
-    id: 7,
-    x: 0.83,
-    y: 0.6,
-    type: BlockType.ROCK,
-    subtype: BlockType.NONE,
-    fadeIn: 0,
-    fadeOut: 2,
-  },
-  high_mountain: {
-    id: 8,
-    x: 0.88,
-    y: 0.85,
-    type: BlockType.SNOW,
-    subtype: BlockType.NONE,
-    fadeIn: 0,
-    fadeOut: 2,
-  },
-  top_plateau: { x: 0.95, y: 0.98 },
 }
 
-export const LANDSCAPE = {
-  [BiomeType.Temperate]: TEMPERATE,
-  [BiomeType.Artic]: TEMPERATE,
-  [BiomeType.Desert]: TEMPERATE,
-}
+// export default {
+//   deep_ocean: {
+//     id: 0,
+//     x: 0,
+//     y: 0,
+//     type: BlockType.WATER,
+//     subtype: BlockType.ROCK,
+//     fadeIn: 0,
+//     fadeOut: 2,
+//   },
+//   ocean_cliff_bottom: { x: 0.12, y: 0.1 },
+//   ocean_cliff_top: { x: 0.15, y: 0.13 },
+//   beach: {
+//     id: 1,
+//     x: 0.2,
+//     y: 0.26,
+//     type: BlockType.SAND,
+//     subtype: BlockType.ROCK,
+//     fadeIn: 0,
+//     fadeOut: 2,
+//   },
+//   cliff: {
+//     id: 3,
+//     x: 0.25,
+//     y: 0.33,
+//     type: BlockType.ROCK,
+//     subtype: BlockType.ROCK,
+//     fadeIn: 0,
+//     fadeOut: 2,
+//   },
+//   valley: {
+//     id: 4,
+//     x: 0.31,
+//     y: 0.43,
+//     type: BlockType.GRASS,
+//     subtype: BlockType.ROCK,
+//     fadeIn: 0,
+//     fadeOut: 20,
+//     flora: { ...SCHEMATICS_COLLECTIONS.trees_tropical_beach },
+//   },
+//   hill: {
+//     id: 5,
+//     x: 0.62,
+//     y: 0.48,
+//     type: BlockType.GRASS,
+//     subtype: BlockType.ROCK,
+//     mixratio: 0.1,
+//     fadeIn: 20,
+//     fadeOut: 40,
+//   },
+//   peak: {
+//     id: 6,
+//     x: 0.75,
+//     y: 0.53,
+//     type: BlockType.GRASS,
+//     subtype: BlockType.MUD,
+//     fadeIn: 5,
+//     fadeOut: 20,
+//   },
+//   mountain: {
+//     id: 7,
+//     x: 0.83,
+//     y: 0.6,
+//     type: BlockType.ROCK,
+//     subtype: BlockType.ROCK,
+//     fadeIn: 0,
+//     fadeOut: 2,
+//   },
+//   high_mountain: {
+//     id: 8,
+//     x: 0.88,
+//     y: 0.85,
+//     type: BlockType.SNOW,
+//     subtype: BlockType.ROCK,
+//     fadeIn: 0,
+//     fadeOut: 2,
+//   },
+//   top_plateau: { x: 0.95, y: 0.98 },
+// }
 
 // const artic = biomes_landscapes_custom[BiomeType.Artic]
 // artic.sea = {

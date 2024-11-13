@@ -7,10 +7,13 @@ import {
   BoardContainer,
   GroundCache,
   WorldConf,
-  WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
 import * as BoardUtils from '@aresrpg/aresrpg-sdk/board'
+import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
+
+import { color_to_block_type } from './world_settings.js'
+
 const cache_query_params = { cacheIfMissing: true, precacheRadius: 10 }
 
 /**
@@ -47,6 +50,30 @@ export function get_ground_height_sync({ x, z }, entity_height = 0) {
 export async function get_ground_height_async({ x, z }, entity_height = 0) {
   const ground_height = await get_ground_height(new Vector2(x, z))
   return ground_height + entity_height * 0.5
+}
+
+export function map_blocks_to_type(biome) {
+  return Object.entries(biome).reduce((acc, [key, value]) => {
+    // Check if type and subtype are numbers (color or BlockType IDs)
+    const type =
+      typeof value.type === 'string'
+        ? color_to_block_type[value.type]
+        : value.type
+    const subtype =
+      typeof value.subtype === 'string'
+        ? color_to_block_type[value.subtype]
+        : value.subtype
+
+    // If we get undefined, fallback to original value (in case mapping fails)
+    return {
+      ...acc,
+      [key]: {
+        ...value,
+        type: type !== undefined ? type : value.type,
+        subtype: subtype !== undefined ? subtype : value.subtype,
+      },
+    }
+  }, {})
 }
 
 /**
