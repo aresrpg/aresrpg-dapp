@@ -85,7 +85,6 @@ export default function () {
         )
 
         if (!Number.isNaN(ground_height)) {
-          console.log(ground_height)
           player.target_position.y = ground_height
           player.move(player.target_position)
           player.target_position = null
