@@ -111,9 +111,6 @@ export default function () {
     minAltitude: altitude.min,
     maxAltitude: altitude.max,
     voxelMaterialsList: voxel_materials_list,
-    getLocalMapData: async (block_start, block_end) => {
-      return null
-    },
     async sampleHeightmap(coords) {
       FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
         console.log(`block batch compute size: ${coords.length}`)
