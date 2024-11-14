@@ -94,12 +94,16 @@ export const to_engine_chunk_format = world_chunk => {
   chunk_bbox.expandByScalar(1)
   const size = chunk_bbox.getSize(new Vector3())
   const data = world_chunk.data ? world_chunk.data : []
+  const /** @type import("@aresrpg/aresrpg-engine").VoxelsChunkData */ voxels_chunk_data =
+      {
+        data,
+        isEmpty: !world_chunk.data,
+        size,
+        dataOrdering: 'zxy',
+      }
   const engine_chunk = {
     id,
-    data,
-    isEmpty: !world_chunk.data,
-    size,
-    dataOrdering: 'zxy',
+    voxels_chunk_data,
   }
   return engine_chunk
 }

@@ -184,7 +184,6 @@ declare namespace Type {
       MOVE_MENU_CAMERA: [number, number, number] // move the camera of the menu screen
       CONNECT_TO_SERVER: void // request ws connection to the server
       SET_TIME: number // set the time of the day
-      CHUNKS_LOADED: void // notify that the loading of new chunks is finished
       SKY_CYCLE_PAUSED: boolean // pause/resume the normal running of time
       SKY_CYCLE_CHANGED: { value: number; fromUi: boolean } // the daytime has changed
       DISPLAY_DAMAGE_UI: {

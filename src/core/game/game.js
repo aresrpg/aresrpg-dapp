@@ -32,6 +32,8 @@ import CameraControls from 'camera-controls'
 import { create_client } from '@aresrpg/aresrpg-protocol'
 import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
+import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
+import { WorldConf } from '@aresrpg/aresrpg-world'
 
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
@@ -74,8 +76,6 @@ import { get_spells } from './spells_per_class.js'
 
 // @ts-ignore
 import MdiClippy from '~icons/mdi/clippy'
-
-export const GRAVITY = 9.81
 
 const LOADING_MANAGER = DefaultLoadingManager
 const FILTER_ACTION_IN_LOGS = [
@@ -388,6 +388,14 @@ renderer.info.autoReset = false
 
 composer.setSize(window.innerWidth, window.innerHeight)
 
+const voxelmap_collider = new VoxelmapCollider({
+  chunkSize: WorldConf.defaultChunkDimensions,
+  voxelsChunkOrdering: 'zxy',
+})
+const voxelmap_collisions = new VoxelmapCollisions({
+  voxelmapCollider: voxelmap_collider,
+})
+
 let currently_connecting = false
 let reconnect_toast = null
 let connecting_toast = null
@@ -553,6 +561,10 @@ const context = {
     // context.camera_controls.minPolarAngle = 0 // Allow full vertical rotation
     // context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
     // context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
+  },
+  physics: {
+    voxelmap_collider,
+    voxelmap_collisions,
   },
 }
 

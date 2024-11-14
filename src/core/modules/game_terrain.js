@@ -147,84 +147,97 @@ export default function () {
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = FLAGS.LOD_MODE > 0
 
-  // CHUNKS RENDERING
-  const update_chunks_visibility = () => {
-    const chunks_ids = Object.keys(ground_patches.patchLookup)
-      .map(patch_key => WorldUtils.parsePatchKey(patch_key))
-      .map(patch_id => ChunkFactory.default.genChunksIdsFromPatchId(patch_id))
-      .flat()
-    voxelmap_viewer.setVisibility(chunks_ids)
-  }
-
-  const render_chunk = world_chunk => {
-    const engine_chunk = to_engine_chunk_format(world_chunk)
-    voxelmap_viewer.invalidatePatch(engine_chunk.id)
-    voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id) &&
-      voxelmap_viewer.enqueuePatch(engine_chunk.id, engine_chunk)
-  }
-
-  const render_patch_chunks = (patch, items) => {
-    // assemble ground and entities to form world chunks
-    const world_patch_chunks = ChunkFactory.instance.chunkifyPatch(patch, items)
-    // feed engine with chunks
-    world_patch_chunks.forEach(world_chunk => render_chunk(world_chunk))
-    // If not using on-the-fly gen, delay patch processing to prevents
-    // too many chunks rendering at the same time (TODO)
-    // setTimeout(() =>
-    //   patch.toChunks().forEach(chunk => render_chunk(chunk)),
-    // )
-  }
-
-  const transform_items_to_chunks = async overground_items => {
-    const res = []
-    for await (const [item_type, spawn_places] of Object.entries(
-      overground_items,
-    )) {
-      for await (const spawn_origin of spawn_places) {
-        const item_chunk = await ItemsInventory.getInstancedChunk(
-          item_type,
-          spawn_origin,
-        )
-        res.push(item_chunk)
-      }
-    }
-    return res
-  }
-
-  // BATTLE BOARD POC
-  const render_board_container = async board_container => {
-    const extended_bounds = last_board.bounds.union(board_container.bounds)
-    // duplicate and override patches with content from board
-    const overridden_patches = ground_patches
-      .getOverlappingPatches(extended_bounds)
-      .map(patch => patch.duplicate())
-    for await (const patch of overridden_patches) {
-      PatchContainer.copySourceOverTargetContainer(board_container, patch)
-      // request all entities belonging to this patch
-      const overground_items =
-        await WorldComputeProxy.instance.queryOvergroundItems(patch.bounds)
-      // transform to chunk list
-      const items_chunk_list = await transform_items_to_chunks(overground_items)
-      // discard entities overlapping with the board
-      const non_overlapping_chunks = items_chunk_list.filter(
-        item_chunk =>
-          !board_container.isOverlappingWithBoard(
-            WorldUtils.asBox2(item_chunk.bounds),
-          ),
-      )
-      // rerender all patches overlapped by the board
-      render_patch_chunks(patch, non_overlapping_chunks)
-    }
-  }
-
   return {
     tick() {
       terrain_viewer.update()
     },
-    observe({ camera, events, signal, scene, get_state }) {
+    observe({ camera, events, signal, scene, get_state, physics }) {
+      // CHUNKS RENDERING
+      const update_chunks_visibility = () => {
+        const chunks_ids = Object.keys(ground_patches.patchLookup)
+          .map(patch_key => WorldUtils.parsePatchKey(patch_key))
+          .map(patch_id =>
+            ChunkFactory.default.genChunksIdsFromPatchId(patch_id),
+          )
+          .flat()
+        voxelmap_viewer.setVisibility(chunks_ids)
+      }
+
+      const render_chunk = world_chunk => {
+        const engine_chunk = to_engine_chunk_format(world_chunk)
+        voxelmap_viewer.invalidatePatch(engine_chunk.id)
+        voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id) &&
+          voxelmap_viewer.enqueuePatch(
+            engine_chunk.id,
+            engine_chunk.voxels_chunk_data,
+          )
+
+        physics.voxelmap_collider.setChunk(
+          engine_chunk.id,
+          engine_chunk.voxels_chunk_data,
+        )
+      }
+
+      const render_patch_chunks = (patch, items) => {
+        // assemble ground and entities to form world chunks
+        const world_patch_chunks = ChunkFactory.instance.chunkifyPatch(
+          patch,
+          items,
+        )
+        // feed engine with chunks
+        world_patch_chunks.forEach(world_chunk => render_chunk(world_chunk))
+        // If not using on-the-fly gen, delay patch processing to prevents
+        // too many chunks rendering at the same time (TODO)
+        // setTimeout(() =>
+        //   patch.toChunks().forEach(chunk => render_chunk(chunk)),
+        // )
+      }
+
+      const transform_items_to_chunks = async overground_items => {
+        const res = []
+        for await (const [item_type, spawn_places] of Object.entries(
+          overground_items,
+        )) {
+          for await (const spawn_origin of spawn_places) {
+            const item_chunk = await ItemsInventory.getInstancedChunk(
+              item_type,
+              spawn_origin,
+            )
+            res.push(item_chunk)
+          }
+        }
+        return res
+      }
+
+      // BATTLE BOARD POC
+      const render_board_container = async board_container => {
+        const extended_bounds = last_board.bounds.union(board_container.bounds)
+        // duplicate and override patches with content from board
+        const overridden_patches = ground_patches
+          .getOverlappingPatches(extended_bounds)
+          .map(patch => patch.duplicate())
+        for await (const patch of overridden_patches) {
+          PatchContainer.copySourceOverTargetContainer(board_container, patch)
+          // request all entities belonging to this patch
+          const overground_items =
+            await WorldComputeProxy.instance.queryOvergroundItems(patch.bounds)
+          // transform to chunk list
+          const items_chunk_list =
+            await transform_items_to_chunks(overground_items)
+          // discard entities overlapping with the board
+          const non_overlapping_chunks = items_chunk_list.filter(
+            item_chunk =>
+              !board_container.isOverlappingWithBoard(
+                WorldUtils.asBox2(item_chunk.bounds),
+              ),
+          )
+          // rerender all patches overlapped by the board
+          render_patch_chunks(patch, non_overlapping_chunks)
+        }
+      }
+
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
-      events.emit('CHUNKS_LOADED')
 
       scene.add(terrain_viewer.container)
 
