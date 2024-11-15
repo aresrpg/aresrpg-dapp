@@ -154,44 +154,42 @@ export default function () {
           current_action = 'RUN'
         }
       } else {
-        if (player_collisions.isOnGround) {
-          const ground_movement = inputs_horizontal_movement
-            .clone()
-            .multiplyScalar(inputs.walk ? WALK_SPEED : RUN_SPEED)
-          velocity.x = ground_movement.x
-          velocity.z = ground_movement.z
+        const ground_movement = inputs_horizontal_movement
+          .clone()
+          .multiplyScalar(inputs.walk ? WALK_SPEED : RUN_SPEED)
+        velocity.x = ground_movement.x
+        velocity.z = ground_movement.z
 
-          if (has_inputs_horizontal_movement) {
-            if (inputs.walk) {
-              current_action = 'WALK'
-            } else {
-              current_action = 'RUN'
-            }
-
-            player.rotate(ground_movement)
-            play_step_sound()
-          }
-
-          // Apply jump force
-          if (jump_cooldown > 0) {
-            jump_cooldown -= delta
-          }
-          if (inputs.jump && jump_cooldown <= 0) {
-            const forward_impulse = inputs_horizontal_movement
-              .clone()
-              .multiplyScalar(JUMP_FORWARD_IMPULSE)
-            velocity.x += forward_impulse.x
-            velocity.y = JUMP_FORCE
-            velocity.z += forward_impulse.z
-
-            jump_cooldown = JUMP_COOLDOWN
-          }
-        } else {
-          if (velocity.y > 0) {
-            current_action = 'JUMP_RUN'
+        if (has_inputs_horizontal_movement) {
+          if (inputs.walk) {
+            current_action = 'WALK'
           } else {
-            current_action = 'FALL'
+            current_action = 'RUN'
           }
+
+          player.rotate(ground_movement)
+          play_step_sound()
+        }
+
+        // Apply jump force
+        if (jump_cooldown > 0) {
+          jump_cooldown -= delta
+        }
+        if (player_collisions.isOnGround && inputs.jump && jump_cooldown <= 0) {
+          const forward_impulse = inputs_horizontal_movement
+            .clone()
+            .multiplyScalar(JUMP_FORWARD_IMPULSE)
+          velocity.x += forward_impulse.x
+          velocity.y = JUMP_FORCE
+          velocity.z += forward_impulse.z
+
+          jump_cooldown = JUMP_COOLDOWN
+        }
+
+        if (velocity.y > 0) {
+          current_action = 'JUMP_RUN'
+        } else if (velocity.y < 0) {
+          current_action = 'FALL'
         }
       }
 
