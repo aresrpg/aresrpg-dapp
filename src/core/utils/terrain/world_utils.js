@@ -12,7 +12,7 @@ import { Color, Vector2, Vector3 } from 'three'
 import * as BoardUtils from '@aresrpg/aresrpg-sdk/board'
 import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 
-import { color_to_block_type } from './world_settings.js'
+import { color_to_block_type, hex_to_int } from './world_settings.js'
 
 const cache_query_params = { cacheIfMissing: true, precacheRadius: 10 }
 
@@ -24,7 +24,7 @@ const cache_query_params = { cacheIfMissing: true, precacheRadius: 10 }
 export function get_ground_height(pos) {
   const ground_block = GroundCache.instance.queryBlock(pos, cache_query_params)
   return ground_block instanceof Promise
-    ? ground_block.then(block => block.pos.y)
+    ? ground_block.then(block => block?.pos.y ?? 100)
     : ground_block.pos.y
 }
 
@@ -57,11 +57,11 @@ export function map_blocks_to_type(biome) {
     // Check if type and subtype are numbers (color or BlockType IDs)
     const type =
       typeof value.type === 'string'
-        ? color_to_block_type[value.type]
+        ? color_to_block_type[hex_to_int(value.type)]
         : value.type
     const subtype =
       typeof value.subtype === 'string'
-        ? color_to_block_type[value.subtype]
+        ? color_to_block_type[hex_to_int(value.subtype)]
         : value.subtype
 
     // If we get undefined, fallback to original value (in case mapping fails)

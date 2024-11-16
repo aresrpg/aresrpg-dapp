@@ -76,6 +76,15 @@ const delete_context = {
   },
 };
 
+const use_context = {
+  label: t('APP_ITEM_USE'),
+  onClick: () => {
+    if (selected_item.value.item_category === 'CONSUMABLE') {
+      // TODO: Implement use consumable
+    }
+  },
+};
+
 async function delete_item() {
   const tx = toast.tx(t('APP_ITEM_DELETING'), selected_item.value.name);
   try {

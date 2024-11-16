@@ -12,7 +12,7 @@ WorldConf.patchPowSize = 6 // as a power of two (6 => 64 blocks)
 export const sea_level = 76
 
 // Convert hex string to number
-const hex_to_int = hex => parseInt(hex.replace('#', ''), 16)
+export const hex_to_int = hex => parseInt(hex.replace('#', ''), 16)
 
 // Extract unique colors from block definitions
 const unique_block_colors = [...new Set(Object.values(BLOCKS))]
@@ -85,7 +85,13 @@ export const SCHEMATICS_BLOCKS_MAPPING = {
 }
 
 export const LANDSCAPE = {
-  [BiomeType.Temperate]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Tundra]: map_blocks_to_type(TEMPERATE),
   [BiomeType.Artic]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Glacier]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Steppe]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Temperate]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Swamp]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Scorched]: map_blocks_to_type(TEMPERATE),
   [BiomeType.Desert]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Tropical]: map_blocks_to_type(TEMPERATE),
 }
