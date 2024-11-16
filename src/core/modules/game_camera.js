@@ -56,6 +56,12 @@ export default function () {
 
         camera_controls.update(delta)
 
+        wanted_distance = clamp(
+          wanted_distance,
+          CAMERA_MIN_DISTANCE,
+          CAMERA_MAX_DISTANCE,
+        )
+
         const camera_distance_speed =
           delta *
           CAMERA_DISTANCE_MAX_SPEED *
