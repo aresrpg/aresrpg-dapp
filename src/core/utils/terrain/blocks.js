@@ -11,13 +11,9 @@ import { BlockType } from '@aresrpg/aresrpg-world/biomes'
 export const BLOCKS = {
   DBG_LIGHT: '#fff',
   DBG_DARK: '#212121',
-
-  JUNGLE_LEAVES: '#4e8a3e',
-  JUNGLE_WOOD: '#8e684f',
-  jungle_log: '#8e684f',
+  DEBUG_RED: '#ff0000',
 
   STONE: '#ababab',
-  gray_stained_glass_pane: '#b3b3b3',
   PRISMARINE_BRICKS: '#2e6c6c',
   QUARTZ_PILLAR: '#f2f2f2',
   SMOOTH_QUARTZ: '#f2f2f2',
@@ -27,6 +23,18 @@ export const BLOCKS = {
   LIGHT_GRAY_CONCRETE: '#b3b3b3',
   AZALEA_LEAVES: '#4e8a3e',
   LARGE_FERN: '#4e8a3e',
+  WET_SAND: '#8D795B',
+  GOLDEN_SAND: '#D8B570',
+  LIGHT_SAND: '#FBE8A6',
+  LUSH_GRASS: '#87A96B',
+  MOSSY_GRASS: '#6C8E7C',
+  VIBRANT_GRASS: '#67C39E',
+
+  BASALT: '#3B3B3B',
+  GRANIT: '#B0B0B0',
+
+  jungle_log: '#8e684f',
+  gray_stained_glass_pane: '#b3b3b3',
   smooth_quartz_slab: '#f2f2f2',
   spruce_planks: '#8e684f',
   andesite_stairs: '#ababab',
@@ -35,4 +43,9 @@ export const BLOCKS = {
   smooth_quartz_stairs: '#f2f2f2',
   stone_bricks: '#ababab',
   spruce_fence: '#8e684f',
+  cyan_terracotta: '#546E7A',
+  clay: '#9E9E9E',
+  light_gray_wool: '#b3b3b3',
+  jungle_leaves: '#4e8a3e',
+  jungle_wood: '#8e684f',
 }
