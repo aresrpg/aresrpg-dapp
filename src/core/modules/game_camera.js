@@ -1,5 +1,3 @@
-import { on } from 'events'
-
 import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
 import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
@@ -13,14 +11,10 @@ import { is_hovering_mob_group } from './player_entities_interract.js'
 
 const CAMERA_MIN_DISTANCE = 0.001
 const CAMERA_DISTANCE_STEP = 1
-const CAMERA_MAX_DISTANCE = 500
-const CAMERA_DISTANCE_MAX_SPEED = 15
-const CAMERA_ENABLE_COLLISIONS = true
+const CAMERA_MAX_DISTANCE = 50
 
 /** @type {Type.Module} */
 export default function () {
-  let wanted_distance = 0
-
   return {
     tick(state, { camera_controls, dispatch, camera, physics }, delta) {
       const player = current_three_character(state)
@@ -28,76 +22,28 @@ export default function () {
 
       const camera_state = state.settings.camera
 
-      if (camera_state.is_free) {
-        camera_controls.update(delta)
-      } else {
+      camera_controls.voxelmap_collisions = camera_state.is_free
+        ? null
+        : physics.voxelmap_collisions
+
+      if (!camera_state.is_free) {
         const { x, y, z } = player.position
 
         // Set the perspective camera position to follow the player
-        const head_height = player.height
-        const y_shift = state.current_fight ? -5 : head_height
-        const camera_target = new Vector3(x, y + y_shift, z)
-        camera_controls.moveTo(
-          camera_target.x,
-          camera_target.y,
-          camera_target.z,
-          true,
-        )
-        camera_controls.setTarget(
-          camera_target.x,
-          camera_target.y,
-          camera_target.z,
-          true,
-        )
+        const center_camera_on_head =
+          1 - smootherstep(camera_controls.distance, 0, 10)
+        const head_height = 1
+        const y_shift = state.current_fight
+          ? -5
+          : head_height * center_camera_on_head
+        camera_controls.moveTo(x, y + y_shift, z, true)
+        camera_controls.setTarget(x, y + y_shift, z, true)
 
         if (typeof player.object3d !== 'undefined') {
           player.object3d.visible = camera_controls.distance > 0.75
         }
-
-        camera_controls.update(delta)
-
-        wanted_distance = clamp(
-          wanted_distance,
-          CAMERA_MIN_DISTANCE,
-          CAMERA_MAX_DISTANCE,
-        )
-
-        const camera_distance_speed =
-          delta *
-          CAMERA_DISTANCE_MAX_SPEED *
-          Math.min(3, Math.abs(wanted_distance - camera_controls.distance))
-        if (camera_controls.distance < wanted_distance) {
-          camera_controls.distance = Math.min(
-            wanted_distance,
-            camera_controls.distance + camera_distance_speed,
-          )
-        } else if (camera_controls.distance > wanted_distance) {
-          camera_controls.distance = Math.max(
-            wanted_distance,
-            camera_controls.distance - camera_distance_speed,
-          )
-        }
-
-        if (CAMERA_ENABLE_COLLISIONS) {
-          const epsilon = 1e-2
-          const potential_position = camera_target
-            .clone()
-            .addScaledVector(
-              new Vector3()
-                .subVectors(camera.position, camera_target)
-                .normalize(),
-              CAMERA_MAX_DISTANCE,
-            )
-          const intersection = physics.voxelmap_collisions.rayCast(
-            camera_target,
-            potential_position,
-          )
-          const intersection_distance = intersection?.distance ?? Infinity
-          if (camera_controls.distance > intersection_distance - epsilon) {
-            camera_controls.distance = intersection_distance - epsilon
-          }
-        }
       }
+      camera_controls.update(delta)
 
       const is_underwater = camera.position.y <= sea_level
       if (camera_state.is_underwater !== is_underwater) {
@@ -130,13 +76,12 @@ export default function () {
       camera_controls.dollyTo(8)
       camera_controls.rotate(0, 1)
 
-      wanted_distance = camera_controls.distance
-
       // let is_dragging = false
 
       const set_distance = distance => {
         distance = clamp(distance, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE)
-        wanted_distance = Math.round(distance)
+        distance = Math.round(distance)
+        camera_controls.dollyTo(distance, true)
       }
 
       const on_mouse_down = () => {
@@ -146,24 +91,20 @@ export default function () {
       }
 
       const on_mouse_wheel = event => {
-        const delta_abs = Math.max(CAMERA_DISTANCE_STEP, 0.35 * wanted_distance)
+        const delta_abs = Math.max(
+          CAMERA_DISTANCE_STEP,
+          0.35 * camera_controls.distance,
+        )
         const delta = delta_abs * Math.sign(event.deltaY)
-        set_distance(wanted_distance + delta)
+        set_distance(camera_controls.distance + delta)
       }
 
       renderer.domElement.addEventListener('mousedown', on_mouse_down, {
         signal,
       })
 
-      aiter(abortable(on(events, 'STATE_UPDATED', { signal }))).reduce(
-        (
-          last_free_camera,
-          [
-            {
-              settings: { camera },
-            },
-          ],
-        ) => {
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
+        (last_free_camera, { settings: { camera } }) => {
           const free_camera = camera.is_free
           if (last_free_camera !== free_camera) {
             if (free_camera) {
@@ -188,7 +129,7 @@ export default function () {
               renderer.domElement.addEventListener('wheel', on_mouse_wheel, {
                 signal,
               })
-              set_distance(wanted_distance)
+              set_distance(camera_controls.distance)
               // @ts-ignore
               camera_controls.mouseButtons.right = CameraControls.ACTION.ROTATE
               // @ts-ignore

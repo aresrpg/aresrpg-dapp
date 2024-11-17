@@ -73,8 +73,9 @@ import player_experience from '../modules/player_experience.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
-
 // @ts-ignore
+import { CustomCameraControls } from './custom_camera_control.js'
+
 import MdiClippy from '~icons/mdi/clippy'
 
 const LOADING_MANAGER = DefaultLoadingManager
@@ -503,7 +504,11 @@ const context = {
   actions,
   composer,
   // @ts-ignore
-  camera_controls: new CameraControls(camera, renderer.domElement),
+  camera_controls: new CustomCameraControls(
+    camera,
+    renderer.domElement,
+    voxelmap_collisions,
+  ),
   /** @type {ReturnType<import("@aresrpg/aresrpg-protocol")["create_client"]>["send"]} */
   send_packet(type, payload) {
     if (!ares_client || ares_client.controller.signal.aborted) {
