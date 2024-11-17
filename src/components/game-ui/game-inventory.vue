@@ -65,10 +65,6 @@ watch(owned_items, items => {
   height 50px
 
 .i-inv
-  border 1px solid rgba(#eee, .3)
-  border-radius 12px
-  border-top-right-radius 0
-  border-bottom-right-radius 0
   height 100%
 
 .game-inventory
@@ -78,38 +74,43 @@ watch(owned_items, items => {
   height 100%
   width 80%
   max-width 900px
+  max-height 770px
+  overflow-y auto
+  padding-right 10px
+
   .item
     grid-area item
-    border 5px double #212121
-    background linear-gradient(to bottom, #212121, rgba(#455A64, .7) 50%)
+    border 3px solid #ffffff
+    background #beb998cc
     border-radius 12px
     padding .5em
     font-size .9rem
   .inventory
     grid-area inventory
-    border 5px double #212121
+    border 3px solid #ffffff
     border-radius 12px
-    padding .25em
-    padding-top .5em
-    background linear-gradient(to bottom, #212121, rgba(#455A64, .3) 50%)
     display flex
     flex-flow column nowrap
     justify-content stretch
     .header
       display flex
       justify-content center
-      margin-bottom 20px
+      padding-top .5em
+      padding-bottom 10px
+      background #514a3ccc
+      border-radius 9px 9px 0px 0px
       img
-        width 50px
+        width 34px
+        border-radius 6px
         margin 0 5px 0 0
         height @width
         padding .25em
         cursor pointer
+        background-color #ff6100cc
         &.selected
-          filter drop-shadow(1px 2px 3px #FFF59D)
+          background-color #514a3ccc
+          border solid 2px #cccccc
     .content
-      border 1px solid rgba(#eee, .3)
-      // background rgba(#000, .3)
       border-radius 12px
       border-top-right-radius 0
       border-bottom-right-radius 0

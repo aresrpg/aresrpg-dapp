@@ -144,12 +144,17 @@ img.slot-img
   padding .5em
   filter grayscale(1)
   opacity .3
+  position absolute;
+  z-index 1;
 
 img.equipped-img
   width 100%
   height 100%
   object-fit contain
   cursor pointer
+  position absolute;
+  z-index 1;
+  padding 2px
 
 .slot
   pointer-events none
@@ -158,8 +163,9 @@ img.equipped-img
   height 100%
   top 0
   left 0
-  box-shadow: inset 0 0 15px 0 #212121
-  border 1px solid #212121
+  box-shadow: inset 0 0 5px 0 #212121db
+  border 2px solid #ddd8c9
+  background #8d8980;
   &.highlighted
     box-shadow: inset 0 0 15px 0 #F9A825
     border 1px solid #F9A825

@@ -294,7 +294,27 @@ function update_all(
         hat,
         cloak,
         pet,
+
+        available_points,
+        vitality,
+        strength,
+        chance,
+        intelligence,
+        wisdom,
+        agility,
       } = character;
+
+      // @ts-ignore
+      if (selected_character.value.available_points !== available_points ||
+        selected_character.value.vitality !== vitality ||
+        selected_character.value.strength !== strength ||
+        selected_character.value.chance !== chance ||
+        selected_character.value.intelligence !== intelligence ||
+        selected_character.value.wisdom !== wisdom ||
+        selected_character.value.agility !== agility
+      ) {
+        selected_character.value = current_character(state);
+      }
 
       let equipment_changed = false;
 

@@ -1,0 +1,349 @@
+<template lang="pug">
+.game-stats
+  .stats
+    .header
+      // @todo use image_url
+      img(:src="`https://assets.aresrpg.world/classe/${selected_character.classe}_${selected_character.sex}.jpg`")  
+      span.name {{ selected_character.name }}
+    .container
+      .level {{ t('APP_CHARACTER_STAT_LEVEL') }} 1
+      .energy.darkline
+        .label {{ t('APP_CHARACTER_STAT_ENERGY') }}
+        .progress
+          div.progress-bar(:style="{ width: (selected_character.soul / 100) * 100 + '%' }")
+      .experience
+        .label {{ t('APP_CHARACTER_STAT_EXP') }}
+        .progress
+          // @todo calculate experience
+          div.progress-bar(:style="{ width: '0%' }")
+      .line.life.darkline
+        .label 
+          img(src="../../assets/statistics/health.png")
+          span {{ t('APP_CHARACTER_STAT_LIFE_POINT') }}
+        div {{ selected_character.health }} / {{ supposed_max_health }}
+      .line.PA
+        .label 
+          img(src="../../assets/statistics/action.png")
+          span {{ t('APP_CHARACTER_STAT_PA') }}
+        div {{ pa }}
+      .line.PM.darkline
+        .label 
+          img(src="../../assets/statistics/movement.png")
+          span {{ t('APP_CHARACTER_STAT_PM') }}
+        div {{ pm }}
+      .section {{ t('APP_CHARACTER_STAT_CHARACTERISTICS') }}
+      .line.characteristic(
+        v-for="(stat, key, index) in stats" 
+        :key="key"
+        :class="{ darkline: index % 2 === 0 }"
+      )
+        .label
+          img(:src="stat.imagePath")
+          span {{ stat.label }}
+        .leftStats
+          div {{ calculate_stat_value(key) }}
+          .upgrade(
+            v-if="can_upgrade()"
+            @click="() => add_pending_allocated_stat(key, 1)"
+          )
+      .section.light
+        div {{ t('APP_CHARACTER_STAT_CAPITAL') }}
+        span {{  selected_character.available_points - get_pending_allocated_stats_count() }}
+          //- .btn(v-if="has_pending_allocated_stats()" @click="cancel_pending_allocated_stats")
+          //-   RadixIconsCross2
+          //-   span Annuler
+          //- .btn(v-if="has_pending_allocated_stats()" @click="validate_stats")
+          //-   FluentCheckmark12Regular
+          //-   span Valider
+      .right
+        vs-button.cancel(icon color="#E74C3C" v-if="has_pending_allocated_stats()" @click="cancel_pending_allocated_stats")
+          RadixIconsCross2
+        vs-button.accept(icon color="#2ECC71" v-if="has_pending_allocated_stats()" @click="validate_stats")
+          FluentCheckmark12Regular
+</template>
+
+<script setup>
+import { ref, inject, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { get_max_health, get_total_stat } from '@aresrpg/aresrpg-sdk/stats';
+import { sui_add_stats } from '../../core/sui/client.js';
+
+import {
+  context,
+  current_locked_character,
+} from '../../core/game/game.js';
+
+import {
+  decrease_loading,
+  increase_loading,
+} from '../../core/utils/loading.js';
+
+// @ts-ignore
+import RadixIconsCross2 from '~icons/radix-icons/cross-2';
+// @ts-ignore
+import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
+
+const selected_character = inject('selected_character');
+const character = current_locked_character(context.get_state());
+const supposed_max_health = character?._type ? get_max_health(character) : -1;
+
+const { t } = useI18n();
+
+const accept_loading = ref(false);
+
+const stats = ref({
+  vitality: {
+    label: t('APP_ITEM_VITALITY'),
+    imagePath: new URL('../../assets/statistics/vitality.png', import.meta.url).href
+  },
+  wisdom: {
+    label: t('APP_ITEM_WISDOM'),
+    imagePath: new URL('../../assets/statistics/wisdom.png', import.meta.url).href
+  },
+  strength: {
+    label: t('APP_ITEM_STRENGTH'),
+    imagePath: new URL('../../assets/statistics/strength.png', import.meta.url).href
+  },
+  intelligence: {
+    label: t('APP_ITEM_INTELLIGENCE'),
+    imagePath: new URL('../../assets/statistics/intelligence.png', import.meta.url).href
+  },
+  chance: {
+    label: t('APP_ITEM_CHANCE'),
+    imagePath: new URL('../../assets/statistics/chance.png', import.meta.url).href
+  },
+  agility: {
+    label: t('APP_ITEM_AGILITY'),
+    imagePath: new URL('../../assets/statistics/agility.png', import.meta.url).href
+  }
+})
+
+const pa = ref(12);
+const pm = ref(6);
+const allocated_stats = ref({});
+
+function add_pending_allocated_stat(stat, amount) {
+  allocated_stats.value[stat] = allocated_stats.value[stat] + amount || amount;
+}
+
+function cancel_pending_allocated_stats() {
+  allocated_stats.value = {};
+}
+
+function has_pending_allocated_stats() {
+  return Object.keys(allocated_stats.value).length > 0;
+}
+
+function get_pending_allocated_stat(stat) {
+  return allocated_stats.value[stat] ?? 0;
+}
+
+function get_pending_allocated_stats_count() {
+  return Object.values(allocated_stats.value).reduce((acc, value) => acc + value, 0)
+}
+
+const calculate_stat_value = (stat_key) => {
+  const base_value = selected_character.value[stat_key]
+  const pending_value = get_pending_allocated_stat(stat_key)
+  const stat_amount = base_value + pending_value;
+  const equipment_stat = get_total_stat(character, stat_key) - base_value
+
+  return `${stat_amount} ${equipment_stat > 0 ? "(+" + equipment_stat + ")" : ""}`
+}
+
+const can_upgrade = () => {
+  const available_points = selected_character.value.available_points
+  const pending_points = get_pending_allocated_stats_count()
+
+  return available_points - pending_points > 0
+}
+
+
+async function validate_stats() {
+  accept_loading.value = true;
+  increase_loading();
+
+  try {
+    await sui_add_stats({ character: selected_character.value, stats: allocated_stats.value });
+
+    // Predict the new stats after the allocation
+    context.dispatch('action/character_update', {
+      id: selected_character.value.id,
+      ...Object.keys(stats.value).map(stat => ({ [stat]: selected_character.value[stat] + (allocated_stats.value[stat] ?? 0) })),
+      available_points: selected_character.value.available_points - get_pending_allocated_stats_count(),
+    })
+
+  } catch (error) {
+    console.error(error);
+  } finally {
+    decrease_loading();
+    accept_loading.value = false
+  }
+
+  allocated_stats.value = {};
+}
+
+onMounted(() => {
+  // Mock to test the update of the available points
+  // context.dispatch('action/character_update', {
+  //   id: selected_character.value.id,
+  //   available_points: selected_character.value.available_points + 5
+  // })
+});
+
+</script>
+
+<style lang="stylus" scoped>
+
+.game-stats
+  display flex
+  height 100%
+  width 80%
+  max-width 900px
+  max-height 545px
+  overflow-y auto
+  padding-right 10px
+  color #514a3c
+  pointer-events none !important
+  user-select none !important
+  overflow-y auto
+  .stats
+    pointer-events: all;
+    width 350px
+    border 3px solid #ffffff;
+    border-radius 12px
+    display flex
+    flex-flow column nowrap
+    justify-content stretch
+    overflow hidden
+    min-height 545px
+    // max-height 545px
+    .header
+      position relative
+      display flex
+      justify-content center
+      padding-top .5em
+      padding-bottom 10px
+      background #514a3ccc
+      .name
+        font-size 1.2em
+        font-weight bold
+        color #ffffff
+        text-shadow 1px 2px 3px black
+        margin-left 100px
+        width 100%
+      img
+        position absolute
+        left 0
+        width 80px
+        border-radius 6px
+        margin 0 8px 0 8px
+        height @width
+        cursor pointer
+        &.selected
+          background-color #514a3ccc
+          border solid 2px #cccccc;
+    .container
+      background #beb998cc
+      height 100%
+      > div
+        display flex
+        flex-flow row nowrap
+        justify-content space-between
+        align-items center
+        padding 2px 0.5rem 2px 0.5rem
+        .progress
+          width 180px
+          height 14px
+          background #50493c
+          border-radius 6px
+          .progress-bar
+            max-width 98%
+            min-width 10px
+            margin-left 2px
+            margin-top 2px
+            height 9px
+            background #ff6100
+            border-radius 6px
+            transition width .5s
+      .level
+        font-weight bold
+        margin-left 100px
+        margin-top 0.5em
+        margin-bottom 10px
+        padding 0
+
+      .energy
+        font-weight bold
+        margin-top 6px
+      .experience
+        font-weight bold
+      .darkline
+        background #929977;
+      .line
+        font-weight bold
+        .label
+          display flex
+          align-items center
+          text-transform capitalize
+          img
+            width 18px
+            height 100%
+            margin-right 6px
+      .right
+        display flex
+        justify-content right
+      .section
+        font-weight bold
+        background #50493c
+        color #fff
+        display flex
+        justify-content space-between
+        > div
+          display flex
+          align-items center
+          .btn
+              height 18px
+              font-size 0.8em
+              background #ff6100
+              border-radius 3px
+              margin-left 10px
+              cursor pointer
+              display flex
+              padding-right 5px
+              align-items center
+      .section.light
+        background #93866c
+        color #fff
+      .characteristic
+        font-weight bold
+        .label
+          img
+            width 18px
+            margin-right 6px
+        .leftStats
+          display flex
+          align-items center
+          .upgrade
+            height 18px
+            width 18px
+            background #ff6100
+            border-radius 3px
+            margin-left 10px
+            cursor pointer
+            position relative
+            &::before
+              content '+'
+              color #fff
+              font-size 1.2em
+              line-height 1.2em
+              text-align center
+              display block
+              font-weight 100
+              margin-top -3px
+              margin-left -1px
+            &.disabled
+              background #ccc
+              cursor not-allowed
+</style>

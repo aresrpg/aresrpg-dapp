@@ -220,6 +220,15 @@ APP_CHARACTER_CREATE_OK: Character created!
 APP_CHARACTER_CREATE_ERROR: Error while creating character
 APP_CHARACTER_NO_CHARACTERS: You must lock a character to play
 
+APP_CHARACTER_STAT_LIFE_POINT: Life Points
+APP_CHARACTER_STAT_PA: Action Points
+APP_CHARACTER_STAT_PM: Movement Points
+APP_CHARACTER_STAT_EXP: Experience
+APP_CHARACTER_STAT_ENERGY: Energy
+APP_CHARACTER_STAT_LEVEL: Level
+APP_CHARACTER_STAT_CHARACTERISTICS: Characteristics
+APP_CHARACTER_STAT_CAPITAL: Capital
+
 APP_GAME_CHAT_COPY_ADDRESS: Copy address
 APP_GAME_CHAT_COPIED: Address copied to clipboard
 APP_GAME_CHAT_NO_CHARACTER: You must select a character first

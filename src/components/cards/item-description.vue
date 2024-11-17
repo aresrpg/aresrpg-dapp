@@ -122,6 +122,7 @@ const stats = computed(() => {
   overflow hidden
   position relative
   height 250px
+  color #514a3c
   .header
     display flex
     flex-flow row nowrap
@@ -172,6 +173,7 @@ const stats = computed(() => {
         text-transform uppercase
         font-size .9em
     .right-content
+      color white
       overflow hidden
       overflow-y scroll
       height calc(100% - .5em)

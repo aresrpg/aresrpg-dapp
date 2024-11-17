@@ -221,6 +221,15 @@ APP_CHARACTER_CREATE_OK: Personnage créé !
 APP_CHARACTER_CREATE_ERROR: Erreur lors de la création du personnage
 APP_CHARACTER_NO_CHARACTERS: Vous devez verrouiller un personnage pour jouer
 
+APP_CHARACTER_STAT_LIFE_POINT: Points de vie
+APP_CHARACTER_STAT_PA: Points d'actions
+APP_CHARACTER_STAT_PM: Points de mouvements
+APP_CHARACTER_STAT_EXP: Experience
+APP_CHARACTER_STAT_ENERGY: Energie
+APP_CHARACTER_STAT_LEVEL: Niveau
+APP_CHARACTER_STAT_CHARACTERISTICS: Caractéristiques
+APP_CHARACTER_STAT_CAPITAL: Capital
+
 APP_GAME_CHAT_COPY_ADDRESS: Copier l'adresse
 APP_GAME_CHAT_COPIED: Adresse copiée dans le presse-papiers
 APP_GAME_CHAT_NO_CHARACTER: Vous devez d'abord sélectionner un personnage

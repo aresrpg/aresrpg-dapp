@@ -223,8 +223,8 @@ const is_dragging_pet = computed(() => {
 .item-equipments
   position relative
   grid-area perso
-  border 5px double #212121
-  background linear-gradient(to bottom, #212121, rgba(#455A64, .7) 50%)
+  border 3px solid #ffffff;
+  background #514a3ccc
   border-radius 12px
   display flex
   flex-flow row nowrap
@@ -262,34 +262,34 @@ const is_dragging_pet = computed(() => {
       position relative
     .title
       grid-area title
-      width 80px
+      width 74px
       height @width
       margin-right 1em
     .amulet
       grid-area amulet
     .weapon
       grid-area weapon
-      width 80px
+      width 74px
       height @width
       margin-left 1em
     .left_ring
       grid-area left_ring
     .belt
       grid-area belt
-      width 80px
+      width 74px
       height @width
       margin-top 1em
     .right_ring
       grid-area right_ring
     .boots
       grid-area boots
-      width 80px
+      width 74px
       height @width
   .right
     display flex
     flex-flow column nowrap
     >*
-      width 80px
+      width 74px
       height @width
       margin-bottom 5px
       position relative
