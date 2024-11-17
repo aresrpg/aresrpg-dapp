@@ -29,12 +29,8 @@ export default function () {
         const { x, y, z } = player.position
 
         // Set the perspective camera position to follow the player
-        const center_camera_on_head =
-          1 - smootherstep(camera_controls.distance, 0, 10)
-        const head_height = 1
-        const y_shift = state.current_fight
-          ? -5
-          : head_height * center_camera_on_head
+        const head_height = player.height
+        const y_shift = head_height
         camera_controls.moveTo(x, y + y_shift, z, true)
         camera_controls.setTarget(x, y + y_shift, z, true)
 
