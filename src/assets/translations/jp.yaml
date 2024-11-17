@@ -84,6 +84,7 @@ APP_ITEM_FIRE_RESISTANCE: "% 火耐性"
 APP_ITEM_WATER_RESISTANCE: "% 水耐性"
 APP_ITEM_AIR_RESISTANCE: "% 風耐性"
 APP_ITEM_EFFECTS: 効果
+APP_ITEM_CONSUMABLE_EFFECT: このアイテムには何らかの効果がありそうだが、いったい何をするのだろう？勇気を出して使ってみよう！
 APP_ITEM_STOMACH: 胃の中
 APP_ITEM_LAST_FEED: 最後の餌やり
 APP_ITEM_RELIC: レリック
@@ -113,7 +114,6 @@ APP_ITEM_PICKAXE: ツルハシ
 APP_ITEM_RESOURCE: 資源
 APP_ITEM_KEY: 鍵
 APP_ITEM_CONSUMABLE: 消耗品
-APP_ITEM_ORB: オーブ
 
 APP_ITEM_FEED: で餌をやる
 APP_ITEM_FEEDING: 小さな友達に餌をやっています
@@ -121,11 +121,15 @@ APP_ITEM_FED: あなたのペットはとても幸せです！
 APP_ITEM_PET_FULL: あなたのペットはお腹がいっぱいです
 APP_ITEM_FEED_FAILED: ペットの餌やりに失敗しました
 APP_ITEM_DELETE: アイテムを削除する
+APP_ITEM_USE: アイテムを使用する
 APP_ITEM_DELETE_CONFIRM: 削除
 APP_ITEM_CANCEL: キャンセル
 APP_ITEM_DELETE_DESC: "{0} を削除してもよろしいですか？この操作は取り消せません。"
 APP_ITEM_DELETING: アイテムを削除中
 APP_ITEM_DELETED: アイテムが削除されました！
+APP_ITEM_USING: アイテムを使用中
+APP_ITEM_USED: アイテムが使用されました
+APP_ITEM_FAILED_TO_USE: アイテムの使用に失敗しました
 APP_ITEM_FAILED_TO_DELETE: アイテムの削除に失敗しました
 
 APP_MARKET_NO_ITEMS: このカテゴリーには現在販売されているアイテムはありません

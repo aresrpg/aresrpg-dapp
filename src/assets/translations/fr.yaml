@@ -85,6 +85,7 @@ APP_ITEM_FIRE_RESISTANCE: "% résistance feu"
 APP_ITEM_WATER_RESISTANCE: "% résistance eau"
 APP_ITEM_AIR_RESISTANCE: "% résistance air"
 APP_ITEM_EFFECTS: Effets
+APP_ITEM_CONSUMABLE_EFFECT: Cet item semble avoir des effets mais qui sait ce qu'il fait ? Soit courageux et essaye-le !
 APP_ITEM_STOMACH: dans l'estomac
 APP_ITEM_LAST_FEED: Dernier nourrissage
 APP_ITEM_RELIC: Relique
@@ -122,10 +123,14 @@ APP_ITEM_FED: Votre familier est très heureux maintenant !
 APP_ITEM_PET_FULL: Votre familier n'a pas faim
 APP_ITEM_FEED_FAILED: Échec de la nutrition de votre familier
 APP_ITEM_DELETE: Détruire l'item
+APP_ITEM_USE: Utiliser
 APP_ITEM_DELETE_CONFIRM: Supprimer
 APP_ITEM_CANCEL: Annuler
 APP_ITEM_DELETE_DESC: Êtes-vous sûr de vouloir supprimer {0} ? Cette action est irréversible.
 APP_ITEM_DELETING: Suppression de l'item
+APP_ITEM_USING: Utilisation de l'item
+APP_ITEM_USED: Item utilisé
+APP_ITEM_FAILED_TO_USE: Échec de l'utilisation de l'item
 APP_ITEM_DELETED: Item supprimé !
 APP_ITEM_FAILED_TO_DELETE: Échec de la suppression de l'item
 

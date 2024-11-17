@@ -13,6 +13,7 @@
     .right-content
       .scroll-container
         .eff {{ t('APP_ITEM_EFFECTS') }}:
+        .consumable(v-if="item.item_category === 'consumable'") {{ t('APP_ITEM_CONSUMABLE_EFFECT') }}
         .damage(
           v-if="item.damages?.length"
           v-for="damage in item.damages"
@@ -46,7 +47,7 @@
 } -->
 
 <script setup>
-import { computed, inject, watch } from 'vue';
+import { computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { NETWORK } from '../../env.js';
@@ -188,6 +189,11 @@ const stats = computed(() => {
           font-size .7em
           margin-bottom .5em
           opacity .7
+
+        .consumable
+          font-style italic
+          opacity .9
+          font-size .8em
 
         .damage
           display flex

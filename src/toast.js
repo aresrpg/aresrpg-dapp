@@ -8,7 +8,7 @@ import GameIconsSeagull from '~icons/game-icons/seagull'
 // @ts-ignore
 import FluentEmojiHighContrastFly from '~icons/fluent-emoji-high-contrast/fly'
 
-function create_notification(
+function create_notification({
   initial_status = 'loading',
   initial_text = '',
   initial_title = '',
@@ -16,7 +16,8 @@ function create_notification(
   button_text = 'Button Text',
   button_action = () => {},
   icon = '',
-) {
+  duration = 'none',
+}) {
   let removed = false
 
   const vnode = createVNode(toastVue, {
@@ -30,7 +31,7 @@ function create_notification(
   })
 
   const notification_instance = VsNotification({
-    duration: 'none',
+    duration,
     content: vnode,
     showClose: false,
     notPadding: true,
@@ -80,16 +81,27 @@ function create_notification(
 }
 
 export default {
-  tx(content, title, button, button_text, button_action, icon) {
-    return create_notification(
-      'loading',
-      content,
-      title,
+  tx(
+    content,
+    title,
+    {
+      button = false,
+      button_text = null,
+      button_action = null,
+      icon = null,
+      duration = 'none',
+    } = {},
+  ) {
+    return create_notification({
+      initial_status: 'loading',
+      initial_text: content,
+      initial_title: title,
       button,
       button_text,
       button_action,
       icon,
-    )
+      duration,
+    })
   },
   success(content, title = 'AresRPG', icon = "<i class='bx bx-check'></i>") {
     VsNotification({
@@ -148,6 +160,7 @@ export default {
       duration: 7000,
       content,
       icon,
+      width: 'auto',
     })
   },
 }

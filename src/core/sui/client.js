@@ -55,6 +55,7 @@ sdk.kiosk_client.addRuleResolver({
 })
 
 const current_server_requests = new Map()
+const current_pending_transactions = new Map()
 
 // this function has to be called in game.js to avoid circular dependencies
 export function listen_for_requests() {
@@ -65,6 +66,39 @@ export function listen_for_requests() {
       current_server_requests.delete(id)
     }
   })
+  context.events.on('packet/transactionSignRequest', async ({ id, bytes }) => {
+    if (!current_pending_transactions.has(id)) return
+
+    try {
+      const signature = await sign_transaction(bytes)
+      context.send_packet('packet/transactionSignResponse', {
+        id,
+        signature,
+      })
+    } catch (error) {
+      console.error('Failed to sign transaction:', error)
+      current_pending_transactions.get(id).reject(error)
+    }
+  })
+  context.events.on('packet/transactionResult', ({ id, digest }) => {
+    if (current_pending_transactions.has(id)) {
+      current_pending_transactions.get(id).resolve(digest)
+      current_pending_transactions.delete(id)
+    }
+  })
+}
+
+async function create_server_transaction(type, data) {
+  const id = crypto.randomUUID()
+
+  const promise = new Promise((resolve, reject) =>
+    current_pending_transactions.set(id, { resolve, reject }),
+  )
+  context.send_packet('packet/transactionCreate', {
+    id,
+    message: JSON.stringify({ type, payload: data }),
+  })
+  return promise
 }
 
 async function indexer_request(type, payload) {
@@ -88,6 +122,13 @@ export async function sui_get_character_name(id) {
     CHARACTER_NAMES.set(id, character.name)
   }
   return CHARACTER_NAMES.get(id)
+}
+
+export function sui_use_item({ item_id, character_id }) {
+  return create_server_transaction('sui_use_item', {
+    item_id,
+    character_id,
+  })
 }
 
 /** @return {Promise<Type.SuiCharacter>} */
@@ -199,6 +240,34 @@ async function execute_unsponsored({ transaction, sender, wallet }) {
     transactionBlock: bytes,
     signature,
   })
+}
+
+export async function sign_transaction(tx_bytes) {
+  const sender = get_address()
+  if (!sender) {
+    toast.error(t('APP_LOGIN_AGAIN'), t('APP_WALLET_NOT_FOUND'))
+    throw new Error('WALLET_NOT_FOUND')
+  }
+
+  const wallet = get_wallet()
+
+  if (wallet.chain !== `sui:${NETWORK}`) {
+    toast.error(
+      t('WALLET_PLEASE_SWITCH_NETWORK') + ' ' + NETWORK,
+      t('WALLET_CONFIG'),
+      MaterialSymbolsLightRuleSettings,
+    )
+    throw new Error('WRONG_NETWORK')
+  }
+
+  const transaction = Transaction.from(tx_bytes)
+
+  const { signature } = await wallet.signTransaction({
+    transaction,
+    sender,
+  })
+
+  return signature
 }
 
 /** @param {Transaction} transaction */
@@ -368,18 +437,10 @@ export async function sui_craft_item(recipe) {
 
   const [craft] = sdk.craft_start({ tx, recipe: recipe.id })
 
-  const { kiosks, finalize } = await sdk.get_user_kiosks({
+  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
     tx,
     address: get_address(),
   })
-  const kiosk_cap_ref = new Map()
-
-  function get_kiosk_cap_ref(kiosk_id) {
-    if (!kiosk_cap_ref.has(kiosk_id)) {
-      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
-    }
-    return kiosk_cap_ref.get(kiosk_id)
-  }
 
   await Promise.all(
     recipe.ingredients.map(async ({ item_type, amount }) => {
@@ -460,7 +521,7 @@ export async function sui_delete_item(item) {
 
   sdk.add_header(tx)
 
-  const { finalize, kiosks } = await sdk.get_user_kiosks({
+  const { finalize, get_kiosk_cap_ref } = await sdk.get_user_kiosks({
     tx,
     address: get_address(),
   })
@@ -469,7 +530,7 @@ export async function sui_delete_item(item) {
     tx,
     item_id: item.id,
     kiosk_id: item.kiosk_id,
-    kiosk_cap: kiosks.get(item.kiosk_id)(),
+    kiosk_cap: get_kiosk_cap_ref(item.kiosk_id),
   })
 
   finalize()
@@ -482,12 +543,12 @@ export async function sui_feed_pet(pet) {
 
   sdk.add_header(tx)
 
-  const { kiosks, finalize } = await sdk.get_user_kiosks({
+  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
     address: get_address(),
     tx,
   })
 
-  const kiosk_cap = kiosks.get(pet.kiosk_id)()
+  const kiosk_cap = get_kiosk_cap_ref(pet.kiosk_id)
 
   switch (pet.item_type) {
     case 'suifren_capy':
@@ -545,7 +606,6 @@ export async function sui_feed_pet(pet) {
 async function sui_merge_stackable_items({
   tx,
   state,
-  kiosks,
   additional_items = [],
   get_kiosk_cap_ref,
 }) {
@@ -590,17 +650,10 @@ export async function sui_withdraw_items_from_extension(items) {
     by_kiosk.get(item.kiosk_id).push(item.id)
   })
 
-  const { kiosks, finalize } = await sdk.get_user_kiosks({
+  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
     address: get_address(),
     tx,
   })
-
-  function get_kiosk_cap_ref(kiosk_id) {
-    if (!kiosk_cap_ref.has(kiosk_id)) {
-      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
-    }
-    return kiosk_cap_ref.get(kiosk_id)
-  }
 
   by_kiosk.forEach((ids, kiosk_id) => {
     sdk.withdraw_items({
@@ -616,7 +669,6 @@ export async function sui_withdraw_items_from_extension(items) {
   await sui_merge_stackable_items({
     tx,
     state,
-    kiosks,
     additional_items: items,
     get_kiosk_cap_ref,
   })
@@ -631,19 +683,10 @@ export async function sui_equip_items({ character, to_equip, to_unequip }) {
 
   sdk.add_header(tx)
 
-  const { kiosks, finalize } = await sdk.get_user_kiosks({
+  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
     tx,
     address: get_address(),
   })
-
-  const kiosk_cap_ref = new Map()
-
-  function get_kiosk_cap_ref(kiosk_id) {
-    if (!kiosk_cap_ref.has(kiosk_id)) {
-      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
-    }
-    return kiosk_cap_ref.get(kiosk_id)
-  }
 
   to_unequip.forEach(({ item, slot }) => {
     sdk.unequip_item({
@@ -914,19 +957,10 @@ export async function sui_list_item({ item, price, amount }) {
 
   sdk.add_header(tx)
 
-  const { kiosks, finalize } = await sdk.get_user_kiosks({
+  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
     address: get_address(),
     tx,
   })
-
-  const kiosk_cap_ref = new Map()
-
-  function get_kiosk_cap_ref(kiosk_id) {
-    if (!kiosk_cap_ref.has(kiosk_id)) {
-      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
-    }
-    return kiosk_cap_ref.get(kiosk_id)
-  }
 
   const item_id = get_item_with_amount({ tx, item, amount, get_kiosk_cap_ref })
 
@@ -951,19 +985,12 @@ export async function sui_delist_item(item) {
 
   sdk.add_header(tx)
 
-  const { kiosks, finalize } = await sdk.get_user_kiosks({
+  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
     address: get_address(),
     tx,
   })
 
   const kiosk_cap_ref = new Map()
-
-  function get_kiosk_cap_ref(kiosk_id) {
-    if (!kiosk_cap_ref.has(kiosk_id)) {
-      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
-    }
-    return kiosk_cap_ref.get(kiosk_id)
-  }
 
   sdk.delist_item({
     tx,
