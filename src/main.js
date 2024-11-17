@@ -59,13 +59,11 @@ registerSW({
           },
         }
         toast
-          .tx(
-            'A new version of AresRPG is available',
-            '',
-            options.show_button,
-            options.button_text,
-            options.button_action,
-          )
+          .tx('A new version of AresRPG is available', '', {
+            button: options.show_button,
+            button_text: options.button_text,
+            button_action: options.button_action,
+          })
           .update('success', 'A new version of AresRPG is available', options)
       }
 

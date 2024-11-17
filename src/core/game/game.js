@@ -67,6 +67,7 @@ import game_entites_stroll from '../modules/game_entites_stroll.js'
 import player_entities_interract from '../modules/player_entities_interract.js'
 import game_fights from '../modules/game_fights.js'
 import { listen_for_requests } from '../sui/client.js'
+import player_experience from '../modules/player_experience.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 import { get_spells } from './spells_per_class.js'
@@ -296,6 +297,7 @@ const MODULES = [
   player_skin,
   player_equipment,
   player_entities_interract,
+  player_experience,
 
   game_sky,
   game_render,
@@ -441,10 +443,12 @@ function connect_ws() {
             reconnect_toast = toast.tx(
               i18n.global.t('SERVER_CLICK_TO_CONNECT'),
               i18n.global.t('SERVER_NOT_CONNECTED'),
-              true,
-              i18n.global.t('SERVER_RECONNECT_BUTTON'),
-              () => events.emit('RECONNECT_TO_SERVER'),
-              'sword',
+              {
+                button: true,
+                button_text: i18n.global.t('SERVER_RECONNECT_BUTTON'),
+                button_action: () => events.emit('RECONNECT_TO_SERVER'),
+                icon: 'sword',
+              },
             )
           }
 

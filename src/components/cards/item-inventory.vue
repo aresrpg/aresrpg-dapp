@@ -31,7 +31,11 @@ import ContextMenu from '@imengyu/vue3-context-menu';
 import { useI18n } from 'vue-i18n';
 import { BigNumber as BN } from 'bignumber.js';
 
-import { sui_feed_pet, sui_delete_item } from '../../core/sui/client.js';
+import {
+  sui_feed_pet,
+  sui_delete_item,
+  sui_use_item,
+} from '../../core/sui/client.js';
 import toast from '../../toast.js';
 import {
   is_resource,
@@ -51,6 +55,7 @@ const edit_mode_equipment = inject('edit_mode_equipment');
 const edit_mode = inject('edit_mode');
 const real_equipment = inject('equipment');
 const inventory_counter = inject('inventory_counter');
+const selected_character = inject('selected_character');
 
 const deletion_dialog = ref(false);
 
@@ -76,13 +81,23 @@ const delete_context = {
   },
 };
 
+async function use_item() {
+  const tx = toast.tx(t('APP_ITEM_USING'), selected_item.value.name);
+  try {
+    const digest = await sui_use_item({
+      item_id: selected_item.value.id,
+      character_id: selected_character.value.id,
+    });
+    tx.update('success', t('APP_ITEM_USED'), { digest });
+  } catch (error) {
+    console.error(error);
+    tx.update('error', t('APP_ITEM_FAILED_TO_USE'));
+  }
+}
+
 const use_context = {
   label: t('APP_ITEM_USE'),
-  onClick: () => {
-    if (selected_item.value.item_category === 'CONSUMABLE') {
-      // TODO: Implement use consumable
-    }
-  },
+  onClick: use_item,
 };
 
 async function delete_item() {
@@ -100,6 +115,8 @@ async function delete_item() {
 function on_right_click_item(event, item) {
   event.preventDefault();
   select(item);
+
+  if (selected_category.value === 'loot') return;
 
   const context = [];
 
@@ -126,6 +143,8 @@ function on_right_click_item(event, item) {
     });
 
   if (item.is_aresrpg_item) context.push(delete_context);
+  if (item.item_category === ITEM_CATEGORY.CONSUMABLE)
+    context.push(use_context);
 
   if (context.length)
     ContextMenu.showContextMenu({
@@ -167,6 +186,11 @@ function find_free_ring_slot() {
 
 function equip_item(item) {
   const { item_category } = item;
+
+  if (item_category === ITEM_CATEGORY.CONSUMABLE) {
+    use_item();
+    return;
+  }
 
   if (!edit_mode.value) {
     edit_mode.value = true;

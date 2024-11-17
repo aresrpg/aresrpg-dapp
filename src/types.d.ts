@@ -155,9 +155,8 @@ declare namespace Type {
     'action/sui_remove_finished_craft': string
     'action/sui_update_item': SuiItem
     'action/sui_split_item': {
-      item_id: string
-      new_item_id: string
-      amount: number
+      item: SuiItem
+      new_item: SuiItem
     }
     'action/sui_merge_item': {
       item_id: string

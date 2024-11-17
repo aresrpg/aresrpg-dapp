@@ -280,24 +280,41 @@ export default function () {
         }
       }
       if (type === 'action/sui_split_item') {
-        const item = state.sui.unlocked_items.find(
-          item => item.id === payload.item_id,
+        const { item, new_item } = payload
+        const original_item = state.sui.unlocked_items.find(
+          o_item => o_item.id === item?.id,
         )
 
-        item.amount -= payload.amount
+        let unlocked_items = [...state.sui.unlocked_items]
+
+        // Case 1: We know the local item AND item exists AND new_item exists
+        // Action: Update original item amount and add new item
+        if (original_item && item && new_item) {
+          unlocked_items = unlocked_items.map(i =>
+            i.id === original_item.id ? { ...i, amount: item.amount } : i,
+          )
+          unlocked_items.push(new_item)
+        }
+
+        // Case 2: We know the local item AND item exists AND no new_item
+        // Action: Just update original item amount
+        else if (original_item && item) {
+          unlocked_items = unlocked_items.map(i =>
+            i.id === original_item.id ? { ...i, amount: item.amount } : i,
+          )
+        }
+
+        // Case 3: We don't know the local item AND we have a new_item
+        // Action: Add the new item to our list
+        else if (!original_item && new_item) {
+          unlocked_items.push(new_item)
+        }
 
         return {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_items: [
-              ...state.sui.unlocked_items,
-              {
-                ...item,
-                id: payload.new_item_id,
-                amount: payload.amount,
-              },
-            ],
+            unlocked_items,
           },
         }
       }
@@ -504,8 +521,8 @@ export default function () {
               SUI_EMITTER.emit('ItemRevealedEvent', item)
             }
           },
-          delete(item) {
-            context.dispatch('action/sui_remove_unlocked_item', item.id)
+          delete(item_id) {
+            context.dispatch('action/sui_remove_unlocked_item', item_id)
           },
           update(item) {
             context.dispatch('action/sui_update_item', item)
@@ -520,9 +537,8 @@ export default function () {
           },
           split({ new_item, item }) {
             context.dispatch('action/sui_split_item', {
-              item_id: item.id,
-              new_item_id: new_item.id,
-              amount: new_item.amount,
+              item,
+              new_item,
             })
           },
           list({ item, price }) {
