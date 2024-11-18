@@ -13,7 +13,7 @@ import {
   Vector3,
   WebGLCubeRenderTarget,
 } from 'three'
-import { smoothstep } from 'three/src/math/MathUtils.js'
+import { lerp, smoothstep } from 'three/src/math/MathUtils.js'
 import { aiter } from 'iterator-helper'
 
 import { abortable } from '../utils/iterator.js'
@@ -188,23 +188,32 @@ export default function () {
           smoothstep(Math.abs(sun_position.y - 0.0), 0, 0.15),
         )
 
+        const directional = {
+          position:
+            sun_position.y >= 0
+              ? sun_position.clone()
+              : sun_position.clone().multiplyScalar(-1),
+          color: new Color().lerpColors(
+            moon_color,
+            sun_color,
+            smoothstep(sun_position.y, -0.1, 1.0),
+          ),
+          intensity: smoothstep(Math.abs(sun_position.y), -0.1, 0.05),
+        }
+
+        const godrays = {
+          position: directional.position.clone(),
+          color: directional.color.clone(),
+          intensity: lerp(0.1, 1, smoothstep(sun_position.y, -0.05, 0)),
+        }
+
         const sky_lights = {
           version: sky_lights_version,
           fog: {
             color: fog_color,
           },
-          directional: {
-            position:
-              sun_position.y >= 0
-                ? sun_position.clone()
-                : sun_position.clone().multiplyScalar(-1),
-            color: new Color().lerpColors(
-              moon_color,
-              sun_color,
-              smoothstep(sun_position.y, -0.1, 1.0),
-            ),
-            intensity: smoothstep(Math.abs(sun_position.y), -0.1, 0.05),
-          },
+          directional,
+          godrays,
           ambient: {
             color: new Color().lerpColors(
               ambient_color_night,

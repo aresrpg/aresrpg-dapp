@@ -146,6 +146,12 @@ export const INITIAL_STATE = {
           color: new Color(0xffffff),
           intensity: 1.5,
         },
+
+        godrays: {
+          position: new Vector3(0, 1, 0),
+          color: new Color(0xffffff),
+          intensity: 1,
+        }
       },
     },
 

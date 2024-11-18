@@ -111,10 +111,9 @@ export default function () {
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version
             godraysPass.light_direction =
-              state.settings.sky.lights.directional.position.clone()
-            godraysPass.light_color = new Color().lerp(
-              state.settings.sky.lights.directional.color,
-              state.settings.sky.lights.directional.intensity,
+              state.settings.sky.lights.godrays.position.clone()
+            godraysPass.light_color = state.settings.sky.lights.godrays.color.clone().multiplyScalar(
+              state.settings.sky.lights.godrays.intensity,
             )
           }
 
