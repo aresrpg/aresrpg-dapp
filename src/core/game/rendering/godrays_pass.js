@@ -254,10 +254,10 @@ class GodraysPass extends Pass {
 
   setSize(/** @type number */ width, /** @type number */ height) {
     const downscale = 2
-    const downscaledWidth = Math.ceil(width / downscale)
-    const downscaledHeight = Math.ceil(height / downscale)
-    this.#rendertarget1.setSize(downscaledWidth, downscaledHeight)
-    this.#rendertarget2.setSize(downscaledWidth, downscaledHeight)
+    const downscaled_width = Math.ceil(width / downscale)
+    const downscaled_height = Math.ceil(height / downscale)
+    this.#rendertarget1.setSize(downscaled_width, downscaled_height)
+    this.#rendertarget2.setSize(downscaled_width, downscaled_height)
   }
 
   render(
@@ -276,7 +276,7 @@ class GodraysPass extends Pass {
     renderer.autoClearColor = false
     renderer.autoClearDepth = false
 
-    const {depthTexture} = read_buffer
+    const { depthTexture } = read_buffer
 
     renderer.setRenderTarget(this.#rendertarget1)
     // render the sun
@@ -295,13 +295,13 @@ class GodraysPass extends Pass {
     // render the blur
     renderer.setRenderTarget(this.#rendertarget2)
     renderer.clear(true, true)
-    const sunPosition = this.light_direction
+    const light_position = this.light_direction
       .clone()
       .multiplyScalar(10000000)
       .project(this.camera)
     this.#material_blur.uniforms.uLightPositionScreenspace.value.set(
-      sunPosition.x,
-      sunPosition.y,
+      light_position.x,
+      light_position.y,
     )
     this.#material_blur.uniforms.uLightTexture.value =
       this.#rendertarget1.texture

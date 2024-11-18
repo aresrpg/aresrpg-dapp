@@ -151,7 +151,7 @@ export const INITIAL_STATE = {
           position: new Vector3(0, 1, 0),
           color: new Color(0xffffff),
           intensity: 1,
-        }
+        },
       },
     },
 

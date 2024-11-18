@@ -48,11 +48,11 @@ export default function () {
       smaapass.renderToScreen = true
 
       const underwater_pass = new UnderwaterPass()
-      const godraysPass = new GodraysPass(camera)
+      const godrays_pass = new GodraysPass(camera)
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
-      composer.addPass(godraysPass)
+      composer.addPass(godrays_pass)
       composer.addPass(underwater_pass)
       composer.addPass(bloompass)
       composer.addPass(gamma_correction)
@@ -85,13 +85,13 @@ export default function () {
 
             renderpass.enabled = !cartoon_renderpass.enabled
 
-            godraysPass.enabled = postprocessing.godrays_pass.enabled
-            godraysPass.light_size = postprocessing.godrays_pass.light_size
-            godraysPass.max_intensity =
+            godrays_pass.enabled = postprocessing.godrays_pass.enabled
+            godrays_pass.light_size = postprocessing.godrays_pass.light_size
+            godrays_pass.max_intensity =
               postprocessing.godrays_pass.max_intensity
-            godraysPass.exposure = postprocessing.godrays_pass.exposure
-            godraysPass.samplesCount = postprocessing.godrays_pass.samplesCount
-            godraysPass.density = postprocessing.godrays_pass.density
+            godrays_pass.exposure = postprocessing.godrays_pass.exposure
+            godrays_pass.samplesCount = postprocessing.godrays_pass.samplesCount
+            godrays_pass.density = postprocessing.godrays_pass.density
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
@@ -110,11 +110,11 @@ export default function () {
             state.settings.sky.lights.version !== last_sky_lights_version
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version
-            godraysPass.light_direction =
+            godrays_pass.light_direction =
               state.settings.sky.lights.godrays.position.clone()
-            godraysPass.light_color = state.settings.sky.lights.godrays.color.clone().multiplyScalar(
-              state.settings.sky.lights.godrays.intensity,
-            )
+            godrays_pass.light_color = state.settings.sky.lights.godrays.color
+              .clone()
+              .multiplyScalar(state.settings.sky.lights.godrays.intensity)
           }
 
           return {
