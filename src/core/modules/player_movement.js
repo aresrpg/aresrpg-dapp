@@ -12,7 +12,7 @@ import { sea_level } from '../utils/terrain/world_settings.js'
 
 import { play_step_sound } from './game_audio.js'
 
-const SPEED = 10
+const SPEED = 20
 const WALK_SPEED = 6
 const SWIM_SPEED = 10
 const WATER_GRAVITY = 3

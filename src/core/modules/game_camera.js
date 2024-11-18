@@ -12,7 +12,7 @@ import { is_hovering_mob_group } from './player_entities_interract.js'
 
 const CAMERA_MIN_DISTANCE = 0.001
 const CAMERA_DISTANCE_STEP = 1
-const CAMERA_MAX_DISTANCE = 50
+const CAMERA_MAX_DISTANCE = 500
 
 /** @type {Type.Module} */
 export default function () {
