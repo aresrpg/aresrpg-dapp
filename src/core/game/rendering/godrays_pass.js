@@ -116,9 +116,10 @@ class GodraysPass extends Pass {
         uCameraNear: { value: 0 },
         uCameraFar: { value: 0 },
       },
-      vertexShader: `attribute vec2 aCorner;
+      glslVersion: "300 es",
+      vertexShader: `in vec2 aCorner;
 
-            varying vec2 vUv;
+            out vec2 vUv;
 
             void main(void) {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
@@ -132,17 +133,19 @@ class GodraysPass extends Pass {
             uniform float uCameraNear;
             uniform float uCameraFar;
 
-            varying vec2 vUv;
+            in vec2 vUv;
+
+            out vec4 fragColor;
 
             void main(void) {
-                float fragCoordZ = texture2D(uDepthTexture, vUv).x;
+                float fragCoordZ = texture(uDepthTexture, vUv).x;
                 float viewZ = perspectiveDepthToViewZ(fragCoordZ, uCameraNear, uCameraFar);
                 float orthoZ = viewZToOrthographicDepth(viewZ, uCameraNear, uCameraFar);
 
                 if (orthoZ > 0.99) {
                   discard;
                 }
-                gl_FragColor = vec4(0, 0, 0, 1);
+                fragColor = vec4(0, 0, 0, 1);
             }`,
     })
 
