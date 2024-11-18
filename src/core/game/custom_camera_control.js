@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
 import CameraControls from 'camera-controls'
-import { Matrix4, PerspectiveCamera, Ray, Vector3 } from 'three'
+import { FrontSide, Matrix4, PerspectiveCamera, Ray, Vector3 } from 'three'
 
 // Adapted from https://yomotsu.github.io/camera-controls/examples/collision-custom.html
 
@@ -45,9 +45,22 @@ class CustomCameraControls extends CameraControls {
       const from = origin
       const to = origin.clone().addScaledVector(direction, this.maxDistance)
 
-      const intersection = this.voxelmap_collisions.rayCast(from, to)
-      if (intersection && intersection.distance < distance) {
-        distance = intersection.distance // eslint-disable-line
+      const raycasting_result = this.voxelmap_collisions.rayIntersect(
+        this.#ray,
+        {
+          maxDistance: this.maxDistance,
+          side: FrontSide,
+          missingVoxels: {
+            considerAsBlocking: false,
+          },
+        },
+      )
+      if (
+        raycasting_result &&
+        raycasting_result.intersection &&
+        raycasting_result.intersection.distance < distance
+      ) {
+        distance = raycasting_result.intersection.distance // eslint-disable-line
       }
     }
 

@@ -104,8 +104,12 @@ export default function () {
         },
         {
           deltaTime: delta,
+          ascendSpeed: 20,
           gravity: is_underwater ? GRAVITY_UNDERWATER : GRAVITY,
-          considerMissingVoxelAs: 'blocking',
+          missingVoxels: {
+            considerAsBlocking: true,
+            exportAsList: false,
+          },
         },
       )
 
