@@ -1,6 +1,6 @@
 import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
-import { clamp, smootherstep } from 'three/src/math/MathUtils.js'
+import { clamp } from 'three/src/math/MathUtils.js'
 
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
