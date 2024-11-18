@@ -5,7 +5,6 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import Icons from 'unplugin-icons/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import ViteYaml from '@modyfi/vite-plugin-yaml'
-import { nodeResolve } from '@rollup/plugin-node-resolve'
 
 export default defineConfig({
   server: {
