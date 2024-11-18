@@ -48,11 +48,11 @@ export default function () {
       smaapass.renderToScreen = true
 
       const underwater_pass = new UnderwaterPass()
-      const godraysPass = new GodraysPass(camera);
+      const godraysPass = new GodraysPass(camera)
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
-      composer.addPass(godraysPass);
+      composer.addPass(godraysPass)
       composer.addPass(underwater_pass)
       composer.addPass(bloompass)
       composer.addPass(gamma_correction)
@@ -86,6 +86,9 @@ export default function () {
             renderpass.enabled = !cartoon_renderpass.enabled
 
             godraysPass.enabled = postprocessing.godrays_pass.enabled
+            godraysPass.light_size = postprocessing.godrays_pass.light_size
+            godraysPass.max_intensity =
+              postprocessing.godrays_pass.max_intensity
             godraysPass.exposure = postprocessing.godrays_pass.exposure
             godraysPass.samplesCount = postprocessing.godrays_pass.samplesCount
             godraysPass.density = postprocessing.godrays_pass.density
@@ -104,11 +107,15 @@ export default function () {
           }
 
           const lights_changed =
-          state.settings.sky.lights.version !== last_sky_lights_version
+            state.settings.sky.lights.version !== last_sky_lights_version
           if (lights_changed) {
             last_sky_lights_version = state.settings.sky.lights.version
-            godraysPass.light_direction = state.settings.sky.lights.directional.position.clone();
-            godraysPass.light_color = new Color().lerp(state.settings.sky.lights.directional.color, state.settings.sky.lights.directional.intensity);
+            godraysPass.light_direction =
+              state.settings.sky.lights.directional.position.clone()
+            godraysPass.light_color = new Color().lerp(
+              state.settings.sky.lights.directional.color,
+              state.settings.sky.lights.directional.intensity,
+            )
           }
 
           return {

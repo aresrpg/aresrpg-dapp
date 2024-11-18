@@ -171,9 +171,11 @@ export const INITIAL_STATE = {
 
       godrays_pass: {
         enabled: true,
-        exposure: 0.1,
-        samplesCount: 75,
-        density: 0.5,
+        light_size: 0.0025,
+        max_intensity: 1,
+        exposure: 0.3,
+        samplesCount: 100,
+        density: 0.45,
       },
 
       bloom_pass: {

@@ -26,7 +26,7 @@ export default function () {
 
       const game_folder = gui.addFolder('Game Settings')
       const daytime_folder = gui.addFolder('Sky')
-      // daytime_folder.open()
+      daytime_folder.open()
       const terrain_folder = gui.addFolder('Terrain Settings')
       const camera_folder = gui.addFolder('Camera Settings')
       const postprocessing_folder = gui.addFolder('Postprocessing Settings')
@@ -130,7 +130,7 @@ export default function () {
         .add(settings.postprocessing.cartoon_pass, 'thick_lines')
         .name('Thick lines')
         .onFinishChange(dispatch_postprocessing_change)
-      // postprocessing_cartoon_folder.open()
+      postprocessing_cartoon_folder.open()
 
       const postprocessing_godrays_folder =
         postprocessing_folder.addFolder('Godrays')
@@ -139,15 +139,29 @@ export default function () {
         .name('Enable')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_godrays_folder
-        .add(settings.postprocessing.godrays_pass, 'exposure', 0, 0.2)
+        .add(
+          settings.postprocessing.godrays_pass,
+          'light_size',
+          0,
+          0.01,
+          0.0005,
+        )
+        .name('Light size')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_godrays_folder
+        .add(settings.postprocessing.godrays_pass, 'max_intensity', 0, 5, 0.1)
+        .name('Max intensity')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_godrays_folder
+        .add(settings.postprocessing.godrays_pass, 'exposure', 0, 1)
         .name('Exposure')
         .onFinishChange(dispatch_postprocessing_change)
-        postprocessing_godrays_folder
+      postprocessing_godrays_folder
         .add(settings.postprocessing.godrays_pass, 'samplesCount', 0, 100, 1)
         .name('SamplesCount')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_godrays_folder
-        .add(settings.postprocessing.godrays_pass, 'density', 0, 2)
+        .add(settings.postprocessing.godrays_pass, 'density', 0, 1)
         .name('Density')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_godrays_folder.open()
@@ -162,7 +176,7 @@ export default function () {
         .add(settings.postprocessing.bloom_pass, 'strength', 0, 1)
         .name('Strength')
         .onFinishChange(dispatch_postprocessing_change)
-      // postprocessing_bloom_folder.open()
+      postprocessing_bloom_folder.open()
 
       postprocessing_folder
         .add(settings.postprocessing.underwater_pass, 'enabled')
@@ -171,9 +185,9 @@ export default function () {
 
       dispatch_postprocessing_change()
 
-      // game_folder.open()
-      // terrain_folder.open()
-      // camera_folder.open()
+      game_folder.open()
+      terrain_folder.open()
+      camera_folder.open()
       postprocessing_folder.open()
       gui.hide()
     },

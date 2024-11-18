@@ -24,6 +24,7 @@ class GodraysPass extends Pass {
   light_size
   light_color
 
+  max_intensity
   exposure
   samplesCount
   density
@@ -48,21 +49,22 @@ class GodraysPass extends Pass {
 
     this.light_direction = new Vector3(0, 1, 0)
     this.light_size = 0.005
-    this.light_color = new Color(0xFFFFFF)
+    this.light_color = new Color(0xffffff)
 
-    this.exposure = 0.05
-    this.samplesCount = 50
+    this.max_intensity = 0.2
+    this.exposure = 0.1
+    this.samplesCount = 100
     this.density = 0.1
 
     this.#camera = new PerspectiveCamera()
     this.needsSwap = true
 
     this.#rendertarget1 = new WebGLRenderTarget(1, 1, {
-      depthBuffer: false
+      depthBuffer: false,
     })
 
     this.#rendertarget2 = new WebGLRenderTarget(1, 1, {
-      depthBuffer: false
+      depthBuffer: false,
     })
 
     this.#material_sun = new ShaderMaterial({
@@ -142,7 +144,7 @@ class GodraysPass extends Pass {
                 }
                 gl_FragColor = vec4(0, 0, 0, 1);
             }`,
-    });
+    })
 
     this.#material_blur = new RawShaderMaterial({
       blending: NoBlending,
@@ -152,6 +154,7 @@ class GodraysPass extends Pass {
         uLightTexture: { value: null },
         uLightPositionScreenspace: { value: new Vector2() },
         uAspectRatio: { value: 1 },
+        uMaxIntensity: { value: 0.2 },
         uExposure: { value: this.exposure },
         uSamplesCount: { value: this.samplesCount },
         uDensity: { value: this.density },
@@ -170,6 +173,7 @@ class GodraysPass extends Pass {
             uniform float uAspectRatio;
 
             uniform vec2 uLightPositionScreenspace;
+            uniform float uMaxIntensity;
             uniform float uExposure;
             uniform int uSamplesCount;
             uniform float uDensity;
@@ -199,6 +203,7 @@ class GodraysPass extends Pass {
                   light += sampleLight(lightSampleCoords) * illuminationDecay;
                   illuminationDecay *= decay;
                 }
+                light = min(light, uMaxIntensity);
                 light *= uExposure;
 
                 gl_FragColor = vec4(vec3(light), 1);
@@ -234,7 +239,6 @@ class GodraysPass extends Pass {
                 vec4 source = texture2D(uTexture, vUv);
                 float lights = texture2D(uLightTexture, vUv).r;
                 gl_FragColor = source + lights * vec4(uLightColor, 1);
-                // gl_FragColor = texture2D(uLightTexture, vUv);
             }`,
     })
 
@@ -249,9 +253,9 @@ class GodraysPass extends Pass {
   }
 
   setSize(/** @type number */ width, /** @type number */ height) {
-    const downscale = 2;
-    const downscaledWidth = Math.ceil(width / downscale);
-    const downscaledHeight = Math.ceil(height / downscale);
+    const downscale = 2
+    const downscaledWidth = Math.ceil(width / downscale)
+    const downscaledHeight = Math.ceil(height / downscale)
     this.#rendertarget1.setSize(downscaledWidth, downscaledHeight)
     this.#rendertarget2.setSize(downscaledWidth, downscaledHeight)
   }
@@ -272,11 +276,11 @@ class GodraysPass extends Pass {
     renderer.autoClearColor = false
     renderer.autoClearDepth = false
 
-    const depthTexture = read_buffer.depthTexture;
+    const {depthTexture} = read_buffer
 
-    renderer.setRenderTarget(this.#rendertarget1);
+    renderer.setRenderTarget(this.#rendertarget1)
     // render the sun
-    renderer.clear(true, true);
+    renderer.clear(true, true)
     this.#material_sun.uniforms.uLightDirection.value = this.light_direction
     this.#material_sun.uniforms.uLightSize.value = this.light_size
     renderer.render(this.#skybox_mesh, this.camera)
@@ -291,23 +295,30 @@ class GodraysPass extends Pass {
     // render the blur
     renderer.setRenderTarget(this.#rendertarget2)
     renderer.clear(true, true)
-    const sunPosition = this.light_direction.clone().multiplyScalar(10000000).project(this.camera)
+    const sunPosition = this.light_direction
+      .clone()
+      .multiplyScalar(10000000)
+      .project(this.camera)
     this.#material_blur.uniforms.uLightPositionScreenspace.value.set(
       sunPosition.x,
       sunPosition.y,
-    );
-    this.#material_blur.uniforms.uLightTexture.value = this.#rendertarget1.texture
+    )
+    this.#material_blur.uniforms.uLightTexture.value =
+      this.#rendertarget1.texture
+    this.#material_blur.uniforms.uMaxIntensity.value = this.max_intensity
     this.#material_blur.uniforms.uExposure.value = this.exposure
     this.#material_blur.uniforms.uSamplesCount.value = this.samplesCount
     this.#material_blur.uniforms.uDensity.value = this.density
-    this.#material_blur.uniforms.uAspectRatio.value = this.#rendertarget2.width / this.#rendertarget2.height;
+    this.#material_blur.uniforms.uAspectRatio.value =
+      this.#rendertarget2.width / this.#rendertarget2.height
     this.#fullscreen_quad.material = this.#material_blur
     renderer.render(this.#fullscreen_quad, this.#camera)
 
     // render the composition
     renderer.setRenderTarget(this.renderToScreen ? null : write_buffer)
     renderer.clear(true, true)
-    this.#material_composition.uniforms.uLightTexture.value = this.#rendertarget2.texture
+    this.#material_composition.uniforms.uLightTexture.value =
+      this.#rendertarget2.texture
     this.#material_composition.uniforms.uLightColor.value = this.light_color
     this.#material_composition.uniforms.uTexture.value = read_buffer.texture
     this.#fullscreen_quad.material = this.#material_composition
