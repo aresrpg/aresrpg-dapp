@@ -9,7 +9,7 @@ import {
   WorldConf,
 } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
-import * as BoardUtils from '@aresrpg/aresrpg-sdk/board'
+import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
 import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 
 import { color_to_block_type, hex_to_int } from './world_settings.js'
@@ -120,7 +120,7 @@ export const setup_board_container = async current_pos => {
   const board_origin = WorldUtils.asVect2(native_board.origin)
   // translate to board hanlder format
   const squares = native_board.data.map(element =>
-    BoardUtils.format_board_data(element),
+    FightBoards.format_board_data(element),
   )
   const board = { ...native_board, squares }
   board.size = { x: native_board.size.x, z: native_board.size.y }
@@ -139,8 +139,8 @@ export const highlight_board_edges = (board_handler, board) => {
     x: pos.x - board.origin.x,
     z: pos.y - board.origin.z,
   })
-  const border_blocks = BoardUtils.extract_border_blocks(board)
-  const sorted_border_blocks = BoardUtils.sort_by_side(border_blocks, board)
+  const border_blocks = FightBoards.extract_border_blocks(board)
+  const sorted_border_blocks = FightBoards.sort_by_side(border_blocks, board)
   const first_player_side = sorted_border_blocks.first.map(block =>
     to_local_pos(block.pos),
   )
@@ -156,14 +156,14 @@ export const highlight_start_pos = (board_handler, board) => {
     x: pos.x - board.origin.x,
     z: pos.y - board.origin.z,
   })
-  const board_items = BoardUtils.iter_board_data(board)
-  const sorted_board_items = BoardUtils.sort_by_side(board_items, board)
+  const board_items = FightBoards.iter_board_data(board)
+  const sorted_board_items = FightBoards.sort_by_side(board_items, board)
   const sorted_start_pos = {}
-  sorted_start_pos.first = BoardUtils.random_select_items(
+  sorted_start_pos.first = FightBoards.random_select_items(
     sorted_board_items.first,
     6,
   )
-  sorted_start_pos.second = BoardUtils.random_select_items(
+  sorted_start_pos.second = FightBoards.random_select_items(
     sorted_board_items.second,
     6,
   )

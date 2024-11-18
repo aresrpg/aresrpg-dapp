@@ -5,7 +5,6 @@ import {
   isValidSuiNSName,
   MIST_PER_SUI,
   normalizeSuiAddress,
-  toB64,
   toBase64,
 } from '@mysten/sui/utils'
 import { LRUCache } from 'lru-cache'

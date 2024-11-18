@@ -523,6 +523,7 @@ export default function () {
           },
           delete(item_id) {
             context.dispatch('action/sui_remove_unlocked_item', item_id)
+            context.dispatch('action/sui_remove_locked_item', item_id)
           },
           update(item) {
             context.dispatch('action/sui_update_item', item)

@@ -5,28 +5,84 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import Icons from 'unplugin-icons/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import ViteYaml from '@modyfi/vite-plugin-yaml'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
 
-// https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
+  },
   build: {
     target: 'esnext',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'EVAL') return
+        warn(warning)
+      },
+      output: {
+        manualChunks(id) {
+          // Special handling for packages with subpaths
+          if (id.includes('@mysten')) return 'mysten'
+          if (id.includes('@aresrpg')) return 'aresrpg'
+          if (id.includes('vue')) return 'vue'
+          if (id.includes('three')) return 'three'
+          if (
+            id.includes('gsap') ||
+            id.includes('bignumber.js') ||
+            id.includes('fast-deep-equal') ||
+            id.includes('lru-cache')
+          )
+            return 'utils'
+
+          return 'vendor-other'
+        },
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+      },
+    },
+    chunkSizeWarningLimit: 2000,
+    sourcemap: false,
+    assetsInlineLimit: 4096,
+    cssCodeSplit: true,
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
+    legalComments: 'none',
   },
   plugins: [
     vue(),
-    vueI18n({}),
+    vueI18n({
+      runtimeOnly: true,
+      compositionOnly: true,
+    }),
     ViteYaml(),
     nodePolyfills({
-      // To add only specific polyfills, add them here. If no option is passed, adds all polyfills
-      include: ['stream', 'events', 'path', 'timers/promises', 'util'],
+      include: [
+        'stream',
+        'events',
+        'path',
+        'timers/promises',
+        'util',
+        'crypto',
+      ],
       overrides: {
         events: 'events-polyfill',
       },
-      // Whether to polyfill `node:` protocol imports.
       protocolImports: true,
     }),
     Icons({
-      // experimental
       autoInstall: true,
+      compiler: 'vue3',
     }),
     VitePWA({
       includeAssets: [
@@ -46,37 +102,21 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/\.html$/, /\/api\//],
         cleanupOutdatedCaches: true,
-        // Exclude HTML files from being cached
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'google-fonts-cache',
               expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
+                maxEntries: 20,
+                maxAgeSeconds: 31536000,
               },
               cacheableResponse: {
                 statuses: [0, 200],
               },
             },
           },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // <== 365 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          // New caching rule for assets
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|glb|mp3|wav|ogg)$/,
             handler: 'StaleWhileRevalidate',
@@ -84,7 +124,7 @@ export default defineConfig({
               cacheName: 'assets-cache',
               expiration: {
                 maxEntries: 300,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                maxAgeSeconds: 2592000,
               },
             },
           },
