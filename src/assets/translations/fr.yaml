@@ -229,6 +229,10 @@ APP_CHARACTER_STAT_ENERGY: Energie
 APP_CHARACTER_STAT_LEVEL: Niveau
 APP_CHARACTER_STAT_CHARACTERISTICS: Caractéristiques
 APP_CHARACTER_STAT_CAPITAL: Capital
+APP_CHARACTER_STAT_DESC: Êtes-vous sûr de vouloir attribuer {0} point(s) de capital ?
+APP_CHARACTER_STAT_CANCEL: Annuler
+APP_CHARACTER_STAT_CONFIRM: Attribuer maintenant
+APP_CHARACTER_STAT_USE_DIALOG_TITLE: Confirmer l'attribution des caractéristiques
 
 APP_GAME_CHAT_COPY_ADDRESS: Copier l'adresse
 APP_GAME_CHAT_COPIED: Adresse copiée dans le presse-papiers

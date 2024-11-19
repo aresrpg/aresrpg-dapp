@@ -313,7 +313,7 @@ function update_all(
         selected_character.value.wisdom !== wisdom ||
         selected_character.value.agility !== agility
       ) {
-        selected_character.value = current_character(state);
+        Object.assign(selected_character.value, { available_points, vitality, strength, chance, intelligence, wisdom, agility });
       }
 
       let equipment_changed = false;

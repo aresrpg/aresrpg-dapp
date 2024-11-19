@@ -1340,36 +1340,9 @@ replace_rule('royaltyRulePackageId', {
   },
 })
 
-export async function sui_add_stats({ character, stats }) {
-  const tx = new Transaction()
-
-  sdk.add_header(tx)
-
-  const { kiosks, finalize } = await sdk.get_user_kiosks({
-    tx,
-    address: get_address(),
+export async function sui_add_stats({ character_id, stats }) {
+  return create_server_transaction('sui_add_stats', {
+    character_id,
+    stats,
   })
-
-  const kiosk_cap_ref = new Map()
-
-  function get_kiosk_cap_ref(kiosk_id) {
-    if (!kiosk_cap_ref.has(kiosk_id)) {
-      kiosk_cap_ref.set(kiosk_id, kiosks.get(kiosk_id)())
-    }
-    return kiosk_cap_ref.get(kiosk_id)
-  }
-  const kiosk_cap = get_kiosk_cap_ref(character.kiosk_id)
-
-  Object.entries(stats).forEach(([stat, amount]) =>
-    sdk.add_stats({
-      tx,
-      kiosk: character.kiosk_id,
-      kiosk_cap,
-      character_id: character.id,
-      stat,
-      amount,
-    }),
-  )
-
-  await execute(tx)
 }

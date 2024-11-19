@@ -33,37 +33,46 @@
         div {{ pm }}
       .section {{ t('APP_CHARACTER_STAT_CHARACTERISTICS') }}
       .line.characteristic(
-        v-for="(stat, key, index) in stats" 
+        v-for="(stat, key, index) in STATS" 
         :key="key"
         :class="{ darkline: index % 2 === 0 }"
       )
         .label
-          img(:src="stat.imagePath")
+          img(:src="stat.url")
           span {{ stat.label }}
         .leftStats
           div {{ calculate_stat_value(key) }}
           .upgrade(
-            v-if="can_upgrade()"
+            v-if="can_upgrade"
             @click="() => add_pending_allocated_stat(key, 1)"
           )
       .section.light
         div {{ t('APP_CHARACTER_STAT_CAPITAL') }}
-        span {{  selected_character.available_points - get_pending_allocated_stats_count() }}
-          //- .btn(v-if="has_pending_allocated_stats()" @click="cancel_pending_allocated_stats")
+        span {{  selected_character.available_points - pending_allocated_stats_count }}
+          //- .btn(v-if="has_pending_allocated_stats" @click="cancel_pending_allocated_stats")
           //-   RadixIconsCross2
           //-   span Annuler
-          //- .btn(v-if="has_pending_allocated_stats()" @click="validate_stats")
+          //- .btn(v-if="has_pending_allocated_stats" @click="open_stats_dialog")
           //-   FluentCheckmark12Regular
           //-   span Valider
       .right
-        vs-button.cancel(icon color="#E74C3C" v-if="has_pending_allocated_stats()" @click="cancel_pending_allocated_stats")
+        vs-button.cancel(icon color="#E74C3C" v-if="has_pending_allocated_stats" @click="cancel_pending_allocated_stats")
           RadixIconsCross2
-        vs-button.accept(icon color="#2ECC71" v-if="has_pending_allocated_stats()" @click="validate_stats")
+        vs-button.accept(icon color="#2ECC71" v-if="has_pending_allocated_stats" @click="open_stats_dialog")
           FluentCheckmark12Regular
+  /// stats dialog
+  vs-dialog(v-model="stats_dialog" :loading="accept_loading")
+    template(#header) {{ t('APP_CHARACTER_STAT_USE_DIALOG_TITLE') }}
+    i18n-t(keypath="APP_CHARACTER_STAT_DESC")
+      b.allocated_stats {{ pending_allocated_stats_count }}
+    template(#footer)
+      .dialog-footer
+        vs-button(type="transparent" color="#E74C3C" @click="stats_dialog = false") {{ t('APP_CHARACTER_STAT_CANCEL') }}
+        vs-button(type="transparent" color="#2ECC71" @click="commit_stats") {{ t('APP_CHARACTER_STAT_CONFIRM') }}
 </template>
 
 <script setup>
-import { ref, inject, onMounted } from 'vue';
+import { ref, inject, onMounted, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { get_max_health, get_total_stat } from '@aresrpg/aresrpg-sdk/stats';
@@ -79,6 +88,13 @@ import {
   increase_loading,
 } from '../../core/utils/loading.js';
 
+import vitality_image from '../../assets/statistics/vitality.png';
+import wisdom_image from '../../assets/statistics/wisdom.png';
+import strength_image from '../../assets/statistics/strength.png';
+import intelligence_image from '../../assets/statistics/intelligence.png';
+import chance_image from '../../assets/statistics/chance.png';
+import agility_image from '../../assets/statistics/agility.png';
+
 // @ts-ignore
 import RadixIconsCross2 from '~icons/radix-icons/cross-2';
 // @ts-ignore
@@ -92,56 +108,55 @@ const { t } = useI18n();
 
 const accept_loading = ref(false);
 
-const stats = ref({
+const STATS = {
   vitality: {
     label: t('APP_ITEM_VITALITY'),
-    imagePath: new URL('../../assets/statistics/vitality.png', import.meta.url).href
+    url: vitality_image
   },
   wisdom: {
     label: t('APP_ITEM_WISDOM'),
-    imagePath: new URL('../../assets/statistics/wisdom.png', import.meta.url).href
+    url: wisdom_image
   },
   strength: {
     label: t('APP_ITEM_STRENGTH'),
-    imagePath: new URL('../../assets/statistics/strength.png', import.meta.url).href
+    url: strength_image
   },
   intelligence: {
     label: t('APP_ITEM_INTELLIGENCE'),
-    imagePath: new URL('../../assets/statistics/intelligence.png', import.meta.url).href
+    url: intelligence_image
   },
   chance: {
     label: t('APP_ITEM_CHANCE'),
-    imagePath: new URL('../../assets/statistics/chance.png', import.meta.url).href
+    url: chance_image
   },
   agility: {
     label: t('APP_ITEM_AGILITY'),
-    imagePath: new URL('../../assets/statistics/agility.png', import.meta.url).href
+    url: agility_image
   }
-})
+}
+const default_stats = Object.keys(STATS).reduce((acc, stat) => ({ ...acc, [stat]: 0 }), {})
 
-const pa = ref(12);
-const pm = ref(6);
-const allocated_stats = ref({});
+const pa = ref(-1);
+const pm = ref(-1);
+const allocated_stats = reactive({ ...default_stats });
+
+const stats_dialog = ref(false);
 
 function add_pending_allocated_stat(stat, amount) {
-  allocated_stats.value[stat] = allocated_stats.value[stat] + amount || amount;
+  allocated_stats[stat] = allocated_stats[stat] + amount || amount;
 }
 
 function cancel_pending_allocated_stats() {
-  allocated_stats.value = {};
+  Object.assign(allocated_stats, { ...default_stats });
 }
 
-function has_pending_allocated_stats() {
-  return Object.keys(allocated_stats.value).length > 0;
-}
+const has_pending_allocated_stats = computed(() => Object.values(allocated_stats).some(Boolean))
 
 function get_pending_allocated_stat(stat) {
-  return allocated_stats.value[stat] ?? 0;
+  return allocated_stats[stat] ?? 0;
 }
 
-function get_pending_allocated_stats_count() {
-  return Object.values(allocated_stats.value).reduce((acc, value) => acc + value, 0)
-}
+const pending_allocated_stats_count = computed(() => Object.values(allocated_stats).reduce((acc, value) => acc + value, 0))
 
 const calculate_stat_value = (stat_key) => {
   const base_value = selected_character.value[stat_key]
@@ -152,28 +167,23 @@ const calculate_stat_value = (stat_key) => {
   return `${stat_amount} ${equipment_stat > 0 ? "(+" + equipment_stat + ")" : ""}`
 }
 
-const can_upgrade = () => {
+const can_upgrade = computed(() => {
   const available_points = selected_character.value.available_points
-  const pending_points = get_pending_allocated_stats_count()
 
-  return available_points - pending_points > 0
+  return available_points - pending_allocated_stats_count.value > 0
+})
+
+function open_stats_dialog() {
+  stats_dialog.value = true;
 }
 
-
-async function validate_stats() {
+async function commit_stats() {
+  stats_dialog.value = false
   accept_loading.value = true;
   increase_loading();
 
   try {
-    await sui_add_stats({ character: selected_character.value, stats: allocated_stats.value });
-
-    // Predict the new stats after the allocation
-    context.dispatch('action/character_update', {
-      id: selected_character.value.id,
-      ...Object.keys(stats.value).map(stat => ({ [stat]: selected_character.value[stat] + (allocated_stats.value[stat] ?? 0) })),
-      available_points: selected_character.value.available_points - get_pending_allocated_stats_count(),
-    })
-
+    await sui_add_stats({ character_id: selected_character.id, stats: allocated_stats });
   } catch (error) {
     console.error(error);
   } finally {
@@ -181,7 +191,7 @@ async function validate_stats() {
     accept_loading.value = false
   }
 
-  allocated_stats.value = {};
+  Object.assign(allocated_stats, { ...default_stats });
 }
 
 onMounted(() => {
@@ -346,4 +356,10 @@ onMounted(() => {
             &.disabled
               background #ccc
               cursor not-allowed
+b.allocated_stats 
+  color #ff6100
+.dialog-footer
+  display flex
+  justify-content flex-end
+  
 </style>

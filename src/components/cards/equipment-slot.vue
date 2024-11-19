@@ -144,16 +144,16 @@ img.slot-img
   padding .5em
   filter grayscale(1)
   opacity .3
-  position absolute;
-  z-index 1;
+  position absolute
+  z-index 1
 
 img.equipped-img
   width 100%
   height 100%
   object-fit contain
   cursor pointer
-  position absolute;
-  z-index 1;
+  position absolute
+  z-index 1
   padding 2px
 
 .slot
