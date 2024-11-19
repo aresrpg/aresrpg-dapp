@@ -28,22 +28,6 @@ export default defineConfig({
         warn(warning)
       },
       output: {
-        manualChunks(id) {
-          // Special handling for packages with subpaths
-          if (id.includes('@mysten')) return 'mysten'
-          if (id.includes('@aresrpg')) return 'aresrpg'
-          if (id.includes('vue')) return 'vue'
-          if (id.includes('three')) return 'three'
-          if (
-            id.includes('gsap') ||
-            id.includes('bignumber.js') ||
-            id.includes('fast-deep-equal') ||
-            id.includes('lru-cache')
-          )
-            return 'utils'
-
-          return 'vendor-other'
-        },
         assetFileNames: 'assets/[name]-[hash][extname]',
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
