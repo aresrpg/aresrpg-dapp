@@ -116,7 +116,7 @@ class GodraysPass extends Pass {
         uCameraNear: { value: 0 },
         uCameraFar: { value: 0 },
       },
-      glslVersion: "300 es",
+      glslVersion: '300 es',
       vertexShader: `in vec2 aCorner;
 
             out vec2 vUv;
