@@ -30,6 +30,7 @@ import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
 import ContextMenu from '@imengyu/vue3-context-menu';
 import { useI18n } from 'vue-i18n';
 import { BigNumber as BN } from 'bignumber.js';
+import { useRoute } from 'vue-router';
 
 import {
   sui_feed_pet,
@@ -60,6 +61,7 @@ const selected_character = inject('selected_character');
 const deletion_dialog = ref(false);
 
 const { t } = useI18n();
+const route = useRoute();
 
 function handle_drag_start(item) {
   edit_mode_equipment.dragged_item = item;
@@ -143,7 +145,7 @@ function on_right_click_item(event, item) {
     });
 
   if (item.is_aresrpg_item) context.push(delete_context);
-  if (item.item_category === ITEM_CATEGORY.CONSUMABLE)
+  if (item.item_category === ITEM_CATEGORY.CONSUMABLE && route.name === 'world')
     context.push(use_context);
 
   if (context.length)
