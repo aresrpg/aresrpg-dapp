@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted, reactive, computed } from 'vue';
+import { ref, inject, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { get_max_health, get_total_stat } from '@aresrpg/aresrpg-sdk/stats';
@@ -193,15 +193,6 @@ async function commit_stats() {
 
   Object.assign(allocated_stats, { ...default_stats });
 }
-
-onMounted(() => {
-  // Mock to test the update of the available points
-  // context.dispatch('action/character_update', {
-  //   id: selected_character.value.id,
-  //   available_points: selected_character.value.available_points + 5
-  // })
-});
-
 </script>
 
 <style lang="stylus" scoped>
@@ -221,7 +212,7 @@ onMounted(() => {
   .stats
     pointer-events: all;
     width 350px
-    border 3px solid #ffffff;
+    border 3px solid #ffffff
     border-radius 12px
     display flex
     flex-flow column nowrap
@@ -253,7 +244,7 @@ onMounted(() => {
         cursor pointer
         &.selected
           background-color #514a3ccc
-          border solid 2px #cccccc;
+          border solid 2px #cccccc
     .container
       background #beb998cc
       height 100%

@@ -165,7 +165,7 @@ img.equipped-img
   left 0
   box-shadow: inset 0 0 5px 0 #212121db
   border 2px solid #ddd8c9
-  background #8d8980;
+  background #8d8980
   &.highlighted
     box-shadow: inset 0 0 15px 0 #F9A825
     border 1px solid #F9A825
