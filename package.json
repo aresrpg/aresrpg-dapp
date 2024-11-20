@@ -48,7 +48,8 @@
     "vue-i18n": "10.0.4",
     "vue-next-breakpoints": "1.0.1",
     "vue-router": "4.4.5",
-    "vuesax-alpha": "0.2.0-beta.79"
+    "vuesax-alpha": "0.2.0-beta.79",
+    "workerpool": "^9.2.0"
   },
   "devDependencies": {
     "@iconify-json/bxs": "^1.2.1",
