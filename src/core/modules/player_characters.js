@@ -6,9 +6,19 @@ import { state_iterator } from '../utils/iterator.js'
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick(state, __, delta) {
+    tick(state, { renderer }, delta ) {
       const player = current_three_character(state)
-      if (player?.mixer) player.mixer.update(delta)
+      if (player) {
+        if (player.mixer) {
+          player.mixer.update(delta)
+        }
+
+        if (player.customizable_textures) {
+          for (const [name, customizable_texture] of Object.entries(player.customizable_textures)) {
+            customizable_texture.texture.update(renderer);
+          }          
+        }
+      }
     },
     reduce(state, { type, payload }) {
       if (type === 'action/select_character')
@@ -96,7 +106,7 @@ export default function () {
 
           return locked_characters
         },
-        /** @type {Type.SuiCharacter[]} */ [],
+        /** @type {Type.SuiCharacter[]} */[],
       )
 
       state_iterator().reduce(

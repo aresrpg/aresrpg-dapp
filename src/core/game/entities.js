@@ -1,4 +1,4 @@
-import { BoxGeometry, Group, LoopOnce, Mesh, Quaternion, Vector3 } from 'three'
+import { BoxGeometry, Color, Group, LoopOnce, Mesh, Object3D, Quaternion, Texture, Vector3 } from 'three'
 
 import dispose from '../utils/three/dispose.js'
 
@@ -6,6 +6,7 @@ import { MODELS, find_head_bone } from './models.js'
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
 import { context } from './game.js'
 import { create_billboard_text } from './rendering/billboard_text.js'
+import { CustomizableTexture } from '@aresrpg/aresrpg-engine'
 
 const MODEL_FORWARD = new Vector3(0, 0, 1)
 
@@ -31,13 +32,120 @@ function fade_to_animation(from, to, duration = 0.3) {
 //   'WALK',
 // ]
 
+// function extract_customizable_textures_definitions(/** @type Texture[] */ texturesList) {
+//   let customizable_textures_definitions = {};
+//   for (const texture of texturesList) {
+//     const base_color_matches = texture.name.match(/^(.*)_basecolour$/);
+//     if (base_color_matches && base_color_matches[1]) {
+//       const texture_name = base_color_matches[1];
+
+//       if (!customizable_textures_definitions[texture_name]) {
+//         customizable_textures_definitions[texture_name] = { accent: [] };
+//       }
+//       customizable_textures_definitions[texture_name].base_color = texture;
+//     }
+
+//     const accent_color_matches = texture.name.match(/^(.*)_accent([0-9]+)$/);
+//     if (accent_color_matches && accent_color_matches[1] && accent_color_matches[2]) {
+//       const texture_name = accent_color_matches[1];
+//       const texture_index = Number(accent_color_matches[2]);
+//       if (!isNaN(texture_index)) {
+//         if (!customizable_textures_definitions[texture_name]) {
+//           customizable_textures_definitions[texture_name] = { accent: [] };
+//         }
+//         customizable_textures_definitions[texture_name].accent.push({
+//           texture,
+//           index: texture_index,
+//         });
+//       }
+//     }
+//   }
+
+//   return customizable_textures_definitions;
+// }
+
+// function create_and_attach_customizable_textures(customizable_textures_definitions, /** @type Object3D */ object3D) {
+//   const customizable_textures = {};
+
+//   object3D.traverse(child => {
+//     if ("material" in child && typeof child.material === "object") {
+//       if ("isMaterial" in child.material && "map" in child.material) {
+//         const /** @type Texture */ texture = child.material.map;
+//         if (texture.name === "templar_diffuse") {
+//           const customizable_texture_name = "templar_male";
+
+//           let customizable_texture = customizable_textures[customizable_texture_name];
+//           if (!customizable_texture) {
+//             let customizable_texture_definition = customizable_textures_definitions[customizable_texture_name];
+//             if (customizable_texture_definition && customizable_texture_definition.base_color) {
+//               const additional_textures = new Map();
+//               customizable_texture_definition.accent
+//                 .sort((accent1, accent2) => accent1.index - accent2.index)
+//                 .forEach(accent => {
+//                   additional_textures.set(accent.index.toString(), accent.texture);
+//                 });
+
+//               customizable_texture = {
+//                 texture: new CustomizableTexture({
+//                   baseTexture: customizable_texture_definition.base_color,
+//                   additionalTextures: additional_textures,
+//                 }),
+//                 layers: Array.from(additional_textures.keys()),
+//               };
+//               customizable_textures[customizable_texture_name] = customizable_texture
+
+//               window.setColor1 = colorCode => customizable_texture.texture.setLayerColor("1", new Color(colorCode))
+//               window.setColor2 = colorCode => customizable_texture.texture.setLayerColor("2", new Color(colorCode))
+//             }
+//           }
+
+//           if (customizable_texture) {
+//             child.material.map = customizable_texture.texture.texture;
+//           }
+//         }
+//       }
+//     }
+//   })
+
+//   return customizable_textures;
+// }
+
 function entity_spawner(
   load_model,
   { skin, height, radius, scale = 1, hair = null },
 ) {
   return async ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
-    const { model, compute_animations, set_variant } = await load_model()
+    const { textures, model, compute_animations, set_variant } = await load_model()
     const { mixer, actions } = compute_animations()
+
+    const customizable_texture = {
+      texture: new CustomizableTexture({
+        baseTexture: textures.find(tex => tex.name === "templar_diffuse"),
+        additionalTextures: new Map([
+          ["0", textures.find(tex => tex.name === "templar_male_basecolour")],
+          ["1", textures.find(tex => tex.name === "templar_male_accent1")],
+          ["2", textures.find(tex => tex.name === "templar_male_accent2")],
+        ]),
+      }),
+      layers: ["0", "1", "2"],
+    };
+
+    window.setColor0 = colorCode => customizable_texture.texture.setLayerColor("0", new Color(colorCode))
+    window.setColor1 = colorCode => customizable_texture.texture.setLayerColor("1", new Color(colorCode))
+    window.setColor2 = colorCode => customizable_texture.texture.setLayerColor("2", new Color(colorCode))
+
+    model.traverse(child => {
+      if (child.material && child.material.map) {
+        child.material.map = customizable_texture.texture.texture;
+      }
+    });
+
+    const customizable_textures = {
+      "templar": customizable_texture
+    }
+
+    // const customizable_textures_definitions = extract_customizable_textures_definitions(textures);
+    // const customizable_textures = create_and_attach_customizable_textures(customizable_textures_definitions, model);
 
     model.scale.set(
       scale * scale_factor,
@@ -104,6 +212,7 @@ function entity_spawner(
       audio: null,
       skin,
       action: 'IDLE',
+      customizable_textures,
       move(position) {
         // @ts-ignore
         if (origin.position.distanceTo(position) < 0.01) return

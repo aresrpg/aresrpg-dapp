@@ -26,8 +26,11 @@ export async function load(
   path,
   { env_map_intensity = 0.5, mesh_name = 'Model' } = {},
 ) {
+  const loaded  = await GLTF_LOADER.loadAsync(path)
   // @ts-ignore
-  const { scene, animations, functions } = await GLTF_LOADER.loadAsync(path)
+  const textures = await Promise.all(Object.values(loaded.parser.textureCache))
+  // @ts-ignore
+  const { scene, animations, functions } = loaded
 
   scene.traverse(child => {
     // @ts-ignore
@@ -48,6 +51,7 @@ export async function load(
     const cloned = clone(scene)
 
     return {
+      textures,
       model: cloned,
       skinned_mesh: cloned.getObjectByName(mesh_name),
       async set_variant(variant) {
