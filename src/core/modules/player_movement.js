@@ -19,6 +19,7 @@ const GRAVITY_UNDERWATER = 5
 const JUMP_FORCE = 12
 const JUMP_FORWARD_IMPULSE = 3
 const JUMP_COOLDOWN = 0.1 // one jump every 100ms
+const DROP_BEFORE_FALL_ANIMATION = 3
 
 function compute_inputs_horizontal_movement(camera, inputs) {
   const inputs_horizontal_movement_camera = new Vector3(
@@ -58,6 +59,7 @@ export default function () {
   const velocity = new Vector3()
 
   let jump_cooldown = 0
+  let max_altitude_since_left_ground = null
   let current_action = 'IDLE'
   let last_action = 'IDLE'
   let already_cancelled = false
@@ -141,6 +143,8 @@ export default function () {
       current_action = 'IDLE'
 
       if (is_underwater) {
+        max_altitude_since_left_ground = null
+
         const water_movement = inputs_horizontal_movement
           .clone()
           .multiplyScalar(SWIM_SPEED)
@@ -175,6 +179,19 @@ export default function () {
           play_step_sound()
         }
 
+        if (player_collisions.isOnGround) {
+          max_altitude_since_left_ground = null
+        } else {
+          if (max_altitude_since_left_ground === null) {
+            max_altitude_since_left_ground = player.position.y
+          } else {
+            max_altitude_since_left_ground = Math.max(
+              player.position.y,
+              max_altitude_since_left_ground,
+            )
+          }
+        }
+
         // Apply jump force
         if (jump_cooldown > 0) {
           jump_cooldown -= delta
@@ -192,7 +209,11 @@ export default function () {
 
         if (velocity.y > 0) {
           current_action = 'JUMP_RUN'
-        } else if (velocity.y < 0) {
+        } else if (
+          velocity.y < 0 &&
+          max_altitude_since_left_ground - player.position.y >
+            DROP_BEFORE_FALL_ANIMATION
+        ) {
           current_action = 'FALL'
         }
       }
