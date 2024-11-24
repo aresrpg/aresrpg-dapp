@@ -64,7 +64,7 @@ export default function () {
 
   const dummy = new Object3D()
 
-  const player_collider_radius = 0.25
+  const player_collider_radius = 0.4
   const player_collider_height = 1.1
 
   return {
