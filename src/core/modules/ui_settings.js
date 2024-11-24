@@ -1,7 +1,12 @@
 import { GUI } from 'dat.gui'
 import { Vector3 } from 'three'
 
-import { INITIAL_STATE, current_three_character } from '../game/game.js'
+import {
+  INITIAL_STATE,
+  VIEW_DISTANCE_MAX,
+  VIEW_DISTANCE_MIN,
+  current_three_character,
+} from '../game/game.js'
 import { get_ground_height_async } from '../utils/terrain/world_utils.js'
 
 /** @type {Type.Module} */
@@ -106,7 +111,13 @@ export default function () {
       })
 
       terrain_folder
-        .add(settings, 'view_distance', 50, 1000, 50)
+        .add(
+          settings,
+          'view_distance',
+          VIEW_DISTANCE_MIN,
+          VIEW_DISTANCE_MAX,
+          50,
+        )
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
 

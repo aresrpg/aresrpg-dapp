@@ -1,3 +1,5 @@
+import { VIEW_DISTANCE_MAX, VIEW_DISTANCE_MIN } from '../game/game.js'
+
 const MIN_FPS = 5
 const MAX_FPS = 240
 
@@ -27,7 +29,10 @@ export default function () {
             ...state,
             settings: {
               ...state.settings,
-              view_distance: Math.max(50, Math.min(400, payload)),
+              view_distance: Math.max(
+                VIEW_DISTANCE_MIN,
+                Math.min(VIEW_DISTANCE_MAX, payload),
+              ),
             },
           }
         case 'action/free_camera':

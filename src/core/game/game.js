@@ -109,6 +109,9 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
 
+export const VIEW_DISTANCE_MIN = 50
+export const VIEW_DISTANCE_MAX = 1000
+
 export const INITIAL_STATE = {
   settings: {
     target_fps: 120,
