@@ -1,4 +1,6 @@
-import { BlockType } from '@aresrpg/aresrpg-world/biomes'
+// import { BlockType } from '@aresrpg/aresrpg-world/biomes'
+
+import { BlockType } from '@aresrpg/aresrpg-world'
 
 import { BLOCKS } from '../blocks.js'
 

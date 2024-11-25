@@ -1,5 +1,5 @@
-import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
-import { BlockType } from '@aresrpg/aresrpg-world/biomes'
+// import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
+// import { BlockType } from '@aresrpg/aresrpg-world/biomes'
 
 /**
  * Debug vars

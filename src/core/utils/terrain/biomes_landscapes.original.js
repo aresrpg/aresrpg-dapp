@@ -1,6 +1,8 @@
 import { BiomeType, BlockType } from '@aresrpg/aresrpg-world'
 
-import { SCHEMATICS_COLLECTIONS } from './schematics_collections.js'
+import { SCHEMATICS_COLLECTIONS } from './config/schematics_collections.js'
+
+// import { SCHEMATICS_COLLECTIONS } from './schematics_collections.js'
 
 const { alpine, temperate_forest, siberian } = SCHEMATICS_COLLECTIONS
 

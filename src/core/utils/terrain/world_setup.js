@@ -1,9 +1,11 @@
 import { proc_items_conf } from './proc_items.js'
-import { SCHEMATICS_BLOCKS_MAPPING } from './config/blocks.js'
-import { SCHEMATICS_FILES } from './config/schematics_files.js'
+// import { SCHEMATICS_BLOCKS_MAPPING } from './config/blocks.js'
+// import { SCHEMATICS_FILES } from './config/schematics_files.js'
 import { chunk_data_encoder } from './world_utils.js'
 import { SEA_LEVEL } from './config/world_settings.js'
-import { BIOMES_LANDSCAPES_ORIG } from './config/biomes_landscapes.original.js'
+import { BIOMES_LANDSCAPES_ORIG } from './biomes_landscapes.original.js'
+import { SCHEMATICS_BLOCKS_MAPPING } from './world_settings.js'
+import { SCHEMATICS_FILES } from './schematics_files.js'
 
 /**
  * Unified setup to ensure having same settings everywhere (workers, main thread)
