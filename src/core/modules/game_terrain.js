@@ -325,6 +325,13 @@ export default function () {
         FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
           terrain_viewer.setLod(camera.position, 50, camera.far)
       })
+
+      aiter(abortable(setInterval(200, null))).reduce(async () => {
+        voxelmap_viewer.setAdaptativeQuality({
+          distanceThreshold: 75,
+          cameraPosition: camera.getWorldPosition(new Vector3()),
+        })
+      })
     },
   }
 }
