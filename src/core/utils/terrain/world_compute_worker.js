@@ -4,11 +4,11 @@ import {
   Heightmap,
   ItemsInventory,
   SchematicLoader,
-  // WorldUtils,
+  WorldUtils,
   WorldCompute,
   WorldComputeApi,
 } from '@aresrpg/aresrpg-world'
-import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
+// import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 import workerpool from 'workerpool'
 
 import { setup_world_modules } from './world_setup.js'

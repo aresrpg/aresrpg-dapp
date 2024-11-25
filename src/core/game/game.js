@@ -395,7 +395,7 @@ renderer.info.autoReset = false
 composer.setSize(window.innerWidth, window.innerHeight)
 
 const voxelmap_collider = new VoxelmapCollider({
-  chunkSize: WorldConf.defaultChunkDimensions,
+  chunkSize: WorldConf.instance.chunkDimensions,
   voxelsChunkOrdering: 'zxy',
 })
 const voxelmap_collisions = new VoxelmapCollisions({

@@ -6,15 +6,14 @@ import {
   BlockMode,
   BlockType,
   GroundCache,
-  WorldConf,
+  WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
-import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 
+// import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 import { color_to_block_type, hex_to_int } from './world_settings.js'
-
-const cache_query_params = { cacheIfMissing: true, precacheRadius: 10 }
+const cache_query_params = { cacheMissing: true, precacheRadius: 10 }
 
 /**
  * Sync or async ground height
@@ -93,12 +92,15 @@ export const to_engine_chunk_format = world_chunk => {
   const is_empty = world_chunk.rawData.reduce((sum, val) => sum + val, 0) === 0
   const size = world_chunk.extendedDims
   const data = is_empty ? [] : world_chunk.rawData
-  const engine_chunk = {
-    id,
+  const voxels_chunk_data = {
     data,
     isEmpty: is_empty,
     size,
     dataOrdering: 'zxy',
+  }
+  const engine_chunk = {
+    id,
+    voxels_chunk_data,
   }
   return engine_chunk
 }
@@ -151,7 +153,7 @@ export const highlight_board = board_content => {
       board_content.elevation,
     )
     const squares = board_content.data.map(element =>
-      BoardUtils.format_board_data(element),
+      FightBoards.format_board_data(element),
     )
     const board = { origin, size, squares }
 
@@ -191,7 +193,10 @@ export const highlight_start_pos = (board_handler, board_content) => {
     z: pos.y - board_bounds.min.y,
   })
   const board_items = FightBoards.iter_board_data(board_content)
-  const sorted_board_items = FightBoards.sort_by_side(board_items, board_content)
+  const sorted_board_items = FightBoards.sort_by_side(
+    board_items,
+    board_content,
+  )
   const sorted_start_pos = {}
   sorted_start_pos.first = FightBoards.random_select_items(
     sorted_board_items.first,
