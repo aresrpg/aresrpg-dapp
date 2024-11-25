@@ -18,6 +18,7 @@ import {
   ChunkContainer,
   WorldConf,
   WorldChunkIndexer,
+  ChunksOTFGenerator,
 } from '@aresrpg/aresrpg-world'
 import { Biome } from '@aresrpg/aresrpg-world/biomes'
 import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
@@ -87,7 +88,7 @@ export default function () {
   // chunks related
   WorldConf.instance.chunkSettings.genRange.yMinId = min_patch_id_y
   WorldConf.instance.chunkSettings.genRange.yMaxId = max_patch_id_y
-  ChunkContainer.defaultDataEncoder = chunk_data_encoder
+  ChunkContainer.dataEncoder = chunk_data_encoder
 
   // patch containers
   const chunks_indexer = new WorldChunkIndexer()
@@ -273,38 +274,27 @@ export default function () {
             view_center,
             CAVES_VIEW_DIST,
           )
-          const changes = chunks_indexer.reindexAroundPos(
+          const added_patch_keys = chunks_indexer.reindexAroundPos(
             view_center,
             view_radius,
           )
-          voxelmap_viewer.setVisibility(chunk_ids)
-          for await (const chunks_maker of changes) {
-            const ground_surface_keys = chunks_maker.groundSurfaceKeys()
-            const chunks_otf_gen = chunks_maker.otfChunkGen(ground_surface_keys)
-            for await (const world_chunk of chunks_otf_gen) {
-              render_chunk(world_chunk)
-            }
-          }
-          if (chunks_indexing_changes) {
-            chunks_indexer.chunksLookup = chunks_indexing_changes
-            const chunk_ids = chunks_indexer.populateChunkIndex()
-
-            // board chunk
-            board_chunks_container.setup(current_pos)
-            const board_chunk = await board_chunks_container.preProcess()
-            // process ground surface chunks first
-            const surface_chunks_otf_gen =
-              await chunks_indexer.otfGroundSurfaceChunksGen()
-            for await (const world_chunk of surface_chunks_otf_gen) {
-              ChunkContainer.copySourceToTarget(board_chunk, world_chunk)
-              // board_chunk.applyMaskOnTargetChunk(world_chunk)
-              render_chunk(world_chunk)
-            }
-            // process undeground chunks after only close to player
-            const undeground_chunks_otf_gen =
-              await chunks_indexer.otfUndegroundChunksGen(caves_gen_bounds)
-            for await (const world_chunk of undeground_chunks_otf_gen) {
-              render_chunk(world_chunk)
+          if (added_patch_keys.length > 0) {
+            voxelmap_viewer.setVisibility(chunks_indexer.chunkIds)
+            for await (const patch_key of added_patch_keys) {
+              const chunk_generator = new ChunksOTFGenerator(patch_key)
+              await chunk_generator.init()
+              // process ground surface chunks first
+              let chunks_keys = chunk_generator.groundSurfaceKeys
+              let chunks_otf_gen = chunk_generator.otfChunkGen(chunks_keys)
+              for await (const world_chunk of chunks_otf_gen) {
+                render_chunk(world_chunk)
+              }
+              // process undeground chunks near player
+              chunks_keys = chunk_generator.undegroundKeys
+              chunks_otf_gen = chunk_generator.otfChunkGen(chunks_keys)
+              for await (const world_chunk of chunks_otf_gen) {
+                render_chunk(world_chunk)
+              }
             }
             // override chunks around player with board buffer
             // const board_chunks_otf_gen =
@@ -312,9 +302,31 @@ export default function () {
           }
           // BOARD
           if (FLAGS.BOARD_POC && board_refresh_trigger(view_center)) {
-            board_chunks_container.setup(current_pos)
+            // board_chunks_container.boardCenter = current_pos
+            await board_chunks_container.localCache.cacheAroundPos(current_pos)
+            // fill board buffer from cache
+            const board_buffer =
+              board_chunks_container.genBoardBuffer(current_pos)
+            // iter board indexed chunks
+            for (const board_chunk of board_chunks_container.localCache
+              .cachedChunks) {
+              // board_chunk.rawData.fill(113)
+              const board_chunk_copy = new ChunkContainer(
+                board_chunk.chunkKey,
+                board_chunk.margin,
+              )
+              board_chunk.rawData.forEach(
+                (val, i) =>
+                  (board_chunk_copy.rawData[i] = chunk_data_encoder(val)),
+              )
+              // board_chunk_copy.rawData.set(board_chunk.rawData)
+              ChunkContainer.copySourceToTarget(board_buffer, board_chunk_copy)
+              // const board_chunk_mask = board_chunk.genBoardMask()
+              // board_chunk_mask.applyMaskOnTargetChunk(board_chunk_copy)
+              render_chunk(board_chunk_copy)
+            }
             // process ground surface chunks first
-            const board_chunks_gen = await board_chunks_container.otfBoardGen()
+            // const board_chunks_gen = await board_chunks_container.otfBoardGen()
             // for await (const board_chunk of board_chunks_gen) {
             //   render_chunk(board_chunk)
             // }
