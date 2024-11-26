@@ -12,7 +12,7 @@ import {
   WorldComputeProxy,
   SchematicLoader,
   ItemsInventory,
-  Biome,
+  // Biome,
   Heightmap,
   BoardContainer,
   ChunkContainer,
@@ -31,7 +31,10 @@ import {
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 import { setup_world_modules } from '../utils/terrain/world_setup.js'
-import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/world_settings.js'
+import {
+  CAVES_VIEW_DIST,
+  BLOCKS_COLOR_MAPPING,
+} from '../utils/terrain/config/world_settings.js'
 
 // NB: LOD should be set to STATIC to limit over-computations
 // and remove graphical issues
@@ -48,19 +51,10 @@ const FLAGS = {
 }
 // settings
 const altitude = { min: -1, max: 400 }
-
-// primary world worker
-const world_worker = new Worker(
-  new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
-  { type: 'module' },
-)
-
-// secondary worker used for delegating LOD computations
-// and avoid monopolizing primary world worker
-const delegated_tasks_worker = new Worker(
-  new URL('../utils/terrain/world_compute_worker.js', import.meta.url),
-  { type: 'module' },
-)
+// const world_worker_url = new URL(
+//   '../utils/terrain/world_compute_worker.js',
+//   import.meta.url,
+// )
 
 const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
   color: new Color(col),
@@ -71,8 +65,6 @@ const last_board = {
   bounds: new Box2(),
   handler: null,
 }
-let pending_task = false
-
 const board_refresh_trigger = current_pos =>
   last_board.pos.distanceTo(current_pos) > 1
 
@@ -83,11 +75,7 @@ export default function () {
   const patch_size = { xz: 64, y: 64 }
   const min_patch_id_y = Math.floor(altitude.min / patch_size.y)
   const max_patch_id_y = Math.floor(altitude.max / patch_size.y)
-  // run world-compute module in dedicated worker
-  WorldComputeProxy.instance.worker = world_worker
-  // alternative proxy to route to secondary worker
-  const world_delegated_proxy = new WorldComputeProxy()
-  world_delegated_proxy.worker = delegated_tasks_worker
+
   // common world setup
   setup_world_modules({
     heightmapInstance: Heightmap.instance,
@@ -103,10 +91,7 @@ export default function () {
 
   // patch containers
   const chunks_indexer = new WorldChunkIndexer()
-  // const board_container = new BoardContainer(
-  //   board_params.radius,
-  //   board_params.thickness,
-  // )
+  const board_chunks_container = new BoardContainer()
   // ENGINE
   const map = {
     minAltitude: altitude.min,
@@ -116,9 +101,12 @@ export default function () {
       FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
         console.log(`block batch compute size: ${coords.length}`)
       const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
-      const res = await world_delegated_proxy.computeBlocksBatch(pos_batch, {
-        includeEntitiesBlocks: true,
-      })
+      const res = await WorldComputeProxy.current.computeBlocksBatch(
+        pos_batch,
+        {
+          includeEntitiesBlocks: true,
+        },
+      )
       const data = res.map(block => ({
         altitude: block.pos.y + 0.25,
         color: new Color(BLOCKS_COLOR_MAPPING[block.data.type]),
@@ -275,37 +263,61 @@ export default function () {
         const state = get_state()
         const player_position =
           current_three_character(state)?.position?.clone()
-        if (player_position) {
-          if (!pending_task) {
-            pending_task = true
-            const current_pos = player_position.clone().floor()
-            // Query chunks around player position
-            const view_center = WorldUtils.asVect2(current_pos)
-            const view_radius = state.settings.view_distance
-            const chunks_indexing_changes = chunks_indexer.reindexAroundPos(
-              view_center,
-              view_radius,
-            )
-            if (chunks_indexing_changes) {
-              chunks_indexer.chunksLookup = chunks_indexing_changes
-              const chunk_ids = chunks_indexer.populateChunkIndex()
-              voxelmap_viewer.setVisibility(chunk_ids)
-              // process ground surface chunks first
-              const surface_chunks_otf_gen =
-                await chunks_indexer.otfGroundSurfaceChunksGen()
-              for await (const world_chunk of surface_chunks_otf_gen) {
-                render_chunk(world_chunk)
-              }
-              // process undeground surface chunks after
-              const undeground_chunks_otf_gen =
-                await chunks_indexer.otfUndegroundChunksGen()
-              for await (const world_chunk of undeground_chunks_otf_gen) {
-                render_chunk(world_chunk)
-              }
-              terrain_viewer.setLod(camera.position, 50, camera.far)
+        // check at least one world compute unit is available
+        if (player_position && WorldComputeProxy.workerPool) {
+          const current_pos = player_position.clone().floor()
+          // Query chunks around player position
+          const view_center = WorldUtils.asVect2(current_pos).floor()
+          const view_radius = state.settings.view_distance
+          const caves_gen_bounds = WorldUtils.getBoundsAroundPos(
+            view_center,
+            CAVES_VIEW_DIST,
+          )
+          const changes = chunks_indexer.reindexAroundPos(
+            view_center,
+            view_radius,
+          )
+          voxelmap_viewer.setVisibility(chunk_ids)
+          for await (const chunks_maker of changes) {
+            const ground_surface_keys = chunks_maker.groundSurfaceKeys()
+            const chunks_otf_gen = chunks_maker.otfChunkGen(ground_surface_keys)
+            for await (const world_chunk of chunks_otf_gen) {
+              render_chunk(world_chunk)
             }
-            // BOARD PATCHES
-            // if (FLAGS.BOARD_POC && board_refresh_trigger(view_center)) {
+          }
+          if (chunks_indexing_changes) {
+            chunks_indexer.chunksLookup = chunks_indexing_changes
+            const chunk_ids = chunks_indexer.populateChunkIndex()
+
+            // board chunk
+            board_chunks_container.setup(current_pos)
+            const board_chunk = await board_chunks_container.preProcess()
+            // process ground surface chunks first
+            const surface_chunks_otf_gen =
+              await chunks_indexer.otfGroundSurfaceChunksGen()
+            for await (const world_chunk of surface_chunks_otf_gen) {
+              ChunkContainer.copySourceToTarget(board_chunk, world_chunk)
+              // board_chunk.applyMaskOnTargetChunk(world_chunk)
+              render_chunk(world_chunk)
+            }
+            // process undeground chunks after only close to player
+            const undeground_chunks_otf_gen =
+              await chunks_indexer.otfUndegroundChunksGen(caves_gen_bounds)
+            for await (const world_chunk of undeground_chunks_otf_gen) {
+              render_chunk(world_chunk)
+            }
+            // override chunks around player with board buffer
+            // const board_chunks_otf_gen =
+            terrain_viewer.setLod(camera.position, 50, camera.far)
+          }
+          // BOARD
+          if (FLAGS.BOARD_POC && board_refresh_trigger(view_center)) {
+            board_chunks_container.setup(current_pos)
+            // process ground surface chunks first
+            const board_chunks_gen = await board_chunks_container.otfBoardGen()
+            // for await (const board_chunk of board_chunks_gen) {
+            //   render_chunk(board_chunk)
+            // }
             //   board_container.setupBoard(view_center)
             //   const board_content = await board_container.genBoardContent()
             //   const otf_gen = await board_container.otfGen()
@@ -329,20 +341,18 @@ export default function () {
             //       render_chunk(board_chunk)
             //     }
             //   }
-            //   const board_handler = highlight_board(board_content)
-            //   if (last_board.handler?.container) {
-            //     last_board.handler.dispose()
-            //     scene.remove(last_board.handler.container)
-            //   }
-            //   if (board_handler) {
-            //     last_board.handler = board_handler
-            //     scene.add(board_handler.container)
-            //   }
-            //   // remember bounds for later board removal
-            //   last_board.bounds = board_container.boardBounds
-            //   last_board.pos = view_center
+            // const board_handler = highlight_board(board_content)
+            // if (last_board.handler?.container) {
+            //   last_board.handler.dispose()
+            //   scene.remove(last_board.handler.container)
             // }
-            pending_task = false
+            // if (board_handler) {
+            //   last_board.handler = board_handler
+            //   scene.add(board_handler.container)
+            // }
+            // remember bounds for later board removal
+            last_board.bounds = board_chunks_container.boardBounds
+            last_board.pos = view_center
           }
         }
         FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&

@@ -4,7 +4,7 @@ import { clamp } from 'three/src/math/MathUtils.js'
 
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import { sea_level } from '../utils/terrain/world_settings.js'
+import { SEA_LEVEL } from '../utils/terrain/config/world_settings.js'
 
 import { is_hovering_mob_group } from './player_entities_interract.js'
 
@@ -40,7 +40,7 @@ export default function () {
       }
       camera_controls.update(delta)
 
-      const is_underwater = camera.position.y <= sea_level
+      const is_underwater = camera.position.y <= SEA_LEVEL
       if (camera_state.is_underwater !== is_underwater) {
         dispatch('action/camera_went_underwater', is_underwater)
       }
