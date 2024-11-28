@@ -35,7 +35,7 @@ import { create_client } from '@aresrpg/aresrpg-protocol'
 import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
-import { WorldConf } from '@aresrpg/aresrpg-world'
+import { WorldEnv } from '@aresrpg/aresrpg-world'
 
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
@@ -395,7 +395,7 @@ renderer.info.autoReset = false
 composer.setSize(window.innerWidth, window.innerHeight)
 
 const voxelmap_collider = new VoxelmapCollider({
-  chunkSize: WorldConf.instance.chunkDimensions,
+  chunkSize: WorldEnv.current.chunkDimensions,
   voxelsChunkOrdering: 'zxy',
 })
 const voxelmap_collisions = new VoxelmapCollisions({

@@ -6,8 +6,10 @@ import { Object3D, Vector3 } from 'three'
 
 import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import { get_ground_height_sync } from '../utils/terrain/world_utils.js'
-import { SEA_LEVEL } from '../utils/terrain/config/world_settings.js'
+import {
+  get_sea_level,
+  get_ground_height_sync,
+} from '../utils/terrain/world_utils.js'
 
 import { play_step_sound } from './game_audio.js'
 
@@ -77,7 +79,7 @@ export default function () {
       if (!player) return
       const { inputs } = state
       const origin = player.position.clone()
-      const is_underwater = player.position.y < SEA_LEVEL
+      const is_underwater = player.position.y < get_sea_level()
 
       if (player.target_position) {
         // FIX to handle async block request

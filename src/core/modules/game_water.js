@@ -17,7 +17,7 @@ import { abortable, typed_on } from '../utils/iterator.js'
 import { current_three_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import texture_url from '../../assets/water/texture.png?url'
-import { SEA_LEVEL } from '../utils/terrain/config/world_settings.js'
+import { get_sea_level } from '../utils/terrain/world_utils.js'
 
 const noise = `//	Simplex 3D Noise
 //	by Ian McEwan, Ashima Arts
@@ -326,7 +326,7 @@ export default function () {
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
 
-        const water_level = SEA_LEVEL + 0.1
+        const water_level = get_sea_level() + 0.1
         let player_position_x = 0
         let player_position_z = 0
 

@@ -6,6 +6,7 @@ import {
   BlockMode,
   BlockType,
   GroundCache,
+  WorldEnv,
   WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
@@ -14,6 +15,10 @@ import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
 // import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 const cache_query_params = { cacheMissing: true, precacheRadius: 10 }
+
+/**
+ * MISC
+ */
 
 /**
  * Sync or async ground height
@@ -54,6 +59,8 @@ export async function get_ground_height_async({ x, z }, entity_height = 0) {
   return ground_height + entity_height * 0.5
 }
 
+export const get_sea_level = () => WorldEnv.current.seaLevel
+
 export function map_blocks_to_type(biome) {
   return Object.entries(biome).reduce((acc, [key, value]) => {
     // Check if type and subtype are numbers (color or BlockType IDs)
@@ -79,17 +86,17 @@ export function map_blocks_to_type(biome) {
 }
 
 /**
- * Chunks
+ * Chunks related
  */
 
-export const chunk_data_encoder = (val, mode = BlockMode.DEFAULT) =>
+export const chunk_data_encoder = (val, mode = BlockMode.REGULAR) =>
   val
-    ? voxelmapDataPacking.encode(mode === BlockMode.BOARD_CONTAINER, val)
+    ? voxelmapDataPacking.encode(mode === BlockMode.CHECKERBOARD, val)
     : voxelmapDataPacking.encodeEmpty()
 
 export const to_engine_chunk_format = world_chunk => {
   const { id } = world_chunk
-  const is_empty = world_chunk.rawData.reduce((sum, val) => sum + val, 0) === 0
+  const is_empty = world_chunk.isEmpty()
   const size = world_chunk.extendedDims
   const data = is_empty ? [] : world_chunk.rawData
   const voxels_chunk_data = {
@@ -106,7 +113,7 @@ export const to_engine_chunk_format = world_chunk => {
 }
 
 /**
- * Board
+ * Board related
  */
 
 export const build_board_chunk = (board_patch, board_chunk) => {

@@ -1,13 +1,6 @@
 // import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 // import { BlockType } from '@aresrpg/aresrpg-world/biomes'
 
-/**
- * Debug vars
- * uncomment following lines to enable debugging feats
- */
-// WorldConf.debug.patch.borderHighlightColor = block_type.DBG_LIGHT
-// WorldConf.debug.schematics.missingBlockType = block_type.DBG_DARK
-
 export const BLOCKS = {
   DBG_LIGHT: '#fff',
   DBG_DARK: '#212121',

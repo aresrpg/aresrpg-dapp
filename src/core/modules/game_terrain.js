@@ -9,21 +9,14 @@ import {
 import { aiter } from 'iterator-helper'
 import { Box2, Color, Vector2 } from 'three'
 import {
-  WorldComputeProxy,
-  WorldUtils,
-  SchematicLoader,
-  ItemsInventory,
-  // Biome,
-  Heightmap,
-  BoardContainer,
   ChunkContainer,
-  WorldConf,
+  BoardContainer,
   WorldChunkIndexer,
   ChunksOTFGenerator,
-  Biome,
+  WorldComputeProxy,
+  WorldUtils,
+  WorldEnv,
 } from '@aresrpg/aresrpg-world'
-// import { Biome } from '@aresrpg/aresrpg-world/biomes'
-// import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
@@ -33,14 +26,10 @@ import {
   highlight_board,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
-import { setup_world_modules } from '../utils/terrain/world_setup.js'
-import {
-  CAVES_VIEW_DIST,
-  BLOCKS_COLOR_MAPPING,
-} from '../utils/terrain/world_settings.js'
+import { world_shared_env_setup } from '../utils/terrain/world_setup.js'
+import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/world_settings.js'
 
-// NB: LOD should be set to STATIC to limit over-computations
-// and remove graphical issues
+// NB: LOD should be set to STATIC to limit over-computations and fix graphical issues
 const LOD_MODE = {
   DISABLED: 0,
   STATIC: 1,
@@ -54,10 +43,6 @@ const FLAGS = {
 }
 // settings
 const altitude = { min: -1, max: 400 }
-// const world_worker_url = new URL(
-//   '../utils/terrain/world_compute_worker.js',
-//   import.meta.url,
-// )
 
 const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
   color: new Color(col),
@@ -73,28 +58,24 @@ const board_refresh_trigger = current_pos =>
 
 /** @type {Type.Module} */
 export default function () {
-  // WORLD
-  // common settings
+  // COMMON
   const patch_size = { xz: 64, y: 64 }
   const min_patch_id_y = Math.floor(altitude.min / patch_size.y)
   const max_patch_id_y = Math.floor(altitude.max / patch_size.y)
 
-  // common world setup
-  setup_world_modules({
-    heightmapInstance: Heightmap.instance,
-    biomeInstance: Biome.instance,
-    SchematicLoader,
-    ItemsInventory,
-    ChunkContainer,
-  })
+  // WORLD
+  // setup main thread environement
+  world_shared_env_setup()
+
   // chunks related
-  WorldConf.instance.chunkSettings.genRange.yMinId = min_patch_id_y
-  WorldConf.instance.chunkSettings.genRange.yMaxId = max_patch_id_y
-  ChunkContainer.dataEncoder = chunk_data_encoder
+  WorldEnv.current.chunks.genRange.yMinId = min_patch_id_y
+  WorldEnv.current.chunks.genRange.yMaxId = max_patch_id_y
+  WorldEnv.current.chunks.dataEncoder = chunk_data_encoder
 
   // patch containers
   const chunks_indexer = new WorldChunkIndexer()
   const board_chunks_container = new BoardContainer()
+
   // ENGINE
   const map = {
     minAltitude: altitude.min,
@@ -195,7 +176,7 @@ export default function () {
           const view_radius = state.settings.view_distance
           const caves_gen_bounds = WorldUtils.getBoundsAroundPos(
             view_center,
-            CAVES_VIEW_DIST,
+            WorldEnv.current.cavesViewDist,
           )
           const added_patch_keys = chunks_indexer.reindexAroundPos(
             view_center,
@@ -203,18 +184,19 @@ export default function () {
           )
           if (added_patch_keys.length > 0) {
             voxelmap_viewer.setVisibility(chunks_indexer.chunkIds)
+            // TODO: prioritize patch keys near player
             for await (const patch_key of added_patch_keys) {
               const chunk_generator = new ChunksOTFGenerator(patch_key)
               await chunk_generator.init()
-              // process ground surface chunks first
-              let chunks_keys = chunk_generator.groundSurfaceKeys
-              let chunks_otf_gen = chunk_generator.otfChunkGen(chunks_keys)
-              for await (const world_chunk of chunks_otf_gen) {
-                render_chunk(world_chunk)
-              }
-              // process undeground chunks near player
-              chunks_keys = chunk_generator.undegroundKeys
-              chunks_otf_gen = chunk_generator.otfChunkGen(chunks_keys)
+              // TODO: prioritize chunk keys near player
+              const { emptyKeys, groundSurfaceKeys, undegroundKeys } =
+                chunk_generator
+              const chunks_keys = [
+                ...emptyKeys,
+                ...groundSurfaceKeys,
+                ...undegroundKeys,
+              ]
+              const chunks_otf_gen = chunk_generator.otfChunkGen(chunks_keys)
               for await (const world_chunk of chunks_otf_gen) {
                 render_chunk(world_chunk)
               }
@@ -243,7 +225,11 @@ export default function () {
                   (board_chunk_copy.rawData[i] = chunk_data_encoder(val)),
               )
               // board_chunk_copy.rawData.set(board_chunk.rawData)
-              ChunkContainer.copySourceToTarget(board_buffer, board_chunk_copy)
+              ChunkContainer.copySourceToTarget(
+                board_buffer,
+                board_chunk_copy,
+                false,
+              )
               // const board_chunk_mask = board_chunk.genBoardMask()
               // board_chunk_mask.applyMaskOnTargetChunk(board_chunk_copy)
               render_chunk(board_chunk_copy)

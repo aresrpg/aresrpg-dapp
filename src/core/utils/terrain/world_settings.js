@@ -1,5 +1,5 @@
 // import { BiomeType, BlockType } from '@aresrpg/aresrpg-world/biomes'
-import { BiomeType, BlockType, WorldConf } from '@aresrpg/aresrpg-world'
+import { BiomeType, BlockType } from '@aresrpg/aresrpg-world'
 
 import { map_blocks_to_type } from './world_utils.js'
 import TEMPERATE from './biomes/temperate.js'
@@ -12,21 +12,6 @@ import ARCTIC from './biomes/arctic.js'
 import SCORCHED from './biomes/scorched.js'
 import GLACIER from './biomes/glacier.js'
 import { BLOCKS } from './blocks.js'
-import world_worker_url from './world_compute_worker.js?url&worker'
-
-// World static config override
-export const CAVES_VIEW_DIST = WorldConf.instance.patchSize * 2
-// TODO: remove hardcoding and retrieve dynamic value from world
-export const SEA_LEVEL = 76
-
-// BOARDS
-WorldConf.instance.boardSettings.boardRadius = 30
-WorldConf.instance.boardSettings.boardThickness = 4
-
-// WORKER POOL
-WorldConf.instance.workerPool.url = world_worker_url
-WorldConf.instance.workerPool.count = 4
-WorldConf.instance.workerPool.type = import.meta.env.PROD ? undefined : 'module'
 
 // Convert hex string to number
 export const hex_to_int = hex => parseInt(hex.replace('#', ''), 16)
