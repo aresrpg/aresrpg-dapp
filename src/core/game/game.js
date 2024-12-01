@@ -188,6 +188,10 @@ export const INITIAL_STATE = {
         density: 0.45,
       },
 
+      volumetric_fog_pass: {
+        enabled: true,
+      },
+
       bloom_pass: {
         enabled: false,
         strength: 0.2,
