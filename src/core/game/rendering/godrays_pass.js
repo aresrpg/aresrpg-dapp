@@ -1,23 +1,20 @@
 import {
   BackSide,
   BoxGeometry,
-  BufferGeometry,
   Color,
-  Float32BufferAttribute,
-  Matrix4,
   Mesh,
   NoBlending,
   PerspectiveCamera,
   RawShaderMaterial,
   ShaderMaterial,
-  Uint16BufferAttribute,
   Vector2,
   Vector3,
-  Vector4,
   WebGLRenderTarget,
   WebGLRenderer,
 } from 'three'
 import { Pass } from 'three/examples/jsm/postprocessing/Pass.js'
+
+import { create_fullscreen_quad } from './utils.js'
 
 class GodraysPass extends Pass {
   light_direction
@@ -245,14 +242,7 @@ class GodraysPass extends Pass {
             }`,
     })
 
-    const quad_geometry = new BufferGeometry()
-    quad_geometry.setAttribute(
-      'aCorner',
-      new Float32BufferAttribute([-1, +1, +1, +1, -1, -1, +1, -1], 2),
-    )
-    quad_geometry.setIndex(new Uint16BufferAttribute([0, 2, 1, 2, 3, 1], 1))
-    this.#fullscreen_quad = new Mesh(quad_geometry)
-    this.#fullscreen_quad.frustumCulled = false
+    this.#fullscreen_quad = create_fullscreen_quad()
   }
 
   setSize(/** @type number */ width, /** @type number */ height) {
