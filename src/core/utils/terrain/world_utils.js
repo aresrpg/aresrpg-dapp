@@ -1,24 +1,10 @@
-import {
-  BoardOverlaysHandler,
-  voxelmapDataPacking,
-} from '@aresrpg/aresrpg-engine'
-import {
-  BlockMode,
-  BlockType,
-  GroundCache,
-  WorldEnv,
-  WorldUtils,
-} from '@aresrpg/aresrpg-world'
-import { Color, Vector2, Vector3 } from 'three'
-import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
+import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+import { BlockMode, GroundCache, WorldEnv } from '@aresrpg/aresrpg-world'
+import { Vector2 } from 'three'
 
 // import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 const cache_query_params = { cacheMissing: true, precacheRadius: 10 }
-
-/**
- * MISC
- */
 
 /**
  * Sync or async ground height
@@ -110,115 +96,4 @@ export const to_engine_chunk_format = world_chunk => {
     voxels_chunk_data,
   }
   return engine_chunk
-}
-
-/**
- * Board related
- */
-
-export const build_board_chunk = (board_patch, board_chunk) => {
-  // process internal board items buffers
-  // board ground buffer
-  const ground_otf_gen = board_patch.groundBufferOtfGen(
-    board_chunk.extendedBounds,
-  )
-  const board_level = board_patch.parentContainer.boardElevation
-  // iter board chunk buffer
-
-  for (const ground_buffer of ground_otf_gen) {
-    const { pos, buffer } = ground_buffer
-    const chunk_buffer = board_chunk.readBuffer(pos)
-    chunk_buffer.set(buffer)
-    board_chunk.writeBuffer(pos, chunk_buffer)
-  }
-  // const level = board_level + 1
-  if (
-    board_chunk.bounds.min.y <= board_level &&
-    board_chunk.bounds.max.y >= board_level
-  ) {
-    for (const item_pos of board_patch.boardItems) {
-      const pos = WorldUtils.asVect3(item_pos, board_level)
-      const local_pos = board_chunk.toLocalPos(pos)
-      const index = board_chunk.getIndex(local_pos)
-      board_chunk.writeBlockData(index, BlockType.TRUNK)
-    }
-  }
-}
-
-export const highlight_board = board_content => {
-  // const board_container = new BoardContainer(current_pos, radius, thickness)
-  // board_container.rebuildIndexAroundPosAndRad(current_pos)
-  // await board_container.build()
-  // const native_board = board_container.exportBoardData()
-  // const board_origin = WorldUtils.asVect2(board_container.origin)
-  if (board_content.data.length > 0) {
-    // convert to board hanlder format
-    const board_size = board_content.bounds.getSize(new Vector2())
-    const size = { x: board_size.x, z: board_size.y }
-    const origin = WorldUtils.asVect3(
-      board_content.bounds.min,
-      board_content.elevation,
-    )
-    const squares = board_content.data.map(element =>
-      FightBoards.format_board_data(element),
-    )
-    const board = { origin, size, squares }
-
-    const board_handler = new BoardOverlaysHandler({ board })
-    board_handler.clearSquares()
-    highlight_board_edges(board_handler, board_content)
-    highlight_start_pos(board_handler, board_content)
-    return board_handler
-  }
-}
-
-export const highlight_board_edges = (board_handler, board_content) => {
-  const board_bounds = board_content.bounds
-  const to_local_pos = pos => ({
-    x: pos.x - board_bounds.min.x,
-    z: pos.y - board_bounds.min.y,
-  })
-  const border_blocks = FightBoards.extract_border_blocks(board_content)
-  const sorted_border_blocks = FightBoards.sort_by_side(
-    border_blocks,
-    board_content,
-  )
-  const first_player_side = sorted_border_blocks.first.map(block =>
-    to_local_pos(block.pos),
-  )
-  const second_player_side = sorted_border_blocks.second.map(block =>
-    to_local_pos(block.pos),
-  )
-  board_handler.displaySquares(first_player_side, new Color(0x0000ff))
-  board_handler.displaySquares(second_player_side, new Color(0x00ff00))
-}
-
-export const highlight_start_pos = (board_handler, board_content) => {
-  const board_bounds = board_content.bounds
-  const to_local_pos = pos => ({
-    x: pos.x - board_bounds.min.x,
-    z: pos.y - board_bounds.min.y,
-  })
-  const board_items = FightBoards.iter_board_data(board_content)
-  const sorted_board_items = FightBoards.sort_by_side(
-    board_items,
-    board_content,
-  )
-  const sorted_start_pos = {}
-  sorted_start_pos.first = FightBoards.random_select_items(
-    sorted_board_items.first,
-    6,
-  )
-  sorted_start_pos.second = FightBoards.random_select_items(
-    sorted_board_items.second,
-    6,
-  )
-  const first_player_side = sorted_start_pos.first.map(block =>
-    to_local_pos(block.pos),
-  )
-  const second_player_side = sorted_start_pos.second.map(block =>
-    to_local_pos(block.pos),
-  )
-  board_handler.displaySquares(first_player_side, new Color(0x0000ff))
-  board_handler.displaySquares(second_player_side, new Color(0x00ff00))
 }

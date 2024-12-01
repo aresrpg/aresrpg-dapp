@@ -7,26 +7,24 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Box2, Color, Vector2 } from 'three'
+import { Color, Vector2 } from 'three'
 import {
-  ChunkContainer,
-  BoardContainer,
   WorldChunkIndexer,
   ChunksOTFGenerator,
   WorldComputeProxy,
   WorldUtils,
   WorldEnv,
+  WorldDevSetup,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
 import {
-  build_board_chunk,
   chunk_data_encoder,
-  highlight_board,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
-import { world_shared_env_setup } from '../utils/terrain/world_setup.js'
+import { BoardWrapper } from '../utils/terrain/board_wrapper.js'
+import { world_shared_setup } from '../utils/terrain/world_setup.js'
 import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/world_settings.js'
 
 // NB: LOD should be set to STATIC to limit over-computations and fix graphical issues
@@ -42,19 +40,15 @@ const FLAGS = {
   OTF_GEN: true, // bake patch progressively
 }
 // settings
+const blocks_color_mapping = {
+  ...BLOCKS_COLOR_MAPPING,
+  ...WorldDevSetup.BlocksColorMapping,
+}
 const altitude = { min: -1, max: 400 }
 
-const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
+const voxel_materials_list = Object.values(blocks_color_mapping).map(col => ({
   color: new Color(col),
 }))
-
-const last_board = {
-  pos: new Vector2(10, 10),
-  bounds: new Box2(),
-  handler: null,
-}
-const board_refresh_trigger = current_pos =>
-  last_board.pos.distanceTo(current_pos) > 1
 
 /** @type {Type.Module} */
 export default function () {
@@ -65,7 +59,7 @@ export default function () {
 
   // WORLD
   // setup main thread environement
-  world_shared_env_setup()
+  world_shared_setup()
 
   // chunks related
   WorldEnv.current.chunks.genRange.yMinId = min_patch_id_y
@@ -74,7 +68,7 @@ export default function () {
 
   // patch containers
   const chunks_indexer = new WorldChunkIndexer()
-  const board_chunks_container = new BoardContainer()
+  const board_wrapper = new BoardWrapper()
 
   // ENGINE
   const map = {
@@ -93,7 +87,7 @@ export default function () {
       )
       const data = res.map(block => ({
         altitude: block.pos.y + 0.25,
-        color: new Color(BLOCKS_COLOR_MAPPING[block.data.type]),
+        color: new Color(blocks_color_mapping[block.data.type]),
       }))
       return data
     },
@@ -196,84 +190,24 @@ export default function () {
                 ...groundSurfaceKeys,
                 ...undegroundKeys,
               ]
-              const chunks_otf_gen = chunk_generator.otfChunkGen(chunks_keys)
-              for await (const world_chunk of chunks_otf_gen) {
-                render_chunk(world_chunk)
-              }
+              await chunk_generator.chunksGen(chunks_keys, render_chunk)
             }
             // override chunks around player with board buffer
             // const board_chunks_otf_gen =
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
           // BOARD
-          if (FLAGS.BOARD_POC && board_refresh_trigger(view_center)) {
-            // board_chunks_container.boardCenter = current_pos
-            await board_chunks_container.localCache.cacheAroundPos(current_pos)
-            // fill board buffer from cache
-            const board_buffer =
-              board_chunks_container.genBoardBuffer(current_pos)
-            // iter board indexed chunks
-            for (const board_chunk of board_chunks_container.localCache
-              .cachedChunks) {
-              // board_chunk.rawData.fill(113)
-              const board_chunk_copy = new ChunkContainer(
-                board_chunk.chunkKey,
-                board_chunk.margin,
-              )
-              board_chunk.rawData.forEach(
-                (val, i) =>
-                  (board_chunk_copy.rawData[i] = chunk_data_encoder(val)),
-              )
-              // board_chunk_copy.rawData.set(board_chunk.rawData)
-              ChunkContainer.copySourceToTarget(
-                board_buffer,
-                board_chunk_copy,
-                false,
-              )
-              // const board_chunk_mask = board_chunk.genBoardMask()
-              // board_chunk_mask.applyMaskOnTargetChunk(board_chunk_copy)
-              render_chunk(board_chunk_copy)
+          if (FLAGS.BOARD_POC) {
+            const board_chunks = board_wrapper.update(current_pos)
+            for await (const board_chunk of board_chunks) {
+              render_chunk(board_chunk)
             }
-            // process ground surface chunks first
-            // const board_chunks_gen = await board_chunks_container.otfBoardGen()
-            // for await (const board_chunk of board_chunks_gen) {
-            //   render_chunk(board_chunk)
-            // }
-            //   board_container.setupBoard(view_center)
-            //   const board_content = await board_container.genBoardContent()
-            //   const otf_gen = await board_container.otfGen()
-            //   for await (const board_patch of otf_gen) {
-            //     // process external board items chunks
-            //     const items_chunks = []
-            //     const items_otf_gen = board_patch.itemsChunksOtfGen()
-            //     for await (const item_chunk of items_otf_gen) {
-            //       items_chunks.push(item_chunk)
-            //     }
-            //     const board_chunks = ChunkUtils.getWorldChunksFromPatchId(
-            //       board_patch.id,
-            //     )
-            //     // generate board chunks
-            //     for await (const board_chunk of board_chunks) {
-            //       for (const item_chunk of items_chunks) {
-            //         ChunkContainer.copySourceToTarget(item_chunk, board_chunk)
-            //       }
-            //       build_board_chunk(board_patch, board_chunk)
-            //       // send chunk for render
-            //       render_chunk(board_chunk)
-            //     }
-            //   }
-            // const board_handler = highlight_board(board_content)
-            // if (last_board.handler?.container) {
-            //   last_board.handler.dispose()
-            //   scene.remove(last_board.handler.container)
-            // }
-            // if (board_handler) {
-            //   last_board.handler = board_handler
-            //   scene.add(board_handler.container)
-            // }
-            // remember bounds for later board removal
-            last_board.bounds = board_chunks_container.boardBounds
-            last_board.pos = view_center
+            if (board_wrapper.handler?.container) {
+              board_wrapper.handler.dispose()
+              scene.remove(board_wrapper.handler.container)
+              board_wrapper.highlight()
+              scene.add(board_wrapper.handler.container)
+            }
           }
         }
         FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&

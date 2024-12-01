@@ -1,4 +1,4 @@
-import { WorldEnv, WorldDevPresets } from '@aresrpg/aresrpg-world'
+import { WorldDevSetup, WorldEnv } from '@aresrpg/aresrpg-world'
 
 import { chunk_data_encoder } from './world_utils.js'
 import { LANDSCAPE, SCHEMATICS_BLOCKS_MAPPING } from './world_settings.js'
@@ -9,14 +9,13 @@ import WORLD_WORKER_URL from './world_compute_worker.js?url&worker'
 const SEA_LEVEL = 76
 
 /**
- * Override default world environment.
- * To ensure same settings are used everywhere call twice for:
- * - main thread (no argument)
- * - workers (own env provided as argument)
+ * World environment setup to be shared by main and workers threads
+ * - for main thread: call without argument
+ * - for workers: provide worker's own env as argument
  *
  * @param world_env targeted env or main thread env by default
  */
-export const world_shared_env_setup = (world_env = WorldEnv.current) => {
+export const world_shared_setup = (world_env = WorldEnv.current) => {
   world_env.seaLevel = SEA_LEVEL // TODO remove hardcoded sea
   world_env.chunks.dataEncoder = chunk_data_encoder
 
@@ -33,8 +32,8 @@ export const world_shared_env_setup = (world_env = WorldEnv.current) => {
 
   // BOARDS
   world_env.boardSettings.boardRadius = 20
-  world_env.boardSettings.boardThickness = 6
+  world_env.boardSettings.boardThickness = 3
 
-  // DEV override
-  // WorldDevPresets(world_env)
+  // DEV env override
+  WorldDevSetup.EnvOverride(world_env)
 }
