@@ -29,7 +29,7 @@ const show_topbar = inject('show_topbar');
 const webgl_available = ref(true);
 
 onMounted(() => {
-  if (!WebGL.isWebGLAvailable()) webgl_available.value = false;
+  if (!WebGL.isWebGL2Available()) webgl_available.value = false;
   else {
     set_canvas(renderer_container.value);
     sidebar_reduced.value = true;
