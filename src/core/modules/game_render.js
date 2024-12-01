@@ -9,6 +9,7 @@ import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { state_iterator } from '../utils/iterator.js'
 import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 import { GodraysPass } from '../game/rendering/godrays_pass.js'
+import { VolumetricFogRenderpass } from '../game/rendering/volumetric_fog_renderpass.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -49,10 +50,12 @@ export default function () {
 
       const underwater_pass = new UnderwaterPass()
       const godrays_pass = new GodraysPass(camera)
+      const volumetric_fog_pass = new VolumetricFogRenderpass(camera)
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
       composer.addPass(godrays_pass)
+      composer.addPass(volumetric_fog_pass)
       composer.addPass(underwater_pass)
       composer.addPass(bloompass)
       composer.addPass(gamma_correction)
@@ -92,6 +95,9 @@ export default function () {
             godrays_pass.exposure = postprocessing.godrays_pass.exposure
             godrays_pass.samplesCount = postprocessing.godrays_pass.samplesCount
             godrays_pass.density = postprocessing.godrays_pass.density
+
+            volumetric_fog_pass.enabled =
+              postprocessing.volumetric_fog_pass.enabled
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
