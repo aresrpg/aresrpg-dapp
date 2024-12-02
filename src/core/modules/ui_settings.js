@@ -212,10 +212,21 @@ export default function () {
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_bloom_folder.open()
 
-      postprocessing_folder
+      const postprocessing_fog_folder =
+        postprocessing_folder.addFolder('Volumetric fog')
+      postprocessing_fog_folder
         .add(settings.postprocessing.volumetric_fog_pass, 'enabled')
-        .name('Enable volumetric fog')
+        .name('Enabled')
         .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(settings.postprocessing.volumetric_fog_pass, 'threshold', 0, 1)
+        .name('Threshold')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(settings.postprocessing.volumetric_fog_pass, 'smoothness', 0, 1)
+        .name('Smoothness')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder.open()
 
       postprocessing_folder
         .add(settings.postprocessing.underwater_pass, 'enabled')

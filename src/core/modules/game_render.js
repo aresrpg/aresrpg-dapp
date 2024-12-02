@@ -98,6 +98,10 @@ export default function () {
 
             volumetric_fog_pass.enabled =
               postprocessing.volumetric_fog_pass.enabled
+            volumetric_fog_pass.threshold =
+              postprocessing.volumetric_fog_pass.threshold
+            volumetric_fog_pass.smoothness =
+              postprocessing.volumetric_fog_pass.smoothness
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength

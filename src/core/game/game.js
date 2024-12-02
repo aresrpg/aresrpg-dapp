@@ -190,6 +190,8 @@ export const INITIAL_STATE = {
 
       volumetric_fog_pass: {
         enabled: true,
+        threshold: 0.6,
+        smoothness: 0.2,
       },
 
       bloom_pass: {
