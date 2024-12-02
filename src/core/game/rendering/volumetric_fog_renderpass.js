@@ -1,13 +1,10 @@
 import {
-  HalfFloatType,
   Matrix4,
-  MultiplyBlending,
   NoBlending,
-  NormalBlending,
   PerspectiveCamera,
   RawShaderMaterial,
-  Scene,
-  Vector2,
+  Vector3,
+  Vector4,
   WebGLRenderTarget,
   WebGLRenderer,
 } from 'three'
@@ -100,8 +97,9 @@ class VolumetricFogRenderpass extends Pass {
   constructor(/** @type PerspectiveCamera */ camera) {
     super()
 
-    this.time = 0
     this.camera = camera
+    this.smoothness = 0.2
+    this.threshold = 0.6
 
     this.#camera = new PerspectiveCamera()
 
@@ -121,7 +119,10 @@ class VolumetricFogRenderpass extends Pass {
         uCameraNear: { value: 0 },
         uCameraFar: { value: 0 },
         uTime: { value: 0 },
-        uProjMatrixInverse: { value: new Matrix4() }
+        uThreshold: { value: this.threshold },
+        uSmoothness: { value: this.smoothness },
+        uProjMatrixInverse: { value: new Matrix4() },
+        uViewMatrixInverse: { value: new Matrix4() },
       },
       vertexShader: `in vec2 aCorner;
 
@@ -129,13 +130,15 @@ class VolumetricFogRenderpass extends Pass {
             uniform mat4 uViewMatrixInverse;
 
             out vec2 vUv;
-            out vec3 vViewVector;
+            out vec3 vFragmentViewPosition;
+            out vec3 vCameraWorldPosition;
 
             void main(void) {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
                 vUv = 0.5 * aCorner + 0.5;
 
-                vViewVector = (uProjMatrixInverse * vec4(aCorner, 1, 1)).xyz;
+                vFragmentViewPosition = (uProjMatrixInverse * vec4(aCorner, 1, 1)).xyz;
+                vCameraWorldPosition = (uViewMatrixInverse * vec4(0, 0, 0, 1)).xyz;
             }`,
       fragmentShader: `precision highp float;
 
@@ -145,9 +148,13 @@ class VolumetricFogRenderpass extends Pass {
             uniform float uCameraNear;
             uniform float uCameraFar;
             uniform float uTime;
+            uniform float uThreshold;
+            uniform float uSmoothness;
+            uniform mat4 uViewMatrixInverse;
 
             in vec2 vUv;
-            in vec3 vViewVector;
+            in vec3 vFragmentViewPosition;
+            in vec3 vCameraWorldPosition;
             out vec4 fragColor;
 
             ${noise}
@@ -160,52 +167,37 @@ class VolumetricFogRenderpass extends Pass {
             }
 
             float sampleFog(const vec3 position) {
-                // return 1.0;
                 float fog = noise(0.06 * position + 0.1 * vec3(uTime, 0, 0));
-                return smoothstep(0.1, 0.15, fog);
+                return smoothstep(uThreshold - uSmoothness, uThreshold + uSmoothness, fog);
             }
 
             void main(void) {
-                float fragDepth = readDepth(vUv) * uCameraFar;
-                vec3 normalizedViewVector = normalize(vViewVector);
-                vec3 viewVector = normalizedViewVector * fragDepth;
-
                 const float RAYMARCHING_STEP = 1.0;
                 const float FOG_DENSITY = 0.08;
 
+                float fragDepth = readDepth(vUv) * uCameraFar;
+                vec3 fragmentViewPosition = normalize(vFragmentViewPosition) * fragDepth;
+                vec3 fragmentWorldPosition = (uViewMatrixInverse * vec4(fragmentViewPosition, 1)).xyz;
+                int idealStepsCount = int(fragDepth / RAYMARCHING_STEP);
+
+                vec3 viewVector = fragmentWorldPosition - vCameraWorldPosition;                
+                
                 float cumulatedFog = 0.0;
-                vec3 currentRayPosition = vec3(0);
+                vec3 currentRayPosition = vCameraWorldPosition;
+                vec3 rayMarchingStep = normalize(viewVector) * RAYMARCHING_STEP;
                 const int MAX_NB_STEPS = 50;
-                vec3 rayMarchingStep = normalizedViewVector * RAYMARCHING_STEP;
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
                   cumulatedFog += sampleFog(currentRayPosition);
                   currentRayPosition += rayMarchingStep;
 
-                  if (-currentRayPosition.z > fragDepth) {
+                  if (i == idealStepsCount) {
                     break;
                   }
                 }
 
                 cumulatedFog *= FOG_DENSITY * RAYMARCHING_STEP;
                 
-                // fragColor = vec4(vec3(-viewVector.z / uCameraFar), 1);
                 fragColor = vec4(vec3(1), cumulatedFog);
-
-                // vec3 ndcCoordinates = 2.0 * vec3(vUv, fragDepthNormalized) - 1.0;
-                
-                // vec4 cameraSpaceCoordinates4 = uProjMatrixInverse * vec4(ndcCoordinates, 1.0);
-                // vec3 cameraSpaceCoordinates = cameraSpaceCoordinates4.xyz;// * cameraSpaceCoordinates4.w;
-                // float fragDepthWorld = -cameraSpaceCoordinates.z;
-
-                // float distance = mix(1.0, 100.0, 0.5 + 0.5 * noise(vec3(10.0 * vUv, 0.5 * uTime)));
-                // float fog = fragDepthWorld / distance;
-
-                // fragColor = vec4(vec3(1), fog);
-                // fragColor = vec4(vec3(fragDepthWorld / 100.0), 1);
-                // fragColor = vec4(vec3(fragDepthNormalized), 1);
-
-                // fragColor = vec4(viewVector, 1);
-                // fragColor = vec4(vec3(-viewVector.z / uCameraFar), 1);
             }`,
     })
 
@@ -248,7 +240,7 @@ class VolumetricFogRenderpass extends Pass {
   }
 
   setSize(/** @type number */ width, /** @type number */ height) {
-    const downscaling = 4;
+    const downscaling = 2
     this.#rendertarget.setSize(width / downscaling, height / downscaling)
   }
 
@@ -269,14 +261,18 @@ class VolumetricFogRenderpass extends Pass {
     renderer.autoClearColor = false
     renderer.autoClearDepth = false
 
-    this.time = performance.now() / 1000
-
     renderer.setRenderTarget(this.#rendertarget)
     this.#material_fog.uniforms.uDepthTexture.value = read_buffer.depthTexture
     this.#material_fog.uniforms.uCameraNear.value = this.camera.near
     this.#material_fog.uniforms.uCameraFar.value = this.camera.far
-    this.#material_fog.uniforms.uTime.value = this.time
-    this.#material_fog.uniforms.uProjMatrixInverse.value = this.camera.projectionMatrixInverse;
+    this.#material_fog.uniforms.uTime.value = performance.now() / 1000
+    this.#material_fog.uniforms.uThreshold.value = this.threshold - 0.5
+    this.#material_fog.uniforms.uSmoothness.value = 0.5 * this.smoothness
+    this.#material_fog.uniforms.uProjMatrixInverse.value =
+      this.camera.projectionMatrixInverse
+    this.#material_fog.uniforms.uViewMatrixInverse.value =
+      this.camera.matrixWorld
+
     this.#fullscreen_quad.material = this.#material_fog
     renderer.render(this.#fullscreen_quad, this.#camera)
 
