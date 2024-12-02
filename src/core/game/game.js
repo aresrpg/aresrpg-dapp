@@ -162,7 +162,7 @@ export const INITIAL_STATE = {
       color: new Color(0x29b6f6),
     },
 
-    view_distance: 100,
+    view_distance: 50,
 
     camera: {
       is_free: false,
@@ -179,7 +179,7 @@ export const INITIAL_STATE = {
       },
 
       godrays_pass: {
-        enabled: true,
+        enabled: false,
         light_size: 0.0025,
         max_intensity: 1,
         exposure: 0.3,
@@ -385,7 +385,7 @@ const camera = new PerspectiveCamera(
   70, // Field of view
   window.innerWidth / window.innerHeight, // Aspect ratio
   0.1, // Near clipping plane
-  3000, // Far clipping plane
+  500, // Far clipping plane
 )
 camera.layers.enableAll()
 

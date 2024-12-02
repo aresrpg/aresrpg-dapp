@@ -1,5 +1,6 @@
 import {
   HalfFloatType,
+  Matrix4,
   MultiplyBlending,
   NoBlending,
   NormalBlending,
@@ -120,16 +121,23 @@ class VolumetricFogRenderpass extends Pass {
         uCameraNear: { value: 0 },
         uCameraFar: { value: 0 },
         uTime: { value: 0 },
+        uProjMatrixInverse: { value: new Matrix4() }
       },
       vertexShader: `in vec2 aCorner;
 
+            uniform  mat4 uProjMatrixInverse;
+            uniform mat4 uViewMatrixInverse;
+
             out vec2 vUv;
+            out vec3 vViewVector;
 
             void main(void) {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
                 vUv = 0.5 * aCorner + 0.5;
+
+                vViewVector = (uProjMatrixInverse * vec4(aCorner, 1, 1)).xyz;
             }`,
-      fragmentShader: `precision mediump float;
+      fragmentShader: `precision highp float;
 
             #include <packing>
 
@@ -139,6 +147,7 @@ class VolumetricFogRenderpass extends Pass {
             uniform float uTime;
 
             in vec2 vUv;
+            in vec3 vViewVector;
             out vec4 fragColor;
 
             ${noise}
@@ -150,14 +159,53 @@ class VolumetricFogRenderpass extends Pass {
                 return orthoZ;
             }
 
+            float sampleFog(const vec3 position) {
+                // return 1.0;
+                float fog = noise(0.06 * position + 0.1 * vec3(uTime, 0, 0));
+                return smoothstep(0.1, 0.15, fog);
+            }
+
             void main(void) {
-                float fragDepthNormalized = readDepth(vUv);
-                float fragDepthWorld = fragDepthNormalized * uCameraFar;
+                float fragDepth = readDepth(vUv) * uCameraFar;
+                vec3 normalizedViewVector = normalize(vViewVector);
+                vec3 viewVector = normalizedViewVector * fragDepth;
 
-                float distance = mix(1.0, 100.0, 0.5 + 0.5 * noise(vec3(10.0 * vUv, 0.5 * uTime)));
-                float fog = fragDepthWorld / distance;
+                const float RAYMARCHING_STEP = 1.0;
+                const float FOG_DENSITY = 0.08;
 
-                fragColor = vec4(vec3(1), fog);
+                float cumulatedFog = 0.0;
+                vec3 currentRayPosition = vec3(0);
+                const int MAX_NB_STEPS = 50;
+                vec3 rayMarchingStep = normalizedViewVector * RAYMARCHING_STEP;
+                for (int i = 0; i < MAX_NB_STEPS; i++) {
+                  cumulatedFog += sampleFog(currentRayPosition);
+                  currentRayPosition += rayMarchingStep;
+
+                  if (-currentRayPosition.z > fragDepth) {
+                    break;
+                  }
+                }
+
+                cumulatedFog *= FOG_DENSITY * RAYMARCHING_STEP;
+                
+                // fragColor = vec4(vec3(-viewVector.z / uCameraFar), 1);
+                fragColor = vec4(vec3(1), cumulatedFog);
+
+                // vec3 ndcCoordinates = 2.0 * vec3(vUv, fragDepthNormalized) - 1.0;
+                
+                // vec4 cameraSpaceCoordinates4 = uProjMatrixInverse * vec4(ndcCoordinates, 1.0);
+                // vec3 cameraSpaceCoordinates = cameraSpaceCoordinates4.xyz;// * cameraSpaceCoordinates4.w;
+                // float fragDepthWorld = -cameraSpaceCoordinates.z;
+
+                // float distance = mix(1.0, 100.0, 0.5 + 0.5 * noise(vec3(10.0 * vUv, 0.5 * uTime)));
+                // float fog = fragDepthWorld / distance;
+
+                // fragColor = vec4(vec3(1), fog);
+                // fragColor = vec4(vec3(fragDepthWorld / 100.0), 1);
+                // fragColor = vec4(vec3(fragDepthNormalized), 1);
+
+                // fragColor = vec4(viewVector, 1);
+                // fragColor = vec4(vec3(-viewVector.z / uCameraFar), 1);
             }`,
     })
 
@@ -200,7 +248,8 @@ class VolumetricFogRenderpass extends Pass {
   }
 
   setSize(/** @type number */ width, /** @type number */ height) {
-    this.#rendertarget.setSize(width, height)
+    const downscaling = 4;
+    this.#rendertarget.setSize(width / downscaling, height / downscaling)
   }
 
   render(
@@ -227,6 +276,7 @@ class VolumetricFogRenderpass extends Pass {
     this.#material_fog.uniforms.uCameraNear.value = this.camera.near
     this.#material_fog.uniforms.uCameraFar.value = this.camera.far
     this.#material_fog.uniforms.uTime.value = this.time
+    this.#material_fog.uniforms.uProjMatrixInverse.value = this.camera.projectionMatrixInverse;
     this.#fullscreen_quad.material = this.#material_fog
     renderer.render(this.#fullscreen_quad, this.#camera)
 
