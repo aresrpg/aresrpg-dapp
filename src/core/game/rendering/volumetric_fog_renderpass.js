@@ -181,21 +181,25 @@ class VolumetricFogRenderpass extends Pass {
                 int idealStepsCount = int(fragDepth / RAYMARCHING_STEP);
 
                 vec3 viewVector = fragmentWorldPosition - vCameraWorldPosition;                
-                
+                vec3 viewVectorNormalized = normalize(viewVector);
+
+                float lastFogSample = sampleFog(vCameraWorldPosition);
                 float cumulatedFog = 0.0;
-                vec3 currentRayPosition = vCameraWorldPosition;
-                vec3 rayMarchingStep = normalize(viewVector) * RAYMARCHING_STEP;
+                float currentRayDepth = 0.0;
                 const int MAX_NB_STEPS = 50;
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
-                  cumulatedFog += sampleFog(currentRayPosition);
-                  currentRayPosition += rayMarchingStep;
+                  float step = min(RAYMARCHING_STEP, fragDepth - currentRayDepth);
+                  currentRayDepth += step;
+                  float newFogSample = sampleFog(vCameraWorldPosition + viewVectorNormalized * currentRayDepth);
+                  cumulatedFog += 0.5 * (newFogSample + lastFogSample) * step;
+                  lastFogSample = newFogSample;
 
-                  if (i == idealStepsCount) {
+                  if (step < RAYMARCHING_STEP) {
                     break;
                   }
                 }
 
-                cumulatedFog *= FOG_DENSITY * RAYMARCHING_STEP;
+                cumulatedFog *= FOG_DENSITY;
                 
                 fragColor = vec4(vec3(1), cumulatedFog);
             }`,
