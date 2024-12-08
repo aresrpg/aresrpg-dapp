@@ -39,11 +39,8 @@ export default function () {
     },
     observe() {
       state_iterator().reduce(
-        (
-          last_locked_characters,
-          { selected_character_id, sui: { locked_characters } },
-        ) => {
-          const ids = locked_characters.map(({ id }) => id)
+        (last_characters, { selected_character_id, sui: { characters } }) => {
+          const ids = characters.map(({ id }) => id)
 
           if (
             // if there is no selected character but there are three characters
@@ -61,17 +58,15 @@ export default function () {
           }
 
           // characters that were unlocked
-          const removed = last_locked_characters.filter(
+          const removed = last_characters.filter(
             last_character =>
-              !locked_characters.some(
-                character => character.id === last_character.id,
-              ),
+              !characters.some(character => character.id === last_character.id),
           )
 
           // new characters that were locked
-          const added = locked_characters.filter(
+          const added = characters.filter(
             character =>
-              !last_locked_characters.some(
+              !last_characters.some(
                 last_character => last_character.id === character.id,
               ),
           )
@@ -94,7 +89,7 @@ export default function () {
               })
           })
 
-          return locked_characters
+          return characters
         },
         /** @type {Type.SuiCharacter[]} */ [],
       )

@@ -58,21 +58,21 @@ export default function () {
     // @ts-ignore - it's fine to add a character in the unlocked items
     reduce(state, { type, payload }) {
       if (type === 'action/sui_data_update') {
-        // some fields might be often updated by the server, so we don't want to override them with on chain data
-        payload.locked_characters?.forEach(character => {
-          const existing_character = state.sui.locked_characters.find(
-            ({ id }) => id === character.id,
-          )
+        if (payload.characters) {
+          // some fields might be often updated by the server, so we don't want to override them with on chain data
+          payload.characters.forEach(character => {
+            const existing_character = state.sui.characters.find(
+              ({ id }) => id === character.id,
+            )
 
-          if (existing_character?.health)
-            character.health = existing_character.health
-        })
+            if (existing_character?.health)
+              character.health = existing_character.health
+          })
 
-        if (payload.unlocked_characters) {
           // @ts-ignore
-          payload.unlocked_items = [
-            ...payload?.unlocked_items,
-            ...payload.unlocked_characters.map(character => ({
+          payload.items = [
+            ...payload?.items,
+            ...payload.characters.map(character => ({
               ...character,
               image_url: `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`,
             })),
@@ -88,7 +88,7 @@ export default function () {
         }
       }
       if (type === 'action/character_update') {
-        const character = state.sui.locked_characters.find(
+        const character = state.sui.characters.find(
           ({ id }) => id === payload.id,
         )
         if (character)
@@ -96,7 +96,7 @@ export default function () {
             ...state,
             sui: {
               ...state.sui,
-              locked_characters: state.sui.locked_characters
+              characters: state.sui.characters
                 .filter(({ id }) => id !== payload.id)
                 .concat({
                   ...character,
@@ -105,31 +105,23 @@ export default function () {
             },
           }
       }
-      if (type === 'action/sui_add_unlocked_item') {
+      if (type === 'action/sui_add_item') {
         return {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_items: [...state.sui.unlocked_items, payload],
+            items: [...state.sui.items, payload],
           },
         }
       }
-      if (type === 'action/sui_add_locked_item') {
+      if (type === 'action/sui_remove_item') {
         return {
           ...state,
           sui: {
             ...state.sui,
-            locked_items: [...state.sui.locked_items, payload],
-          },
-        }
-      }
-      if (type === 'action/sui_remove_locked_item') {
-        return {
-          ...state,
-          sui: {
-            ...state.sui,
-            locked_items: state.sui.locked_items.filter(
-              item => item.id !== payload,
+            items: state.sui.items.filter(item => item.id !== payload),
+            characters: state.sui.characters.filter(
+              character => character.id !== payload,
             ),
           },
         }
@@ -139,16 +131,14 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_items: state.sui.unlocked_items.map(item =>
+            items: state.sui.items.map(item =>
               item.id === payload.id ? payload : item,
             ),
           },
         }
       }
       if (type === 'action/sui_add_item_for_sale') {
-        const item = state.sui.unlocked_items.find(
-          item => item.id === payload.id,
-        )
+        const item = state.sui.items.find(item => item.id === payload.id)
 
         return {
           ...state,
@@ -164,20 +154,6 @@ export default function () {
           },
         }
       }
-      if (type === 'action/sui_remove_unlocked_item') {
-        return {
-          ...state,
-          sui: {
-            ...state.sui,
-            unlocked_items: state.sui.unlocked_items.filter(
-              item => item.id !== payload,
-            ),
-            unlocked_characters: state.sui.unlocked_characters.filter(
-              character => character.id !== payload,
-            ),
-          },
-        }
-      }
       if (type === 'action/sui_remove_item_for_sale') {
         const item = state.sui.items_for_sale.find(
           item => item.id === payload.id,
@@ -188,10 +164,10 @@ export default function () {
         if (payload.keep) {
           if (item.is_aresrpg_character) {
             // @ts-ignore
-            state.sui.unlocked_characters.push(item)
+            state.sui.characters.push(item)
           }
 
-          state.sui.unlocked_items.push(item)
+          state.sui.items.push(item)
         }
 
         return {
@@ -209,97 +185,44 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            locked_characters: [...state.sui.locked_characters, payload],
+            characters: [...state.sui.characters, payload],
           },
         }
-      }
-      if (type === 'action/sui_add_unlocked_character') {
-        const character =
-          typeof payload === 'string'
-            ? state.sui.locked_characters.find(
-                character => character.id === payload,
-              )
-            : payload
-        if (character) {
-          return {
-            ...state,
-            sui: {
-              ...state.sui,
-              unlocked_characters: [
-                ...state.sui.unlocked_characters,
-                character,
-              ],
-              locked_characters: state.sui.locked_characters.filter(
-                character => character.id !== payload,
-              ),
-              unlocked_items: [
-                ...state.sui.unlocked_items,
-                {
-                  ...character,
-                  image_url: `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`,
-                },
-              ],
-            },
-          }
-        }
-      }
-      if (type === 'action/sui_add_locked_character') {
-        const character = state.sui.unlocked_characters.find(
-          character => character.id === payload,
-        )
-        if (character)
-          return {
-            ...state,
-            sui: {
-              ...state.sui,
-              locked_characters: [...state.sui.locked_characters, character],
-              unlocked_characters: state.sui.unlocked_characters.filter(
-                character => character.id !== payload,
-              ),
-              unlocked_items: state.sui.unlocked_items.filter(
-                item => item.id !== payload,
-              ),
-            },
-          }
       }
       if (type === 'action/sui_delete_character') {
         return {
           ...state,
           sui: {
             ...state.sui,
-            locked_characters: state.sui.locked_characters.filter(
+            characters: state.sui.characters.filter(
               character => character.id !== payload,
             ),
-            unlocked_characters: state.sui.unlocked_characters.filter(
-              character => character.id !== payload,
-            ),
-            unlocked_items: state.sui.unlocked_items.filter(
-              item => item.id !== payload,
-            ),
+            items: state.sui.items.filter(item => item.id !== payload),
           },
         }
       }
+
       if (type === 'action/sui_split_item') {
         const { item, new_item } = payload
-        const original_item = state.sui.unlocked_items.find(
+        const original_item = state.sui.items.find(
           o_item => o_item.id === item?.id,
         )
 
-        let unlocked_items = [...state.sui.unlocked_items]
+        let items = [...state.sui.items]
 
         // Case 1: We know the local item AND item exists AND new_item exists
         // Action: Update original item amount and add new item
         if (original_item && item && new_item) {
-          unlocked_items = unlocked_items.map(i =>
+          items = items.map(i =>
             i.id === original_item.id ? { ...i, amount: item.amount } : i,
           )
-          unlocked_items.push(new_item)
+          items.push(new_item)
         }
 
         // Case 2: We know the local item AND item exists AND no new_item
         // Action: Just update original item amount
         else if (original_item && item) {
-          unlocked_items = unlocked_items.map(i =>
+          items = items.map(i =>
             i.id === original_item.id ? { ...i, amount: item.amount } : i,
           )
         }
@@ -307,20 +230,20 @@ export default function () {
         // Case 3: We don't know the local item AND we have a new_item
         // Action: Add the new item to our list
         else if (!original_item && new_item) {
-          unlocked_items.push(new_item)
+          items.push(new_item)
         }
 
         return {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_items,
+            items,
           },
         }
       }
       if (type === 'action/sui_merge_item') {
         const { item_id, target_item_id, final_amount } = payload
-        const target_item = state.sui.unlocked_items.find(
+        const target_item = state.sui.items.find(
           item => item.id === target_item_id,
         )
 
@@ -330,9 +253,7 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_items: state.sui.unlocked_items.filter(
-              ({ id }) => id !== item_id,
-            ),
+            items: state.sui.items.filter(({ id }) => id !== item_id),
           },
         }
       }
@@ -350,7 +271,7 @@ export default function () {
       if (type === 'action/sui_equip_item') {
         const { slot, item, character_id } = payload
 
-        const character = state.sui.locked_characters.find(
+        const character = state.sui.characters.find(
           character => character.id === character_id,
         )
         assert(character, 'Character not found')
@@ -361,16 +282,14 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_items: state.sui.unlocked_items.filter(
-              i => i.id !== item.id,
-            ),
+            items: state.sui.items.filter(i => i.id !== item.id),
           },
         }
       }
       if (type === 'action/sui_unequip_item') {
         const { character_id, slot } = payload
 
-        const character = state.sui.locked_characters.find(
+        const character = state.sui.characters.find(
           character => character.id === character_id,
         )
         const item = character[slot]
@@ -383,7 +302,7 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            unlocked_items: [...state.sui.unlocked_items, item],
+            items: [...state.sui.items, item],
           },
         }
       }
@@ -419,12 +338,6 @@ export default function () {
             assert(character, 'Character not found')
             context.dispatch('action/sui_create_character', character)
           },
-          select(character_id) {
-            context.dispatch('action/sui_add_locked_character', character_id)
-          },
-          unselect(character_id) {
-            context.dispatch('action/sui_add_unlocked_character', character_id)
-          },
           delete(character_id) {
             context.dispatch('action/sui_delete_character', character_id)
           },
@@ -453,7 +366,7 @@ export default function () {
                 list_price: price,
               })
 
-              context.dispatch('action/sui_remove_unlocked_item', character.id)
+              context.dispatch('action/sui_remove_item', character.id)
             }
             SUI_EMITTER.emit('ItemListedEvent', { character, price })
           },
@@ -493,14 +406,10 @@ export default function () {
 
               // If I didn't list the item (making sure i'm not buying my own item)
               if (!my_listing) {
-                context.dispatch('action/sui_add_unlocked_character', character)
+                context.dispatch('action/sui_add_character', character)
               }
             }
             SUI_EMITTER.emit('ItemPurchasedEvent', { character, price, seller })
-          },
-          withdraw_item(item) {
-            context.dispatch('action/sui_add_unlocked_item', item)
-            context.dispatch('action/sui_remove_locked_item', item.id)
           },
         },
         vaporeon: {
@@ -509,21 +418,16 @@ export default function () {
               item,
               shiny: item.shiny,
             })
-            context.dispatch('action/sui_add_unlocked_item', item)
+            context.dispatch('action/sui_add_item', item)
           },
         },
         item: {
           create(item) {
-            if (item.in_extension)
-              context.dispatch('action/sui_add_locked_item', item)
-            else {
-              context.dispatch('action/sui_add_unlocked_item', item)
-              SUI_EMITTER.emit('ItemRevealedEvent', item)
-            }
+            context.dispatch('action/sui_add_item', item)
+            SUI_EMITTER.emit('ItemRevealedEvent', item)
           },
           delete(item_id) {
-            context.dispatch('action/sui_remove_unlocked_item', item_id)
-            context.dispatch('action/sui_remove_locked_item', item_id)
+            context.dispatch('action/sui_remove_item', item_id)
           },
           update(item) {
             context.dispatch('action/sui_update_item', item)
@@ -551,7 +455,7 @@ export default function () {
                 list_price: price,
               })
 
-              context.dispatch('action/sui_remove_unlocked_item', item.id)
+              context.dispatch('action/sui_remove_item', item.id)
             }
             SUI_EMITTER.emit('ItemListedEvent', { item, price })
           },
@@ -596,7 +500,7 @@ export default function () {
 
               // If I didn't list the item (making sure i'm not buying my own item)
               if (!my_listing) {
-                context.dispatch('action/sui_add_unlocked_item', {
+                context.dispatch('action/sui_add_item', {
                   ...item,
                   is_kiosk_personal: true,
                 })
@@ -701,22 +605,16 @@ export default function () {
                 sui_get_admin_caps().then(result => ({
                   admin_caps: result,
                 })),
-                sui_get_characters().then(
-                  ({ locked_characters, unlocked_characters }) => {
-                    return {
-                      locked_characters,
-                      unlocked_characters,
-                    }
-                  },
-                ),
+                sui_get_characters().then(characters => {
+                  return {
+                    characters,
+                  }
+                }),
                 sui_get_sui_balance().then(result => ({
                   balance: result,
                 })),
-                sui_get_items().then(({ locked_items, unlocked_items }) => {
-                  return {
-                    locked_items,
-                    unlocked_items,
-                  }
+                sui_get_items().then(items => {
+                  return { items }
                 }),
                 sui_get_my_listings().then(result => ({
                   items_for_sale: result,
@@ -740,10 +638,8 @@ export default function () {
           events.emit('USER_LOGOUT')
 
           context.dispatch('action/sui_data_update', {
-            locked_characters: [DEFAULT_SUI_CHARACTER()],
-            unlocked_characters: [],
-            locked_items: [],
-            unlocked_items: [],
+            characters: [DEFAULT_SUI_CHARACTER()],
+            items: [],
             items_for_sale: [],
             balance: 0n,
             admin_caps: [],

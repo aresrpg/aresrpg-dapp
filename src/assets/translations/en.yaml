@@ -29,10 +29,7 @@ APP_TAB_CHARACTERS_EXPLANATION_ALT: |
   Each character embarks on its own unique journey, boasting a personalized inventory and progression pathway.
   The freedom is yours: Stuff your characters as you see fit, and should you decide, you can easily withdraw them or their items to feature anything on the marketplace for trade.
   AresRPG is not just a game; it's a realm where your decisions craft your destiny, and your assets are truly your own.
-APP_LOCKED_CHARACTERS: 🔒 Selected characters
-APP_LOCKED_CHARACTERS_DESC: Those characters are currently in use, you can play with them in the game
-APP_UNLOCKED_CHARACTERS: Available characters
-APP_UNLOCKED_CHARACTERS_DESC: These one are only in your wallet, you can freely transfer or sell them
+APP_CHARACTERS: My characters
 APP_CHARACTER_NEW: New character
 
 APP_TAB_SHOP_SELL: Sell
@@ -237,8 +234,6 @@ APP_GAME_CHAT_COPY_ADDRESS: Copy address
 APP_GAME_CHAT_COPIED: Address copied to clipboard
 APP_GAME_CHAT_NO_CHARACTER: You must select a character first
 APP_GAME_CHAT_NO_ONLINE: You must be online to send a message
-
-APP_GAME_INVENTORY_CLAIM_ALL: Claim all
 
 APP_ZONE_PLAYERS: Players
 

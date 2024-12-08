@@ -218,13 +218,9 @@ export const INITIAL_STATE = {
     /** @type {Type.Wallet[]} */
     wallets: [],
     /** @type {Type.SuiCharacter[]} */
-    locked_characters: [],
-    /** @type {Type.SuiCharacter[]} */
-    unlocked_characters: [],
+    characters: [],
     /** @type {Type.SuiItem[]} */
-    locked_items: [],
-    /** @type {Type.SuiItem[]} */
-    unlocked_items: [],
+    items: [],
     /** @type {Type.SuiItem[]} */
     items_for_sale: [],
 
@@ -256,30 +252,14 @@ export const INITIAL_STATE = {
   visible_fights: new Map(),
 }
 
-/**
- * !This function is rarely used, you should always try to use the other current_X below
- * @type {(state?: INITIAL_STATE) => Type.FullCharacter} */
-export function current_character(state = get_state()) {
-  const by_id = ({ id }) => id === state.selected_character_id
-  const three_character = state.characters.find(by_id)
-  const sui_character = state.sui.locked_characters.find(by_id)
-
-  const spells = get_spells(sui_character?.classe)
-
-  return {
-    ...sui_character,
-    ...three_character,
-    spells,
-  }
-}
-
 /** @return {Type.ThreeEntity} */
 export function current_three_character(state = get_state()) {
   return state.characters.find(({ id }) => id === state.selected_character_id)
 }
 
-export function current_locked_character(state = get_state()) {
-  return state.sui.locked_characters.find(
+/** @return {Type.SuiCharacter} */
+export function current_sui_character(state = get_state()) {
+  return state.sui.characters.find(
     ({ id }) => id === state.selected_character_id,
   )
 }

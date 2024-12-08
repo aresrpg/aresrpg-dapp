@@ -51,7 +51,6 @@ const selected_item = inject('selected_item');
 const selected_category = inject('selected_category');
 const owned_items = inject('owned_items');
 const owned_tokens = inject('owned_tokens');
-const extension_items = inject('extension_items');
 const edit_mode_equipment = inject('edit_mode_equipment');
 const edit_mode = inject('edit_mode');
 const real_equipment = inject('equipment');
@@ -321,7 +320,6 @@ const items = computed(() => {
   ];
 
   const selected_category_value = selected_category?.value;
-  const extension_items_value = extension_items.value;
   const inventory_counter_value = inventory_counter?.value;
   const edit_mode_value = edit_mode?.value;
   const edit_mode_equipments = edit_mode_equipment?.equipments;
@@ -332,8 +330,6 @@ const items = computed(() => {
   }
 
   switch (selected_category_value || 'equipment') {
-    case 'loot':
-      return extension_items_value;
     case 'consumables':
       return owned_items_value.filter(is_consumable);
     case 'misc':
