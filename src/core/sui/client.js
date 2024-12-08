@@ -425,7 +425,7 @@ export async function sui_get_finished_crafts() {
 
 function find_item_or_token(type) {
   const { sui } = context.get_state()
-  const mixed_inventory = [...sui.unlocked_items, ...sui.tokens]
+  const mixed_inventory = [...sui.items, ...sui.tokens]
   return mixed_inventory.find(item => item.item_type === type)
 }
 
@@ -610,7 +610,7 @@ async function sui_merge_stackable_items({
 }) {
   const visited = new Set()
 
-  const items = [...state.sui.unlocked_items, ...additional_items]
+  const items = [...state.sui.items, ...additional_items]
 
   items.forEach(item => {
     const same_type = items
@@ -634,47 +634,6 @@ async function sui_merge_stackable_items({
       })
     })
   })
-}
-
-export async function sui_withdraw_items_from_extension(items) {
-  const tx = new Transaction()
-
-  sdk.add_header(tx)
-
-  const by_kiosk = new Map()
-  const kiosk_cap_ref = new Map()
-
-  items.forEach(item => {
-    if (!by_kiosk.has(item.kiosk_id)) by_kiosk.set(item.kiosk_id, [])
-    by_kiosk.get(item.kiosk_id).push(item.id)
-  })
-
-  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
-    address: get_address(),
-    tx,
-  })
-
-  by_kiosk.forEach((ids, kiosk_id) => {
-    sdk.withdraw_items({
-      tx,
-      kiosk_id,
-      kiosk_cap: get_kiosk_cap_ref(kiosk_id),
-      item_ids: ids,
-    })
-  })
-
-  const state = context.get_state()
-
-  await sui_merge_stackable_items({
-    tx,
-    state,
-    additional_items: items,
-    get_kiosk_cap_ref,
-  })
-
-  finalize()
-
-  await execute(tx)
 }
 
 export async function sui_equip_items({ character, to_equip, to_unequip }) {
@@ -787,48 +746,27 @@ function color_to_number(hex) {
 }
 
 export async function sui_create_character({
-  name,
-  type,
+  name = '',
+  type = '',
   male = true,
-  color_1,
-  color_2,
-  color_3,
+  color_1 = '#000000',
+  color_2 = '#000000',
+  color_3 = '#000000',
 }) {
-  const tx = new Transaction()
-
-  sdk.add_header(tx)
-
-  const { kiosk_cap, kiosk_id, kiosk_tx } = await sui_enforce_personal_kiosk(tx)
-
-  const character_id = sdk.create_character({
-    tx,
+  return create_server_transaction('sui_create_character', {
     name,
-    classe: type,
+    type,
     male,
-    kiosk_id,
-    kiosk_cap,
     color_1: color_to_number(color_1),
     color_2: color_to_number(color_2),
     color_3: color_to_number(color_3),
   })
-
-  sdk.select_character({
-    character_id,
-    kiosk_id,
-    kiosk_cap,
-    tx,
-  })
-
-  kiosk_tx.finalize()
-
-  return await execute(tx)
 }
 
 export async function sui_is_character_name_taken(name) {
   return indexer_request('sui_is_character_name_taken', name)
 }
 
-// character must be locked in the extension as it's the only way to access the object bypassing the lock
 export async function sui_delete_character({
   kiosk_id,
   personal_kiosk_cap_id,
@@ -926,19 +864,19 @@ function get_item_with_amount({ tx, item, amount, get_kiosk_cap_ref }) {
   if (!item.is_aresrpg_item || !item.stackable) return tx.pure.id(item.id)
 
   const {
-    sui: { unlocked_items },
+    sui: { items },
   } = context.get_state()
 
   const total_amount =
     item.amount +
-    unlocked_items.reduce((acc, { id, item_type, amount }) => {
+    items.reduce((acc, { id, item_type, amount }) => {
       if (item.id !== id && item.item_type === item_type) return acc + amount
       return acc
     }, 0)
 
   if (total_amount < +amount) throw new Error('Not enough items')
 
-  merge_all_items({ tx, item, get_kiosk_cap_ref, items: unlocked_items })
+  merge_all_items({ tx, item, get_kiosk_cap_ref, items })
 
   if (total_amount === +amount) return tx.pure.id(item.id)
 
@@ -1002,7 +940,7 @@ export async function sui_delist_item(item) {
   merge_all_items({
     tx,
     item,
-    items: context.get_state().sui.unlocked_items,
+    items: context.get_state().sui.items,
     get_kiosk_cap_ref,
   })
 

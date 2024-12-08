@@ -25,7 +25,7 @@ import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
 
 import {
   context,
-  current_locked_character,
+  current_sui_character,
   current_three_character,
 } from '../../core/game/game.js';
 
@@ -44,7 +44,7 @@ const percent_health = computed(() => {
 });
 
 function update_health(state) {
-  const character = current_locked_character(state);
+  const character = current_sui_character(state);
   if (!character?._type) return;
 
   const supposed_max_health = get_max_health(character);

@@ -29,10 +29,7 @@ APP_TAB_CHARACTERS_EXPLANATION_ALT: |
   各キャラクターは独自の旅を始め、パーソナライズされたインベントリと進行経路を持ちます。
   自由はあなたのものです：あなたのキャラクターを思う存分詰め込んでください。必要に応じて、それらやアイテムを簡単に引き出し、マーケットプレイスに出品することもできます。
   AresRPGは単なるゲームではなく、あなたの決定が運命を形作り、あなたの資産が真にあなたのものとなる世界です。
-APP_LOCKED_CHARACTERS: 🔒 選択されたキャラクター
-APP_LOCKED_CHARACTERS_DESC: これらのキャラクターは現在使用中です。ゲーム内でプレイできます。
-APP_UNLOCKED_CHARACTERS: 利用可能なキャラクター
-APP_UNLOCKED_CHARACTERS_DESC: これらはあなたのウォレットにのみ存在します。自由に転送や販売ができます。
+APP_CHARACTERS: マイキャラ
 APP_CHARACTER_NEW: 新しいキャラクター
 
 APP_TAB_SHOP_SELL: 売る
@@ -237,8 +234,6 @@ APP_GAME_CHAT_COPY_ADDRESS: アドレスをコピー
 APP_GAME_CHAT_COPIED: アドレスがクリップボードにコピーされました
 APP_GAME_CHAT_NO_CHARACTER: まずキャラクターを選択する必要があります
 APP_GAME_CHAT_NO_ONLINE: メッセージを送信するにはオンラインである必要があります
-
-APP_GAME_INVENTORY_CLAIM_ALL: すべてを請求
 
 APP_ZONE_PLAYERS: プレイヤー
 

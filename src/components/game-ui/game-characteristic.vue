@@ -3,7 +3,7 @@
   .stats
     .header
       // @todo use image_url
-      img(:src="`https://assets.aresrpg.world/classe/${selected_character.classe}_${selected_character.sex}.jpg`")  
+      img(:src="`https://assets.aresrpg.world/classe/${selected_character.classe}_${selected_character.sex}.jpg`")
       span.name {{ selected_character.name }}
     .container
       .level {{ t('APP_CHARACTER_STAT_LEVEL') }} 1
@@ -17,23 +17,23 @@
           // @todo calculate experience
           div.progress-bar(:style="{ width: '0%' }")
       .line.life.darkline
-        .label 
+        .label
           img(src="../../assets/statistics/health.png")
           span {{ t('APP_CHARACTER_STAT_LIFE_POINT') }}
         div {{ selected_character.health }} / {{ supposed_max_health }}
       .line.PA
-        .label 
+        .label
           img(src="../../assets/statistics/action.png")
           span {{ t('APP_CHARACTER_STAT_PA') }}
         div {{ pa }}
       .line.PM.darkline
-        .label 
+        .label
           img(src="../../assets/statistics/movement.png")
           span {{ t('APP_CHARACTER_STAT_PM') }}
         div {{ pm }}
       .section {{ t('APP_CHARACTER_STAT_CHARACTERISTICS') }}
       .line.characteristic(
-        v-for="(stat, key, index) in STATS" 
+        v-for="(stat, key, index) in STATS"
         :key="key"
         :class="{ darkline: index % 2 === 0 }"
       )
@@ -74,20 +74,14 @@
 <script setup>
 import { ref, inject, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-
 import { get_max_health, get_total_stat } from '@aresrpg/aresrpg-sdk/stats';
+
 import { sui_add_stats } from '../../core/sui/client.js';
-
-import {
-  context,
-  current_locked_character,
-} from '../../core/game/game.js';
-
+import { context, current_sui_character } from '../../core/game/game.js';
 import {
   decrease_loading,
   increase_loading,
 } from '../../core/utils/loading.js';
-
 import vitality_image from '../../assets/statistics/vitality.png';
 import wisdom_image from '../../assets/statistics/wisdom.png';
 import strength_image from '../../assets/statistics/strength.png';
@@ -101,7 +95,7 @@ import RadixIconsCross2 from '~icons/radix-icons/cross-2';
 import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
 
 const selected_character = inject('selected_character');
-const character = current_locked_character(context.get_state());
+const character = current_sui_character(context.get_state());
 const supposed_max_health = character?._type ? get_max_health(character) : -1;
 
 const { t } = useI18n();
@@ -111,30 +105,33 @@ const accept_loading = ref(false);
 const STATS = {
   vitality: {
     label: t('APP_ITEM_VITALITY'),
-    url: vitality_image
+    url: vitality_image,
   },
   wisdom: {
     label: t('APP_ITEM_WISDOM'),
-    url: wisdom_image
+    url: wisdom_image,
   },
   strength: {
     label: t('APP_ITEM_STRENGTH'),
-    url: strength_image
+    url: strength_image,
   },
   intelligence: {
     label: t('APP_ITEM_INTELLIGENCE'),
-    url: intelligence_image
+    url: intelligence_image,
   },
   chance: {
     label: t('APP_ITEM_CHANCE'),
-    url: chance_image
+    url: chance_image,
   },
   agility: {
     label: t('APP_ITEM_AGILITY'),
-    url: agility_image
-  }
-}
-const default_stats = Object.keys(STATS).reduce((acc, stat) => ({ ...acc, [stat]: 0 }), {})
+    url: agility_image,
+  },
+};
+const default_stats = Object.keys(STATS).reduce(
+  (acc, stat) => ({ ...acc, [stat]: 0 }),
+  {},
+);
 
 const pa = ref(-1);
 const pm = ref(-1);
@@ -150,45 +147,52 @@ function cancel_pending_allocated_stats() {
   Object.assign(allocated_stats, { ...default_stats });
 }
 
-const has_pending_allocated_stats = computed(() => Object.values(allocated_stats).some(Boolean))
+const has_pending_allocated_stats = computed(() =>
+  Object.values(allocated_stats).some(Boolean),
+);
 
 function get_pending_allocated_stat(stat) {
   return allocated_stats[stat] ?? 0;
 }
 
-const pending_allocated_stats_count = computed(() => Object.values(allocated_stats).reduce((acc, value) => acc + value, 0))
+const pending_allocated_stats_count = computed(() =>
+  Object.values(allocated_stats).reduce((acc, value) => acc + value, 0),
+);
 
-const calculate_stat_value = (stat_key) => {
-  const base_value = selected_character.value[stat_key]
-  const pending_value = get_pending_allocated_stat(stat_key)
+const calculate_stat_value = stat_key => {
+  const base_value = selected_character.value[stat_key];
+  const pending_value = get_pending_allocated_stat(stat_key);
   const stat_amount = base_value + pending_value;
-  const equipment_stat = get_total_stat(character, stat_key) - base_value
+  const equipment_stat = get_total_stat(character, stat_key) - base_value;
 
-  return `${stat_amount} ${equipment_stat > 0 ? "(+" + equipment_stat + ")" : ""}`
-}
+  return `${stat_amount} ${equipment_stat > 0 ? '(+' + equipment_stat + ')' : ''}`;
+};
 
 const can_upgrade = computed(() => {
-  const available_points = selected_character.value.available_points
+  const { available_points } = selected_character.value;
 
-  return available_points - pending_allocated_stats_count.value > 0
-})
+  return available_points - pending_allocated_stats_count.value > 0;
+});
 
 function open_stats_dialog() {
   stats_dialog.value = true;
 }
 
 async function commit_stats() {
-  stats_dialog.value = false
+  stats_dialog.value = false;
   accept_loading.value = true;
   increase_loading();
 
   try {
-    await sui_add_stats({ character_id: selected_character.id, stats: allocated_stats });
+    await sui_add_stats({
+      character_id: selected_character.id,
+      stats: allocated_stats,
+    });
   } catch (error) {
     console.error(error);
   } finally {
     decrease_loading();
-    accept_loading.value = false
+    accept_loading.value = false;
   }
 
   Object.assign(allocated_stats, { ...default_stats });
@@ -347,10 +351,9 @@ async function commit_stats() {
             &.disabled
               background #ccc
               cursor not-allowed
-b.allocated_stats 
+b.allocated_stats
   color #ff6100
 .dialog-footer
   display flex
   justify-content flex-end
-  
 </style>

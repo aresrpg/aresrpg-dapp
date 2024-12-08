@@ -14,7 +14,7 @@ import {
 } from 'three'
 
 import { abortable, typed_on } from '../utils/iterator.js'
-import { current_character } from '../game/game.js'
+import { current_three_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import texture_url from '../../assets/water/texture.png?url'
 import { sea_level } from '../utils/terrain/world_settings.js'
@@ -330,7 +330,7 @@ export default function () {
         let player_position_x = 0
         let player_position_z = 0
 
-        const player = current_character(state)
+        const player = current_three_character(state)
         if (player && player.position) {
           player_position_x = player.position.x
           player_position_z = player.position.z

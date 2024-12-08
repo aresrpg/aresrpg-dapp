@@ -16,8 +16,7 @@ const { t } = useI18n();
 
 const new_character_dialog = ref(false);
 
-const locked_characters = inject('locked_characters');
-const unlocked_characters = inject('unlocked_characters');
+const characters = inject('characters');
 
 provide('new_character_dialog', new_character_dialog);
 </script>
@@ -31,16 +30,10 @@ sectionContainer(v-if="NETWORK === 'testnet'")
         b.sui Sui
       .explanation2 {{ t('APP_TAB_CHARACTERS_EXPLANATION_ALT') }}
   .space
-  // Locked characters
-  sectionHeader(:title="t('APP_LOCKED_CHARACTERS')" :desc="locked_characters ? t('APP_LOCKED_CHARACTERS_DESC') : null" color="#00C853")
+  sectionHeader(:title="t('APP_CHARACTERS')" color="#00C853")
     .character-container
-      div.nothing(v-if="locked_characters[0]?.id === 'default'")
-      UserCharacter(v-else v-for="character in locked_characters" :key="character.id" :locked="true" :character="character")
-
-  // Unlocked characters
-  sectionHeader(:title="t('APP_UNLOCKED_CHARACTERS')" :desc="t('APP_UNLOCKED_CHARACTERS_DESC')" color="#212121")
-    .character-container
-      UserCharacter(v-if="unlocked_characters" v-for="character in unlocked_characters" :key="character.id" :character="character")
+      div.nothing(v-if="characters[0]?.id === 'default'")
+      UserCharacter(v-else v-for="character in characters" :key="character.id" :locked="true" :character="character")
       .new(@click="new_character_dialog = true") {{ t('APP_CHARACTER_NEW') }}
 
   // Create a new character

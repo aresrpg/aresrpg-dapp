@@ -3,7 +3,7 @@ export default function () {
   return {
     reduce(state, { type, payload }) {
       if (type === 'packet/characterHealth') {
-        const target_character = state.sui.locked_characters.find(
+        const target_character = state.sui.characters.find(
           character => character.id === payload.id,
         )
 
