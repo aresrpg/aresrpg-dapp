@@ -309,7 +309,7 @@ class GodraysPass extends Pass {
 
     // render the composition
     renderer.setRenderTarget(this.renderToScreen ? null : write_buffer)
-    renderer.clear(true, true)
+    renderer.clear(true, false)
     this.#material_composition.uniforms.uLightTexture.value =
       this.#rendertarget2.texture
     this.#material_composition.uniforms.uLightColor.value = this.light_color
