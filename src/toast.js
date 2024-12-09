@@ -31,6 +31,7 @@ function create_notification({
   })
 
   const notification_instance = VsNotification({
+    // @ts-expect-error - string is just the default and it's fine
     duration,
     content: vnode,
     showClose: false,
