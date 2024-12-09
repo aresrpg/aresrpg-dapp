@@ -10,14 +10,11 @@
     a.value.id(:href="character_explorer_link" target="_blank") {{ props.character.id.slice(0, 24) }}...
   .actions
     vs-button(
-      v-if="!props.locked"
       type="transparent"
       size="small"
       color="#EF5350"
       :disabled="delete_loading"
       @click="delete_dialog = true") {{ t('APP_USER_DELETE') }}
-    vs-button(v-if="!props.locked" type="transparent" size="small" color="#4CAF50" @click="lock_dialog = true" :disabled="lock_loading") {{ t('APP_USER_LOCK') }}
-    vs-button(v-else type="transparent" size="small" color="#4CAF50" @click="unlock_dialog = true" :disabled="unlock_loading") {{ t('APP_USER_UNLOCK') }}
 
     /// deletion dialog
     vs-dialog(v-model="delete_dialog")
@@ -27,24 +24,6 @@
         .dialog-footer
           vs-button(type="transparent" color="#E74C3C" @click="delete_dialog = false") {{ t('APP_USER_CANCEL') }}
           vs-button(type="transparent" color="#2ECC71" @click="delete_character") {{ t('APP_USER_CONFIRM') }}
-
-    /// lock dialog
-    vs-dialog(v-model="lock_dialog")
-      template(#header) {{ t('APP_USER_LOCK') }}
-      span {{ t('APP_USER_LOCK_DESC') }}
-      template(#footer)
-        .dialog-footer
-          vs-button(type="transparent" color="#E74C3C" @click="lock_dialog = false") {{ t('APP_USER_CANCEL') }}
-          vs-button(type="transparent" color="#2ECC71" @click="select_character") {{ t('APP_USER_CONFIRM') }}
-
-    /// unlock dialog
-    vs-dialog(v-model="unlock_dialog")
-      template(#header) {{ t('APP_USER_UNLOCK') }}
-      span {{ t('APP_USER_UNLOCK_DESC') }}
-      template(#footer)
-        .dialog-footer
-          vs-button(type="transparent" color="#E74C3C" @click="unlock_dialog = false") {{ t('APP_USER_CANCEL') }}
-          vs-button(type="transparent" color="#2ECC71" @click="unselect_character") {{ t('APP_USER_CONFIRM') }}
 </template>
 
 <script setup>
@@ -81,15 +60,9 @@ const delete_loading = ref(false);
 
 const edit_dialog = ref(false);
 
-const lock_dialog = ref(false);
-const lock_loading = ref(false);
-
 const send_dialog = ref(false);
 const send_to = ref('');
 const send_loading = ref(false);
-
-const unlock_dialog = ref(false);
-const unlock_loading = ref(false);
 
 async function delete_character() {
   const { update } = toast.tx(t('APP_USER_DELETING'), props.character.name);
@@ -103,21 +76,6 @@ async function delete_character() {
     update('error', t('APP_USER_DELETE_FAILED'));
   } finally {
     delete_loading.value = false;
-  }
-}
-
-async function select_character() {
-  const { update } = toast.tx(t('APP_USER_SELECTING'), props.character.name);
-  try {
-    lock_loading.value = true;
-    lock_dialog.value = false;
-    await sui_select_character(props.character);
-    update('success', t('APP_USER_SELECTED'));
-  } catch (error) {
-    console.error(error);
-    update('error', t('APP_USER_LOCK_FAILED'));
-  } finally {
-    lock_loading.value = false;
   }
 }
 
@@ -140,27 +98,6 @@ function has_equipment(character) {
     character.relic_5 ||
     character.relic_6
   );
-}
-
-async function unselect_character() {
-  const { update } = toast.tx(t('APP_USER_UNSELECTING'), props.character.name);
-  if (has_equipment(props.character)) {
-    update('error', t('APP_USER_UNSELECTING_STUFF'));
-    return;
-  }
-  try {
-    unlock_loading.value = true;
-    unlock_dialog.value = false;
-    await sui_unselect_character(props.character);
-    update('success', t('APP_USER_UNSELECTED'));
-  } catch (error) {
-    console.error(error);
-    if (error.message.includes('Some("unselect_character") }, 101)')) {
-      update('error', t('APP_USER_UNSELECTING_STUFF'));
-    } else update('error', t('APP_USER_UNLOCK_FAILED'));
-  } finally {
-    unlock_loading.value = false;
-  }
 }
 </script>
 
