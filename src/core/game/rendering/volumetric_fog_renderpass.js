@@ -102,7 +102,7 @@ class VolumetricFogRenderpass extends Pass {
 
     this.smoothness = 0.2
     this.threshold = 0.6
-    this.fog_color = new Color(0xffffff);
+    this.fog_color = new Color(0xffffff)
 
     this.#camera = new PerspectiveCamera()
 

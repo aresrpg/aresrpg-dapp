@@ -214,7 +214,7 @@ export default function () {
             is_day,
           ),
           intensity: 0.5 + is_day,
-        };
+        }
 
         const sky_lights = {
           version: sky_lights_version,
