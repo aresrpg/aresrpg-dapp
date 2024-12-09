@@ -68,7 +68,7 @@ function entity_spawner(
     origin.add(model)
     origin.add(hitbox)
 
-    title.position.y += height * scale_factor + 0.2
+    title.position.y += height * scale_factor + 0.7
     model.position.y -= height * 0.5
 
     const scene = scene_override || context.scene
