@@ -3,7 +3,6 @@ import { WorldConf } from '@aresrpg/aresrpg-world'
 
 import { map_blocks_to_type } from './world_utils.js'
 import TEMPERATE from './biomes/temperate.js'
-import TAIGA from './biomes/taiga.js'
 import { BLOCKS } from './blocks.js'
 
 // World static config override
@@ -86,7 +85,7 @@ export const SCHEMATICS_BLOCKS_MAPPING = {
 }
 
 export const LANDSCAPE = {
-  [BiomeType.Tundra]: map_blocks_to_type(TAIGA),
+  [BiomeType.Tundra]: map_blocks_to_type(TEMPERATE),
   [BiomeType.Artic]: map_blocks_to_type(TEMPERATE),
   [BiomeType.Glacier]: map_blocks_to_type(TEMPERATE),
   [BiomeType.Steppe]: map_blocks_to_type(TEMPERATE),
