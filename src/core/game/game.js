@@ -78,6 +78,7 @@ import { get_spells } from './spells_per_class.js'
 // @ts-ignore
 import { CustomCameraControls } from './custom_camera_control.js'
 
+// @ts-ignore
 import MdiClippy from '~icons/mdi/clippy'
 
 const LOADING_MANAGER = DefaultLoadingManager
@@ -506,6 +507,7 @@ const context = {
   events,
   actions,
   composer,
+  /** @type {CustomCameraControls & import("camera-controls").default} */
   // @ts-ignore
   camera_controls: new CustomCameraControls(
     camera,
@@ -559,6 +561,7 @@ const context = {
     context.camera_controls.minPolarAngle = Math.PI / 4 // Limit vertical rotation
     context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
     context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
+    // @ts-ignore
     context.camera_controls.enableDamping = true // Enable smooth camera movement
     context.camera_controls.dampingFactor = 0.05 // Adjust damping factor as needed
   },
