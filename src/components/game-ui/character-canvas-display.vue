@@ -46,7 +46,7 @@ function reset_classes() {
 
 function setup_classe(classe) {
   classe.move(new Vector3(0, 1, 0));
-  classe.animate('WALK');
+  classe.animate('IDLE');
 }
 
 async function display_classe(type) {
@@ -136,7 +136,7 @@ onMounted(async () => {
   light.position.set(1, 1, 1);
 
   camera.position.set(1, 2, 2);
-  camera.lookAt(new Vector3(0, 1.1, 0));
+  camera.lookAt(new Vector3(0, 1.5, 0));
 
   scene.add(light);
 
