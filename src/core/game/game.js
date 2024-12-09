@@ -74,7 +74,6 @@ import { listen_for_requests } from '../sui/client.js'
 import player_experience from '../modules/player_experience.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
-import { get_spells } from './spells_per_class.js'
 // @ts-ignore
 import { CustomCameraControls } from './custom_camera_control.js'
 

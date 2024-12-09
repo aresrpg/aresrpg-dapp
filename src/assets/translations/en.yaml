@@ -198,11 +198,6 @@ APP_USER_UNLOCK_FAILED: Failed to unselect character, please retry shortly
 APP_USER_DELETE_FAILED: Failed to delete character, please retry shortly
 APP_USER_DELETING: Deleting character
 APP_USER_DELETED: Character deleted
-APP_USER_SELECTING: Selecting character
-APP_USER_SELECTED: Character selected
-APP_USER_UNSELECTING: Unselecting character
-APP_USER_UNSELECTED: Character unselected
-APP_USER_UNSELECTING_STUFF: You must unequip all items before unselecting this character
 
 APP_CHARACTER_NAME: Character name
 APP_CHARACTER_NAME_VALID: The character name must be between 3 and 20 chars

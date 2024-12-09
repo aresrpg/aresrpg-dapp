@@ -199,11 +199,6 @@ APP_USER_UNLOCK_FAILED: Échec de la désélection du personnage, veuillez rées
 APP_USER_DELETE_FAILED: Échec de la suppression du personnage, veuillez réessayer sous peu
 APP_USER_DELETING: Suppression du personnage
 APP_USER_DELETED: Personnage supprimé
-APP_USER_SELECTING: Sélection du personnage
-APP_USER_SELECTED: Personnage sélectionné
-APP_USER_UNSELECTING: Désélection du personnage
-APP_USER_UNSELECTED: Personnage désélectionné
-APP_USER_UNSELECTING_STUFF: Vous devez déséquiper tous les objets avant de désélectionner ce personnage
 
 APP_CHARACTER_NAME: Nom du personnage
 APP_CHARACTER_NAME_VALID: Le nom du personnage doit comporter entre 3 et 20 caractères

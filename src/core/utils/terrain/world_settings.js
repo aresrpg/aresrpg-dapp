@@ -85,13 +85,13 @@ export const SCHEMATICS_BLOCKS_MAPPING = {
 }
 
 export const LANDSCAPE = {
-  [BiomeType.Tundra]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Artic]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Glacier]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Steppe]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Temperate]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Swamp]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Scorched]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Arctic]: map_blocks_to_type(TEMPERATE),
   [BiomeType.Desert]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Glacier]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Grassland]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Scorched]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Swamp]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Taiga]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Temperate]: map_blocks_to_type(TEMPERATE),
   [BiomeType.Tropical]: map_blocks_to_type(TEMPERATE),
 }

@@ -197,11 +197,6 @@ APP_USER_UNLOCK_FAILED: キャラクターの選択解除に失敗しました�
 APP_USER_DELETE_FAILED: キャラクターの削除に失敗しました。しばらくしてからもう一度お試しください。
 APP_USER_DELETING: キャラクターを削除中
 APP_USER_DELETED: キャラクターが削除されました
-APP_USER_SELECTING: キャラクターを選択中
-APP_USER_SELECTED: キャラクターが選択されました
-APP_USER_UNSELECTING: キャラクターの選択を解除中
-APP_USER_UNSELECTED: キャラクターの選択が解除されました
-APP_USER_UNSELECTING_STUFF: このキャラクターを選択解除する前に、すべてのアイテムを解除する必要があります。
 
 APP_CHARACTER_NAME: キャラクター名
 APP_CHARACTER_NAME_VALID: キャラクター名は3～20文字である必要があります
