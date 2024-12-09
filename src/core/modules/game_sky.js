@@ -207,21 +207,26 @@ export default function () {
           intensity: lerp(0.1, 1, smoothstep(sun_position.y, -0.05, 0)),
         }
 
+        const ambient = {
+          color: new Color().lerpColors(
+            ambient_color_night,
+            ambient_color_day,
+            is_day,
+          ),
+          intensity: 0.5 + is_day,
+        };
+
         const sky_lights = {
           version: sky_lights_version,
           fog: {
             color: fog_color,
           },
+          volumetric_fog: {
+            color: ambient.color.clone(),
+          },
           directional,
           godrays,
-          ambient: {
-            color: new Color().lerpColors(
-              ambient_color_night,
-              ambient_color_day,
-              is_day,
-            ),
-            intensity: 0.5 + is_day,
-          },
+          ambient,
         }
 
         dispatch('action/sky_lights_change', sky_lights)

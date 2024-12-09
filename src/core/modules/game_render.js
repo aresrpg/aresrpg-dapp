@@ -125,6 +125,8 @@ export default function () {
             godrays_pass.light_color = state.settings.sky.lights.godrays.color
               .clone()
               .multiplyScalar(state.settings.sky.lights.godrays.intensity)
+            
+            volumetric_fog_pass.fog_color = state.settings.sky.lights.volumetric_fog.color.clone()
           }
 
           return {
