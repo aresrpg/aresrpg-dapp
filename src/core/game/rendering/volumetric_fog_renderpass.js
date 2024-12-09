@@ -1,4 +1,5 @@
 import {
+  Color,
   Matrix4,
   NoBlending,
   PerspectiveCamera,
@@ -98,8 +99,10 @@ class VolumetricFogRenderpass extends Pass {
     super()
 
     this.camera = camera
+
     this.smoothness = 0.2
     this.threshold = 0.6
+    this.fog_color = new Color(0xffffff);
 
     this.#camera = new PerspectiveCamera()
 
@@ -121,6 +124,7 @@ class VolumetricFogRenderpass extends Pass {
         uTime: { value: 0 },
         uThreshold: { value: this.threshold },
         uSmoothness: { value: this.smoothness },
+        uFogColor: { value: this.fog_color },
         uProjMatrixInverse: { value: new Matrix4() },
         uViewMatrixInverse: { value: new Matrix4() },
       },
@@ -145,6 +149,7 @@ class VolumetricFogRenderpass extends Pass {
             #include <packing>
 
             uniform sampler2D uDepthTexture;
+            uniform vec3 uFogColor;
             uniform float uCameraNear;
             uniform float uCameraFar;
             uniform float uTime;
@@ -201,7 +206,7 @@ class VolumetricFogRenderpass extends Pass {
 
                 cumulatedFog *= FOG_DENSITY;
                 
-                fragColor = vec4(vec3(1), cumulatedFog);
+                fragColor = vec4(uFogColor, cumulatedFog);
             }`,
     })
 
@@ -272,6 +277,7 @@ class VolumetricFogRenderpass extends Pass {
     this.#material_fog.uniforms.uTime.value = performance.now() / 1000
     this.#material_fog.uniforms.uThreshold.value = this.threshold - 0.5
     this.#material_fog.uniforms.uSmoothness.value = 0.5 * this.smoothness
+    this.#material_fog.uniforms.uFogColor.value = this.fog_color
     this.#material_fog.uniforms.uProjMatrixInverse.value =
       this.camera.projectionMatrixInverse
     this.#material_fog.uniforms.uViewMatrixInverse.value =

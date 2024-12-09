@@ -140,6 +140,10 @@ export const INITIAL_STATE = {
           color: new Color(0xffffff),
         },
 
+        volumetric_fog: {
+          color: new Color(0xffffff),
+        },
+
         directional: {
           position: new Vector3(0, 1, 0),
           color: new Color(0xffffff),
