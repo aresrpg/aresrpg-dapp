@@ -29,7 +29,7 @@ export default function () {
       }
     },
 
-    observe({ scene, signal, composer, camera, directional_light }) {
+    observe({ scene, signal, composer, camera }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
 
       const renderpass = new RenderPass(scene, camera)
