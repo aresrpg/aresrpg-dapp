@@ -7,14 +7,13 @@ import {
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Color, Vector2 } from 'three'
+import { Color, Vector2, Vector3 } from 'three'
 import {
-  WorldChunkIndexer,
-  ChunksOTFGenerator,
   WorldComputeProxy,
   WorldUtils,
   WorldEnv,
   WorldDevSetup,
+  ChunksIndexer,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -36,8 +35,7 @@ const LOD_MODE = {
 
 const FLAGS = {
   LOD_MODE: LOD_MODE.DISABLED,
-  BOARD_POC: false, // POC toggle until board integration is finished
-  OTF_GEN: true, // bake patch progressively
+  BOARD_POC: true, // POC toggle until board integration is finished
 }
 // settings
 const blocks_color_mapping = {
@@ -52,22 +50,21 @@ const voxel_materials_list = Object.values(blocks_color_mapping).map(col => ({
 
 /** @type {Type.Module} */
 export default function () {
-  // COMMON
   const patch_size = { xz: 64, y: 64 }
-  const min_patch_id_y = Math.floor(altitude.min / patch_size.y)
-  const max_patch_id_y = Math.floor(altitude.max / patch_size.y)
 
-  // WORLD
-  // setup main thread environement
+  // world setup main thread environement
   world_shared_setup()
 
-  // chunks related
-  WorldEnv.current.chunks.genRange.yMinId = min_patch_id_y
-  WorldEnv.current.chunks.genRange.yMaxId = max_patch_id_y
+  // chunks gen
+  WorldEnv.current.chunks.range.bottomId = Math.floor(
+    altitude.min / patch_size.y,
+  )
+  WorldEnv.current.chunks.range.topId = Math.floor(altitude.max / patch_size.y)
   WorldEnv.current.chunks.dataEncoder = chunk_data_encoder
+  const chunks_range = WorldEnv.current.chunks.range
 
   // patch containers
-  const chunks_indexer = new WorldChunkIndexer()
+  const chunks_indexer = new ChunksIndexer()
   const board_wrapper = new BoardWrapper()
 
   // ENGINE
@@ -94,8 +91,8 @@ export default function () {
   }
 
   const voxelmap_viewer = new VoxelmapViewer(
-    min_patch_id_y,
-    max_patch_id_y,
+    chunks_range.bottomId,
+    chunks_range.topId,
     voxel_materials_list,
     {
       patchSize: patch_size,
@@ -168,35 +165,55 @@ export default function () {
           // Query chunks around player position
           const view_center = WorldUtils.asVect2(current_pos).floor()
           const view_radius = state.settings.view_distance
-          const caves_gen_bounds = WorldUtils.getBoundsAroundPos(
-            view_center,
-            WorldEnv.current.cavesViewDist,
-          )
-          const added_patch_keys = chunks_indexer.reindexAroundPos(
+
+          const new_patch_keys = chunks_indexer.getIndexingChanges(
             view_center,
             view_radius,
           )
-          if (added_patch_keys.length > 0) {
-            voxelmap_viewer.setVisibility(chunks_indexer.chunkIds)
-            // TODO: prioritize patch keys near player
-            for await (const patch_key of added_patch_keys) {
-              const chunk_generator = new ChunksOTFGenerator(patch_key)
-              await chunk_generator.init()
-              // TODO: prioritize chunk keys near player
-              const { emptyKeys, groundSurfaceKeys, undegroundKeys } =
-                chunk_generator
-              const chunks_keys = [
-                ...emptyKeys,
-                ...groundSurfaceKeys,
-                ...undegroundKeys,
-              ]
-              await chunk_generator.chunksGen(chunks_keys, render_chunk)
+          const index_has_changed = new_patch_keys.length > 0
+          if (index_has_changed) {
+            // instanciate chunkset for each new patches
+            chunks_indexer.indexElements(new_patch_keys)
+            voxelmap_viewer.setVisibility(chunks_indexer.chunkIds())
+            // first process undeground chunks near player
+            // then process far chunks at ground surface
+            const batch = chunks_indexer.indexedElements
+            const priority_batch = batch.filter(
+              chunkset =>
+                chunkset.distanceTo(view_center) <=
+                WorldEnv.current.nearViewDist,
+            )
+            const pending_batch = priority_batch.map(
+              async chunkset =>
+                // only process undeground for chunks within near dist
+                await chunkset.processChunksBelowGroundSurface().then(chunks =>
+                  chunks.forEach(chunk => {
+                    render_chunk(chunk)
+                  }),
+                ),
+            )
+            // wait for first batch to complete before starting second batch
+            await Promise.all(pending_batch)
+            for (const chunkset of batch) {
+              // for chunks further away: process only surface part
+              chunkset.processChunksAboveGroundSurface().then(chunks =>
+                chunks.forEach(chunk => {
+                  render_chunk(chunk)
+                }),
+              )
             }
-            // override chunks around player with board buffer
-            // const board_chunks_otf_gen =
+            // prioritize patches around player
+            // const indexedElements = chunks_indexer.indexedElements
+            // const prioritizedElements = prioritize_items_around_pos(
+            //   indexedElements,
+            //   view_center,
+            // )
+            // for (const chunks_processor of prioritizedElements) {
+
+            // }
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
-          // BOARD
+          // Board live test
           if (FLAGS.BOARD_POC) {
             const board_chunks = board_wrapper.update(current_pos)
             for await (const board_chunk of board_chunks) {
@@ -205,7 +222,9 @@ export default function () {
             if (board_wrapper.handler?.container) {
               board_wrapper.handler.dispose()
               scene.remove(board_wrapper.handler.container)
-              board_wrapper.highlight()
+            }
+            // board_wrapper.highlight()
+            if (board_wrapper.handler?.container) {
               scene.add(board_wrapper.handler.container)
             }
           }

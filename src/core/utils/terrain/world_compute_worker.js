@@ -8,4 +8,6 @@ Heightmap.instance.heightmap.sampling.harmonicsCount = 6
 Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
 // setup worker's own environment
 world_shared_setup(WorldEnv.current)
+// unset URL to prevent other worker instances from spawning inside the worker.
+WorldEnv.current.workerPool.url = ''
 WorldWorkerInit(workerpool)

@@ -18,6 +18,7 @@ const SEA_LEVEL = 76
 export const world_shared_setup = (world_env = WorldEnv.current) => {
   world_env.seaLevel = SEA_LEVEL // TODO remove hardcoded sea
   world_env.chunks.dataEncoder = chunk_data_encoder
+  world_env.patchViewDist.near = 4 // chunks view distance below ground surface
 
   // EXTERNAL CONFIGS/RESOURCES
   world_env.biomes.rawConf = LANDSCAPE
@@ -35,5 +36,5 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
   world_env.boardSettings.boardThickness = 3
 
   // DEV env override
-  WorldDevSetup.EnvOverride(world_env)
+  // WorldDevSetup.EnvOverride(world_env)
 }

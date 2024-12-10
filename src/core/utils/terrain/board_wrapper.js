@@ -1,6 +1,8 @@
 import { Box2, Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import {
+  BlockCategory,
+  BlockType,
   BoardContainer,
   ChunkContainer,
   WorldUtils,
@@ -26,33 +28,50 @@ export class BoardWrapper {
   async *update(current_pos) {
     if (this.pos.distanceTo(current_pos) > 1) {
       // board_chunks_container.boardCenter = current_pos
-      await this.container.localCache.cacheAroundPos(current_pos)
+      await this.container.localCache.buildCacheAroundPos(current_pos)
       // fill board buffer from cache
       const board_buffer = this.container.genBoardBuffer(current_pos)
       // iter board indexed chunks
-      for (const cached_data of this.container.localCache.cachedData) {
+      for await (const cached_chunk of this.container.localCache.cachedChunks) {
         // board_chunk.rawData.fill(113)
-        const board_chunk = cached_data.groundChunk
-        const target_chunk = new ChunkContainer(
-          board_chunk.chunkKey,
-          board_chunk.margin,
+        const board_chunk = new ChunkContainer(
+          cached_chunk.chunkKey,
+          cached_chunk.margin,
         )
-        board_chunk.rawData.forEach(
-          (val, i) => (target_chunk.rawData[i] = chunk_data_encoder(val)),
+        cached_chunk.rawData.forEach(
+          (val, i) => (board_chunk.rawData[i] = chunk_data_encoder(val)),
         )
+        // copy items individually
+        const patch_key = WorldUtils.serializePatchId(
+          WorldUtils.asVect2(board_chunk.chunkId),
+        )
+        const cached_data = this.container.localCache.patchLookup[patch_key]
+        const { individualChunks } = cached_data.itemsLayer
+        individualChunks
+          .filter(
+            item_chunk =>
+              !this.container.overlapsBoard(
+                WorldUtils.asBox2(item_chunk.bounds),
+              ),
+          )
+          .forEach(item_chunk =>
+            ChunkContainer.copySourceToTarget(item_chunk, board_chunk),
+          )
+        // ChunkContainer.copySourceToTarget(cached_data.itemsLayer, board_chunk)
         // board_chunk_copy.rawData.set(board_chunk.rawData)
         // cached_data.itemsChunks
         //   .filter(chunk => chunk)
-        //   .forEach(itemChunk =>
-        //     ChunkContainer.copySourceToTarget(itemChunk, target_chunk),
+        //   .forEach(item_chunk =>
+        //     ChunkContainer.copySourceToTarget(item_chunk, target_chunk),
         //   )
-        ChunkContainer.copySourceToTarget(board_buffer, target_chunk, false)
+        // override with board_buffer
+        ChunkContainer.copySourceToTarget(board_buffer, board_chunk, false)
         // const board_chunk_mask = board_chunk.genBoardMask()
         // board_chunk_mask.applyMaskOnTargetChunk(board_chunk_copy)
-        yield target_chunk
+        yield board_chunk
       }
       // remember bounds for later board removal
-      this.bounds = this.container.boardBounds
+      // this.bounds = this.container.boardBounds
       this.pos = current_pos
     }
   }
@@ -63,17 +82,29 @@ export class BoardWrapper {
     // await board_container.build()
     // const native_board = board_container.exportBoardData()
     // const board_origin = WorldUtils.asVect2(board_container.origin)
-    if (this.content.data.length > 0) {
+    const board_data = this.container.genBoardData()
+    this.content = board_data
+    this.content.data = board_data.data.map(cat => ({
+      type: cat,
+      category: cat - 1,
+    }))
+
+    console.log(board_data)
+    if (board_data.data.length > 0) {
       // convert to board hanlder format
-      const board_size = this.content.bounds.getSize(new Vector2())
+      const board_size = board_data.bounds.getSize(new Vector2())
       const size = { x: board_size.x, z: board_size.y }
       const origin = WorldUtils.asVect3(
-        this.content.bounds.min,
-        this.content.elevation,
+        board_data.bounds.min,
+        board_data.elevation,
       )
-      const squares = this.content.data.map(element =>
-        FightBoards.format_board_data(element),
-      )
+      // const squares = board_data.data.map(element =>
+      //   FightBoards.format_board_data(element),
+      // )
+      const squares = this.content.data.map(block => ({
+        materialId: block.type,
+        type: block.category,
+      }))
       const board = { origin, size, squares }
       const board_handler = new BoardOverlaysHandler({ board })
 
