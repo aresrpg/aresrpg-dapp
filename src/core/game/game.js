@@ -72,6 +72,7 @@ import player_entities_interract from '../modules/player_entities_interract.js'
 import game_fights from '../modules/game_fights.js'
 import { listen_for_requests } from '../sui/client.js'
 import player_experience from '../modules/player_experience.js'
+import player_error from '../modules/player_error.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 // @ts-ignore
@@ -299,6 +300,7 @@ const MODULES = [
   player_equipment,
   player_entities_interract,
   player_experience,
+  player_error,
 
   game_sky,
   game_render,

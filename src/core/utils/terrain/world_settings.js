@@ -3,6 +3,14 @@ import { WorldConf } from '@aresrpg/aresrpg-world'
 
 import { map_blocks_to_type } from './world_utils.js'
 import TEMPERATE from './biomes/temperate.js'
+import GRASSLAND from './biomes/grassland.js'
+import TROPICAL from './biomes/tropical.js'
+import SWAMP from './biomes/swamp.js'
+import DESERT from './biomes/desert.js'
+import TAIGA from './biomes/taiga.js'
+import ARCTIC from './biomes/arctic.js'
+import SCORCHED from './biomes/scorched.js'
+import GLACIER from './biomes/glacier.js'
 import { BLOCKS } from './blocks.js'
 
 // World static config override
@@ -85,13 +93,13 @@ export const SCHEMATICS_BLOCKS_MAPPING = {
 }
 
 export const LANDSCAPE = {
-  [BiomeType.Arctic]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Desert]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Glacier]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Grassland]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Scorched]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Swamp]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Taiga]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Arctic]: map_blocks_to_type(ARCTIC),
+  [BiomeType.Desert]: map_blocks_to_type(DESERT),
+  [BiomeType.Glacier]: map_blocks_to_type(GLACIER),
+  [BiomeType.Grassland]: map_blocks_to_type(GRASSLAND),
+  [BiomeType.Scorched]: map_blocks_to_type(SCORCHED),
+  [BiomeType.Swamp]: map_blocks_to_type(SWAMP),
+  [BiomeType.Taiga]: map_blocks_to_type(TAIGA),
   [BiomeType.Temperate]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Tropical]: map_blocks_to_type(TEMPERATE),
+  [BiomeType.Tropical]: map_blocks_to_type(TROPICAL),
 }

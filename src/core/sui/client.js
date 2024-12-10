@@ -69,19 +69,23 @@ export function listen_for_requests() {
     if (!current_pending_transactions.has(id)) return
 
     try {
-      const signature = await sign_transaction(bytes)
+      const { signature, zk } = await sign_transaction(bytes)
       context.send_packet('packet/transactionSignResponse', {
         id,
         signature,
+        zk,
       })
     } catch (error) {
       console.error('Failed to sign transaction:', error)
       current_pending_transactions.get(id).reject(error)
     }
   })
-  context.events.on('packet/transactionResult', ({ id, digest }) => {
+  context.events.on('packet/transactionResult', ({ id, digest, success }) => {
     if (current_pending_transactions.has(id)) {
-      current_pending_transactions.get(id).resolve(digest)
+      if (!success) {
+        toast.error(t('SUI_TRANSACTION_FAILED'))
+        current_pending_transactions.get(id).reject()
+      } else current_pending_transactions.get(id).resolve(digest)
       current_pending_transactions.delete(id)
     }
   })
@@ -147,101 +151,7 @@ function get_address() {
   return context.get_state().sui.selected_address
 }
 
-function needs_sponsor() {
-  const balance = get_bn_sui_balance()
-  return balance.isLessThan(0.1)
-}
-
-async function get_all_coins({ type, cursor = null, result = [] }) {
-  const { data, hasNextPage, nextCursor } = await sdk.sui_client.getCoins({
-    owner: get_address(),
-    coinType: type,
-    cursor,
-  })
-  result.push(data)
-  if (hasNextPage)
-    return get_all_coins({
-      type,
-      result,
-      cursor: nextCursor,
-    })
-  return result.flat(Infinity)
-}
-
-async function get_coin_with_balance({ tx, type = '0x2::sui::SUI', balance }) {
-  const [first, ...rest] = await get_all_coins({ type })
-
-  if (first) {
-    const coin = tx.object(first.coinObjectId)
-
-    if (rest.length)
-      tx.mergeCoins(
-        coin,
-        rest.map(c => tx.object(c.coinObjectId)),
-      )
-
-    return tx.splitCoins(coin, [balance])[0]
-  }
-}
-
-async function execute_sponsored({ transaction, sender, wallet }) {
-  const txb_kind_bytes = await transaction.build({
-    client: sdk.sui_client,
-    onlyTransactionKind: true,
-  })
-
-  const { bytes, digest, error } = await fetch(`${VITE_SPONSOR_URL}/sponsor`, {
-    method: 'POST',
-    body: JSON.stringify({
-      address: sender,
-      txb: toBase64(txb_kind_bytes),
-    }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then(res => res.json())
-
-  if (error === 'FAILURE')
-    toast.warn(t('SUI_ENOKI_DOWN'), 'Beeb boop', GameIconsBrokenBottle)
-
-  if (error) throw new Error(error)
-
-  const sponsored = Transaction.from(bytes)
-
-  const { signature } = await wallet.signTransaction({
-    transaction: sponsored,
-    sender,
-  })
-
-  const submit_result = await fetch(`${VITE_SPONSOR_URL}/submit`, {
-    method: 'POST',
-    body: JSON.stringify({
-      digest,
-      signature,
-    }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then(res => res.json())
-
-  if (submit_result.error) throw new Error(submit_result.error)
-
-  return { digest }
-}
-
-async function execute_unsponsored({ transaction, sender, wallet }) {
-  const { bytes, signature } = await wallet.signTransaction({
-    transaction,
-    sender,
-  })
-
-  return await sdk.sui_client.executeTransactionBlock({
-    transactionBlock: bytes,
-    signature,
-  })
-}
-
-export async function sign_transaction(tx_bytes) {
+export async function sign_transaction(bytes) {
   const sender = get_address()
   if (!sender) {
     toast.error(t('APP_LOGIN_AGAIN'), t('APP_WALLET_NOT_FOUND'))
@@ -259,18 +169,17 @@ export async function sign_transaction(tx_bytes) {
     throw new Error('WRONG_NETWORK')
   }
 
-  const transaction = Transaction.from(tx_bytes)
-
-  const { signature } = await wallet.signTransaction({
-    transaction,
+  const { signature, zk = false } = await wallet.signTransaction({
+    transaction: Transaction.from(bytes),
     sender,
+    sponsored: true,
   })
 
-  return signature
+  return { signature, zk }
 }
 
 /** @param {Transaction} transaction */
-export const execute = async (transaction, allow_sponsor = true) => {
+export const execute = async transaction => {
   const sender = get_address()
   if (!sender) {
     toast.error(t('APP_LOGIN_AGAIN'), t('APP_WALLET_NOT_FOUND'))
@@ -291,16 +200,15 @@ export const execute = async (transaction, allow_sponsor = true) => {
 
     transaction.setSender(sender)
 
-    const is_an_absolute_brokie = needs_sponsor()
-
-    if (is_an_absolute_brokie && !allow_sponsor) {
-      throw new Error('Needs sponsor but was not allowed')
-    }
-    console.log('needs sponsor:', is_an_absolute_brokie)
-
-    const { digest } = is_an_absolute_brokie
-      ? await execute_sponsored({ transaction, sender, wallet })
-      : await execute_unsponsored({ transaction, sender, wallet })
+    const { bytes, signature } = await wallet.signTransaction({
+      transaction,
+      sender,
+      sponsored: false,
+    })
+    const { digest } = await sdk.sui_client.executeTransactionBlock({
+      transactionBlock: bytes,
+      signature,
+    })
 
     await sdk.sui_client.waitForTransaction({ digest })
 
@@ -430,61 +338,6 @@ function find_item_or_token(type) {
 }
 
 export async function sui_craft_item(recipe) {
-  const tx = new Transaction()
-
-  sdk.add_header(tx)
-
-  const [craft] = sdk.craft_start({ tx, recipe: recipe.id })
-
-  const { get_kiosk_cap_ref, finalize } = await sdk.get_user_kiosks({
-    tx,
-    address: get_address(),
-  })
-
-  await Promise.all(
-    recipe.ingredients.map(async ({ item_type, amount }) => {
-      const item = find_item_or_token(item_type)
-
-      if (!item) throw new Error(`Item not found, ${item_type}`)
-
-      // @ts-ignore
-      if (item.is_token) {
-        const [coin] = coinWithBalance({
-          type: item_type,
-          balance: amount,
-        })(tx)
-
-        sdk.craft_use_token_ingredient({
-          tx,
-          craft,
-          coin,
-          coin_type: item_type,
-        })
-      } else {
-        const available = get_item_with_amount({
-          tx,
-          item,
-          amount,
-          get_kiosk_cap_ref,
-        })
-
-        sdk.craft_use_item_ingredient({
-          tx,
-          craft,
-          // @ts-ignore
-          kiosk: item.kiosk_id,
-          // @ts-ignore
-          kiosk_cap: get_kiosk_cap_ref(item.kiosk_id),
-          item_id: available,
-        })
-      }
-    }),
-  )
-
-  sdk.craft_prove_ingredients_used({ tx, craft })
-
-  finalize()
-
   await execute(tx)
 }
 
@@ -753,6 +606,7 @@ export async function sui_create_character({
   color_2 = '#000000',
   color_3 = '#000000',
 }) {
+  logger.SUI('create character', name)
   return create_server_transaction('sui_create_character', {
     name,
     type,
@@ -767,30 +621,11 @@ export async function sui_is_character_name_taken(name) {
   return indexer_request('sui_is_character_name_taken', name)
 }
 
-export async function sui_delete_character({
-  kiosk_id,
-  personal_kiosk_cap_id,
-  id,
-}) {
-  const tx = new Transaction()
-
-  sdk.add_header(tx)
-  sdk.borrow_personal_kiosk_cap({
-    personal_kiosk_cap_id,
-    tx,
-    handler: kiosk_cap => {
-      sdk.delete_character({
-        tx,
-        kiosk_id,
-        kiosk_cap,
-        character_id: id,
-      })
-    },
-  })
-
+export async function sui_delete_character({ id }) {
   logger.SUI('delete character', id)
-
-  await execute(tx)
+  return create_server_transaction('sui_delete_character', {
+    id,
+  })
 }
 
 export async function sui_select_character({
@@ -813,32 +648,6 @@ export async function sui_select_character({
       })
     },
   })
-
-  await execute(tx)
-}
-
-export async function sui_unselect_character({
-  kiosk_id,
-  personal_kiosk_cap_id,
-  id,
-}) {
-  const tx = new Transaction()
-
-  sdk.add_header(tx)
-  sdk.borrow_personal_kiosk_cap({
-    personal_kiosk_cap_id,
-    tx,
-    handler: kiosk_cap => {
-      sdk.unselect_character({
-        tx,
-        kiosk_id,
-        kiosk_cap,
-        character_id: id,
-      })
-    },
-  })
-
-  logger.SUI('unlock character', { kiosk_id, id })
 
   await execute(tx)
 }
@@ -1206,8 +1015,10 @@ export async function get_alias(address) {
 
 export async function sui_sign_payload(message) {
   const address = get_address()
-  const { bytes, signature, zk, ...rest } =
-    await get_wallet().signPersonalMessage(message, address)
+  const { bytes, signature, zk } = await get_wallet().signPersonalMessage(
+    message,
+    address,
+  )
 
   context.send_packet('packet/signatureResponse', {
     bytes,
