@@ -11,8 +11,7 @@ export default {
     fadeIn: 0,
     fadeOut: 2,
   },
-  ocean_cliff_bottom: { x: 0.12, y: 0.1 },
-  ocean_cliff_top: { x: 0.15, y: 0.13 },
+  ocean_cliff: { x: 0.12, y: 0.1 },
   beach: {
     x: 0.2,
     y: 0.26,

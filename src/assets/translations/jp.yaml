@@ -10,6 +10,7 @@ SERVER_MAX_CHARACTERS_PER_PLAYER: これほど多くのキャラクターを使�
 SERVER_NOT_CONNECTED: オフラインです
 SERVER_CLICK_TO_CONNECT: サーバーに接続していません
 SERVER_RECONNECT_BUTTON: 再接続
+SERVER_FEATURE_NOT_AVAILABLE: この機能はまだ利用できません
 
 APP_LOGIN_AGAIN: もう一度ログインしてください。
 APP_WALLET_NOT_FOUND: ウォレットが見つかりません。
@@ -299,11 +300,14 @@ SUI_INVALID_CONTRACT: コントラクトが無効です。アプリが最新か�
 SUI_WAITING_SIGNATURE: アドレス署名を確認中
 SUI_SIGNATURE_ADDRESS_MISMATCH: 署名アドレスが接続されたウォレットと一致しません
 SUI_SIGNATURE_SUCCESS: 署名が確認されました
+SUI_TRANSACTION_FAILED: 取引が失敗したか、署名に時間がかかりすぎました
 
 WS_FAILED_TO_CONNECT: サーバーへの接続に失敗しました。詳細はhttps://status.aresrpg.worldをご確認ください。
 WS_RECONNECTED: オンラインに戻りました！
 WS_CONNECTING_TO_SERVER: サーバーに接続中
 WS_CONNECTED_TO_SERVER: サーバーに接続しました。
 WS_NOT_CONNECTED: サーバーに接続していません
+
+PLAYER_UNHANDLED_ERROR: ダメな開発者だ！このエラー処理を忘れてしまった
 
 BROWSER_NO_PERF: お使いのデバイスはWebGLをサポートしていないか、パフォーマンス上の大きな問題が発生する状態で実行されています。別のデバイスを試すか、ブラウザとドライバが最新であることを確認してください。

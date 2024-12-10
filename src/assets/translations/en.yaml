@@ -10,6 +10,7 @@ SERVER_MAX_CHARACTERS_PER_PLAYER: You can't play with that many characters!
 SERVER_NOT_CONNECTED: Not connected
 SERVER_CLICK_TO_CONNECT: You are currently offline
 SERVER_RECONNECT_BUTTON: Reconnect
+SERVER_FEATURE_NOT_AVAILABLE: This feature is not available yet
 
 APP_LOGIN_AGAIN: Please login again
 APP_WALLET_NOT_FOUND: Wallet not found
@@ -299,11 +300,14 @@ SUI_INVALID_CONTRACT: The contract is invalid, is your app up to date ? Try to r
 SUI_WAITING_SIGNATURE: Verifying your address signature
 SUI_SIGNATURE_ADDRESS_MISMATCH: The signature address does not match the connected wallet
 SUI_SIGNATURE_SUCCESS: Signature verified
+SUI_TRANSACTION_FAILED: The transaction failed, or you took too long to sign it
 
 WS_FAILED_TO_CONNECT: Failed to connect to the server, check https://status.aresrpg.world for more information
 WS_RECONNECTED: Back online!
 WS_CONNECTING_TO_SERVER: Connecting to the server
 WS_CONNECTED_TO_SERVER: Connected to the server
 WS_NOT_CONNECTED: Not connected to the server
+
+PLAYER_UNHANDLED_ERROR: Bad devs! They forgot to handle this error
 
 BROWSER_NO_PERF: Your device does not support WebGL or it is running under conditions that would cause major performance issues. Please try on a different device or ensure your browser and drivers are up to date.

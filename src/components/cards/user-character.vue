@@ -25,18 +25,14 @@
           vs-button(type="transparent" color="#E74C3C" @click="delete_dialog = false") {{ t('APP_USER_CANCEL') }}
           vs-button(type="transparent" color="#2ECC71" @click="delete_character") {{ t('APP_USER_CONFIRM') }}
 </template>
-
+rigid illness excess cruise wasp what sand assist axis cause heart veteran
 <script setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isValidSuiAddress } from '@mysten/sui/utils';
 
 import { experience_to_level } from '../../core/utils/game/experience.js';
-import {
-  sui_delete_character,
-  sui_select_character,
-  sui_unselect_character,
-} from '../../core/sui/client.js';
+import { sui_delete_character } from '../../core/sui/client.js';
 import toast from '../../toast.js';
 import { NETWORK } from '../../env.js';
 
@@ -65,15 +61,18 @@ const send_to = ref('');
 const send_loading = ref(false);
 
 async function delete_character() {
-  const { update } = toast.tx(t('APP_USER_DELETING'), props.character.name);
+  const { update, remove } = toast.tx(
+    t('APP_USER_DELETING'),
+    props.character.name,
+  );
   try {
     delete_loading.value = true;
     delete_dialog.value = false;
     await sui_delete_character(props.character);
     update('success', t('APP_USER_DELETED'));
   } catch (error) {
-    console.error(error);
-    update('error', t('APP_USER_DELETE_FAILED'));
+    if (error) update('error', t('APP_USER_DELETE_FAILED'));
+    else remove();
   } finally {
     delete_loading.value = false;
   }
