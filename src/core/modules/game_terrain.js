@@ -35,7 +35,7 @@ const LOD_MODE = {
 
 const FLAGS = {
   LOD_MODE: LOD_MODE.DISABLED,
-  BOARD_POC: true, // POC toggle until board integration is finished
+  BOARD_POC: false, // POC toggle until board integration is finished
 }
 // settings
 const blocks_color_mapping = {
@@ -223,7 +223,7 @@ export default function () {
               board_wrapper.handler.dispose()
               scene.remove(board_wrapper.handler.container)
             }
-            // board_wrapper.highlight()
+            board_wrapper.highlight()
             if (board_wrapper.handler?.container) {
               scene.add(board_wrapper.handler.container)
             }
