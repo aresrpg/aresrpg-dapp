@@ -105,6 +105,10 @@ export default function () {
               postprocessing.volumetric_fog_pass.threshold
             volumetric_fog_pass.smoothness =
               postprocessing.volumetric_fog_pass.smoothness
+            volumetric_fog_pass.fog_density =
+              postprocessing.volumetric_fog_pass.fog_density
+            volumetric_fog_pass.raymarching_step =
+              postprocessing.volumetric_fog_pass.raymarching_step
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength

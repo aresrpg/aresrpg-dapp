@@ -105,6 +105,8 @@ class VolumetricFogRenderpass extends Pass {
     this.smoothness = 0.2
     this.threshold = 0.6
     this.fog_color = new Color(0xffffff)
+    this.fog_density = 0.08
+    this.raymarching_step = 1
 
     this.#camera = new PerspectiveCamera()
 
@@ -127,6 +129,8 @@ class VolumetricFogRenderpass extends Pass {
         uThreshold: { value: this.threshold },
         uSmoothness: { value: this.smoothness },
         uFogColor: { value: this.fog_color },
+        uFogDensity: { value: this.fog_density },
+        uRaymarchingStep: { value: this.raymarching_step },
         uProjMatrixInverse: { value: new Matrix4() },
         uViewMatrixInverse: { value: new Matrix4() },
         uShadowMap: { value: null },
@@ -154,6 +158,9 @@ class VolumetricFogRenderpass extends Pass {
 
             uniform sampler2D uDepthTexture;
             uniform vec3 uFogColor;
+            uniform float uFogDensity;
+            uniform float uRaymarchingStep;
+
             uniform float uCameraNear;
             uniform float uCameraFar;
             uniform float uTime;
@@ -195,13 +202,10 @@ class VolumetricFogRenderpass extends Pass {
             }
 
             void main(void) {
-                const float RAYMARCHING_STEP = 1.0;
-                const float FOG_DENSITY = 0.08;
-
                 float fragDepth = readDepth(vUv) * uCameraFar;
                 vec3 fragmentViewPosition = normalize(vFragmentViewPosition) * fragDepth;
                 vec3 fragmentWorldPosition = (uViewMatrixInverse * vec4(fragmentViewPosition, 1)).xyz;
-                int idealStepsCount = int(fragDepth / RAYMARCHING_STEP);
+                int idealStepsCount = int(fragDepth / uRaymarchingStep);
 
                 vec3 viewVector = fragmentWorldPosition - vCameraWorldPosition;                
                 vec3 viewVectorNormalized = normalize(viewVector);
@@ -209,20 +213,20 @@ class VolumetricFogRenderpass extends Pass {
                 float lastFogSample = sampleFog(vCameraWorldPosition);
                 float cumulatedFog = 0.0;
                 float currentRayDepth = 0.0;
-                const int MAX_NB_STEPS = 50;
+                const int MAX_NB_STEPS = 75;
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
-                  float step = min(RAYMARCHING_STEP, fragDepth - currentRayDepth);
+                  float step = min(uRaymarchingStep, fragDepth - currentRayDepth);
                   currentRayDepth += step;
                   float newFogSample = sampleFog(vCameraWorldPosition + viewVectorNormalized * currentRayDepth);
                   cumulatedFog += 0.5 * (newFogSample + lastFogSample) * step;
                   lastFogSample = newFogSample;
 
-                  if (step < RAYMARCHING_STEP) {
+                  if (step < uRaymarchingStep) {
                     break;
                   }
                 }
 
-                cumulatedFog *= FOG_DENSITY;
+                cumulatedFog *= uFogDensity;
                 
                 fragColor = vec4(uFogColor, cumulatedFog);
             }`,
@@ -296,6 +300,8 @@ class VolumetricFogRenderpass extends Pass {
     this.#material_fog.uniforms.uThreshold.value = this.threshold - 0.5
     this.#material_fog.uniforms.uSmoothness.value = 0.5 * this.smoothness
     this.#material_fog.uniforms.uFogColor.value = this.fog_color
+    this.#material_fog.uniforms.uFogDensity.value = this.fog_density
+    this.#material_fog.uniforms.uRaymarchingStep.value = this.raymarching_step
     this.#material_fog.uniforms.uProjMatrixInverse.value =
       this.camera.projectionMatrixInverse
     this.#material_fog.uniforms.uViewMatrixInverse.value =

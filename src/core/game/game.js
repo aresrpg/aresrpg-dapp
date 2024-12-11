@@ -196,6 +196,8 @@ export const INITIAL_STATE = {
         enabled: true,
         threshold: 0.6,
         smoothness: 0.2,
+        fog_density: 0.08,
+        raymarching_step: 1,
       },
 
       bloom_pass: {

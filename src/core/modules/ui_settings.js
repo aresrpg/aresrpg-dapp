@@ -226,6 +226,19 @@ export default function () {
         .add(settings.postprocessing.volumetric_fog_pass, 'smoothness', 0, 1)
         .name('Smoothness')
         .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(settings.postprocessing.volumetric_fog_pass, 'fog_density', 0, 0.1)
+        .name('Density')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'raymarching_step',
+          0.1,
+          2,
+        )
+        .name('Raymarching step')
+        .onFinishChange(dispatch_postprocessing_change)
       postprocessing_fog_folder.open()
 
       postprocessing_folder
