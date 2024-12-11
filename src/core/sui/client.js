@@ -16,7 +16,7 @@ import { bcs } from '@mysten/sui/bcs'
 import { context } from '../game/game.js'
 import logger from '../../logger.js'
 import toast from '../../toast.js'
-import { NETWORK, VITE_SPONSOR_URL, VITE_SUI_RPC } from '../../env.js'
+import { NETWORK, VITE_SUI_RPC } from '../../env.js'
 // @ts-ignore
 import { i18n } from '../../i18n.js'
 

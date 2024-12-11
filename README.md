@@ -36,7 +36,6 @@ cd app
 ```
 VITE_SUI_RPC = 'https://your rpc',
 VITE_SERVER_URL = 'https://testnet-api.aresrpg.world',
-VITE_SPONSOR_URL = 'https://testnet-sponsor.aresrpg.world',
 VITE_NETWORK = 'testnet',
 ```
 
