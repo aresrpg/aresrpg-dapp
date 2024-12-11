@@ -4,8 +4,6 @@ import {
   NoBlending,
   PerspectiveCamera,
   RawShaderMaterial,
-  Vector3,
-  Vector4,
   WebGLRenderTarget,
   WebGLRenderer,
 } from 'three'
@@ -95,10 +93,14 @@ class VolumetricFogRenderpass extends Pass {
   #material_composition
   #rendertarget
 
-  constructor(/** @type PerspectiveCamera */ camera) {
+  constructor(
+    /** @type PerspectiveCamera */ camera,
+    /** @type import("three").LightShadow */ light_shadow,
+  ) {
     super()
 
     this.camera = camera
+    this.light_shadow = light_shadow
 
     this.smoothness = 0.2
     this.threshold = 0.6
@@ -127,6 +129,8 @@ class VolumetricFogRenderpass extends Pass {
         uFogColor: { value: this.fog_color },
         uProjMatrixInverse: { value: new Matrix4() },
         uViewMatrixInverse: { value: new Matrix4() },
+        uShadowMap: { value: null },
+        uShadowCameraVP: { value: new Matrix4() },
       },
       vertexShader: `in vec2 aCorner;
 
@@ -157,6 +161,9 @@ class VolumetricFogRenderpass extends Pass {
             uniform float uSmoothness;
             uniform mat4 uViewMatrixInverse;
 
+            uniform sampler2D uShadowMap;
+            uniform mat4 uShadowCameraVP;
+
             in vec2 vUv;
             in vec3 vFragmentViewPosition;
             in vec3 vCameraWorldPosition;
@@ -172,8 +179,19 @@ class VolumetricFogRenderpass extends Pass {
             }
 
             float sampleFog(const vec3 position) {
-                float fog = noise(0.06 * position + 0.1 * vec3(uTime, 0, 0));
-                return smoothstep(uThreshold - uSmoothness, uThreshold + uSmoothness, fog);
+                float fogDensity = noise(0.06 * position + 0.1 * vec3(uTime, 0, 0));
+                fogDensity = smoothstep(uThreshold - uSmoothness, uThreshold + uSmoothness, fogDensity);
+
+                vec4 shadowCoord = uShadowCameraVP * vec4(position, 1.0);
+                shadowCoord /= shadowCoord.w;
+                shadowCoord = 0.5 + 0.5 * shadowCoord;
+
+                const float SHADOW_BIAS = 0.01;
+                float depth_shadowMap = unpackRGBAToDepth(texture(uShadowMap, shadowCoord.xy));
+                float ilumination = smoothstep(shadowCoord.z - SHADOW_BIAS, shadowCoord.z, depth_shadowMap);
+                fogDensity *= ilumination;
+
+                return fogDensity;
             }
 
             void main(void) {
@@ -282,6 +300,12 @@ class VolumetricFogRenderpass extends Pass {
       this.camera.projectionMatrixInverse
     this.#material_fog.uniforms.uViewMatrixInverse.value =
       this.camera.matrixWorld
+    this.#material_fog.uniforms.uShadowMap.value = this.light_shadow.map.texture
+    this.#material_fog.uniforms.uShadowCameraVP.value =
+      new Matrix4().multiplyMatrices(
+        this.light_shadow.camera.projectionMatrix,
+        this.light_shadow.camera.matrixWorldInverse,
+      )
 
     this.#fullscreen_quad.material = this.#material_fog
     renderer.render(this.#fullscreen_quad, this.#camera)

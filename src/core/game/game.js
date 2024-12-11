@@ -390,6 +390,9 @@ scene.background = new Color('#000000')
 scene.fog = new Fog('#000000', 0.25 * camera.far, 0.98 * camera.far)
 
 const directional_light = new DirectionalLight(0xffffff, 1)
+directional_light.castShadow = true
+directional_light.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
+directional_light.shadow.mapSize.height = 4096
 
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)

@@ -1,15 +1,15 @@
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+import { Vector2 } from 'three'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
-import { Color, PointLight, Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import { state_iterator } from '../utils/iterator.js'
-import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 import { GodraysPass } from '../game/rendering/godrays_pass.js'
+import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 import { VolumetricFogRenderpass } from '../game/rendering/volumetric_fog_renderpass.js'
+import { state_iterator } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -29,7 +29,7 @@ export default function () {
       }
     },
 
-    observe({ scene, signal, composer, camera }) {
+    observe({ scene, signal, composer, camera, directional_light }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
 
       const renderpass = new RenderPass(scene, camera)
@@ -50,7 +50,10 @@ export default function () {
 
       const underwater_pass = new UnderwaterPass()
       const godrays_pass = new GodraysPass(camera)
-      const volumetric_fog_pass = new VolumetricFogRenderpass(camera)
+      const volumetric_fog_pass = new VolumetricFogRenderpass(
+        camera,
+        directional_light.shadow,
+      )
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)

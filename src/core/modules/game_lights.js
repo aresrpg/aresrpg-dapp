@@ -20,17 +20,12 @@ function distance_between(position1, position2) {
 /** @type {Type.Module} */
 export default function () {
   return {
-    observe({ scene, events, signal, camera }) {
+    observe({ scene, events, signal, camera, directional_light }) {
       // lights
       const ambient_light = new AmbientLight(0xffffff, 1.5)
       ambient_light.layers.enable(CartoonRenderpass.non_outlined_layer)
 
-      const directional_light = new DirectionalLight(0xffffff, 1)
       const dircamera_helper = new CameraHelper(directional_light.shadow.camera)
-
-      directional_light.castShadow = true
-      directional_light.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
-      directional_light.shadow.mapSize.height = 4096
 
       directional_light.shadow.camera.near = CAMERA_SHADOW_NEAR
       directional_light.shadow.camera.far = CAMERA_SHADOW_FAR
