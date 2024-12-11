@@ -17,7 +17,7 @@ export function get_ground_height(pos) {
     cache_query_params,
   )
   return ground_block instanceof Promise
-    ? ground_block.then(block => block?.pos.y ?? 100)
+    ? ground_block.then(block => block?.pos?.y ?? 100)
     : ground_block.pos.y
 }
 

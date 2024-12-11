@@ -1,8 +1,6 @@
 import { Box2, Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import {
-  BlockCategory,
-  BlockType,
   BoardContainer,
   ChunkContainer,
   WorldUtils,

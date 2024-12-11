@@ -84,6 +84,7 @@ export default function () {
       )
       const data = res.map(block => ({
         altitude: block.pos.y + 0.25,
+        // @ts-ignore
         color: new Color(blocks_color_mapping[block.data.type]),
       }))
       return data

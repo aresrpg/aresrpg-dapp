@@ -1,6 +1,3 @@
-// import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
-// import { BlockType } from '@aresrpg/aresrpg-world/biomes'
-
 export const BLOCKS = {
   DBG_LIGHT: '#fff',
   DBG_DARK: '#212121',

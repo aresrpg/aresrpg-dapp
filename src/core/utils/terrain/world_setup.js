@@ -1,9 +1,9 @@
-import { WorldDevSetup, WorldEnv } from '@aresrpg/aresrpg-world'
+import { WorldEnv } from '@aresrpg/aresrpg-world'
 
 import { chunk_data_encoder } from './world_utils.js'
 import { LANDSCAPE, SCHEMATICS_BLOCKS_MAPPING } from './world_settings.js'
 import { SCHEMATICS_FILES } from './schematics_files.js'
-import WORLD_WORKER_URL from './world_compute_worker.js?url&worker'
+import WORLD_WORKER_URL from './world_compute_worker.js?url'
 
 // TODO: remove hardcoding and retrieve dynamic value from world
 const SEA_LEVEL = 76
@@ -24,11 +24,13 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
   world_env.biomes.rawConf = LANDSCAPE
   // populate inventory with schematics
   world_env.schematics.blocksMapping = SCHEMATICS_BLOCKS_MAPPING
+  // @ts-ignore
   world_env.schematics.filesIndex = SCHEMATICS_FILES
 
   // WORKER POOL
   world_env.workerPool.url = WORLD_WORKER_URL
   world_env.workerPool.count = 4
+  // @ts-ignore
   world_env.workerPool.type = import.meta.env.PROD ? undefined : 'module'
 
   // BOARDS
