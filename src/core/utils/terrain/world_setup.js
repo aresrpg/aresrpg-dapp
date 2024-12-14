@@ -24,8 +24,7 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
   // EXTERNAL CONFIGS/RESOURCES
   world_env.biomes.rawConf = LANDSCAPE
   // populate inventory with schematics
-  world_env.schematics.blocksMapping = SCHEMATICS_BLOCKS_MAPPING
-  // @ts-ignore
+  world_env.schematics.globalBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
   world_env.schematics.filesIndex = SCHEMATICS_FILES
 
   // WORKER POOL
