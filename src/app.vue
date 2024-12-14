@@ -8,6 +8,8 @@ import deep_equal from 'fast-deep-equal';
 
 import { decrease_loading, increase_loading } from './core/utils/loading.js';
 import { get_spells } from './core/game/spells_per_class.js';
+import toast from './toast.js';
+import { translate } from './i18n.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore
@@ -93,6 +95,7 @@ const admin = reactive({
 const owned_tokens = ref([]);
 const finished_crafts = ref([]);
 const currently_listed_items_names = ref({});
+const recipes = ref([]);
 
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
@@ -123,7 +126,7 @@ provide('finished_crafts', finished_crafts);
 provide('message_history', message_history);
 provide('currently_listed_items_names', currently_listed_items_names);
 
-provide('recipes', ref([]));
+provide('recipes', recipes);
 
 function update_all(
   state,
@@ -172,6 +175,8 @@ function update_all(
 
   if (sui.finished_crafts.length !== finished_crafts.value.length)
     finished_crafts.value = sui.finished_crafts;
+
+  if (sui.recipes.length !== recipes.value.length) recipes.value = sui.recipes;
 
   const all_ids = characters.map(c => c.id);
 

@@ -236,6 +236,7 @@ export const INITIAL_STATE = {
     admin_caps: [],
 
     finished_crafts: [],
+    recipes: [],
   },
 
   // is the user connected to the websocket

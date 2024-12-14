@@ -1,17 +1,16 @@
 <template lang="pug">
 .recipe.material-2
   .top
-    img(:src="item_icon(recipe.template.item_type)")
+    img(:src="item_icon(recipe.item_type)")
     .name
-      span {{ recipe.template.name }}
-      .job #[b {{ t('APP_RECIPE_REQUIREMENTS') }}]: {{ t('APP_RECIPE_TAILOR') }} {{ recipe.level }}
-    .lvl Lvl. {{ recipe.template.level }}
+      span {{ recipe.name }}
+    .lvl Lvl. {{ recipe.level }}
   .bottom
     .ingredients
-      vs-tooltip(v-for="ingredient in recipe.ingredients" :key="ingredient.item_type")
+      vs-tooltip(v-for="ingredient in recipe.ingredients" :key="ingredient.name")
         template(#content) {{ ingredient.name }}
         .ingredient
-          img(:src="item_icon(ingredient.item_type)" :alt="ingredient.item_type" :class="{ token: ingredient.item_type.length > 20 }")
+          img(:src="item_icon(ingredient.item || ingredient.token)" :alt="ingredient.name" :class="{ token: !!ingredient.token }")
           span x{{ pretty_amount(ingredient) }}
     .btns
       vs-button(v-if="admin.admin_caps.length" type="gradient" size="small" color="#F4511E" @click="delete_recipe") Delete
@@ -23,7 +22,7 @@
   vs-dialog(v-model="craft_dialog")
     template(#header) {{ t('APP_RECIPE_CRAFT_TITLE') }}
     i18n-t(keypath="APP_RECIPE_CRAFT_DESC")
-      b.itemname {{ recipe.template.name }} (Lvl. {{ recipe.template.level }})
+      b.itemname {{ recipe.name }} (Lvl. {{ recipe.level }})
     template(#footer)
       .dialog-footer
         vs-button(type="transparent" color="#E74C3C" @click="craft_dialog = false") {{ t('APP_RECIPE_CANCEL') }}

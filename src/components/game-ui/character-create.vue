@@ -175,7 +175,7 @@ async function create_character() {
     new_character_name.value = '';
   } catch (error) {
     if (error) tx.update('error', t('APP_CHARACTER_CREATE_ERROR'));
-    console.error(error);
+    else tx.remove();
   }
   create_button_disabled.value = false;
 }

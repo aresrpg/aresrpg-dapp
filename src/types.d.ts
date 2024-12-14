@@ -74,12 +74,6 @@ declare namespace Type {
       spells: Spell[]
     }
 
-  type Receipt = {
-    id: string
-    storage_id: string
-    character_id: string
-  }
-
   type sigTransactionParams = {
     transaction_block: import('@mysten/sui/transactions').Transaction
     sender: string
@@ -87,6 +81,16 @@ declare namespace Type {
 
   type WalletAccount = import('@mysten/wallet-standard').WalletAccount & {
     alias: string
+  }
+
+  type Recipe = {
+    type: string
+    ingredients: string
+    name: string
+    item_category: string
+    item_set: string
+    item_type: string
+    level: string
   }
 
   type Wallet = {
@@ -101,7 +105,7 @@ declare namespace Type {
     signPersonalMessage: (
       message: string,
       address: string,
-    ) => Promise<{ bytes: string; signature: string; zk?: boolean }>
+    ) => Promise<{ bytes: string; signature: string }>
     signTransaction: (param: sigTransactionParams) => Promise
   }
 
@@ -142,21 +146,12 @@ declare namespace Type {
     'action/sui_add_item_for_sale': { id: string; list_price: bigint }
     'action/sui_create_character': SuiCharacter
     'action/sui_delete_character': string
-    'action/sui_add_character': string
-    'action/add_finished_craft': { id: string; recipe_id: string }
+    'action/add_finished_craft': { id: string; template: string }
+    'action/add_recipe': Recipe
     'action/sui_remove_item': string
     'action/sui_remove_item_for_sale': { id: string; keep: boolean }
     'action/sui_remove_finished_craft': string
     'action/sui_update_item': SuiItem
-    'action/sui_split_item': {
-      item: SuiItem
-      new_item: SuiItem
-    }
-    'action/sui_merge_item': {
-      item_id: string
-      target_item_id: string
-      final_amount: number
-    }
     'action/sui_equip_item': {
       slot: string
       item: SuiItem
