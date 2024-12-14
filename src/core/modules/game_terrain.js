@@ -34,7 +34,7 @@ const LOD_MODE = {
 
 const FLAGS = {
   LOD_MODE: LOD_MODE.DISABLED,
-  BOARD_POC: false, // POC toggle until board integration is finished
+  BOARD_POC: true, // POC toggle until board integration is finished
 }
 const altitude = { min: -1, max: 400 }
 
@@ -211,16 +211,20 @@ export default function () {
           // Board live test
           if (FLAGS.BOARD_POC) {
             const board_chunks = board_wrapper.update(current_pos)
+            let board_refreshed = false
             for await (const board_chunk of board_chunks) {
               render_chunk(board_chunk)
+              board_refreshed = true
             }
-            if (board_wrapper.handler?.container) {
-              board_wrapper.handler.dispose()
-              scene.remove(board_wrapper.handler.container)
-            }
-            board_wrapper.highlight()
-            if (board_wrapper.handler?.container) {
-              scene.add(board_wrapper.handler.container)
+            if (board_refreshed) {
+              if (board_wrapper.handler?.container) {
+                board_wrapper.handler.dispose()
+                scene.remove(board_wrapper.handler.container)
+              }
+              board_wrapper.highlight()
+              if (board_wrapper.handler?.container) {
+                scene.add(board_wrapper.handler.container)
+              }
             }
           }
         }
