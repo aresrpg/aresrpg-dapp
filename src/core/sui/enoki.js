@@ -77,7 +77,6 @@ export function enoki_wallet() {
         ...(await keypair.signPersonalMessage(
           new TextEncoder().encode(message),
         )),
-        zk: true,
       }
     },
     /**
@@ -93,7 +92,7 @@ export function enoki_wallet() {
         }),
       )
 
-      return { signature, bytes, zk: true }
+      return { signature, bytes }
     },
   }
 }

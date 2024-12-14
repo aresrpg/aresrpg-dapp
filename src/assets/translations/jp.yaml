@@ -163,7 +163,6 @@ APP_MINT_CARD_VAPOREONTEXT: |
   このシャワーズは、AresRPGで装備できるペットで、探索や戦闘であなたに同行します。
   毎日$HSUIで餌を与えると、ステータスが上がります。
 
-APP_RECIPE_REQUIREMENTS: 必要条件
 APP_RECIPE_TAILOR: 裁縫師
 APP_RECIPE_CRAFT: クラフト
 APP_RECIPE_REVEAL: 明らかにする
@@ -177,6 +176,7 @@ APP_RECIPE_REVEALING: アイテムを明らかにしています
 APP_RECIPE_REVEALED: アイテムが明らかになりました
 APP_RECIPE_FAILED_TO_REVEAL: アイテムの明らかに失敗しました
 APP_RECIPE_CLOSE: 閉じる
+APP_RECIPE_LEARNED: 新しいレシピを学びました！ ({0})
 
 APP_SERVER_ONLINE_PLAYERS: オンラインプレイヤー
 APP_SERVER_TOTAL_PLAYERS: 登録プレイヤー

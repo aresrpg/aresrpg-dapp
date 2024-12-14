@@ -165,7 +165,6 @@ APP_MINT_CARD_VAPOREONTEXT: |
   Ce Vaporeon est un familier que vous pouvez équiper sur AresRPG, il vous suivra dans vos explorations et combats.
   Nourrissez-le quotidiennement avec du $HSUI, et il augmentera vos statistiques
 
-APP_RECIPE_REQUIREMENTS: Requis
 APP_RECIPE_TAILOR: Tailleur
 APP_RECIPE_CRAFT: Fabriquer
 APP_RECIPE_REVEAL: Révéler
@@ -179,6 +178,7 @@ APP_RECIPE_REVEALING: Révélation de l'item
 APP_RECIPE_REVEALED: Item révélé
 APP_RECIPE_FAILED_TO_REVEAL: Échec de la révélation de l'item
 APP_RECIPE_CLOSE: Fermer
+APP_RECIPE_LEARNED: Nouvelle recette apprise! ({0})
 
 APP_SERVER_ONLINE_PLAYERS: Joueurs en ligne
 APP_SERVER_TOTAL_PLAYERS: Joueurs enregistrés

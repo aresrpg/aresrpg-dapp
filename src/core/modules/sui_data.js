@@ -4,7 +4,7 @@ import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
 
-import { i18n } from '../../i18n.js'
+import { i18n, translate } from '../../i18n.js'
 import { context, disconnect_ws } from '../game/game.js'
 import {
   pretty_print_mists,
@@ -14,6 +14,7 @@ import {
   sui_get_finished_crafts,
   sui_get_items,
   sui_get_my_listings,
+  sui_get_recipes,
   sui_get_sui_balance,
   sui_get_supported_tokens,
 } from '../sui/client.js'
@@ -22,6 +23,8 @@ import toast from '../../toast.js'
 
 // @ts-ignore
 import EmojioneMoneyBag from '~icons/emojione/money-bag'
+// @ts-ignore
+import TwemojiScroll from '~icons/twemoji/scroll?width=36px&height=36px'
 
 export const DEFAULT_SUI_CHARACTER = () => ({
   id: 'default',
@@ -185,7 +188,10 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            characters: [...state.sui.characters, payload],
+            characters: [
+              ...state.sui.characters.filter(({ id }) => id !== payload.id),
+              payload,
+            ],
           },
         }
       }
@@ -202,61 +208,6 @@ export default function () {
         }
       }
 
-      if (type === 'action/sui_split_item') {
-        const { item, new_item } = payload
-        const original_item = state.sui.items.find(
-          o_item => o_item.id === item?.id,
-        )
-
-        let items = [...state.sui.items]
-
-        // Case 1: We know the local item AND item exists AND new_item exists
-        // Action: Update original item amount and add new item
-        if (original_item && item && new_item) {
-          items = items.map(i =>
-            i.id === original_item.id ? { ...i, amount: item.amount } : i,
-          )
-          items.push(new_item)
-        }
-
-        // Case 2: We know the local item AND item exists AND no new_item
-        // Action: Just update original item amount
-        else if (original_item && item) {
-          items = items.map(i =>
-            i.id === original_item.id ? { ...i, amount: item.amount } : i,
-          )
-        }
-
-        // Case 3: We don't know the local item AND we have a new_item
-        // Action: Add the new item to our list
-        else if (!original_item && new_item) {
-          items.push(new_item)
-        }
-
-        return {
-          ...state,
-          sui: {
-            ...state.sui,
-            items,
-          },
-        }
-      }
-      if (type === 'action/sui_merge_item') {
-        const { item_id, target_item_id, final_amount } = payload
-        const target_item = state.sui.items.find(
-          item => item.id === target_item_id,
-        )
-
-        target_item.amount = final_amount
-
-        return {
-          ...state,
-          sui: {
-            ...state.sui,
-            items: state.sui.items.filter(({ id }) => id !== item_id),
-          },
-        }
-      }
       if (type === 'action/sui_remove_finished_craft') {
         return {
           ...state,
@@ -306,18 +257,21 @@ export default function () {
           },
         }
       }
+      if (type === 'action/add_recipe') {
+        return {
+          ...state,
+          sui: {
+            ...state.sui,
+            recipes: [...state.sui.recipes, payload],
+          },
+        }
+      }
       if (type === 'action/add_finished_craft') {
         return {
           ...state,
           sui: {
             ...state.sui,
-            finished_crafts: [
-              ...state.sui.finished_crafts,
-              {
-                id: payload.id,
-                recipe_id: payload.recipe_id,
-              },
-            ],
+            finished_crafts: [...state.sui.finished_crafts, payload],
           },
         }
       }
@@ -373,13 +327,13 @@ export default function () {
           update(character) {
             context.dispatch('action/character_update', character)
           },
-          purchase({ character, price, seller, sender }) {
+          purchase({ character_id, price, seller, sender }) {
             if (+price === 0) return
             const state = context.get_state()
             // If I'm the seller
             if (seller === state.sui.selected_address) {
               const my_listing = state.sui.items_for_sale.find(
-                listing => listing.id === character.id,
+                listing => listing.id === character_id,
               )
 
               // if the price isn't 0
@@ -391,25 +345,18 @@ export default function () {
                 EmojioneMoneyBag,
               )
               context.dispatch('action/sui_remove_item_for_sale', {
-                id: character.id,
+                id: character_id,
                 keep: false,
               })
 
               SUI_EMITTER.emit('ItemSoldEvent', my_listing)
             }
 
-            // If I'm the buyer
-            if (sender === state.sui.selected_address) {
-              const my_listing = context
-                .get_state()
-                .sui.items_for_sale.find(listing => listing.id === character.id)
-
-              // If I didn't list the item (making sure i'm not buying my own item)
-              if (!my_listing) {
-                context.dispatch('action/sui_add_character', character)
-              }
-            }
-            SUI_EMITTER.emit('ItemPurchasedEvent', { character, price, seller })
+            SUI_EMITTER.emit('ItemPurchasedEvent', {
+              character: { id: character_id },
+              price,
+              seller,
+            })
           },
         },
         vaporeon: {
@@ -424,27 +371,14 @@ export default function () {
         item: {
           create(item) {
             context.dispatch('action/sui_add_item', item)
-            SUI_EMITTER.emit('ItemRevealedEvent', item)
+            // TODO: Since the user now mint his own item, this event is not always a craft reveal
+            // SUI_EMITTER.emit('ItemRevealedEvent', item)
           },
           delete(item_id) {
             context.dispatch('action/sui_remove_item', item_id)
           },
           update(item) {
             context.dispatch('action/sui_update_item', item)
-          },
-          merge({ target_item, item_id }) {
-            context.dispatch('action/sui_merge_item', {
-              target_item_id: target_item.id,
-              item_id,
-              final_amount: target_item.amount,
-            })
-            SUI_EMITTER.emit('ItemMergeEvent', event)
-          },
-          split({ new_item, item }) {
-            context.dispatch('action/sui_split_item', {
-              item,
-              new_item,
-            })
           },
           list({ item, price }) {
             if (+price === 0) return
@@ -454,8 +388,6 @@ export default function () {
                 id: item.id,
                 list_price: price,
               })
-
-              context.dispatch('action/sui_remove_item', item.id)
             }
             SUI_EMITTER.emit('ItemListedEvent', { item, price })
           },
@@ -492,30 +424,17 @@ export default function () {
               SUI_EMITTER.emit('ItemSoldEvent', my_listing)
             }
 
-            // If I'm the buyer
-            if (item.owner === state.sui.selected_address) {
-              const my_listing = context
-                .get_state()
-                .sui.items_for_sale.find(listing => listing.id === item.id)
-
-              // If I didn't list the item (making sure i'm not buying my own item)
-              if (!my_listing) {
-                context.dispatch('action/sui_add_item', {
-                  ...item,
-                  is_kiosk_personal: true,
-                })
-              }
-            }
-
             SUI_EMITTER.emit('ItemPurchasedEvent', { item, price, seller })
           },
         },
         recipe: {
           create(recipe) {
-            SUI_EMITTER.emit('RecipeCreateEvent', recipe)
-          },
-          delete(recipe_id) {
-            SUI_EMITTER.emit('RecipeDeleteEvent', recipe_id)
+            toast.info(
+              translate('APP_RECIPE_LEARNED', [recipe.name]),
+              '',
+              TwemojiScroll,
+            )
+            context.dispatch('action/add_recipe', recipe)
           },
         },
         craft: {
@@ -525,9 +444,14 @@ export default function () {
         },
         admin: {
           // when an admin cap appears in a checkpoint (might be new)
-          update(cap) {
+          create(id) {
             context.dispatch('action/sui_data_update', {
-              admin_caps: context.get_state().sui.admin_caps.concat(cap),
+              admin_caps: [
+                ...context
+                  .get_state()
+                  .sui.admin_caps.filter(cap => cap.id !== id),
+                { id },
+              ],
             })
           },
           delete(id) {
@@ -610,6 +534,9 @@ export default function () {
                     characters,
                   }
                 }),
+                sui_get_recipes().then(result => ({
+                  recipes: result,
+                })),
                 sui_get_sui_balance().then(result => ({
                   balance: result,
                 })),

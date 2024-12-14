@@ -3,6 +3,7 @@ import { WorldEnv } from '@aresrpg/aresrpg-world'
 import { chunk_data_encoder } from './world_utils.js'
 import { LANDSCAPE, SCHEMATICS_BLOCKS_MAPPING } from './world_settings.js'
 import { SCHEMATICS_FILES } from './schematics_files.js'
+// @ts-ignore
 import WORLD_WORKER_URL from './world_compute_worker.js?url&worker'
 
 // TODO: remove hardcoding and retrieve dynamic value from world

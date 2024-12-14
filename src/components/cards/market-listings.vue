@@ -181,18 +181,28 @@ function on_listings_response(payload) {
   select_item(items[0]);
 }
 
+function on_item_listed({ item, price }) {
+  listings.value = [
+    ...listings.value,
+    {
+      ...item,
+      list_price: price,
+    },
+  ];
+}
+
 onMounted(async () => {
   context.events.on('packet/marketItemListings', on_listings_response);
   SUI_EMITTER.on('ItemPurchasedEvent', on_item_purchased);
   SUI_EMITTER.on('ItemDelistedEvent', on_item_delisted);
-  SUI_EMITTER.on('ItemListedEvent', fetch_listings);
+  SUI_EMITTER.on('ItemListedEvent', on_item_listed);
 });
 
 onUnmounted(() => {
   context.events.off('packet/marketItemListings', on_listings_response);
   SUI_EMITTER.off('ItemPurchasedEvent', on_item_purchased);
   SUI_EMITTER.off('ItemDelistedEvent', on_item_delisted);
-  SUI_EMITTER.off('ItemListedEvent', fetch_listings);
+  SUI_EMITTER.off('ItemListedEvent', on_item_listed);
 });
 </script>
 

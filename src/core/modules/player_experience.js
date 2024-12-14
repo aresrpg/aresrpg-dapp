@@ -9,9 +9,9 @@ export default function () {
         .filter(state => state.online)
         .reduce((last_experiences, state) => {
           state.sui.characters.forEach(character => {
-            if (!last_experiences.has(character.id)) {
+            if (!last_experiences.has(character.id))
               last_experiences.set(character.id, character.experience)
-            }
+
             const last_experience = last_experiences.get(character.id)
 
             if (last_experience !== character.experience) {

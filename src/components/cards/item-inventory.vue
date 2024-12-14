@@ -91,8 +91,8 @@ async function use_item() {
     });
     tx.update('success', t('APP_ITEM_USED'), { digest });
   } catch (error) {
-    console.error(error);
-    tx.update('error', t('APP_ITEM_FAILED_TO_USE'));
+    if (error) tx.update('error', t('APP_ITEM_FAILED_TO_USE'));
+    else tx.remove();
   }
 }
 

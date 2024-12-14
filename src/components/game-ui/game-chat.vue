@@ -17,7 +17,11 @@
       .text {{ message }}
   .input
     vs-button.canal(type="relief" color="#ECF0F1" size="small") general
-    input(@keydown.stop="" v-model="current_message" @keyup.enter="send_message")
+    input(
+      @keydown.stop="handle_keydown"
+      v-model="current_message"
+      @keyup.enter="send_message"
+    )
 </template>
 
 <script setup>
@@ -27,7 +31,15 @@ import { useI18n } from 'vue-i18n';
 
 import toast from '../../toast.js';
 import { context } from '../../core/game/game.js';
-import { get_alias, sui_get_character_name } from '../../core/sui/client.js';
+import {
+  get_alias,
+  sui_get_character_name,
+  sui_console_command,
+} from '../../core/sui/client.js';
+import {
+  decrease_loading,
+  increase_loading,
+} from '../../core/utils/loading.js';
 
 const history = inject('message_history');
 const msg_container = ref(null);
@@ -37,6 +49,49 @@ const wide = ref(false);
 const current_message = ref('');
 const online = inject('online');
 const { t } = useI18n();
+
+const message_history = ref([]);
+const history_index = ref(-1);
+const saved_message = ref('');
+
+const handle_keydown = event => {
+  // Handle up arrow
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (history_index.value === -1) {
+      saved_message.value = current_message.value;
+    }
+    if (
+      message_history.value.length > 0 &&
+      history_index.value < message_history.value.length - 1
+    ) {
+      history_index.value++;
+      current_message.value = message_history.value.at(
+        -(history_index.value + 1),
+      );
+    }
+    return;
+  }
+
+  // Handle down arrow
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (history_index.value <= 0) {
+      history_index.value = -1;
+      current_message.value = saved_message.value;
+      return;
+    }
+    history_index.value--;
+    current_message.value = message_history.value.at(
+      -(history_index.value + 1),
+    );
+  }
+};
+
+function add_to_history(msg) {
+  message_history.value = [...message_history.value.slice(-9), msg];
+  history_index.value = -1;
+}
 
 function on_right_click_id(event, id) {
   event.preventDefault();
@@ -65,7 +120,7 @@ function set_wide(value) {
   }
 }
 
-function send_message() {
+async function send_message() {
   const msg = current_message.value.trim();
   if (!msg) return;
 
@@ -75,18 +130,27 @@ function send_message() {
   }
 
   const id = context.get_state().selected_character_id;
-
   if (!id) {
     toast.error(t('APP_GAME_CHAT_NO_CHARACTER'));
     return;
   }
 
-  context.send_packet('packet/chatMessage', {
-    id,
-    address: '',
-    message: msg,
-  });
+  add_to_history(msg);
   current_message.value = '';
+
+  if (msg.startsWith('/')) {
+    increase_loading();
+    try {
+      await sui_console_command(msg);
+    } catch (error) {
+      console.error('Unable to send console command', error);
+    } finally {
+      decrease_loading();
+    }
+    return;
+  }
+
+  context.send_packet('packet/chatMessage', { id, address: '', message: msg });
 }
 
 function address_display(address) {

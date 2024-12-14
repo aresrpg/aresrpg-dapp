@@ -164,7 +164,6 @@ APP_MINT_CARD_VAPOREONTEXT: |
   This Vaporeon is a pet which you can equip on AresRPG, he will follow you in your exploration and fights.
   Feed him with some $HSUI daily, and he will increase your stats
 
-APP_RECIPE_REQUIREMENTS: Requirements
 APP_RECIPE_TAILOR: Tailor
 APP_RECIPE_CRAFT: Craft
 APP_RECIPE_REVEAL: Reveal
@@ -178,6 +177,7 @@ APP_RECIPE_REVEALING: Revealing item
 APP_RECIPE_REVEALED: Item revealed
 APP_RECIPE_FAILED_TO_REVEAL: Failed to reveal item
 APP_RECIPE_CLOSE: Close
+APP_RECIPE_LEARNED: New recipe learned! ({0})
 
 APP_SERVER_ONLINE_PLAYERS: Online players
 APP_SERVER_TOTAL_PLAYERS: Registered players
