@@ -32,10 +32,17 @@ const LOD_MODE = {
   STATIC: 1,
   DYNAMIC: 2,
 }
-
+export function get_board_state() {
+  return board_wrapper
+}
+export function update_started() {
+  started = false
+}
+let started = false
+let board_wrapper
 const FLAGS = {
   LOD_MODE: LOD_MODE.DISABLED,
-  BOARD_POC: false, // POC toggle until board integration is finished
+  BOARD_POC: true, // POC toggle until board integration is finished
 }
 // settings
 const blocks_color_mapping = {
@@ -65,7 +72,7 @@ export default function () {
 
   // patch containers
   const chunks_indexer = new ChunksIndexer()
-  const board_wrapper = new BoardWrapper()
+  board_wrapper = new BoardWrapper()
 
   // ENGINE
   const map = {
@@ -215,7 +222,8 @@ export default function () {
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
           // Board live test
-          if (FLAGS.BOARD_POC) {
+          if (FLAGS.BOARD_POC && !started) {
+            started = true
             const board_chunks = board_wrapper.update(current_pos)
             for await (const board_chunk of board_chunks) {
               render_chunk(board_chunk)
