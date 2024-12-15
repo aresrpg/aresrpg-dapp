@@ -2,6 +2,8 @@ import { context } from '../game/game.js'
 import { spawn_crescent_sword } from '../utils/game/objects.js'
 import { state_iterator } from '../utils/iterator.js'
 
+import { update_started } from './game_terrain.js'
+
 function is_in_team(team, character_id) {
   return team.some(({ id }) => id === character_id)
 }
@@ -50,6 +52,7 @@ export default function () {
         } catch (error) {
           console.error('Failed to spawn fight sword', error)
         }
+        update_started()
       })
 
       context.events.on('packet/fightsDespawn', ({ ids }) => {

@@ -16,11 +16,13 @@ export class BoardWrapper {
   handler
   content
   scene
+  sorted_start_pos
 
   constructor() {
     this.container = new BoardContainer()
     this.pos = new Vector3(0, 0, 0)
     this.bounds = new Box2()
+    this.sorted_start_pos = {}
   }
 
   async *update(current_pos) {
@@ -145,19 +147,19 @@ export class BoardWrapper {
       board_items,
       this.content,
     )
-    const sorted_start_pos = {}
-    sorted_start_pos.first = FightBoards.random_select_items(
+    // const sorted_start_pos = {}
+    this.sorted_start_pos.first = FightBoards.random_select_items(
       sorted_board_items.first,
       6,
     )
-    sorted_start_pos.second = FightBoards.random_select_items(
+    this.sorted_start_pos.second = FightBoards.random_select_items(
       sorted_board_items.second,
       6,
     )
-    const first_player_side = sorted_start_pos.first.map(block =>
+    const first_player_side = this.sorted_start_pos.first.map(block =>
       to_local_pos(block.pos),
     )
-    const second_player_side = sorted_start_pos.second.map(block =>
+    const second_player_side = this.sorted_start_pos.second.map(block =>
       to_local_pos(block.pos),
     )
     this.handler.displaySquares(first_player_side, new Color(0x0000ff))
