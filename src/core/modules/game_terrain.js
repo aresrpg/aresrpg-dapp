@@ -13,9 +13,36 @@ import { current_three_character } from '../game/game.js'
 import { abortable, combine, typed_on } from '../utils/iterator.js'
 import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
 import { world_shared_setup } from '../utils/terrain/world_setup.js'
-import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
-import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
-import { BoardHelper } from '../utils/terrain/board_helper.js'
+import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/world_settings.js'
+
+// NB: LOD should be set to STATIC to limit over-computations and fix graphical issues
+const LOD_MODE = {
+  DISABLED: 0,
+  STATIC: 1,
+  DYNAMIC: 2,
+}
+export function get_board_state() {
+  return board_wrapper
+}
+export function update_started() {
+  started = false
+}
+let started = false
+let board_wrapper
+const FLAGS = {
+  LOD_MODE: LOD_MODE.DISABLED,
+  BOARD_POC: true, // POC toggle until board integration is finished
+}
+// settings
+const blocks_color_mapping = {
+  ...BLOCKS_COLOR_MAPPING,
+  ...WorldDevSetup.BlocksColorMapping,
+}
+const altitude = { min: -1, max: 400 }
+
+const voxel_materials_list = Object.values(blocks_color_mapping).map(col => ({
+  color: new Color(col),
+}))
 
 /** @type {Type.Module} */
 export default function () {
@@ -28,7 +55,52 @@ export default function () {
 
   // patch containers
   const chunks_indexer = new ChunksIndexer()
-  const board_wrapper = new BoardHelper()
+  board_wrapper = new BoardWrapper()
+
+  // ENGINE
+  const map = {
+    minAltitude: altitude.min,
+    maxAltitude: altitude.max,
+    voxelMaterialsList: voxel_materials_list,
+    async sampleHeightmap(coords) {
+      FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
+        console.log(`block batch compute size: ${coords.length}`)
+      const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
+      const res = await WorldComputeProxy.current.computeBlocksBatch(
+        pos_batch,
+        {
+          includeEntitiesBlocks: true,
+        },
+      )
+      const data = res.map(block => ({
+        altitude: block.pos.y + 0.25,
+        // @ts-ignore
+        color: new Color(blocks_color_mapping[block.data.type]),
+      }))
+      return data
+    },
+  }
+
+  const voxelmap_viewer = new VoxelmapViewer(
+    chunks_range.bottomId,
+    chunks_range.topId,
+    voxel_materials_list,
+    {
+      patchSize: patch_size,
+      computationOptions: {
+        method: EComputationMethod.CPU_MULTITHREADED,
+        threadsCount: 4,
+      },
+      voxelsChunkOrdering: 'zxy',
+    },
+  )
+  const heightmap_viewer = new HeightmapViewer(map, {
+    basePatchSize: voxelmap_viewer.chunkSize.xz,
+    voxelRatio: 2,
+    maxLevel: 5,
+  })
+  const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
+  terrain_viewer.parameters.lod.enabled = FLAGS.LOD_MODE > 0
 
   return {
     tick() {
@@ -133,40 +205,22 @@ export default function () {
             // }
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
-          // Board
-        }
-        FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
-          terrain_viewer.setLod(camera.position, 50, camera.far)
-      })
-
-      aiter(
-        abortable(
-          combine(
-            typed_on(events, 'SPAWN_BOARD', { signal }),
-            typed_on(events, 'REMOVE_BOARD', { signal }),
-          ),
-        ),
-      ).forEach(async position => {
-        if (!position) {
-          board_wrapper.visible = false
-        } else {
-          board_wrapper.board_pos = position.clone().floor()
-          board_wrapper.visible = true
-        }
-
-        const board_chunks = board_wrapper.visible
-          ? board_wrapper.iterBoardChunks()
-          : board_wrapper.iterOriginalChunks()
-        for await (const board_chunk of board_chunks) {
-          render_world_chunk(board_chunk)
-        }
-        if (board_wrapper.handler?.container) {
-          board_wrapper.handler.dispose()
-          scene.remove(board_wrapper.handler.container)
-        }
-        board_wrapper.highlight()
-        if (board_wrapper.visible && board_wrapper.handler?.container) {
-          scene.add(board_wrapper.handler.container)
+          // Board live test
+          if (FLAGS.BOARD_POC && !started) {
+            started = true
+            const board_chunks = board_wrapper.update(current_pos)
+            for await (const board_chunk of board_chunks) {
+              render_chunk(board_chunk)
+            }
+            if (board_wrapper.handler?.container) {
+              board_wrapper.handler.dispose()
+              scene.remove(board_wrapper.handler.container)
+            }
+            board_wrapper.highlight()
+            if (board_wrapper.handler?.container) {
+              scene.add(board_wrapper.handler.container)
+            }
+          }
         }
         board_wrapper.updated = false
       })
