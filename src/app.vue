@@ -37,6 +37,8 @@ const owned_items = ref([]);
 
 const in_fight = ref(false);
 
+const fight_character_overview = ref(null);
+
 const equipment = reactive({
   relic_1: null,
   relic_2: null,
@@ -112,6 +114,7 @@ provide('equipment', equipment);
 provide('inventory_counter', inventory_counter);
 
 provide('in_fight', in_fight);
+provide('fight_character_overview', fight_character_overview);
 
 provide('selected_item', selected_item);
 provide('selected_category', selected_category);
