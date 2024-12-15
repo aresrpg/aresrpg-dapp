@@ -5,8 +5,11 @@
     zoneVue
     characterSelectVue
   .middle
+    gamePopup(v-if="debugpage.page === 1")
+    gameFightResult(v-if="debugpage.page === 2")
     gameInventory(v-if="inventory_opened")
     gameCharacteristic(v-if="stats_opened")
+    gameFightTimeline
   .bottom_panel
     gameChat
     gameHealth(
@@ -14,7 +17,10 @@
       @open_stats="open_stats"
       @open_spells="open_spells"
     )
-    gameSpellbar
+    //- if fight_character_overview show div with fight_character_overview string else show gamespellbar
+    //-{{ fight_character_overview }}
+    gameFightCharacterOverview(v-if="fight_character_overview && in_fight") 
+    gameSpellbar(v-else)
 </template>
 
 <script setup>
@@ -25,8 +31,12 @@ import zoneVue from './zone.vue';
 import gameChat from './game-chat.vue';
 import gameHealth from './game-health.vue';
 import gameSpellbar from './game-spellbar.vue';
+import gameFightCharacterOverview from './game-fight-character-overview.vue';
 import gameInventory from './game-inventory.vue';
 import gameCharacteristic from './game-characteristic.vue';
+import gamePopup from './game-popup.vue';
+import gameFightResult from './game-fight-result.vue';
+import gameFightTimeline from './game-fight-timeline.vue'
 import { get_board_state, update_started } from '../../core/modules/game_terrain';
 import { context, current_sui_character } from '../../core/game/game.js';
 import { ENTITIES } from '../../core/game/entities.js';
@@ -36,6 +46,8 @@ const selected_character = inject('selected_character');
 const stats_opened = ref(false);
 const spells_opened = ref(false);
 const inventory_opened = ref(false);
+
+let debugpage = ref({ page: 0 });
 
 async function open_inventory() {
   if (stats_opened.value) stats_opened.value = false;

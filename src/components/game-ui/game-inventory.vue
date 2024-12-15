@@ -8,7 +8,7 @@
       img.equipment(src="../../assets/ui/equipment.svg" :class="{ selected: selected_category === 'equipment' }" @click="selected_category = 'equipment'")
       img.consumables(src="../../assets/ui/consumable.svg" :class="{ selected: selected_category === 'consumables' }" @click="selected_category = 'consumables'")
       img.misc(src="../../assets/ui/misc.svg" :class="{ selected: selected_category === 'misc' }" @click="selected_category = 'misc'")
-      img.loot(src="../../assets/ui/loot.svg" :class="{ selected: selected_category === 'loot' }" @click="selected_category = 'loot'")
+      //- img.loot(src="../../assets/ui/loot.svg" :class="{ selected: selected_category === 'loot' }" @click="selected_category = 'loot'")
     itemInventory.i-inv
 </template>
 
@@ -59,14 +59,14 @@ watch(owned_items, items => {
 
   .item
     grid-area item
-    border 3px solid #ffffff
+    border 3px solid #514a3ccc
     background #beb998cc
     border-radius 12px
     padding .5em
     font-size .9rem
   .inventory
     grid-area inventory
-    border 3px solid #ffffff
+    border 3px solid #514a3ccc
     border-radius 12px
     display flex
     flex-flow column nowrap
@@ -77,7 +77,7 @@ watch(owned_items, items => {
       padding-top .5em
       padding-bottom 10px
       background #514a3ccc
-      border-radius 9px 9px 0px 0px
+      border-radius 8px 8px 0px 0px
       img
         width 34px
         border-radius 6px
