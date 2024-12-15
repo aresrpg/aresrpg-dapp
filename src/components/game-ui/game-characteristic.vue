@@ -3,7 +3,7 @@
   .stats
     .header
       // @todo use image_url
-      img(:src="`https://assets.aresrpg.world/classe/${selected_character.classe}_${selected_character.sex}.jpg`")
+      img(:src="selected_character.classe === 'default' ? 'https://assets.aresrpg.world/item/afegg.png' : `https://assets.aresrpg.world/classe/${selected_character.classe}_${selected_character.sex}.jpg`")  
       span.name {{ selected_character.name }}
     .container
       .level {{ t('APP_CHARACTER_STAT_LEVEL') }} {{ level }}
@@ -235,7 +235,7 @@ async function commit_stats() {
   .stats
     pointer-events: all;
     width 350px
-    border 3px solid #ffffff
+    border 3px solid #514a3ccc
     border-radius 12px
     display flex
     flex-flow column nowrap

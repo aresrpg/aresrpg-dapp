@@ -5,7 +5,7 @@
   img.open_inventory(src="../../assets/ui/inventory.png" @click="emits('open_inventory')")
   .health(:class="{ in_fight }" @click="show_health_percent = !show_health_percent")
     .health-bar(:style="{ maxHeight: `${percent_health}%`}")
-      img.sit(src="../../assets/ui/sit.png" @click.stop="sit_action")
+      img.sit(v-if="!in_fight" src="../../assets/ui/sit.png" @click.stop="sit_action")
     .health-value-percent(v-if="show_health_percent") {{ percent_health }}%
     .health-value(v-else)
       .health-top {{ health }}

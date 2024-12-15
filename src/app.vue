@@ -38,6 +38,27 @@ const owned_items = ref([]);
 
 const in_fight = ref(false);
 
+const fight_character_overview = ref(null);
+
+const equipment = reactive({
+  relic_1: null,
+  relic_2: null,
+  relic_3: null,
+  relic_4: null,
+  relic_5: null,
+  relic_6: null,
+  title: null,
+  amulet: null,
+  weapon: null,
+  left_ring: null,
+  belt: null,
+  right_ring: null,
+  boots: null,
+  hat: null,
+  cloak: null,
+  pet: null,
+});
+
 const selected_category = ref('equipment');
 const selected_item = ref(null);
 const edit_mode = ref(false);
@@ -95,6 +116,7 @@ provide('owned_items', owned_items);
 provide('inventory_counter', inventory_counter);
 
 provide('in_fight', in_fight);
+provide('fight_character_overview', fight_character_overview);
 
 provide('selected_item', selected_item);
 provide('selected_category', selected_category);
