@@ -1,4 +1,13 @@
-import { BoxGeometry, Group, LoopOnce, Mesh, Quaternion, Vector3 } from 'three'
+import {
+  BoxGeometry,
+  Color,
+  Group,
+  LoopOnce,
+  Mesh,
+  Quaternion,
+  Vector3,
+} from 'three'
+import { CustomizableTexture } from '@aresrpg/aresrpg-engine'
 
 import dispose from '../utils/three/dispose.js'
 
@@ -36,7 +45,8 @@ function entity_spawner(
   { skin, height, radius, scale = 1, hair = null },
 ) {
   return async ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
-    const { model, compute_animations, set_variant } = await load_model()
+    const { model, compute_animations, set_variant, textures } =
+      await load_model()
     const { mixer, actions } = compute_animations()
 
     model.scale.set(
@@ -98,6 +108,73 @@ function entity_spawner(
       return equip_promise
     }
 
+    const /** @type Map<string, CustomizableTexture> */ customizable_textures =
+        new Map()
+    {
+      // retrieve the different channels of the customizable textures on this model
+      const customizable_textures_parts = {}
+      for (const texture of textures) {
+        const match = texture.name.match(
+          /_(.+)_(diffuse|basecolour|accent1|accent2)/,
+        )
+        if (match && match[1] && match[2]) {
+          const textureBasename = match[1]
+          const channelName = match[2]
+          if (!customizable_textures_parts[textureBasename]) {
+            customizable_textures_parts[textureBasename] = {}
+          }
+          customizable_textures_parts[textureBasename][channelName] = texture
+        }
+      }
+
+      // assemble the channels to create customizable textures
+      for (const [textureBasename, channels] of Object.entries(
+        customizable_textures_parts,
+      )) {
+        if (
+          channels.diffuse &&
+          channels.basecolour &&
+          channels.accent1 &&
+          channels.accent2
+        ) {
+          if (customizable_textures.has(textureBasename)) {
+            throw new Error(
+              `Duplicate customizable texture "${textureBasename}".`,
+            )
+          }
+
+          const customizable_texture = new CustomizableTexture({
+            baseTexture: channels.diffuse,
+            additionalTextures: new Map([
+              ['basecolour', channels.basecolour],
+              ['accent1', channels.accent1],
+              ['accent2', channels.accent2],
+            ]),
+          })
+          customizable_textures.set(textureBasename, customizable_texture)
+          // below lines for debugging
+          // window.setColor0 = colorCode => customizable_texture.setLayerColor("basecolour", new Color(colorCode))
+          // window.setColor1 = colorCode => customizable_texture.setLayerColor("accent1", new Color(colorCode))
+          // window.setColor2 = colorCode => customizable_texture.setLayerColor("accent2", new Color(colorCode))
+        }
+      }
+
+      // attach the customizable textures on the model
+      model.traverse(child => {
+        if (child.material && child.material.map) {
+          for (const [
+            name,
+            customizable_texture,
+          ] of customizable_textures.entries()) {
+            if (child.material.map.name.endsWith(`${name}_diffuse`)) {
+              child.material.map = customizable_texture.texture
+              break
+            }
+          }
+        }
+      })
+    }
+
     return {
       id,
       floating_title: title,
@@ -105,6 +182,7 @@ function entity_spawner(
       radius,
       mixer,
       object3d: origin,
+      customizable_textures,
       jump_time: 0,
       audio: null,
       skin,

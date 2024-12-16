@@ -54,6 +54,10 @@ declare namespace Type {
     set_hair(): Promise<void>
     mob_group_id?: string
     current_fight_id?: string
+    customizable_textures: Map<
+      string,
+      import('@aresrpg/aresrpg-engine').CustomizableTexture
+    > | null
   }
 
   type MobGroup = Omit<
