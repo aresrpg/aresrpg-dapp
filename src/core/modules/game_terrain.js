@@ -12,7 +12,6 @@ import {
   WorldComputeProxy,
   WorldUtils,
   WorldEnv,
-  WorldDevSetup,
   ChunksIndexer,
 } from '@aresrpg/aresrpg-world'
 
