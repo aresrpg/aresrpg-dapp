@@ -1,3 +1,4 @@
+import { Color } from 'three'
 import { ENTITIES } from '../game/entities.js'
 import { context, current_three_character } from '../game/game.js'
 import { experience_to_level } from '../utils/game/experience.js'
@@ -13,11 +14,9 @@ export default function () {
           player.mixer.update(delta)
         }
 
-        if (player.customizable_textures) {
-          for (const customizable_texture of player.customizable_textures.values()) {
-            if (customizable_texture.needsUpdate) {
-              customizable_texture.update(renderer)
-            }
+        if (player.custom_colors) {
+          if (player.custom_colors.texture.needsUpdate) {
+            player.custom_colors.texture.update(renderer);
           }
         }
       }
