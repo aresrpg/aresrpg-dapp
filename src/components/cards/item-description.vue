@@ -28,7 +28,7 @@
           :key="stat.name"
         )
           img(:src="stat.icon")
-          .value +{{ stat.value }} {{ t(`APP_ITEM_${stat.name.toUpperCase()}`) }}
+          .value(:class="{ negative: stat.value < 0 }") {{ stat.value }} {{ t(`APP_ITEM_${stat.name.toUpperCase()}`) }}
         .sepa(v-if="item.last_feed")
         .stomach(v-if="item.feed_level != null") #[b {{ item.food_name }}] {{ t('APP_ITEM_STOMACH') }}: {{ item.feed_level }} / {{ item.max_feed_level }}
         .last-feed(v-if="item.last_feed") {{ t('APP_ITEM_LAST_FEED') }}: {{ item.last_feed }}
@@ -225,6 +225,8 @@ const stats = computed(() => {
             margin-right 5px
           .value
             opacity .9
+            &.negative
+              color #FF5722
         .stomach, .last-feed
           font-size .8em
           opacity .7

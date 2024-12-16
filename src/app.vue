@@ -83,6 +83,7 @@ const edit_mode_equipment = reactive({
 
 const my_listings = ref([]);
 const message_history = ref([]);
+const typed_message_history = ref([]);
 
 const vue_characters = ref([]);
 
@@ -97,6 +98,7 @@ const finished_crafts = ref([]);
 const currently_listed_items_names = ref({});
 const recipes = ref([]);
 
+provide('typed_message_history', typed_message_history);
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
 provide('available_accounts', available_accounts);

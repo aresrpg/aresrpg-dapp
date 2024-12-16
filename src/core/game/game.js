@@ -701,3 +701,5 @@ export function disconnect_ws(reason = 'USER_DISCONNECTED') {
 }
 
 export { context, ws_status, ares_client }
+
+globalThis.get_state = get_state

@@ -11,7 +11,7 @@ import TAIGA from './biomes/taiga.js'
 import ARCTIC from './biomes/arctic.js'
 import SCORCHED from './biomes/scorched.js'
 import GLACIER from './biomes/glacier.js'
-import { BLOCKS } from './blocks.js'
+import { BLOCKS, SCHEMATICS_BLOCKS } from './blocks.js'
 
 // Convert hex string to number
 export const hex_to_int = hex => parseInt(hex.replace('#', ''), 16)
@@ -77,7 +77,10 @@ export const SCHEMATICS_BLOCKS_MAPPING = {
   ...Object.fromEntries(
     ignored_blocks.map(block_name => [block_name, BlockType.NONE]),
   ),
-  ...Object.entries(BLOCKS).reduce(
+  ...Object.entries({
+    ...BLOCKS,
+    ...SCHEMATICS_BLOCKS,
+  }).reduce(
     (block_mappings, [block_name, color]) => ({
       ...block_mappings,
       [block_name.toLowerCase()]: color_to_block_type[hex_to_int(color)],

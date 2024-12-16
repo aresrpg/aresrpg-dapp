@@ -17,7 +17,7 @@ const SEA_LEVEL = 76
  * @param world_env targeted env or main thread env by default
  */
 export const world_shared_setup = (world_env = WorldEnv.current) => {
-  world_env.seaLevel = SEA_LEVEL // TODO remove hardcoded sea
+  world_env.seaLevel = SEA_LEVEL // TODO: remove hardcoded sea
   world_env.chunks.dataEncoder = chunk_data_encoder
   world_env.patchViewDist.near = 4 // chunks view distance below ground surface
 

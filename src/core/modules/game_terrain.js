@@ -37,14 +37,9 @@ const FLAGS = {
   LOD_MODE: LOD_MODE.DISABLED,
   BOARD_POC: false, // POC toggle until board integration is finished
 }
-// settings
-const blocks_color_mapping = {
-  ...BLOCKS_COLOR_MAPPING,
-  ...WorldDevSetup.BlocksColorMapping,
-}
 const altitude = { min: -1, max: 400 }
 
-const voxel_materials_list = Object.values(blocks_color_mapping).map(col => ({
+const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
   color: new Color(col),
 }))
 

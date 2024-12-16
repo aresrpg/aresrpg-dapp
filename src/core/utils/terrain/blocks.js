@@ -1,18 +1,6 @@
 export const BLOCKS = {
-  DBG_LIGHT: '#fff',
-  DBG_DARK: '#212121',
-  DEBUG_RED: '#ff0000',
-
+  // Blocks
   STONE: '#ababab',
-  PRISMARINE_BRICKS: '#2e6c6c',
-  QUARTZ_PILLAR: '#f2f2f2',
-  SMOOTH_QUARTZ: '#f2f2f2',
-  NETHER_BRICKS: '#2e2e2e',
-  BIRCH_LEAVES: '#4e8a3e',
-  SPRUCE_LOG: '#8e684f',
-  LIGHT_GRAY_CONCRETE: '#b3b3b3',
-  AZALEA_LEAVES: '#4e8a3e',
-  LARGE_FERN: '#4e8a3e',
   WET_SAND: '#8D795B',
   GOLDEN_SAND: '#D8B570',
   LIGHT_SAND: '#FBE8A6',
@@ -20,9 +8,15 @@ export const BLOCKS = {
   MOSSY_GRASS: '#6C8E7C',
   VIBRANT_GRASS: '#67C39E',
 
-  BASALT: '#3B3B3B',
-  GRANIT: '#B0B0B0',
+  COLD_WATER: '#4A90E2',
 
+  LIGHT_ICE: '#B3E5FC',
+  ICE: '#74CCF4',
+  DARK_ICE: '#81D4FA',
+  DARKER_ICE: '#90CAF9',
+}
+
+export const SCHEMATICS_BLOCKS = {
   jungle_log: '#8e684f',
   gray_stained_glass_pane: '#b3b3b3',
   smooth_quartz_slab: '#f2f2f2',
@@ -38,4 +32,15 @@ export const BLOCKS = {
   light_gray_wool: '#b3b3b3',
   jungle_leaves: '#4e8a3e',
   jungle_wood: '#8e684f',
+  smoorth_quartz: '#f2f2f2',
+  quartz_pillar: '#f2f2f2',
+  prismarine_bricks: '#2e6c6c',
+  nether_bricks: '#2e2e2e',
+  birch_leaves: '#4e8a3e',
+  spruce_log: '#8e684f',
+  light_gray_concrete: '#b3b3b3',
+  azalea_leaves: '#4e8a3e',
+  large_fern: '#4e8a3e',
+  basalt: '#3B3B3B',
+  granit: '#B0B0B0',
 }

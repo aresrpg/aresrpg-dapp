@@ -50,7 +50,7 @@ const current_message = ref('');
 const online = inject('online');
 const { t } = useI18n();
 
-const message_history = ref([]);
+const typed_message_history = inject('typed_message_history');
 const history_index = ref(-1);
 const saved_message = ref('');
 
@@ -62,11 +62,11 @@ const handle_keydown = event => {
       saved_message.value = current_message.value;
     }
     if (
-      message_history.value.length > 0 &&
-      history_index.value < message_history.value.length - 1
+      typed_message_history.value.length > 0 &&
+      history_index.value < typed_message_history.value.length - 1
     ) {
       history_index.value++;
-      current_message.value = message_history.value.at(
+      current_message.value = typed_message_history.value.at(
         -(history_index.value + 1),
       );
     }
@@ -82,14 +82,14 @@ const handle_keydown = event => {
       return;
     }
     history_index.value--;
-    current_message.value = message_history.value.at(
+    current_message.value = typed_message_history.value.at(
       -(history_index.value + 1),
     );
   }
 };
 
 function add_to_history(msg) {
-  message_history.value = [...message_history.value.slice(-9), msg];
+  typed_message_history.value = [...typed_message_history.value.slice(-9), msg];
   history_index.value = -1;
 }
 
