@@ -17,7 +17,14 @@ import { BLOCKS, SCHEMATICS_BLOCKS } from './blocks.js'
 export const hex_to_int = hex => parseInt(hex.replace('#', ''), 16)
 
 // Extract unique colors from block definitions
-const unique_block_colors = [...new Set(Object.values(BLOCKS))]
+const unique_block_colors = [
+  ...new Set(
+    Object.values({
+      ...BLOCKS,
+      ...SCHEMATICS_BLOCKS,
+    }),
+  ),
+]
 
 // Generate new block type entries for each unique color
 const additional_block_types = unique_block_colors.reduce(
