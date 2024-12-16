@@ -152,10 +152,6 @@ function entity_spawner(
             ]),
           })
           customizable_textures.set(textureBasename, customizable_texture)
-          // below lines for debugging
-          // window.setColor0 = colorCode => customizable_texture.setLayerColor("basecolour", new Color(colorCode))
-          // window.setColor1 = colorCode => customizable_texture.setLayerColor("accent1", new Color(colorCode))
-          // window.setColor2 = colorCode => customizable_texture.setLayerColor("accent2", new Color(colorCode))
         }
       }
 
@@ -175,6 +171,34 @@ function entity_spawner(
       })
     }
 
+    let custom_colors = null
+    if (customizable_textures.has("x")) {
+      const customizable_texture = customizable_textures.get("x");
+      custom_colors = {
+        texture: customizable_texture,
+        set color1(value) {
+          customizable_texture.setLayerColor("basecolour", value)
+        },
+        get color1() {
+          return customizable_texture.getLayerColor("basecolour")
+        },
+
+        set color2(value) {
+          customizable_texture.setLayerColor("accent1", value)
+        },
+        get color2() {
+          return customizable_texture.getLayerColor("accent1")
+        },
+
+        set color3(value) {
+          customizable_texture.setLayerColor("accent2", value)
+        },
+        get color3() {
+          return customizable_texture.getLayerColor("accent2")
+        },
+      }
+    }
+  
     return {
       id,
       floating_title: title,
@@ -182,7 +206,6 @@ function entity_spawner(
       radius,
       mixer,
       object3d: origin,
-      customizable_textures,
       jump_time: 0,
       audio: null,
       skin,
@@ -227,6 +250,7 @@ function entity_spawner(
       position: origin.position,
       target_position: null,
       set_variant,
+      custom_colors,
       equip_hat,
       async set_hair() {
         if (id === 'default') return
