@@ -371,8 +371,8 @@ export default function () {
         item: {
           create(item) {
             context.dispatch('action/sui_add_item', item)
-            // TODO: Since the user now mint his own item, this event is not always a craft reveal
-            // SUI_EMITTER.emit('ItemRevealedEvent', item)
+            // ? revealing an item just selects it
+            SUI_EMITTER.emit('ItemRevealedEvent', item)
           },
           delete(item_id) {
             context.dispatch('action/sui_remove_item', item_id)
