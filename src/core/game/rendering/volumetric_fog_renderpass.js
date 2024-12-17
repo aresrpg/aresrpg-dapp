@@ -1,9 +1,13 @@
 import {
   Color,
+  DataTexture,
   Matrix4,
+  NearestFilter,
   NoBlending,
   PerspectiveCamera,
   RawShaderMaterial,
+  RedFormat,
+  Vector2,
   WebGLRenderTarget,
   WebGLRenderer,
 } from 'three'
@@ -86,12 +90,29 @@ float noise(vec3 v){
                                 dot(p2,x2), dot(p3,x3) ) );
 }`
 
+function create_noise_texture(
+  /** @type number */ width,
+  /** @type number */ height,
+) {
+  const data = new Uint8Array(width * height)
+  for (let i = 0; i < data.length; i++) {
+    data[i] = 256 * Math.random()
+  }
+
+  const texture = new DataTexture(data, width, height, RedFormat)
+  texture.magFilter = NearestFilter
+  texture.minFilter = NearestFilter
+  texture.needsUpdate = true
+  return texture
+}
+
 class VolumetricFogRenderpass extends Pass {
   #camera
   #fullscreen_quad
   #material_fog
   #material_composition
   #rendertarget
+  #noise_texture
 
   constructor(
     /** @type PerspectiveCamera */ camera,
@@ -109,6 +130,12 @@ class VolumetricFogRenderpass extends Pass {
     this.raymarching_step = 1
 
     this.#camera = new PerspectiveCamera()
+
+    const noise_texture_size = 64
+    this.#noise_texture = create_noise_texture(
+      noise_texture_size,
+      noise_texture_size,
+    )
 
     this.#rendertarget = new WebGLRenderTarget(1, 1, {
       depthBuffer: false,
@@ -135,20 +162,26 @@ class VolumetricFogRenderpass extends Pass {
         uViewMatrixInverse: { value: new Matrix4() },
         uShadowMap: { value: null },
         uShadowCameraVP: { value: new Matrix4() },
+        uNoiseTexture: { value: this.#noise_texture },
+        uRendertargetSize: { value: new Vector2(1, 1) },
+        uRandom: { value: 0 },
       },
       vertexShader: `in vec2 aCorner;
 
-            uniform  mat4 uProjMatrixInverse;
+            uniform mat4 uProjMatrixInverse;
             uniform mat4 uViewMatrixInverse;
+            uniform vec2 uRendertargetSize;
+            uniform float uRandom;
 
             out vec2 vUv;
+            out vec2 vNoiseTextureUv;
             out vec3 vFragmentViewPosition;
             out vec3 vCameraWorldPosition;
 
             void main(void) {
                 gl_Position = vec4(aCorner, 0.0, 1.0);
                 vUv = 0.5 * aCorner + 0.5;
-
+                vNoiseTextureUv = (vUv + uRandom) * uRendertargetSize / ${noise_texture_size.toFixed(1)};
                 vFragmentViewPosition = (uProjMatrixInverse * vec4(aCorner, 1, 1)).xyz;
                 vCameraWorldPosition = (uViewMatrixInverse * vec4(0, 0, 0, 1)).xyz;
             }`,
@@ -168,10 +201,13 @@ class VolumetricFogRenderpass extends Pass {
             uniform float uSmoothness;
             uniform mat4 uViewMatrixInverse;
 
+            uniform sampler2D uNoiseTexture;
+
             uniform sampler2D uShadowMap;
             uniform mat4 uShadowCameraVP;
 
             in vec2 vUv;
+            in vec2 vNoiseTextureUv;
             in vec3 vFragmentViewPosition;
             in vec3 vCameraWorldPosition;
             out vec4 fragColor;
@@ -210,16 +246,20 @@ class VolumetricFogRenderpass extends Pass {
                 vec3 viewVector = fragmentWorldPosition - vCameraWorldPosition;                
                 vec3 viewVectorNormalized = normalize(viewVector);
 
+                float noise = texture(uNoiseTexture, fract(vNoiseTextureUv)).r;
+
                 float lastFogSample = sampleFog(vCameraWorldPosition);
+                float lastRayDepth = 0.0;
                 float cumulatedFog = 0.0;
-                float currentRayDepth = 0.0;
+                float currentRayDepth = lastRayDepth + noise * uRaymarchingStep;
                 const int MAX_NB_STEPS = 75;
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
                   float step = min(uRaymarchingStep, fragDepth - currentRayDepth);
                   currentRayDepth += step;
                   float newFogSample = sampleFog(vCameraWorldPosition + viewVectorNormalized * currentRayDepth);
-                  cumulatedFog += 0.5 * (newFogSample + lastFogSample) * step;
+                  cumulatedFog += 0.5 * (newFogSample + lastFogSample) * (currentRayDepth - lastRayDepth);
                   lastFogSample = newFogSample;
+                  lastRayDepth = currentRayDepth;
 
                   if (step < uRaymarchingStep) {
                     break;
@@ -312,6 +352,8 @@ class VolumetricFogRenderpass extends Pass {
         this.light_shadow.camera.projectionMatrix,
         this.light_shadow.camera.matrixWorldInverse,
       )
+    renderer.getSize(this.#material_fog.uniforms.uRendertargetSize.value)
+    this.#material_fog.uniforms.uRandom.value = Math.random()
 
     this.#fullscreen_quad.material = this.#material_fog
     renderer.render(this.#fullscreen_quad, this.#camera)
@@ -333,6 +375,7 @@ class VolumetricFogRenderpass extends Pass {
     this.#material_fog.dispose()
     this.#material_composition.dispose()
     this.#fullscreen_quad.geometry.dispose()
+    this.#noise_texture.dispose()
   }
 }
 
