@@ -1,4 +1,5 @@
 import { Color } from 'three'
+
 import { ENTITIES } from '../game/entities.js'
 import { context, current_three_character } from '../game/game.js'
 import { experience_to_level } from '../utils/game/experience.js'
@@ -16,7 +17,7 @@ export default function () {
 
         if (player.custom_colors) {
           if (player.custom_colors.texture.needsUpdate) {
-            player.custom_colors.texture.update(renderer);
+            player.custom_colors.texture.update(renderer)
           }
         }
       }

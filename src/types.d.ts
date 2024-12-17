@@ -55,11 +55,11 @@ declare namespace Type {
     mob_group_id?: string
     current_fight_id?: string
     custom_colors: null | {
-      texture: import('@aresrpg/aresrpg-engine').CustomizableTexture,
-      color1: import('three').Color,
-      color2: import('three').Color,
-      color3: import('three').Color,
-    },
+      texture: import('@aresrpg/aresrpg-engine').CustomizableTexture
+      color1: import('three').Color
+      color2: import('three').Color
+      color3: import('three').Color
+    }
   }
 
   type MobGroup = Omit<
