@@ -4,7 +4,9 @@ import {
   Group,
   LoopOnce,
   Mesh,
+  Object3D,
   Quaternion,
+  Texture,
   Vector3,
 } from 'three'
 import { CustomizableTexture } from '@aresrpg/aresrpg-engine'
@@ -39,6 +41,112 @@ function fade_to_animation(from, to, duration = 0.3) {
 //   'SIT',
 //   'WALK',
 // ]
+
+function create_customizable_textures(
+  /** @type ReadonlyArray<Texture> */ textures,
+) {
+  const /** @type Map<string, Texture> */ base_textures = new Map()
+  for (const texture of textures) {
+    const match = texture.name.match(/(.+)_base$/)
+    if (match && match[1]) {
+      if (base_textures.has(match[1])) {
+        throw new Error(`Duplicate base texture "${texture.name}".`)
+      }
+      base_textures.set(match[1], texture)
+    }
+  }
+
+  const MAX_CUSTOMIZABLE_TEXTURES_COUNT = 3
+
+  const /** @type Map<string, CustomizableTexture> */ customizable_textures =
+      new Map()
+  for (const [base_texture_name, base_texture] of base_textures.entries()) {
+    const /** @type Map<string, Texture> */ additional_textures = new Map()
+    for (let i = 1; i <= MAX_CUSTOMIZABLE_TEXTURES_COUNT; i++) {
+      const layer_texture = textures.find(
+        tex => tex.name === `${base_texture_name}_color${i}`,
+      )
+      if (!layer_texture) {
+        break
+      }
+      additional_textures.set(`color${i}`, layer_texture)
+    }
+
+    const customizable_texture = new CustomizableTexture({
+      baseTexture: base_texture,
+      additionalTextures: additional_textures,
+    })
+    customizable_textures.set(base_texture_name, customizable_texture)
+  }
+
+  return customizable_textures
+}
+
+function create_custom_colors_api(
+  /** @type Object3D */ model,
+  /** @type ReadonlyArray<Texture> */ textures,
+) {
+  let custom_colors = null
+  const /** @type Map<string, CustomizableTexture> */ customizable_textures =
+      create_customizable_textures(textures)
+  if (customizable_textures.size > 0) {
+    // attach the customizable textures on the model
+    model.traverse((/** @type any */ child) => {
+      if (child.material && child.material.map) {
+        const match = child.material.map.name.match(/(.+)_base/)
+        if (match && match[1]) {
+          const customizable_texture = customizable_textures.get(match[1])
+          if (customizable_texture) {
+            child.material.map = customizable_texture.texture
+          }
+        }
+      }
+    })
+
+    const customizable_texture_diffuse = customizable_textures.get('diffuse')
+    if (!customizable_texture_diffuse || customizable_textures.size > 1) {
+      throw new Error(
+        `Only diffuse texture is customizable. Got ${Array.from(customizable_textures.keys()).join(';')}.`,
+      )
+    }
+
+    for (const expected_layername of ['color1', 'color2', 'color3']) {
+      if (
+        !customizable_texture_diffuse.layerNames.includes(expected_layername)
+      ) {
+        throw new Error(
+          `Diffuse customizable texture is supposed to have a layer named "${expected_layername}".`,
+        )
+      }
+    }
+
+    custom_colors = {
+      texture: customizable_texture_diffuse,
+      set color1(value) {
+        customizable_texture_diffuse.setLayerColor('color1', value)
+      },
+      get color1() {
+        return customizable_texture_diffuse.getLayerColor('color1')
+      },
+
+      set color2(value) {
+        customizable_texture_diffuse.setLayerColor('color2', value)
+      },
+      get color2() {
+        return customizable_texture_diffuse.getLayerColor('color2')
+      },
+
+      set color3(value) {
+        customizable_texture_diffuse.setLayerColor('color3', value)
+      },
+      get color3() {
+        return customizable_texture_diffuse.getLayerColor('color3')
+      },
+    }
+  }
+
+  return custom_colors
+}
 
 function entity_spawner(
   load_model,
@@ -108,97 +216,8 @@ function entity_spawner(
       return equip_promise
     }
 
-    const /** @type Map<string, CustomizableTexture> */ customizable_textures =
-        new Map()
-    {
-      // retrieve the different channels of the customizable textures on this model
-      const customizable_textures_parts = {}
-      for (const texture of textures) {
-        const match = texture.name.match(
-          /_(.+)_(diffuse|basecolour|accent1|accent2)/,
-        )
-        if (match && match[1] && match[2]) {
-          const textureBasename = match[1]
-          const channelName = match[2]
-          if (!customizable_textures_parts[textureBasename]) {
-            customizable_textures_parts[textureBasename] = {}
-          }
-          customizable_textures_parts[textureBasename][channelName] = texture
-        }
-      }
+    const custom_colors = create_custom_colors_api(model, textures)
 
-      // assemble the channels to create customizable textures
-      for (const [textureBasename, channels] of Object.entries(
-        customizable_textures_parts,
-      )) {
-        if (
-          channels.diffuse &&
-          channels.basecolour &&
-          channels.accent1 &&
-          channels.accent2
-        ) {
-          if (customizable_textures.has(textureBasename)) {
-            throw new Error(
-              `Duplicate customizable texture "${textureBasename}".`,
-            )
-          }
-
-          const customizable_texture = new CustomizableTexture({
-            baseTexture: channels.diffuse,
-            additionalTextures: new Map([
-              ['basecolour', channels.basecolour],
-              ['accent1', channels.accent1],
-              ['accent2', channels.accent2],
-            ]),
-          })
-          customizable_textures.set(textureBasename, customizable_texture)
-        }
-      }
-
-      // attach the customizable textures on the model
-      model.traverse(child => {
-        if (child.material && child.material.map) {
-          for (const [
-            name,
-            customizable_texture,
-          ] of customizable_textures.entries()) {
-            if (child.material.map.name.endsWith(`${name}_diffuse`)) {
-              child.material.map = customizable_texture.texture
-              break
-            }
-          }
-        }
-      })
-    }
-
-    let custom_colors = null
-    if (customizable_textures.has("x")) {
-      const customizable_texture = customizable_textures.get("x");
-      custom_colors = {
-        texture: customizable_texture,
-        set color1(value) {
-          customizable_texture.setLayerColor("basecolour", value)
-        },
-        get color1() {
-          return customizable_texture.getLayerColor("basecolour")
-        },
-
-        set color2(value) {
-          customizable_texture.setLayerColor("accent1", value)
-        },
-        get color2() {
-          return customizable_texture.getLayerColor("accent1")
-        },
-
-        set color3(value) {
-          customizable_texture.setLayerColor("accent2", value)
-        },
-        get color3() {
-          return customizable_texture.getLayerColor("accent2")
-        },
-      }
-    }
-  
     return {
       id,
       floating_title: title,
@@ -232,6 +251,11 @@ function entity_spawner(
         scene.remove(origin)
         title.dispose()
         dispose(origin)
+
+        // TODO: uncomment once the engine is upgraded
+        // if (custom_colors) {
+        //   custom_colors.texture.dispose()
+        // }
       },
       animate(name) {
         // allow to skip some animation frames when the entity is far away
