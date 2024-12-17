@@ -1,3 +1,5 @@
+import { Color } from 'three'
+
 import { ENTITIES } from '../game/entities.js'
 import { context, current_three_character } from '../game/game.js'
 import { experience_to_level } from '../utils/game/experience.js'
@@ -6,9 +8,19 @@ import { state_iterator } from '../utils/iterator.js'
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick(state, __, delta) {
+    tick(state, { renderer }, delta) {
       const player = current_three_character(state)
-      if (player?.mixer) player.mixer.update(delta)
+      if (player) {
+        if (player.mixer) {
+          player.mixer.update(delta)
+        }
+
+        if (player.custom_colors) {
+          if (player.custom_colors.texture.needsUpdate) {
+            player.custom_colors.texture.update(renderer)
+          }
+        }
+      }
     },
     reduce(state, { type, payload }) {
       if (type === 'action/select_character')
