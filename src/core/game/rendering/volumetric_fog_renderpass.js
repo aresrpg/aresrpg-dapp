@@ -1,17 +1,18 @@
 import {
   Color,
-  DataTexture,
   Matrix4,
   NearestFilter,
   NoBlending,
   PerspectiveCamera,
   RawShaderMaterial,
-  RedFormat,
+  TextureLoader,
   Vector2,
   WebGLRenderTarget,
   WebGLRenderer,
 } from 'three'
 import { Pass } from 'three/examples/jsm/postprocessing/Pass.js'
+
+import bluenoise_url from '../../../assets/textures/noise/bluenoise_64.png?url'
 
 import { create_fullscreen_quad } from './utils.js'
 
@@ -90,22 +91,6 @@ float noise(vec3 v){
                                 dot(p2,x2), dot(p3,x3) ) );
 }`
 
-function create_noise_texture(
-  /** @type number */ width,
-  /** @type number */ height,
-) {
-  const data = new Uint8Array(width * height)
-  for (let i = 0; i < data.length; i++) {
-    data[i] = 256 * Math.random()
-  }
-
-  const texture = new DataTexture(data, width, height, RedFormat)
-  texture.magFilter = NearestFilter
-  texture.minFilter = NearestFilter
-  texture.needsUpdate = true
-  return texture
-}
-
 class VolumetricFogRenderpass extends Pass {
   #camera
   #fullscreen_quad
@@ -132,10 +117,9 @@ class VolumetricFogRenderpass extends Pass {
     this.#camera = new PerspectiveCamera()
 
     const noise_texture_size = 64
-    this.#noise_texture = create_noise_texture(
-      noise_texture_size,
-      noise_texture_size,
-    )
+    this.#noise_texture = new TextureLoader().load(bluenoise_url)
+    this.#noise_texture.magFilter = NearestFilter
+    this.#noise_texture.minFilter = NearestFilter
 
     this.#rendertarget = new WebGLRenderTarget(1, 1, {
       depthBuffer: false,
