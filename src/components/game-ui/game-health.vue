@@ -19,43 +19,35 @@
     .value {{ pm }}
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, inject } from 'vue';
+<script setup>
+import { ref, onMounted, computed, inject } from 'vue';
 import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
 
-import {
-  context,
-  current_sui_character,
-  current_three_character,
-} from '../../core/game/game.js';
+import { context, current_three_character } from '../../core/game/game.js';
 
+const selected_character = inject('selected_character');
+const inventory_counter = inject('inventory_counter');
 const show_health_percent = ref(false);
-const health = ref(0);
-const max_health = ref(0);
-const pa = ref(12);
-const pm = ref(6);
+
+const pa = computed(() => selected_character.value?.action || -1);
+const pm = computed(() => selected_character.value?.movement || -1);
 
 const in_fight = inject('in_fight');
 
 const emits = defineEmits(['open_stats', 'open_spells', 'open_inventory']);
+const health = computed(() => selected_character.value?.health || 0);
+const max_health = computed(() => {
+  // a update to this variables means the equipment changed
+  // so the max health might have been affected
+  if (inventory_counter.value) {
+    // nothing to do here, we just need to trigger the computed
+  }
 
+  return health.value ? get_max_health(selected_character.value) : 0;
+});
 const percent_health = computed(() => {
   return Math.round((100 * health.value) / max_health.value);
 });
-
-function update_health(state) {
-  const character = current_sui_character(state);
-  if (!character?._type) return;
-
-  const supposed_max_health = get_max_health(character);
-
-  if (character.health !== health.value) health.value = character.health;
-
-  if (supposed_max_health !== max_health.value)
-    max_health.value = supposed_max_health;
-
-  if (isNaN(max_health.value)) max_health.value = 30;
-}
 
 function sit_action() {
   const character = current_three_character();
@@ -71,15 +63,6 @@ function sit_action() {
     });
   }
 }
-
-onMounted(() => {
-  context.events.on('STATE_UPDATED', update_health);
-  update_health(undefined);
-});
-
-onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_health);
-});
 </script>
 
 <style lang="stylus" scoped>

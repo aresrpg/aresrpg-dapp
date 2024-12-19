@@ -5,6 +5,7 @@ router-view
 <script setup>
 import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 import deep_equal from 'fast-deep-equal';
+import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
 
 import { decrease_loading, increase_loading } from './core/utils/loading.js';
 import { get_spells } from './core/game/spells_per_class.js';
@@ -36,25 +37,6 @@ const selected_character = ref(null);
 const owned_items = ref([]);
 
 const in_fight = ref(false);
-
-const equipment = reactive({
-  relic_1: null,
-  relic_2: null,
-  relic_3: null,
-  relic_4: null,
-  relic_5: null,
-  relic_6: null,
-  title: null,
-  amulet: null,
-  weapon: null,
-  left_ring: null,
-  belt: null,
-  right_ring: null,
-  boots: null,
-  hat: null,
-  cloak: null,
-  pet: null,
-});
 
 const selected_category = ref('equipment');
 const selected_item = ref(null);
@@ -110,7 +92,6 @@ provide('online', online);
 provide('server_info', server_info);
 provide('selected_character', selected_character);
 provide('owned_items', owned_items);
-provide('equipment', equipment);
 provide('inventory_counter', inventory_counter);
 
 provide('in_fight', in_fight);
@@ -289,7 +270,6 @@ function update_all(
         hat,
         cloak,
         pet,
-
         available_points,
         vitality,
         strength,
@@ -297,18 +277,22 @@ function update_all(
         intelligence,
         wisdom,
         agility,
+        experience,
+        health,
       } = character;
 
-      // @ts-ignore
-      if (
-        selected_character.value.available_points !== available_points ||
-        selected_character.value.vitality !== vitality ||
-        selected_character.value.strength !== strength ||
-        selected_character.value.chance !== chance ||
-        selected_character.value.intelligence !== intelligence ||
-        selected_character.value.wisdom !== wisdom ||
-        selected_character.value.agility !== agility
-      ) {
+      // Update stats if any changed
+      const stats_changed = Object.entries({
+        available_points,
+        vitality,
+        strength,
+        chance,
+        intelligence,
+        wisdom,
+        agility,
+      }).some(([key, value]) => selected_character.value[key] !== value);
+
+      if (stats_changed) {
         Object.assign(selected_character.value, {
           available_points,
           vitality,
@@ -320,92 +304,46 @@ function update_all(
         });
       }
 
-      let equipment_changed = false;
+      // Check equipment changes
+      const equipment_fields = {
+        relic_1,
+        relic_2,
+        relic_3,
+        relic_4,
+        relic_5,
+        relic_6,
+        title,
+        amulet,
+        weapon,
+        left_ring,
+        belt,
+        right_ring,
+        boots,
+        hat,
+        cloak,
+        pet,
+      };
 
-      // @ts-ignore
-      if (relic_1?.id !== equipment.relic_1?.id) {
-        equipment_changed = true;
-        equipment.relic_1 = relic_1;
-      }
-      // @ts-ignore
-      if (relic_2?.id !== equipment.relic_2?.id) {
-        equipment_changed = true;
-        equipment.relic_2 = relic_2;
-      }
-      // @ts-ignore
-      if (relic_3?.id !== equipment.relic_3?.id) {
-        equipment_changed = true;
-        equipment.relic_3 = relic_3;
-      }
-      // @ts-ignore
-      if (relic_4?.id !== equipment.relic_4?.id) {
-        equipment_changed = true;
-        equipment.relic_4 = relic_4;
-      }
-      // @ts-ignore
-      if (relic_5?.id !== equipment.relic_5?.id) {
-        equipment_changed = true;
-        equipment.relic_5 = relic_5;
-      }
-      // @ts-ignore
-      if (relic_6?.id !== equipment.relic_6?.id) {
-        equipment_changed = true;
-        equipment.relic_6 = relic_6;
-      }
-      // @ts-ignore
-      if (title?.id !== equipment.title?.id) {
-        equipment_changed = true;
-        equipment.title = title;
-      }
-      // @ts-ignore
-      if (amulet?.id !== equipment.amulet?.id) {
-        equipment_changed = true;
-        equipment.amulet = amulet;
-      }
-      // @ts-ignore
-      if (weapon?.id !== equipment.weapon?.id) {
-        equipment_changed = true;
-        equipment.weapon = weapon;
-      }
-      // @ts-ignore
-      if (left_ring?.id !== equipment.left_ring?.id) {
-        equipment_changed = true;
-        equipment.left_ring = left_ring;
-      }
-      // @ts-ignore
-      if (belt?.id !== equipment.belt?.id) {
-        equipment_changed = true;
-        equipment.belt = belt;
-      }
-      // @ts-ignore
-      if (right_ring?.id !== equipment.right_ring?.id) {
-        equipment_changed = true;
-        equipment.right_ring = right_ring;
-      }
-      // @ts-ignore
-      if (boots?.id !== equipment.boots?.id) {
-        equipment_changed = true;
-        equipment.boots = boots;
-      }
-      // @ts-ignore
-      if (hat?.id !== equipment.hat?.id) {
-        equipment_changed = true;
-        equipment.hat = hat;
-      }
-      // @ts-ignore
-      if (cloak?.id !== equipment.cloak?.id) {
-        equipment_changed = true;
-        equipment.cloak = cloak;
-      }
-      // @ts-ignore
-      if (pet?.id !== equipment.pet?.id) {
-        equipment_changed = true;
-        equipment.pet = pet;
-      }
+      const equipment_changed = Object.entries(equipment_fields).some(
+        ([key, value]) => {
+          if (value?.id !== selected_character.value[key]?.id) {
+            selected_character.value[key] = value;
+            return true;
+          }
+          return false;
+        },
+      );
 
-      if (equipment_changed) {
-        inventory_counter.value++;
-      }
+      if (equipment_changed) inventory_counter.value++;
+
+      // Update experience and health
+      if (selected_character.value.experience !== experience)
+        selected_character.value.experience = experience;
+      if (equipment_changed || selected_character.value.health !== health)
+        selected_character.value.health = Math.min(
+          health,
+          get_max_health(character),
+        );
     }
   }
 }

@@ -6,7 +6,7 @@
       img(:src="`https://assets.aresrpg.world/classe/${selected_character.classe}_${selected_character.sex}.jpg`")
       span.name {{ selected_character.name }}
     .container
-      .level {{ t('APP_CHARACTER_STAT_LEVEL') }} 1
+      .level {{ t('APP_CHARACTER_STAT_LEVEL') }} {{ level }}
       .energy.darkline
         .label {{ t('APP_CHARACTER_STAT_ENERGY') }}
         .progress
@@ -15,7 +15,7 @@
         .label {{ t('APP_CHARACTER_STAT_EXP') }}
         .progress
           // @todo calculate experience
-          div.progress-bar(:style="{ width: '0%' }")
+          div.progress-bar(:style="{ width: level_percent + '%' }")
       .line.life.darkline
         .label
           img(src="../../assets/statistics/health.png")
@@ -88,8 +88,12 @@ import strength_image from '../../assets/statistics/strength.png';
 import intelligence_image from '../../assets/statistics/intelligence.png';
 import chance_image from '../../assets/statistics/chance.png';
 import agility_image from '../../assets/statistics/agility.png';
-
 // @ts-ignore
+import {
+  experience_to_level,
+  level_progression,
+} from '../../core/utils/game/experience.js';
+
 import RadixIconsCross2 from '~icons/radix-icons/cross-2';
 // @ts-ignore
 import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
@@ -97,6 +101,20 @@ import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
 const selected_character = inject('selected_character');
 const character = current_sui_character(context.get_state());
 const supposed_max_health = character?._type ? get_max_health(character) : -1;
+
+const level = computed(() =>
+  selected_character.value?.experience
+    ? experience_to_level(selected_character.value?.experience)
+    : 0,
+);
+
+const level_percent = computed(() => {
+  if (!selected_character.value) return 0;
+  const { experience_percent } = level_progression(
+    selected_character.value.experience,
+  );
+  return experience_percent;
+});
 
 const { t } = useI18n();
 
