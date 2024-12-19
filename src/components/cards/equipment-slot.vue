@@ -20,13 +20,51 @@ import { is_weapon } from '../../core/utils/item.js';
 const props = defineProps(['slot', 'background', 'highlighted']);
 const edit_mode_equipment = inject('edit_mode_equipment');
 const edit_mode = inject('edit_mode');
-const real_equipment = inject('equipment');
 const selected_character = inject('selected_character');
 const selected_item = inject('selected_item');
+const real_equipment = computed(() => {
+  if (!selected_character.value) return {};
+  const {
+    relic_1,
+    relic_2,
+    relic_3,
+    relic_4,
+    relic_5,
+    relic_6,
+    title,
+    amulet,
+    weapon,
+    left_ring,
+    belt,
+    right_ring,
+    boots,
+    hat,
+    cloak,
+    pet,
+  } = selected_character.value;
+  return {
+    relic_1,
+    relic_2,
+    relic_3,
+    relic_4,
+    relic_5,
+    relic_6,
+    title,
+    amulet,
+    weapon,
+    left_ring,
+    belt,
+    right_ring,
+    boots,
+    hat,
+    cloak,
+    pet,
+  };
+});
 
 const shown_equipment = computed(() => {
   if (edit_mode.value) return edit_mode_equipment;
-  return real_equipment;
+  return real_equipment.value;
 });
 
 const shown_item = computed(() => {
@@ -35,8 +73,8 @@ const shown_item = computed(() => {
 
 function unequip() {
   if (!edit_mode.value) {
-    Object.assign(edit_mode_equipment, real_equipment);
-    edit_mode_equipment.equipments.push(real_equipment[props.slot]);
+    Object.assign(edit_mode_equipment, real_equipment.value);
+    edit_mode_equipment.equipments.push(real_equipment.value[props.slot]);
     edit_mode.value = true;
   } else edit_mode_equipment.equipments.push(edit_mode_equipment[props.slot]);
   edit_mode_equipment[props.slot] = null;

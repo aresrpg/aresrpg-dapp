@@ -12,6 +12,8 @@ import yajin_female from '../../assets/models/characters/yajin_female.glb?url'
 import yajin_female_hair from '../../assets/models/equipment/yajin_female_hair.glb?url'
 import primemachin from '../../assets/models/characters/primemachin.glb?url'
 import primemachin_hair from '../../assets/models/equipment/primemachin_hair.glb?url'
+import anima from '../../assets/models/characters/anima.glb?url'
+import anima_hair from '../../assets/models/equipment/anima_hair.glb?url'
 import suifren_bullshark from '../../assets/models/pets/suifren_bullshark.glb?url'
 import suifren_capy from '../../assets/models/pets/suifren_capy.glb?url'
 import afegg from '../../assets/models/pets/afegg.glb?url'
@@ -23,29 +25,6 @@ import hop_bunny from '../../assets/models/mobs/hop_bunny.glb?url'
 import pirate_parrot from '../../assets/models/pets/pirate_parrot.glb?url'
 import crescent_sword from '../../assets/models/equipment/crescent_sword.glb?url'
 import { load } from '../utils/three/load_model.js'
-
-// const AVAILABLE_MODELS = {
-//   senshi_male: await load(senshi_male, {}),
-//   senshi_female: await load(senshi_female, {}),
-//   yajin_male: await load(yajin_male, {}),
-//   yajin_female: await load(yajin_female, {}),
-
-//   primemachin: await load(primemachin, {}),
-
-//   chafer: await load(chafer, {}),
-//   hop_bunny: await load(hop_bunny, {}),
-
-//   suifren_bullshark: await load(suifren_bullshark),
-//   suifren_capy: await load(suifren_capy),
-//   afegg: await load(afegg),
-//   vaporeon: await load(vaporeon, { env_map_intensity: 1 }),
-//   suicune: await load(suicune),
-//   pirate_parrot: await load(pirate_parrot),
-
-//   fud_hat: await load(pug_hat, {}),
-//   suicunio: await load(suicune_hat, {}),
-//   crescent_sword: await load(crescent_sword, {}),
-// }
 
 const AVAILABLE_MODELS = {
   senshi_male,
@@ -59,6 +38,8 @@ const AVAILABLE_MODELS = {
 
   primemachin,
   primemachin_hair,
+  anima,
+  anima_hair,
 
   chafer,
   hop_bunny,

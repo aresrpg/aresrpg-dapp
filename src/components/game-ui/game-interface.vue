@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 import characterSelectVue from './character-select.vue';
 import zoneVue from './zone.vue';

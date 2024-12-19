@@ -53,9 +53,47 @@ const owned_items = inject('owned_items');
 const owned_tokens = inject('owned_tokens');
 const edit_mode_equipment = inject('edit_mode_equipment');
 const edit_mode = inject('edit_mode');
-const real_equipment = inject('equipment');
 const inventory_counter = inject('inventory_counter');
 const selected_character = inject('selected_character');
+const real_equipment = computed(() => {
+  if (!selected_character.value) return {};
+  const {
+    relic_1,
+    relic_2,
+    relic_3,
+    relic_4,
+    relic_5,
+    relic_6,
+    title,
+    amulet,
+    weapon,
+    left_ring,
+    belt,
+    right_ring,
+    boots,
+    hat,
+    cloak,
+    pet,
+  } = selected_character.value;
+  return {
+    relic_1,
+    relic_2,
+    relic_3,
+    relic_4,
+    relic_5,
+    relic_6,
+    title,
+    amulet,
+    weapon,
+    left_ring,
+    belt,
+    right_ring,
+    boots,
+    hat,
+    cloak,
+    pet,
+  };
+});
 
 const deletion_dialog = ref(false);
 
@@ -127,7 +165,7 @@ function on_right_click_item(event, item) {
     item.item_type === 'vaporeon'
   )
     context.push({
-      label: `${t('APP_ITEM_FEED')} ${selected_item.value?.required_food} ${selected_item.value?.food_name}`,
+      label: t('APP_ITEM_FEED'),
       onClick: async () => {
         const tx = toast.tx(t('APP_ITEM_FEEDING'), selected_item.value.name);
         try {
@@ -162,7 +200,7 @@ function handle_drop(event) {
     !edit_mode_equipment.equipments.includes(edit_mode_equipment.dragged_item)
   ) {
     if (!edit_mode.value) {
-      Object.assign(edit_mode_equipment, real_equipment);
+      Object.assign(edit_mode_equipment, real_equipment.value);
       edit_mode.value = true;
     }
     edit_mode_equipment.equipments.push(edit_mode_equipment.dragged_item);
@@ -195,7 +233,7 @@ function equip_item(item) {
 
   if (!edit_mode.value) {
     edit_mode.value = true;
-    Object.assign(edit_mode_equipment, real_equipment);
+    Object.assign(edit_mode_equipment, real_equipment.value);
   }
 
   switch (item_category) {
