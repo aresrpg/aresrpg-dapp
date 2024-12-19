@@ -1,7 +1,11 @@
-import { WorldEnv } from '@aresrpg/aresrpg-world'
+import { WorldEnv, WorldDevSetup } from '@aresrpg/aresrpg-world'
 
 import { chunk_data_encoder } from './world_utils.js'
-import { LANDSCAPE, SCHEMATICS_BLOCKS_MAPPING } from './world_settings.js'
+import {
+  BLOCKS_COLOR_MAPPING as BLOCKS_COLOR_MAPPING_DAPP,
+  LANDSCAPE,
+  SCHEMATICS_BLOCKS_MAPPING,
+} from './world_settings.js'
 import { SCHEMATICS_FILES } from './schematics_files.js'
 // @ts-ignore
 import WORLD_WORKER_URL from './world_compute_worker.js?url&worker'
@@ -37,6 +41,10 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
   world_env.boardSettings.boardRadius = 20
   world_env.boardSettings.boardThickness = 3
 
-  // DEV env override
+  // DEV ONLY: LEAVE THIS LINE COMMENTED
   // WorldDevSetup.EnvOverride(world_env)
 }
+
+export const BLOCKS_COLOR_MAPPING = WorldDevSetup.BlocksColorOverride(
+  BLOCKS_COLOR_MAPPING_DAPP,
+)
