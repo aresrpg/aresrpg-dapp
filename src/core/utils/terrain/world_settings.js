@@ -47,6 +47,7 @@ export const BLOCKS_COLOR_MAPPING = {
   [BlockType.TRUNK]: 0x795548,
   [BlockType.SAND]: 0xc2b280,
   [BlockType.GRASS]: 0x41980a,
+  // [BlockType.BROWN_GRASS]: 0x666633,
   [BlockType.ROCK]: 0xababab,
   [BlockType.SNOW]: 0xe5e5e5,
   [BlockType.FOLIAGE_LIGHT]: 0x558b2f,
@@ -97,13 +98,13 @@ export const SCHEMATICS_BLOCKS_MAPPING = {
 }
 
 export const LANDSCAPE = {
-  [BiomeType.Arctic]: map_blocks_to_type(ARCTIC),
-  [BiomeType.Desert]: map_blocks_to_type(DESERT),
-  [BiomeType.Glacier]: map_blocks_to_type(GLACIER),
-  [BiomeType.Grassland]: map_blocks_to_type(GRASSLAND),
-  [BiomeType.Scorched]: map_blocks_to_type(SCORCHED),
-  [BiomeType.Swamp]: map_blocks_to_type(SWAMP),
+  [BiomeType.Arctic]: map_blocks_to_type(TAIGA),
+  [BiomeType.Desert]: map_blocks_to_type(TAIGA),
+  [BiomeType.Glacier]: map_blocks_to_type(TAIGA),
+  [BiomeType.Grassland]: map_blocks_to_type(TAIGA),
+  [BiomeType.Scorched]: map_blocks_to_type(TAIGA),
+  [BiomeType.Swamp]: map_blocks_to_type(TAIGA),
   [BiomeType.Taiga]: map_blocks_to_type(TAIGA),
-  [BiomeType.Temperate]: map_blocks_to_type(TEMPERATE),
-  [BiomeType.Tropical]: map_blocks_to_type(TROPICAL),
+  [BiomeType.Temperate]: map_blocks_to_type(TAIGA),
+  [BiomeType.Tropical]: map_blocks_to_type(TAIGA),
 }
