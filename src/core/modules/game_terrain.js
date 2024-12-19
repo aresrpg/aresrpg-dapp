@@ -1,13 +1,7 @@
 import { setInterval } from 'timers/promises'
 
-import {
-  EComputationMethod,
-  HeightmapViewer,
-  TerrainViewer,
-  VoxelmapViewer,
-} from '@aresrpg/aresrpg-engine'
 import { aiter } from 'iterator-helper'
-import { Color, Vector2, Vector3 } from 'three'
+import { Vector3 } from 'three'
 import {
   WorldComputeProxy,
   WorldUtils,
@@ -17,101 +11,31 @@ import {
 
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
-import {
-  chunk_data_encoder,
-  to_engine_chunk_format,
-} from '../utils/terrain/world_utils.js'
-import { BoardWrapper } from '../utils/terrain/board_wrapper.js'
+import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
+import { BoardHelper } from '../utils/terrain/board_wrapper.js'
 import { world_shared_setup } from '../utils/terrain/world_setup.js'
-import { BLOCKS_COLOR_MAPPING } from '../utils/terrain/world_settings.js'
-
-// NB: LOD should be set to STATIC to limit over-computations and fix graphical issues
-const LOD_MODE = {
-  DISABLED: 0,
-  STATIC: 1,
-  DYNAMIC: 2,
-}
-
-const FLAGS = {
-  LOD_MODE: LOD_MODE.DISABLED,
-  BOARD_POC: true, // POC toggle until board integration is finished
-}
-const altitude = { min: -1, max: 400 }
-
-const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
-  color: new Color(col),
-}))
+import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
+import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
 
 /** @type {Type.Module} */
 export default function () {
-  const patch_size = { xz: 64, y: 64 }
-
-  // world setup main thread environement
+  // world setup (main thread environement)
   world_shared_setup()
-
-  // chunks gen
-  WorldEnv.current.chunks.range.bottomId = Math.floor(
-    altitude.min / patch_size.y,
-  )
-  WorldEnv.current.chunks.range.topId = Math.floor(altitude.max / patch_size.y)
-  WorldEnv.current.chunks.dataEncoder = chunk_data_encoder
-  const chunks_range = WorldEnv.current.chunks.range
+  // make sure worker pool is ready
+  WorldComputeProxy.current.isReady()
+  // engine setup
+  const { terrain_viewer, voxelmap_viewer } = voxel_engine_setup()
 
   // patch containers
   const chunks_indexer = new ChunksIndexer()
-  const board_wrapper = new BoardWrapper()
-
-  // ENGINE
-  const map = {
-    minAltitude: altitude.min,
-    maxAltitude: altitude.max,
-    voxelMaterialsList: voxel_materials_list,
-    async sampleHeightmap(coords) {
-      FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
-        console.log(`block batch compute size: ${coords.length}`)
-      const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
-      const res = await WorldComputeProxy.current.computeBlocksBatch(
-        pos_batch,
-        {
-          includeEntitiesBlocks: true,
-        },
-      )
-      const data = res.map(block => ({
-        altitude: block.pos.y + 0.25,
-        // @ts-ignore
-        color: new Color(blocks_color_mapping[block.data.type]),
-      }))
-      return data
-    },
-  }
-
-  const voxelmap_viewer = new VoxelmapViewer(
-    chunks_range.bottomId,
-    chunks_range.topId,
-    voxel_materials_list,
-    {
-      patchSize: patch_size,
-      computationOptions: {
-        method: EComputationMethod.CPU_MULTITHREADED,
-        threadsCount: 4,
-      },
-      voxelsChunkOrdering: 'zxy',
-    },
-  )
-  const heightmap_viewer = new HeightmapViewer(map, {
-    basePatchSize: voxelmap_viewer.chunkSize.xz,
-    voxelRatio: 2,
-    maxLevel: 5,
-  })
-  const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = FLAGS.LOD_MODE > 0
+  BoardHelper.instance.toggleVisibility(false)
 
   return {
     tick() {
       terrain_viewer.update()
     },
     observe({ camera, events, signal, scene, get_state, physics }) {
-      const render_chunk = world_chunk => {
+      const render_world_chunk = world_chunk => {
         const engine_chunk = to_engine_chunk_format(world_chunk)
         voxelmap_viewer.invalidatePatch(engine_chunk.id)
         voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id) &&
@@ -124,6 +48,7 @@ export default function () {
           engine_chunk.voxels_chunk_data,
         )
       }
+
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
 
@@ -157,10 +82,10 @@ export default function () {
         // check at least one world compute unit is available
         if (player_position && WorldComputeProxy.workerPool) {
           const current_pos = player_position.clone().floor()
-          // Query chunks around player position
-          const view_center = WorldUtils.asVect2(current_pos).floor()
-          const view_radius = state.settings.view_distance
 
+          // Query chunks around player position
+          const view_center = WorldUtils.convert.asVect2(current_pos).floor()
+          const view_radius = state.settings.view_distance
           const new_patch_keys = chunks_indexer.getIndexingChanges(
             view_center,
             view_radius,
@@ -183,7 +108,7 @@ export default function () {
                 // only process undeground for chunks within near dist
                 await chunkset.processChunksBelowGroundSurface().then(chunks =>
                   chunks.forEach(chunk => {
-                    render_chunk(chunk)
+                    render_world_chunk(chunk)
                   }),
                 ),
             )
@@ -193,7 +118,7 @@ export default function () {
               // for chunks further away: process only surface part
               chunkset.processChunksAboveGroundSurface().then(chunks =>
                 chunks.forEach(chunk => {
-                  render_chunk(chunk)
+                  render_world_chunk(chunk)
                 }),
               )
             }
@@ -208,24 +133,28 @@ export default function () {
             // }
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
-          // Board live test
-          if (FLAGS.BOARD_POC) {
-            const board_chunks = board_wrapper.update(current_pos)
-            let board_refreshed = false
+          // Board
+          BoardHelper.instance.board_pos = current_pos
+          if (BoardHelper.instance.updated) {
+            const board_wrapper = BoardHelper.instance
+            const board_chunks = board_wrapper.visible
+              ? board_wrapper.iterBoardChunks()
+              : board_wrapper.iterOriginalChunks()
             for await (const board_chunk of board_chunks) {
-              render_chunk(board_chunk)
-              board_refreshed = true
+              render_world_chunk(board_chunk)
             }
-            if (board_refreshed) {
-              if (board_wrapper.handler?.container) {
-                board_wrapper.handler.dispose()
-                scene.remove(board_wrapper.handler.container)
-              }
-              board_wrapper.highlight()
-              if (board_wrapper.handler?.container) {
-                scene.add(board_wrapper.handler.container)
-              }
+            if (board_wrapper.handler?.container) {
+              board_wrapper.handler.dispose()
+              scene.remove(board_wrapper.handler.container)
             }
+            board_wrapper.highlight()
+            if (
+              BoardHelper.instance.visible &&
+              board_wrapper.handler?.container
+            ) {
+              scene.add(board_wrapper.handler.container)
+            }
+            BoardHelper.instance.updated = false
           }
         }
         FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&

@@ -9,16 +9,33 @@ import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
 
 import { chunk_data_encoder } from './world_utils.js'
 
-export class BoardWrapper {
-  pos
-  container
+export class BoardHelper {
+  static current
+  updated
+  visible = false
+  pos = new Vector3(0, 0, 0)
+  container = new BoardContainer()
   handler
   data
   scene
 
-  constructor() {
-    this.container = new BoardContainer()
-    this.pos = new Vector3(0, 0, 0)
+  static get instance() {
+    this.current = this.current || new BoardHelper()
+    return this.current
+  }
+
+  static destroy() {
+    this.current = null
+  }
+
+  get board_pos() {
+    return this.pos
+  }
+
+  set board_pos(pos) {
+    this.updated = this.pos.distanceTo(pos) > 1
+    this.pos = this.updated ? pos : this.pos
+    // this.visible = this.updated ? !this.visible : this.visible
   }
 
   get board_bounds() {
@@ -29,61 +46,80 @@ export class BoardWrapper {
     return this.data?.elevation
   }
 
-  async *update(current_pos) {
-    if (this.pos.distanceTo(current_pos) > 1) {
-      // board_chunks_container.boardCenter = current_pos
-      await this.container.localCache.buildCacheAroundPos(current_pos)
-      // fill board buffer from cache
-      const board_data = this.container.genBoardContent(current_pos)
-      this.data = board_data.patch.toStub()
-      this.data.elevation = current_pos.y
-      // iter board indexed chunks
-      for await (const cached_chunk of this.container.localCache.cachedChunks) {
-        // board_chunk.rawData.fill(113)
-        const target_chunk = new ChunkContainer(
-          cached_chunk.chunkKey,
-          cached_chunk.margin,
-        )
-        cached_chunk.rawData.forEach(
-          (val, i) => (target_chunk.rawData[i] = chunk_data_encoder(val)),
-        )
-        // copy items individually
-        const patch_key = WorldUtils.serializePatchId(
-          WorldUtils.asVect2(target_chunk.chunkId),
-        )
-        const cached_data = this.container.localCache.patchLookup[patch_key]
-        const { individualChunks } = cached_data.itemsLayer
-        individualChunks
-          .filter(
-            item_chunk =>
-              !this.container.overlapsBoard(
-                WorldUtils.asBox2(item_chunk.bounds),
-              ),
-          )
-          .forEach(item_chunk =>
-            ChunkContainer.copySourceToTarget(item_chunk, target_chunk),
-          )
-        // override with board_buffer
-        ChunkContainer.copySourceToTarget(board_data.chunk, target_chunk, false)
-        yield target_chunk
-      }
-      // remember bounds for later board removal
-      // this.bounds = this.container.boardBounds
-      this.pos = current_pos
+  toggleVisibility(board_visibility) {
+    this.updated = this.visible !== board_visibility
+    this.visible = board_visibility
+  }
+
+  *iterOriginalChunks() {
+    for (const cached_chunk of this.container.localCache.cachedChunks) {
+      const target_chunk = new ChunkContainer(
+        cached_chunk.chunkKey,
+        cached_chunk.margin,
+      )
+      cached_chunk.rawData.forEach(
+        (val, i) => (target_chunk.rawData[i] = chunk_data_encoder(val)),
+      )
+      // copy items individually
+      const patch_key = WorldUtils.convert.serializePatchId(
+        WorldUtils.convert.asVect2(target_chunk.chunkId),
+      )
+      const cached_data = this.container.localCache.patchLookup[patch_key]
+      const { individualChunks } = cached_data.itemsLayer
+      individualChunks.forEach(item_chunk =>
+        ChunkContainer.copySourceToTarget(item_chunk, target_chunk),
+      )
+      yield target_chunk
     }
   }
 
-  highlight = () => {
-    // this.content.data = this.content.data.map(cat => ({
-    //   type: cat,
-    //   category: cat - 1,
-    // }))
+  async *iterBoardChunks() {
+    // board_chunks_container.boardCenter = current_pos
+    await this.container.localCache.buildCacheAroundPos(this.pos)
+    // fill board buffer from cache
+    const board_data = this.container.genBoardContent(this.pos)
+    this.data = board_data.patch.toStub()
+    this.data.elevation = this.pos.y
+    // iter board indexed chunks
+    for await (const cached_chunk of this.container.localCache.cachedChunks) {
+      // board_chunk.rawData.fill(113)
+      const target_chunk = new ChunkContainer(
+        cached_chunk.chunkKey,
+        cached_chunk.margin,
+      )
+      cached_chunk.rawData.forEach(
+        (val, i) => (target_chunk.rawData[i] = chunk_data_encoder(val)),
+      )
+      // copy items individually
+      const patch_key = WorldUtils.convert.serializePatchId(
+        WorldUtils.convert.asVect2(target_chunk.chunkId),
+      )
+      const cached_data = this.container.localCache.patchLookup[patch_key]
+      const { individualChunks } = cached_data.itemsLayer
+      individualChunks
+        .filter(
+          item_chunk =>
+            !this.container.overlapsBoard(
+              WorldUtils.convert.asBox2(item_chunk.bounds),
+            ),
+        )
+        .forEach(item_chunk =>
+          ChunkContainer.copySourceToTarget(item_chunk, target_chunk),
+        )
+      // override with board_buffer
+      ChunkContainer.copySourceToTarget(board_data.chunk, target_chunk, false)
+      yield target_chunk
+    }
+    // remember bounds for later board removal
+    // this.bounds = this.container.boardBounds
+  }
 
+  highlight = () => {
     if (this.data?.content.length > 0) {
       // convert to board hanlder format
       const board_size = this.board_bounds.getSize(new Vector2())
       const size = { x: board_size.x, z: board_size.y }
-      const origin = WorldUtils.asVect3(
+      const origin = WorldUtils.convert.asVect3(
         this.board_bounds.min,
         this.board_elevation,
       )
