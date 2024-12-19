@@ -3,6 +3,8 @@ export const BLOCKS = {
   DBG_DARK: '#212121',
   DEBUG_RED: '#ff0000',
 
+  BROWN_GRASS: '#666633',
+  SNOW: '#000000',
   STONE: '#ababab',
   PRISMARINE_BRICKS: '#2e6c6c',
   QUARTZ_PILLAR: '#f2f2f2',
@@ -38,4 +40,18 @@ export const BLOCKS = {
   light_gray_wool: '#b3b3b3',
   jungle_leaves: '#4e8a3e',
   jungle_wood: '#8e684f',
+
+  Andesite: '#C3C3C3',
+  Gravel: '#ABB3B3',
+  Orange_terracotta: '#FFCE80',
+  Smooth_red_sandstone: '#FFBE80',
+  Sandstone: '#FFF8B6',
+  Cut_sandstone: '#FBE8A6',
+  Spruce_wood: '#2E1000',
+  Oak_wood: '#9E785F',
+  Azalea_wood: '#765037',
+  Stripped_acacia_wood: '#765037',
+  Spruce_leaves: '#173C17',
+  Dark_oak_leaves: '#3F8C3F',
+  azalea_leaves: '#3F8C3F',
 }
