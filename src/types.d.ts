@@ -143,13 +143,20 @@ declare namespace Type {
       tokens?: SuiToken[]
     }
     'action/sui_add_item': SuiItem
-    'action/sui_add_item_for_sale': { id: string; list_price: bigint }
+    'action/sui_add_item_for_sale': {
+      item: Item | SuiCharacter
+      list_price: bigint
+    }
     'action/sui_create_character': SuiCharacter
     'action/sui_delete_character': string
     'action/add_finished_craft': { id: string; template: string }
     'action/add_recipe': Recipe
     'action/sui_remove_item': string
-    'action/sui_remove_item_for_sale': { id: string; keep: boolean }
+    'action/sui_remove_item_for_sale': {
+      item?: Item
+      character_id?: string
+      keep: boolean
+    }
     'action/sui_remove_finished_craft': string
     'action/sui_update_item': SuiItem
     'action/sui_equip_item': {

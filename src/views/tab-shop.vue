@@ -26,7 +26,7 @@ sectionContainer
             .input
               vs-input.vinput(
                 type="number"
-                v-model="requested_list_price"
+                v-model="requested_price"
                 icon-after
               )
                 template(#icon)
@@ -145,12 +145,12 @@ const shop_tabs = {
 const faucet_tokens = Object.values(sdk.SUPPORTED_TOKENS);
 
 const selected_item_type = ref(null);
-const requested_list_price = ref(1);
+const requested_price = ref(1);
 
 provide('selected_item_type', selected_item_type);
 
 const show_sell_buttons = computed(() => {
-  return selected_item && !selected_item.value?.list_price;
+  return selected_item && !selected_item.value?.price;
 });
 
 function get_item_total_amount(item) {
@@ -165,7 +165,7 @@ function get_item_total_amount(item) {
 
 const is_price_valid = computed(() => {
   try {
-    const price = requested_list_price.value;
+    const price = requested_price.value;
     BigInt(new BN(price).multipliedBy(MIST_PER_SUI.toString()).toString());
     return price >= 0.01 && price <= 1000000;
   } catch (error) {
@@ -192,7 +192,7 @@ async function sell(quantity) {
     await sui_list_item({
       item: selected_item.value,
       amount: quantity,
-      price: requested_list_price.value,
+      price: requested_price.value,
     });
     tx.update('success', t('APP_TAB_SHOP_LISTED'));
   } catch (error) {
