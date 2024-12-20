@@ -1,4 +1,4 @@
-import { WorldEnv, WorldDevSetup } from '@aresrpg/aresrpg-world'
+import { WorldEnv } from '@aresrpg/aresrpg-world'
 
 import { chunk_data_encoder } from './world_utils.js'
 import {
@@ -29,6 +29,7 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
   world_env.biomes.rawConf = LANDSCAPE
   // populate inventory with schematics
   world_env.schematics.globalBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
+  // @ts-ignore
   world_env.schematics.filesIndex = SCHEMATICS_FILES
 
   // WORKER POOL
@@ -45,6 +46,6 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
   // WorldDevSetup.EnvOverride(world_env)
 }
 
-export const BLOCKS_COLOR_MAPPING = WorldDevSetup.BlocksColorOverride(
-  BLOCKS_COLOR_MAPPING_DAPP,
-)
+// export const BLOCKS_COLOR_MAPPING = WorldDevSetup.BlocksColorOverride(
+//   BLOCKS_COLOR_MAPPING_DAPP,
+// )
