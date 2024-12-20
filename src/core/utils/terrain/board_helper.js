@@ -40,19 +40,6 @@ export class BoardHelper {
     return this.data?.elevation
   }
 
-  spawn_board(position) {
-    console.log('spawn_board', position)
-    this.board_pos = position
-    this.updated = true
-    this.visible = true
-  }
-
-  hide_board() {
-    console.log('hide_board')
-    this.visible = false
-    this.updated = true
-  }
-
   *iterOriginalChunks() {
     for (const cached_chunk of this.container.localCache.cachedChunks) {
       const target_chunk = new ChunkContainer(

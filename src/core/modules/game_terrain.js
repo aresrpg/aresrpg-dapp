@@ -10,7 +10,7 @@ import {
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
-import { abortable, typed_on } from '../utils/iterator.js'
+import { abortable, combine, typed_on } from '../utils/iterator.js'
 import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
 import { world_shared_setup } from '../utils/terrain/world_setup.js'
 import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
@@ -134,36 +134,42 @@ export default function () {
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
           // Board
-          board_wrapper.board_pos = current_pos
-          if (board_wrapper.updated) {
-            const board_chunks = board_wrapper.visible
-              ? board_wrapper.iterBoardChunks()
-              : board_wrapper.iterOriginalChunks()
-            for await (const board_chunk of board_chunks) {
-              render_world_chunk(board_chunk)
-            }
-            if (board_wrapper.handler?.container) {
-              board_wrapper.handler.dispose()
-              scene.remove(board_wrapper.handler.container)
-            }
-            board_wrapper.highlight()
-            if (board_wrapper.visible && board_wrapper.handler?.container) {
-              scene.add(board_wrapper.handler.container)
-            }
-            board_wrapper.updated = false
-          }
         }
         FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
           terrain_viewer.setLod(camera.position, 50, camera.far)
       })
 
-      aiter(abortable(typed_on(events, 'SPAWN_BOARD', { signal }))).forEach(
-        position => board_wrapper.spawn_board(position),
-      )
+      aiter(
+        abortable(
+          combine(
+            typed_on(events, 'SPAWN_BOARD', { signal }),
+            typed_on(events, 'REMOVE_BOARD', { signal }),
+          ),
+        ),
+      ).forEach(async position => {
+        if (!position) {
+          board_wrapper.visible = false
+        } else {
+          board_wrapper.board_pos = position.clone().floor()
+          board_wrapper.visible = true
+        }
 
-      aiter(abortable(typed_on(events, 'REMOVE_BOARD', { signal }))).forEach(
-        () => board_wrapper.hide_board(),
-      )
+        const board_chunks = board_wrapper.visible
+          ? board_wrapper.iterBoardChunks()
+          : board_wrapper.iterOriginalChunks()
+        for await (const board_chunk of board_chunks) {
+          render_world_chunk(board_chunk)
+        }
+        if (board_wrapper.handler?.container) {
+          board_wrapper.handler.dispose()
+          scene.remove(board_wrapper.handler.container)
+        }
+        board_wrapper.highlight()
+        if (board_wrapper.visible && board_wrapper.handler?.container) {
+          scene.add(board_wrapper.handler.container)
+        }
+        board_wrapper.updated = false
+      })
 
       aiter(abortable(setInterval(200, null))).reduce(async () => {
         voxelmap_viewer.setAdaptativeQuality({
