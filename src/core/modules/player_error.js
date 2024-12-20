@@ -8,6 +8,8 @@ export default function () {
     observe() {
       context.events.on('packet/failure', ({ message }) => {
         switch (message) {
+          case 'MISSING_FOOD':
+            return toast.error(translate('APP_ITEM_FEED_NO_FOOD'))
           case 'ITEM_NOT_FOUND':
           case 'ITEM_NOT_HANDLED':
           case 'INTERNAL_ERROR':

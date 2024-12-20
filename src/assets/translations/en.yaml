@@ -114,11 +114,12 @@ APP_ITEM_KEY: Key
 APP_ITEM_CONSUMABLE: Consumable
 APP_ITEM_ORB: Orb
 
-APP_ITEM_FEED: Feed with
+APP_ITEM_FEED: Feed now
 APP_ITEM_FEEDING: Feeding your small friend
 APP_ITEM_FED: Your pet is very happy now!
 APP_ITEM_PET_FULL: Your pet is not hungry
 APP_ITEM_FEED_FAILED: Failed to feed your pet
+APP_ITEM_FEED_NO_FOOD: Your pet doesn't seem to find any food he likes in your inventory, so picky!
 APP_ITEM_DELETE: Destroy item
 APP_ITEM_USE: Use item
 APP_ITEM_DELETE_CONFIRM: Delete

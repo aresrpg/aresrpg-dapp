@@ -40,9 +40,13 @@ export default function () {
               three_character.target_position ?? three_character.position,
             skin: item_skin,
           }
+          const new_three_character =
+            await ENTITIES.from_character(sui_character)
+          new_three_character.move(three_character.position)
+
           context.dispatch('action/add_character', {
             sui_character,
-            three_character: await ENTITIES.from_character(sui_character),
+            three_character: new_three_character,
           })
         }
 
@@ -53,9 +57,14 @@ export default function () {
             position: three_character.position,
             skin: original_skin,
           }
+          const new_three_character =
+            await ENTITIES.from_character(sui_character)
+          new_three_character.move(three_character.position)
+          new_three_character.set_hair()
+
           context.dispatch('action/add_character', {
             sui_character,
-            three_character: await ENTITIES.from_character(sui_character),
+            three_character: new_three_character,
           })
         }
       })

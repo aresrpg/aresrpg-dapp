@@ -123,6 +123,9 @@ export default function () {
           sui: {
             ...state.sui,
             items: state.sui.items.filter(item => item.id !== payload),
+            items_for_sale: state.sui.items_for_sale.filter(
+              item => item.id !== payload,
+            ),
             characters: state.sui.characters.filter(
               character => character.id !== payload,
             ),
@@ -141,8 +144,6 @@ export default function () {
         }
       }
       if (type === 'action/sui_add_item_for_sale') {
-        const item = state.sui.items.find(item => item.id === payload.id)
-
         return {
           ...state,
           sui: {
@@ -150,27 +151,27 @@ export default function () {
             items_for_sale: [
               ...state.sui.items_for_sale,
               {
-                ...item,
+                ...payload.item,
                 list_price: payload.list_price,
               },
             ],
+            items: state.sui.items.filter(item => item.id !== payload.item.id),
+            characters: state.sui.characters.filter(
+              character => character.id !== payload.item.id,
+            ),
           },
         }
       }
       if (type === 'action/sui_remove_item_for_sale') {
-        const item = state.sui.items_for_sale.find(
-          item => item.id === payload.id,
-        )
-
-        delete item.list_price
-
         if (payload.keep) {
-          if (item.is_aresrpg_character) {
+          if (payload.character_id) {
+            const character = state.sui.items_for_sale.find(
+              item => item.id === payload.character_id,
+            )
             // @ts-ignore
-            state.sui.characters.push(item)
-          }
-
-          state.sui.items.push(item)
+            state.sui.characters.push(character)
+            state.sui.items.push(character)
+          } else state.sui.items.push(payload.item)
         }
 
         return {
@@ -178,7 +179,9 @@ export default function () {
           sui: {
             ...state.sui,
             items_for_sale: state.sui.items_for_sale.filter(
-              item => item.id !== payload.id,
+              item =>
+                item.id !== payload.item?.id &&
+                item.id !== payload.character_id,
             ),
           },
         }
@@ -191,6 +194,13 @@ export default function () {
             characters: [
               ...state.sui.characters.filter(({ id }) => id !== payload.id),
               payload,
+            ],
+            items: [
+              ...state.sui.items,
+              {
+                ...payload,
+                image_url: `https://assets.aresrpg.world/classe/${payload.classe}_${payload.sex}.jpg`,
+              },
             ],
           },
         }
@@ -298,7 +308,7 @@ export default function () {
           delist({ sender, character_id }) {
             if (sender === context.get_state().sui.selected_address)
               context.dispatch('action/sui_remove_item_for_sale', {
-                id: character_id,
+                character_id,
                 keep: true,
               })
             SUI_EMITTER.emit('ItemDelistedEvent', { id: character_id })
@@ -316,18 +326,16 @@ export default function () {
 
             if (sender === context.get_state().sui.selected_address) {
               context.dispatch('action/sui_add_item_for_sale', {
-                id: character.id,
+                item: character,
                 list_price: price,
               })
-
-              context.dispatch('action/sui_remove_item', character.id)
             }
             SUI_EMITTER.emit('ItemListedEvent', { character, price })
           },
           update(character) {
             context.dispatch('action/character_update', character)
           },
-          purchase({ character_id, price, seller, sender }) {
+          purchase({ character_id, price, seller }) {
             if (+price === 0) return
             const state = context.get_state()
             // If I'm the seller
@@ -345,7 +353,7 @@ export default function () {
                 EmojioneMoneyBag,
               )
               context.dispatch('action/sui_remove_item_for_sale', {
-                id: character_id,
+                character_id,
                 keep: false,
               })
 
@@ -385,7 +393,7 @@ export default function () {
 
             if (item.owner === context.get_state().sui.selected_address) {
               context.dispatch('action/sui_add_item_for_sale', {
-                id: item.id,
+                item,
                 list_price: price,
               })
             }
@@ -394,7 +402,7 @@ export default function () {
           delist(item) {
             if (item.owner === context.get_state().sui.selected_address)
               context.dispatch('action/sui_remove_item_for_sale', {
-                id: item.id,
+                item,
                 keep: true,
               })
             SUI_EMITTER.emit('ItemDelistedEvent', item)
@@ -417,7 +425,7 @@ export default function () {
                 EmojioneMoneyBag,
               )
               context.dispatch('action/sui_remove_item_for_sale', {
-                id: item.id,
+                item,
                 keep: false,
               })
 

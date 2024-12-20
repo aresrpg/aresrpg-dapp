@@ -570,7 +570,7 @@ export async function sui_buy_item(item) {
       seller_kiosk,
       tx.pure.id(item.id),
       coinWithBalance({
-        balance: BigInt(item.list_price),
+        balance: BigInt(mists_to_sui(item.list_price)),
         useGasCoin: true,
       }),
     ],
@@ -592,7 +592,7 @@ export async function sui_buy_item(item) {
       transaction: tx,
       itemType: item._type,
       itemId: item.id,
-      price: item.list_price.toString(),
+      price: mists_to_sui(item.list_price),
       sellerKiosk: seller_kiosk,
       policyId: policy_id,
       transferRequest: transfer_promise,
