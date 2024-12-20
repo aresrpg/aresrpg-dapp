@@ -118,6 +118,7 @@ APP_ITEM_FEEDING: 小さな友達に餌をやっています
 APP_ITEM_FED: あなたのペットはとても幸せです！
 APP_ITEM_PET_FULL: あなたのペットはお腹がいっぱいです
 APP_ITEM_FEED_FAILED: ペットの餌やりに失敗しました
+APP_ITEM_FEED_NO_FOOD: あなたのペットはインベントリに好きな食べ物がないようです！
 APP_ITEM_DELETE: アイテムを削除する
 APP_ITEM_USE: アイテムを使用する
 APP_ITEM_DELETE_CONFIRM: 削除

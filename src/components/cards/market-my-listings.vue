@@ -10,7 +10,7 @@
     .name {{ listing.name }}
     .amount (x{{ listing.amount }})
     .price
-      .sui {{ mists_to_sui(listing.list_price) }}
+      .sui {{ listing.list_price }}
       TokenBrandedSui.icon
       vs-button.btn(type="gradient" color="#0277BD" size="small" @click="() => delist_item(listing)" :disabled="delisting_items.includes(listing.id)") {{ t('APP_MARKET_WITHDRAW') }}
 </template>

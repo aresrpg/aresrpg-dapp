@@ -119,7 +119,8 @@ APP_ITEM_FEED: Nourrir avec
 APP_ITEM_FEEDING: Nourrir votre familier
 APP_ITEM_FED: Votre familier est très heureux maintenant !
 APP_ITEM_PET_FULL: Votre familier n'a pas faim
-APP_ITEM_FEED_FAILED: Échec de la nutrition de votre familier
+APP_ITEM_FEED_FAILED: Echec de l'alimentation de votre familier
+APP_ITEM_FEED_NO_FOOD: Votre animal de compagnie ne semble pas trouver de nourriture qui lui plaise dans votre inventaire, il est si difficile !
 APP_ITEM_DELETE: Détruire l'item
 APP_ITEM_USE: Utiliser
 APP_ITEM_DELETE_CONFIRM: Supprimer

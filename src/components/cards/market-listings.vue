@@ -91,30 +91,16 @@ function start_buy_item(item) {
 }
 
 function final_item_price(item) {
-  if (!item.is_aresrpg_item && item.item_category !== 'character') {
-    if (item.item_type === 'vaporeon')
-      return new BN(mists_to_sui(item.list_price)).times(1.1);
-    return new BN(mists_to_sui(item.list_price));
-  }
-
-  // Convert mists to Sui and create a BN instance of the price
-  const price_in_sui = new BN(mists_to_sui(item.list_price));
+  if (
+    !item.is_aresrpg_item &&
+    item.item_category !== 'character' &&
+    item.item_type !== 'vaporeon'
+  )
+    return new BN(item.list_price);
 
   // Determine the royalty rate
-  const royalty_rate =
-    item.item_category === 'character' || item.is_aresrpg_item ? 0.1 : 0;
-
-  // Calculate the royalty amount
-  const calculated_royalty = price_in_sui.times(royalty_rate);
-
-  // Apply the minimum royalty fee of 0.1 Sui
-  const royalty_amount = BN.max(calculated_royalty, new BN(0.1));
-
-  // Calculate the final price
-  const final_price = price_in_sui.plus(royalty_amount);
-
-  // Return the final price as a string with two decimal places
-  return final_price.isGreaterThan(0.1) ? final_price : new BN(0.1);
+  const royalty_rate = 1.1;
+  return BN.max(0.1, new BN(item.list_price).times(royalty_rate));
 }
 
 async function buy_item() {
@@ -182,13 +168,10 @@ function on_listings_response(payload) {
 }
 
 function on_item_listed({ item, price }) {
-  listings.value = [
-    ...listings.value,
-    {
-      ...item,
-      list_price: price,
-    },
-  ];
+  listings.value.concat({
+    ...item,
+    price,
+  });
 }
 
 onMounted(async () => {

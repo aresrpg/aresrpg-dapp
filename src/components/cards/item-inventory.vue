@@ -159,11 +159,7 @@ function on_right_click_item(event, item) {
 
   const context = [];
 
-  if (
-    item.item_type === 'suifren_capy' ||
-    item.item_type === 'suifren_bullshark' ||
-    item.item_type === 'vaporeon'
-  )
+  if (item.item_category === ITEM_CATEGORY.PET)
     context.push({
       label: t('APP_ITEM_FEED'),
       onClick: async () => {
@@ -173,7 +169,8 @@ function on_right_click_item(event, item) {
           if (fed) tx.update('success', t('APP_ITEM_FED'));
           else tx.update('error', t('SUI_NOT_ENOUGH_FOOD'));
         } catch (error) {
-          if (error.message.includes('101)')) {
+          if (!error) tx.remove();
+          else if (error.message.includes('101)')) {
             tx.update('error', t('APP_ITEM_PET_FULL'));
           } else tx.update('error', t('APP_ITEM_FEED_FAILED'));
           console.error(error);
