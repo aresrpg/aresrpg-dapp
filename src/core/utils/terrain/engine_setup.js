@@ -4,7 +4,7 @@ import {
   TerrainViewer,
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
-import { BlocksBatch , WorldEnv } from '@aresrpg/aresrpg-world'
+import { BlocksBatch, WorldEnv } from '@aresrpg/aresrpg-world'
 import { Color, Vector2 } from 'three'
 
 import { BLOCKS_COLOR_MAPPING } from './world_settings.js'
