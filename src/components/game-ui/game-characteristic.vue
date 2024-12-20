@@ -94,6 +94,7 @@ import {
   level_progression,
 } from '../../core/utils/game/experience.js';
 
+// @ts-ignore
 import RadixIconsCross2 from '~icons/radix-icons/cross-2';
 // @ts-ignore
 import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
