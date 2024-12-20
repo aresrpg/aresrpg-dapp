@@ -12,10 +12,10 @@ import {
 import { current_three_character } from '../game/game.js'
 import { abortable, typed_on } from '../utils/iterator.js'
 import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
-import { BoardHelper } from '../utils/terrain/board_wrapper.js'
 import { world_shared_setup } from '../utils/terrain/world_setup.js'
 import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
 import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
+import { BoardHelper } from '../utils/terrain/board_helper.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -28,7 +28,7 @@ export default function () {
 
   // patch containers
   const chunks_indexer = new ChunksIndexer()
-  BoardHelper.instance.toggleVisibility(false)
+  const board_wrapper = new BoardHelper()
 
   return {
     tick() {
@@ -134,9 +134,8 @@ export default function () {
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
           // Board
-          BoardHelper.instance.board_pos = current_pos
-          if (BoardHelper.instance.updated) {
-            const board_wrapper = BoardHelper.instance
+          board_wrapper.board_pos = current_pos
+          if (board_wrapper.updated) {
             const board_chunks = board_wrapper.visible
               ? board_wrapper.iterBoardChunks()
               : board_wrapper.iterOriginalChunks()
@@ -148,18 +147,23 @@ export default function () {
               scene.remove(board_wrapper.handler.container)
             }
             board_wrapper.highlight()
-            if (
-              BoardHelper.instance.visible &&
-              board_wrapper.handler?.container
-            ) {
+            if (board_wrapper.visible && board_wrapper.handler?.container) {
               scene.add(board_wrapper.handler.container)
             }
-            BoardHelper.instance.updated = false
+            board_wrapper.updated = false
           }
         }
         FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
           terrain_viewer.setLod(camera.position, 50, camera.far)
       })
+
+      aiter(abortable(typed_on(events, 'SPAWN_BOARD', { signal }))).forEach(
+        position => board_wrapper.spawn_board(position),
+      )
+
+      aiter(abortable(typed_on(events, 'REMOVE_BOARD', { signal }))).forEach(
+        () => board_wrapper.hide_board(),
+      )
 
       aiter(abortable(setInterval(200, null))).reduce(async () => {
         voxelmap_viewer.setAdaptativeQuality({
