@@ -10,7 +10,6 @@ import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
 import { chunk_data_encoder } from './world_utils.js'
 
 export class BoardHelper {
-  static current
   updated
   visible = false
   pos = new Vector3(0, 0, 0)
@@ -18,11 +17,6 @@ export class BoardHelper {
   handler
   data
   scene
-
-  static get instance() {
-    this.current = this.current || new BoardHelper()
-    return this.current
-  }
 
   static destroy() {
     this.current = null
@@ -46,9 +40,17 @@ export class BoardHelper {
     return this.data?.elevation
   }
 
-  toggleVisibility(board_visibility) {
-    this.updated = this.visible !== board_visibility
-    this.visible = board_visibility
+  spawn_board(position) {
+    console.log('spawn_board', position)
+    this.board_pos = position
+    this.updated = true
+    this.visible = true
+  }
+
+  hide_board() {
+    console.log('hide_board')
+    this.visible = false
+    this.updated = true
   }
 
   *iterOriginalChunks() {
