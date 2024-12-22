@@ -129,6 +129,7 @@ class VolumetricFogRenderpass extends Pass {
 
     this.#material_fog = new RawShaderMaterial({
       glslVersion: '300 es',
+      precision: 'highp',
       blending: NoBlending,
       depthTest: false,
       depthWrite: false,
@@ -213,10 +214,9 @@ class VolumetricFogRenderpass extends Pass {
                 shadowCoord /= shadowCoord.w;
                 shadowCoord = 0.5 + 0.5 * shadowCoord;
 
-                const float SHADOW_BIAS = 0.01;
                 float depth_shadowMap = unpackRGBAToDepth(texture(uShadowMap, shadowCoord.xy));
-                float ilumination = smoothstep(shadowCoord.z - SHADOW_BIAS, shadowCoord.z, depth_shadowMap);
                 fogDensity *= ilumination;
+                float ilumination = step(shadowCoord.z, depth_shadowMap);
 
                 return fogDensity;
             }
