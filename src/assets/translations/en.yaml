@@ -198,6 +198,7 @@ APP_USER_UNLOCK_DESC: You're about to unselect this character and retrieve it in
 APP_USER_LOCK_FAILED: Failed to select character, please retry shortly
 APP_USER_UNLOCK_FAILED: Failed to unselect character, please retry shortly
 APP_USER_DELETE_FAILED: Failed to delete character, please retry shortly
+APP_USER_HAS_EQUIPMENT: You must unequip all items before that
 APP_USER_DELETING: Deleting character
 APP_USER_DELETED: Character deleted
 
