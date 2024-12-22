@@ -66,6 +66,11 @@ async function delete_character() {
     props.character.name,
   );
   try {
+    if (has_equipment(props.character)) {
+      update('error', t('APP_USER_HAS_EQUIPMENT'));
+      delete_dialog.value = false;
+      return;
+    }
     delete_loading.value = true;
     delete_dialog.value = false;
     await sui_delete_character(props.character);
@@ -79,7 +84,7 @@ async function delete_character() {
 }
 
 function has_equipment(character) {
-  return (
+  return !!(
     character.weapon ||
     character.title ||
     character.amulet ||
