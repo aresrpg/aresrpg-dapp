@@ -197,6 +197,7 @@ APP_USER_UNLOCK_DESC: このキャラクターを選択解除し、ウォレッ�
 APP_USER_LOCK_FAILED: キャラクターの選択に失敗しました。しばらくしてからもう一度お試しください。
 APP_USER_UNLOCK_FAILED: キャラクターの選択解除に失敗しました。しばらくしてからもう一度お試しください。
 APP_USER_DELETE_FAILED: キャラクターの削除に失敗しました。しばらくしてからもう一度お試しください。
+APP_USER_HAS_EQUIPMENT: このキャラクターは装備を持っています。装備を外してからもう一度お試しください。
 APP_USER_DELETING: キャラクターを削除中
 APP_USER_DELETED: キャラクターが削除されました
 

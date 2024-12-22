@@ -199,6 +199,7 @@ APP_USER_UNLOCK_DESC: Vous êtes sur le point de désélectionner ce personnage 
 APP_USER_LOCK_FAILED: Échec de la sélection du personnage, veuillez réessayer sous peu
 APP_USER_UNLOCK_FAILED: Échec de la désélection du personnage, veuillez réessayer sous peu
 APP_USER_DELETE_FAILED: Échec de la suppression du personnage, veuillez réessayer sous peu
+APP_USER_HAS_EQUIPMENT: Vous devez d'abord déséquiper tous les objets
 APP_USER_DELETING: Suppression du personnage
 APP_USER_DELETED: Personnage supprimé
 
