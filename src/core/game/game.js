@@ -166,7 +166,7 @@ export const INITIAL_STATE = {
       color: new Color(0x29b6f6),
     },
 
-    view_distance: 50,
+    view_distance: 100,
 
     camera: {
       is_free: false,
@@ -183,7 +183,7 @@ export const INITIAL_STATE = {
       },
 
       godrays_pass: {
-        enabled: false,
+        enabled: true,
         light_size: 0.0025,
         max_intensity: 1,
         exposure: 0.3,
@@ -192,7 +192,7 @@ export const INITIAL_STATE = {
       },
 
       volumetric_fog_pass: {
-        enabled: true,
+        enabled: false,
 
         uniformity: 0.4,
         smoothness: 0.2,
