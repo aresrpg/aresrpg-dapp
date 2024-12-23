@@ -135,6 +135,7 @@ export default function () {
       computationOptions: {
         method: EComputationMethod.CPU_MULTITHREADED,
         threadsCount: 4,
+        greedyMeshing: false,
       },
       voxelsChunkOrdering: 'zxy',
     },
