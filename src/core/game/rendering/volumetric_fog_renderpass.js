@@ -98,7 +98,6 @@ class VolumetricFogRenderpass extends Pass {
   #material_composition
   #rendertarget
   #noise_texture
-  #source_rendertarget_size
 
   constructor(
     /** @type PerspectiveCamera */ camera,
@@ -127,8 +126,6 @@ class VolumetricFogRenderpass extends Pass {
     this.#noise_texture = new TextureLoader().load(bluenoise_url)
     this.#noise_texture.magFilter = NearestFilter
     this.#noise_texture.minFilter = NearestFilter
-
-    this.#source_rendertarget_size = new Vector2(1, 1)
 
     this.#rendertarget = new WebGLRenderTarget(1, 1, {
       depthBuffer: false,
@@ -241,9 +238,11 @@ class VolumetricFogRenderpass extends Pass {
             float computeFog(const vec3 position)
             {
                 float density = sampleFogDensity(position);
-                float directIllumination = isInDirectLight(position);
-                
-                return density * (uAmbientLightIntensity + uDirectLightIntensity * directIllumination);
+                if (uDirectLightIntensity != 0.0) {
+                    float directIllumination = isInDirectLight(position);
+                    return density * (uAmbientLightIntensity + uDirectLightIntensity * directIllumination);
+                }
+                return density * uAmbientLightIntensity;
             }
 
             void main(void) {
