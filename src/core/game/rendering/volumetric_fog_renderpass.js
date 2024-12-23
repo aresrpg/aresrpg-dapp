@@ -114,6 +114,10 @@ class VolumetricFogRenderpass extends Pass {
     this.fog_density = 0.08
     this.raymarching_step = 1
 
+    this.light_color = new Color(0xffffff)
+    this.ambient_light_intensity = 0
+    this.direct_light_intensity = 1;
+
     this.#camera = new PerspectiveCamera()
 
     const noise_texture_size = 64
@@ -142,6 +146,9 @@ class VolumetricFogRenderpass extends Pass {
         uSmoothness: { value: this.smoothness },
         uFogColor: { value: this.fog_color },
         uFogDensity: { value: this.fog_density },
+        uLightColor: { value: this.light_color },
+        uAmbientLightIntensity: { value: this.ambient_light_intensity },
+        uDirectLightIntensity: { value: this.direct_light_intensity },
         uRaymarchingStep: { value: this.raymarching_step },
         uProjMatrixInverse: { value: new Matrix4() },
         uViewMatrixInverse: { value: new Matrix4() },
@@ -178,6 +185,10 @@ class VolumetricFogRenderpass extends Pass {
             uniform vec3 uFogColor;
             uniform float uFogDensity;
             uniform float uRaymarchingStep;
+
+            uniform vec3 uLightColor;
+            uniform float uAmbientLightIntensity;
+            uniform float uDirectLightIntensity;
 
             uniform float uCameraNear;
             uniform float uCameraFar;
@@ -221,6 +232,14 @@ class VolumetricFogRenderpass extends Pass {
                 float depth_shadowMap = unpackRGBAToDepth(texture(uShadowMap, shadowCoord.xy));
                 return step(shadowCoord.z, depth_shadowMap);
             }
+            
+            float computeFog(const vec3 position)
+            {
+                float density = sampleFogDensity(position);
+                float directIllumination = isInDirectLight(position);
+                
+                return density * (uAmbientLightIntensity + uDirectLightIntensity * directIllumination);
+            }
 
             void main(void) {
                 float fragDepth = readDepth(vUv) * uCameraFar;
@@ -233,7 +252,7 @@ class VolumetricFogRenderpass extends Pass {
 
                 float noise = texture(uNoiseTexture, fract(vNoiseTextureUv)).r;
 
-                float lastFogSample = sampleFogDensity(vCameraWorldPosition) * isInDirectLight(vCameraWorldPosition);
+                float lastFogSample = computeFog(vCameraWorldPosition);
                 float lastRayDepth = 0.0;
                 float cumulatedFog = 0.0;
                 float currentRayDepth = lastRayDepth + noise * uRaymarchingStep;
@@ -241,10 +260,7 @@ class VolumetricFogRenderpass extends Pass {
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
                   float step = min(uRaymarchingStep, fragDepth - currentRayDepth);
                   currentRayDepth += step;
-                  vec3 samplePositionWorld = vCameraWorldPosition + viewVectorNormalized * currentRayDepth;
-                  float newFogSample =
-                    sampleFogDensity(samplePositionWorld) *
-                    isInDirectLight(samplePositionWorld);
+                  float  newFogSample = computeFog(vCameraWorldPosition + viewVectorNormalized * currentRayDepth);
                   cumulatedFog += 0.5 * (newFogSample + lastFogSample) * (currentRayDepth - lastRayDepth);
                   lastFogSample = newFogSample;
                   lastRayDepth = currentRayDepth;
@@ -256,7 +272,7 @@ class VolumetricFogRenderpass extends Pass {
 
                 cumulatedFog *= uFogDensity;
                 
-                fragColor = vec4(uFogColor, cumulatedFog);
+                fragColor = vec4(uFogColor * uLightColor, cumulatedFog);
             }`,
     })
 
@@ -329,6 +345,9 @@ class VolumetricFogRenderpass extends Pass {
     this.#material_fog.uniforms.uSmoothness.value = 0.5 * this.smoothness
     this.#material_fog.uniforms.uFogColor.value = this.fog_color
     this.#material_fog.uniforms.uFogDensity.value = this.fog_density
+    this.#material_fog.uniforms.uLightColor.value = this.light_color;
+    this.#material_fog.uniforms.uAmbientLightIntensity.value = this.ambient_light_intensity
+    this.#material_fog.uniforms.uDirectLightIntensity.value = this.direct_light_intensity
     this.#material_fog.uniforms.uRaymarchingStep.value = this.raymarching_step
     this.#material_fog.uniforms.uProjMatrixInverse.value =
       this.camera.projectionMatrixInverse
