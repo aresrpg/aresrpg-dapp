@@ -52,6 +52,7 @@ export const voxel_engine_setup = () => {
       computationOptions: {
         method: EComputationMethod.CPU_MULTITHREADED,
         threadsCount: 4,
+        greedyMeshing: false,
       },
       voxelsChunkOrdering: 'zxy',
     },
