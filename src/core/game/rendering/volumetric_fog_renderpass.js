@@ -98,6 +98,7 @@ class VolumetricFogRenderpass extends Pass {
   #material_composition
   #rendertarget
   #noise_texture
+  #source_rendertarget_size
 
   constructor(
     /** @type PerspectiveCamera */ camera,
@@ -112,7 +113,9 @@ class VolumetricFogRenderpass extends Pass {
     this.uniformity = 0.25
     this.fog_color = new Color(0xffffff)
     this.fog_density = 0.08
+
     this.raymarching_step = 1
+    this.downscaling = 2
 
     this.light_color = new Color(0xffffff)
     this.ambient_light_intensity = 0
@@ -124,6 +127,8 @@ class VolumetricFogRenderpass extends Pass {
     this.#noise_texture = new TextureLoader().load(bluenoise_url)
     this.#noise_texture.magFilter = NearestFilter
     this.#noise_texture.minFilter = NearestFilter
+
+    this.#source_rendertarget_size = new Vector2(1, 1)
 
     this.#rendertarget = new WebGLRenderTarget(1, 1, {
       depthBuffer: false,
@@ -314,10 +319,7 @@ class VolumetricFogRenderpass extends Pass {
     this.#fullscreen_quad = create_fullscreen_quad()
   }
 
-  setSize(/** @type number */ width, /** @type number */ height) {
-    const downscaling = 2
-    this.#rendertarget.setSize(width / downscaling, height / downscaling)
-  }
+  setSize() {}
 
   render(
     /** @type WebGLRenderer */ renderer,
@@ -335,6 +337,20 @@ class VolumetricFogRenderpass extends Pass {
     renderer.autoClear = false
     renderer.autoClearColor = false
     renderer.autoClearDepth = false
+
+    const ideal_rendertarget_size = {
+      x: Math.ceil(read_buffer.width / this.downscaling),
+      y: Math.ceil(read_buffer.height / this.downscaling),
+    }
+    if (
+      this.#rendertarget.width !== ideal_rendertarget_size.x ||
+      this.#rendertarget.height !== ideal_rendertarget_size.y
+    ) {
+      this.#rendertarget.setSize(
+        ideal_rendertarget_size.x,
+        ideal_rendertarget_size.y,
+      )
+    }
 
     renderer.setRenderTarget(this.#rendertarget)
     this.#material_fog.uniforms.uDepthTexture.value = read_buffer.depthTexture

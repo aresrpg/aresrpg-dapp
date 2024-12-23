@@ -107,8 +107,6 @@ export default function () {
               postprocessing.volumetric_fog_pass.smoothness
             volumetric_fog_pass.fog_density =
               postprocessing.volumetric_fog_pass.fog_density
-            volumetric_fog_pass.raymarching_step =
-              postprocessing.volumetric_fog_pass.raymarching_step
             volumetric_fog_pass.fog_color.set(
               postprocessing.volumetric_fog_pass.fog_color,
             )
@@ -119,6 +117,10 @@ export default function () {
               postprocessing.volumetric_fog_pass.ambient_light_intensity
             volumetric_fog_pass.direct_light_intensity =
               postprocessing.volumetric_fog_pass.direct_light_intensity
+            volumetric_fog_pass.raymarching_step =
+              postprocessing.volumetric_fog_pass.raymarching_step
+            volumetric_fog_pass.downscaling =
+              postprocessing.volumetric_fog_pass.downscaling
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
