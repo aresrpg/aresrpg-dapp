@@ -101,14 +101,24 @@ export default function () {
 
             volumetric_fog_pass.enabled =
               postprocessing.volumetric_fog_pass.enabled
-            volumetric_fog_pass.threshold =
-              postprocessing.volumetric_fog_pass.threshold
+            volumetric_fog_pass.uniformity =
+              postprocessing.volumetric_fog_pass.uniformity
             volumetric_fog_pass.smoothness =
               postprocessing.volumetric_fog_pass.smoothness
             volumetric_fog_pass.fog_density =
               postprocessing.volumetric_fog_pass.fog_density
             volumetric_fog_pass.raymarching_step =
               postprocessing.volumetric_fog_pass.raymarching_step
+            volumetric_fog_pass.fog_color.set(
+              postprocessing.volumetric_fog_pass.fog_color,
+            )
+            volumetric_fog_pass.light_color.set(
+              postprocessing.volumetric_fog_pass.light_color,
+            )
+            volumetric_fog_pass.ambient_light_intensity =
+              postprocessing.volumetric_fog_pass.ambient_light_intensity
+            volumetric_fog_pass.direct_light_intensity =
+              postprocessing.volumetric_fog_pass.direct_light_intensity
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength
@@ -132,9 +142,6 @@ export default function () {
             godrays_pass.light_color = state.settings.sky.lights.godrays.color
               .clone()
               .multiplyScalar(state.settings.sky.lights.godrays.intensity)
-
-            volumetric_fog_pass.fog_color =
-              state.settings.sky.lights.volumetric_fog.color.clone()
           }
 
           return {
