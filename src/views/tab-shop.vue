@@ -156,12 +156,10 @@ const show_sell_buttons = computed(() => {
 function get_item_total_amount(item) {
   return (
     item.amount +
-    context
-      .get_state()
-      .sui.unlocked_items.reduce((acc, { id, item_type, amount }) => {
-        if (item.id !== id && item.item_type === item_type) return acc + amount;
-        return acc;
-      }, 0)
+    context.get_state().sui.items.reduce((acc, { id, item_type, amount }) => {
+      if (item.id !== id && item.item_type === item_type) return acc + amount;
+      return acc;
+    }, 0)
   );
 }
 

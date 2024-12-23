@@ -1,43 +1,13 @@
-import {
-  Heightmap,
-  ItemsInventory,
-  SchematicLoader,
-  WorldCompute,
-} from '@aresrpg/aresrpg-world'
-import { Biome } from '@aresrpg/aresrpg-world/biomes'
-import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
+import { WorldEnv, WorldWorkerInit, Heightmap } from '@aresrpg/aresrpg-world'
+import workerpool from 'workerpool'
 
-import { setup_world_modules } from './world_setup.js'
-
-const world_modules = {
-  heightmapInstance: Heightmap.instance,
-  biomeInstance: Biome.instance,
-  SchematicLoader,
-  ItemsInventory,
-}
-setup_world_modules(world_modules)
-
-addEventListener('error', e => {
-  console.error(e)
-  self.postMessage({ type: 'error', message: e.message })
-})
-
-addEventListener('unhandledrejection', e => {
-  console.error('Worker script unhandled rejection:', e)
-  self.postMessage({ type: 'error', message: e.reason })
-})
-
-addEventListener('message', async ({ data: input }) => {
-  const output = {
-    id: input.id,
-  }
-  const { apiName: api_name } = input
-  const args = input.args.map(arg =>
-    arg instanceof Array
-      ? arg.map(item => WorldUtils.parseThreeStub(item))
-      : WorldUtils.parseThreeStub(arg),
-  )
-  const res = WorldCompute[api_name](...args)
-  output.data = res instanceof Promise ? await res : res
-  postMessage(output)
-})
+import { world_shared_setup } from './world_setup.js'
+// HEIGHTMAP TUNING
+Heightmap.instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
+Heightmap.instance.heightmap.sampling.harmonicsCount = 6
+Heightmap.instance.amplitude.sampling.seed = 'amplitude_mod'
+// setup worker's own environment
+world_shared_setup(WorldEnv.current)
+// unset URL to prevent other worker instances from spawning inside the worker.
+WorldEnv.current.workerPool.url = ''
+WorldWorkerInit(workerpool)

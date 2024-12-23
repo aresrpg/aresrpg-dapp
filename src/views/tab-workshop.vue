@@ -42,32 +42,6 @@ const jobs = [
   { name: t('APP_TAB_WORKSHOP_TAILOR'), level: 1, icon: tailor_icon },
   { name: t('APP_TAB_WORKSHOP_WOODCUTTER'), level: 1, icon: woodcutter_icon },
 ];
-
-function on_recipe_create(recipe) {
-  indexed_recipes.value.push(recipe);
-}
-
-function on_recipe_delete(recipe_id) {
-  indexed_recipes.value = indexed_recipes.value.filter(
-    recipe => recipe.id !== recipe_id,
-  );
-}
-
-watch(online, async () => {
-  if (online.value) {
-    indexed_recipes.value = await sui_get_recipes();
-  }
-});
-
-onMounted(() => {
-  SUI_EMITTER.on('RecipeCreateEvent', on_recipe_create);
-  SUI_EMITTER.on('RecipeDeleteEvent', on_recipe_delete);
-});
-
-onUnmounted(() => {
-  SUI_EMITTER.off('RecipeCreateEvent', on_recipe_create);
-  SUI_EMITTER.off('RecipeDeleteEvent', on_recipe_delete);
-});
 </script>
 
 <style lang="stylus" scoped>

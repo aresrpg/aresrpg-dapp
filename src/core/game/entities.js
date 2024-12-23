@@ -68,7 +68,7 @@ function entity_spawner(
     origin.add(model)
     origin.add(hitbox)
 
-    title.position.y += height * scale_factor + 0.2
+    title.position.y += height * scale_factor + 0.7
     model.position.y -= height * 0.5
 
     const scene = scene_override || context.scene
@@ -83,14 +83,19 @@ function entity_spawner(
 
     current_animation?.play()
 
+    // this function must be atomic, to avoid having both hair and helmet equipped at the same time
+    let equip_promise = Promise.resolve()
+
     async function equip_hat(hat) {
-      const head = find_head_bone(model)
-      head.clear()
+      equip_promise = equip_promise.then(async () => {
+        const head = find_head_bone(model)
+        head.clear()
 
-      if (!hat) return
-
-      const { model: hat_model } = await MODELS[hat.item_type]
-      head.add(hat_model)
+        if (!hat) return
+        const { model: hat_model } = await MODELS[hat.item_type]
+        head.add(hat_model)
+      })
+      return equip_promise
     }
 
     return {
@@ -193,6 +198,12 @@ export const ENTITIES = {
     radius: 0.8,
     skin: 'primemachin',
     hair: 'primemachin_hair',
+  }),
+  anima: entity_spawner(() => MODELS.anima, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'anima',
+    hair: 'anima_hair',
   }),
 
   // ====== MOBS ======

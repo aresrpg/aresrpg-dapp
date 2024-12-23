@@ -59,8 +59,6 @@ export async function sui_mint_vaporeon(key) {
 
   const { kiosk_tx, kiosk_id, kiosk_cap } = await sui_enforce_personal_kiosk(tx)
 
-  console.log({ kiosk_tx, kiosk_id, kiosk_cap })
-
   if (key)
     tx.moveCall({
       target: `${get_vaporeon_package_id()}::vaporeon::mint_with_key`,

@@ -1,4 +1,5 @@
 import { EnokiFlow } from '@mysten/enoki'
+import { Transaction } from '@mysten/sui/transactions'
 
 import { VITE_ENOKI_KEY, NETWORK } from '../../env.js'
 import enoki_logo from '../../assets/sui/google.png?url'
@@ -76,18 +77,19 @@ export function enoki_wallet() {
         ...(await keypair.signPersonalMessage(
           new TextEncoder().encode(message),
         )),
-        zk: true,
       }
     },
     /**
      * @param {object} opt
      * @param {import("@mysten/sui/transactions").Transaction} opt.transaction
+     * @param {boolean} opt.sponsored
      */
     async signTransaction({ transaction }) {
       const keypair = await enoki.getKeypair({ network: NETWORK })
-
       const { bytes, signature } = await keypair.signTransaction(
-        await transaction.build({ client: sdk.sui_client }),
+        await transaction.build({
+          client: sdk.sui_client,
+        }),
       )
 
       return { signature, bytes }

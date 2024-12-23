@@ -94,11 +94,9 @@ export default function () {
       events.on('packet/characterPosition', async ({ id, position }) => {
         const {
           visible_characters,
-          sui: { locked_characters },
+          sui: { characters },
         } = get_state()
-        const character_is_mine = locked_characters.some(
-          ({ id: locked_id }) => locked_id === id,
-        )
+        const character_is_mine = characters.some(({ id: c_id }) => c_id === id)
 
         if (!visible_characters.has(id) && !character_is_mine) {
           try {
@@ -222,14 +220,12 @@ export default function () {
       events.on('packet/characterPosition', ({ id, position }) => {
         const {
           visible_characters,
-          sui: { locked_characters },
+          sui: { characters },
         } = get_state()
         const entity = visible_characters.get(id)
         // can happen when a character previously foreign was sent to me
         // without being despawned, so it would be mine but also in the visible_characters
-        const character_mine = locked_characters.find(
-          ({ id: locked_id }) => locked_id === id,
-        )
+        const character_mine = characters.find(({ id: c_id }) => c_id === id)
 
         if (entity && character_mine) {
           entity.remove()

@@ -10,14 +10,6 @@
       img.misc(src="../../assets/ui/misc.svg" :class="{ selected: selected_category === 'misc' }" @click="selected_category = 'misc'")
       img.loot(src="../../assets/ui/loot.svg" :class="{ selected: selected_category === 'loot' }" @click="selected_category = 'loot'")
     itemInventory.i-inv
-    vs-button.vsbtn(
-      type="gradient"
-      size="small"
-      color="#F9A825"
-      @click="claim_all"
-      :loading="claim_loading"
-      v-if="selected_category === 'loot' && extension_items.length"
-    ) {{ t('APP_GAME_INVENTORY_CLAIM_ALL') }}
 </template>
 
 <script setup>
@@ -27,9 +19,7 @@ import { useI18n } from 'vue-i18n';
 import itemDescription from '../cards/item-description.vue';
 import itemInventory from '../cards/item-inventory.vue';
 import itemEquipments from '../cards/item-equipments.vue';
-import { sui_withdraw_items_from_extension } from '../../core/sui/client.js';
 
-const extension_items = inject('extension_items');
 const owned_items = inject('owned_items');
 const selected_category = inject('selected_category');
 const selected_item = inject('selected_item');
@@ -37,17 +27,6 @@ const selected_item = inject('selected_item');
 const { t } = useI18n();
 
 const claim_loading = ref(false);
-
-async function claim_all() {
-  claim_loading.value = true;
-  try {
-    await sui_withdraw_items_from_extension(extension_items.value);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    claim_loading.value = false;
-  }
-}
 
 watch(owned_items, items => {
   if (selected_item.value) {

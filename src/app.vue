@@ -5,8 +5,12 @@ router-view
 <script setup>
 import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
 import deep_equal from 'fast-deep-equal';
+import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
 
 import { decrease_loading, increase_loading } from './core/utils/loading.js';
+import { get_spells } from './core/game/spells_per_class.js';
+import toast from './toast.js';
+import { translate } from './i18n.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore
@@ -29,31 +33,10 @@ const server_info = reactive({
   online_characters: 0,
 });
 
-const characters = ref([]);
 const selected_character = ref(null);
-const extension_items = ref([]);
 const owned_items = ref([]);
 
 const in_fight = ref(false);
-
-const equipment = reactive({
-  relic_1: null,
-  relic_2: null,
-  relic_3: null,
-  relic_4: null,
-  relic_5: null,
-  relic_6: null,
-  title: null,
-  amulet: null,
-  weapon: null,
-  left_ring: null,
-  belt: null,
-  right_ring: null,
-  boots: null,
-  hat: null,
-  cloak: null,
-  pet: null,
-});
 
 const selected_category = ref('equipment');
 const selected_item = ref(null);
@@ -82,9 +65,9 @@ const edit_mode_equipment = reactive({
 
 const my_listings = ref([]);
 const message_history = ref([]);
+const typed_message_history = ref([]);
 
-const vue_locked_characters = ref(null);
-const vue_unlocked_characters = ref(null);
+const vue_characters = ref([]);
 
 const admin = reactive({
   character_profits: 0n,
@@ -95,7 +78,9 @@ const admin = reactive({
 const owned_tokens = ref([]);
 const finished_crafts = ref([]);
 const currently_listed_items_names = ref({});
+const recipes = ref([]);
 
+provide('typed_message_history', typed_message_history);
 provide('sidebar_reduced', sidebar_reduced);
 provide('game_visible', game_visible);
 provide('available_accounts', available_accounts);
@@ -105,11 +90,8 @@ provide('current_account', current_account);
 provide('sui_balance', sui_balance);
 provide('online', online);
 provide('server_info', server_info);
-provide('characters', characters);
 provide('selected_character', selected_character);
-provide('extension_items', extension_items);
 provide('owned_items', owned_items);
-provide('equipment', equipment);
 provide('inventory_counter', inventory_counter);
 
 provide('in_fight', in_fight);
@@ -119,8 +101,7 @@ provide('selected_category', selected_category);
 provide('edit_mode', edit_mode);
 provide('edit_mode_equipment', edit_mode_equipment);
 provide('my_listings', my_listings);
-provide('locked_characters', vue_locked_characters);
-provide('unlocked_characters', vue_unlocked_characters);
+provide('characters', vue_characters);
 provide('owned_tokens', owned_tokens);
 
 provide('admin', admin);
@@ -128,11 +109,11 @@ provide('finished_crafts', finished_crafts);
 provide('message_history', message_history);
 provide('currently_listed_items_names', currently_listed_items_names);
 
-provide('recipes', ref([]));
+provide('recipes', recipes);
 
 function update_all(
   state,
-  { current_character, current_locked_character, sui_get_policies_profit },
+  { current_three_character, current_sui_character, sui_get_policies_profit },
 ) {
   const {
     sui: {
@@ -141,10 +122,8 @@ function update_all(
       balance,
       tokens,
       selected_address,
-      locked_characters,
-      unlocked_characters,
-      locked_items,
-      unlocked_items,
+      characters,
+      items,
       items_for_sale,
     },
     sui,
@@ -164,59 +143,56 @@ function update_all(
     ({ address }) => address === selected_address,
   );
 
-  const characters_ids = locked_characters
+  const characters_ids = characters
     .map(character => character.id)
     .filter(id => id !== selected_character_id);
 
-  // @ts-ignore
-  const last_characters_ids = characters.value.map(character => character.id);
+  const last_characters_ids = vue_characters.value.map(
+    character => character.id,
+  );
 
   if (characters_ids.join() !== last_characters_ids.join())
-    characters.value = locked_characters.filter(
+    vue_characters.value = characters.filter(
       character => character.id !== selected_character_id,
     );
 
   if (sui.finished_crafts.length !== finished_crafts.value.length)
     finished_crafts.value = sui.finished_crafts;
 
-  const locked_ids = locked_characters.map(c => c.id);
-  const unlocked_ids = unlocked_characters.map(c => c.id);
+  if (sui.recipes.length !== recipes.value.length) recipes.value = sui.recipes;
+
+  const all_ids = characters.map(c => c.id);
 
   // @ts-ignore
-  if (locked_ids.join() !== vue_locked_characters.value?.map(c => c.id).join())
-    vue_locked_characters.value = locked_characters;
-
-  if (
-    // @ts-ignore
-    unlocked_ids.join() !== vue_unlocked_characters.value?.map(c => c.id).join()
-  )
-    vue_unlocked_characters.value = unlocked_characters;
+  if (all_ids.join() !== vue_characters.value?.map(c => c.id).join())
+    vue_characters.value = characters;
 
   if (
     selected_character_id &&
     // @ts-ignore
     selected_character.value?.id !== selected_character_id
   ) {
-    selected_character.value = current_character(state);
+    const sui_character = current_sui_character(state);
+    selected_character.value = {
+      ...sui_character,
+      ...current_three_character(state),
+      spells: get_spells(sui_character?.classe),
+    };
   } else if (!selected_character_id) {
     selected_character.value = null;
   }
 
-  if (!deep_equal(locked_items, extension_items.value))
+  if (!deep_equal(items, owned_items.value)) {
     // @ts-ignore
-    extension_items.value = [...locked_items];
+    owned_items.value = [...items];
 
-  if (!deep_equal(unlocked_items, owned_items.value)) {
-    // @ts-ignore
-    owned_items.value = [...unlocked_items];
-
-    const unlocked_selected = unlocked_items.find(
+    const selected = items.find(
       // @ts-ignore
       item => item.id === selected_item.value?.id,
     );
 
-    if (unlocked_selected) {
-      selected_item.value = unlocked_selected;
+    if (selected) {
+      selected_item.value = selected;
     }
   }
 
@@ -275,7 +251,7 @@ function update_all(
   if (state_online !== online.value) online.value = state_online;
 
   if (selected_character.value) {
-    const character = current_locked_character(state);
+    const character = current_sui_character(state);
     if (character) {
       const {
         relic_1,
@@ -294,7 +270,6 @@ function update_all(
         hat,
         cloak,
         pet,
-
         available_points,
         vitality,
         strength,
@@ -302,106 +277,73 @@ function update_all(
         intelligence,
         wisdom,
         agility,
+        experience,
+        health,
       } = character;
 
-      // @ts-ignore
-      if (selected_character.value.available_points !== available_points ||
-        selected_character.value.vitality !== vitality ||
-        selected_character.value.strength !== strength ||
-        selected_character.value.chance !== chance ||
-        selected_character.value.intelligence !== intelligence ||
-        selected_character.value.wisdom !== wisdom ||
-        selected_character.value.agility !== agility
-      ) {
-        Object.assign(selected_character.value, { available_points, vitality, strength, chance, intelligence, wisdom, agility });
+      // Update stats if any changed
+      const stats_changed = Object.entries({
+        available_points,
+        vitality,
+        strength,
+        chance,
+        intelligence,
+        wisdom,
+        agility,
+      }).some(([key, value]) => selected_character.value[key] !== value);
+
+      if (stats_changed) {
+        Object.assign(selected_character.value, {
+          available_points,
+          vitality,
+          strength,
+          chance,
+          intelligence,
+          wisdom,
+          agility,
+        });
       }
 
-      let equipment_changed = false;
+      // Check equipment changes
+      const equipment_fields = {
+        relic_1,
+        relic_2,
+        relic_3,
+        relic_4,
+        relic_5,
+        relic_6,
+        title,
+        amulet,
+        weapon,
+        left_ring,
+        belt,
+        right_ring,
+        boots,
+        hat,
+        cloak,
+        pet,
+      };
 
-      // @ts-ignore
-      if (relic_1?.id !== equipment.relic_1?.id) {
-        equipment_changed = true;
-        equipment.relic_1 = relic_1;
-      }
-      // @ts-ignore
-      if (relic_2?.id !== equipment.relic_2?.id) {
-        equipment_changed = true;
-        equipment.relic_2 = relic_2;
-      }
-      // @ts-ignore
-      if (relic_3?.id !== equipment.relic_3?.id) {
-        equipment_changed = true;
-        equipment.relic_3 = relic_3;
-      }
-      // @ts-ignore
-      if (relic_4?.id !== equipment.relic_4?.id) {
-        equipment_changed = true;
-        equipment.relic_4 = relic_4;
-      }
-      // @ts-ignore
-      if (relic_5?.id !== equipment.relic_5?.id) {
-        equipment_changed = true;
-        equipment.relic_5 = relic_5;
-      }
-      // @ts-ignore
-      if (relic_6?.id !== equipment.relic_6?.id) {
-        equipment_changed = true;
-        equipment.relic_6 = relic_6;
-      }
-      // @ts-ignore
-      if (title?.id !== equipment.title?.id) {
-        equipment_changed = true;
-        equipment.title = title;
-      }
-      // @ts-ignore
-      if (amulet?.id !== equipment.amulet?.id) {
-        equipment_changed = true;
-        equipment.amulet = amulet;
-      }
-      // @ts-ignore
-      if (weapon?.id !== equipment.weapon?.id) {
-        equipment_changed = true;
-        equipment.weapon = weapon;
-      }
-      // @ts-ignore
-      if (left_ring?.id !== equipment.left_ring?.id) {
-        equipment_changed = true;
-        equipment.left_ring = left_ring;
-      }
-      // @ts-ignore
-      if (belt?.id !== equipment.belt?.id) {
-        equipment_changed = true;
-        equipment.belt = belt;
-      }
-      // @ts-ignore
-      if (right_ring?.id !== equipment.right_ring?.id) {
-        equipment_changed = true;
-        equipment.right_ring = right_ring;
-      }
-      // @ts-ignore
-      if (boots?.id !== equipment.boots?.id) {
-        equipment_changed = true;
-        equipment.boots = boots;
-      }
-      // @ts-ignore
-      if (hat?.id !== equipment.hat?.id) {
-        equipment_changed = true;
-        equipment.hat = hat;
-      }
-      // @ts-ignore
-      if (cloak?.id !== equipment.cloak?.id) {
-        equipment_changed = true;
-        equipment.cloak = cloak;
-      }
-      // @ts-ignore
-      if (pet?.id !== equipment.pet?.id) {
-        equipment_changed = true;
-        equipment.pet = pet;
-      }
+      const equipment_changed = Object.entries(equipment_fields).some(
+        ([key, value]) => {
+          if (value?.id !== selected_character.value[key]?.id) {
+            selected_character.value[key] = value;
+            return true;
+          }
+          return false;
+        },
+      );
 
-      if (equipment_changed) {
-        inventory_counter.value++;
-      }
+      if (equipment_changed) inventory_counter.value++;
+
+      // Update experience and health
+      if (selected_character.value.experience !== experience)
+        selected_character.value.experience = experience;
+      if (equipment_changed || selected_character.value.health !== health)
+        selected_character.value.health = Math.min(
+          health,
+          get_max_health(character),
+        );
     }
   }
 }
@@ -443,17 +385,16 @@ onMounted(async () => {
     el.style.transform = 'scale(1)';
   }, 100);
 
-  const { context, current_character, current_locked_character } = await import(
-    './core/game/game.js'
-  );
+  const { context, current_sui_character, current_three_character } =
+    await import('./core/game/game.js');
 
   const { enoki_address, enoki_wallet } = await import('./core/sui/enoki.js');
   const { sui_get_policies_profit } = await import('./core/sui/client.js');
 
   game_module = {
     context,
-    current_character,
-    current_locked_character,
+    current_three_character,
+    current_sui_character,
     sui_get_policies_profit,
   };
 

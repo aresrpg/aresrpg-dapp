@@ -17,3 +17,5 @@ export const i18n = createI18n({
     jp,
   },
 })
+
+export const translate = i18n.global.t

@@ -26,6 +26,7 @@ export default function () {
     tick(state, _, delta) {
       const { visible_mobs_group } = state
       const character = current_three_character(state)
+      if (!character) return
       for (const { entities } of visible_mobs_group.values()) {
         for (const mob of entities) {
           if (

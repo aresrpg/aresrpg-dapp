@@ -35,7 +35,7 @@ import { create_client } from '@aresrpg/aresrpg-protocol'
 import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
-import { WorldConf } from '@aresrpg/aresrpg-world'
+import { WorldEnv } from '@aresrpg/aresrpg-world'
 
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
@@ -72,12 +72,13 @@ import player_entities_interract from '../modules/player_entities_interract.js'
 import game_fights from '../modules/game_fights.js'
 import { listen_for_requests } from '../sui/client.js'
 import player_experience from '../modules/player_experience.js'
+import player_error from '../modules/player_error.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
-import { get_spells } from './spells_per_class.js'
 // @ts-ignore
 import { CustomCameraControls } from './custom_camera_control.js'
 
+// @ts-ignore
 import MdiClippy from '~icons/mdi/clippy'
 
 const LOADING_MANAGER = DefaultLoadingManager
@@ -237,13 +238,9 @@ export const INITIAL_STATE = {
     /** @type {Type.Wallet[]} */
     wallets: [],
     /** @type {Type.SuiCharacter[]} */
-    locked_characters: [],
-    /** @type {Type.SuiCharacter[]} */
-    unlocked_characters: [],
+    characters: [],
     /** @type {Type.SuiItem[]} */
-    locked_items: [],
-    /** @type {Type.SuiItem[]} */
-    unlocked_items: [],
+    items: [],
     /** @type {Type.SuiItem[]} */
     items_for_sale: [],
 
@@ -258,6 +255,7 @@ export const INITIAL_STATE = {
     admin_caps: [],
 
     finished_crafts: [],
+    recipes: [],
   },
 
   // is the user connected to the websocket
@@ -275,30 +273,14 @@ export const INITIAL_STATE = {
   visible_fights: new Map(),
 }
 
-/**
- * !This function is rarely used, you should always try to use the other current_X below
- * @type {(state?: INITIAL_STATE) => Type.FullCharacter} */
-export function current_character(state = get_state()) {
-  const by_id = ({ id }) => id === state.selected_character_id
-  const three_character = state.characters.find(by_id)
-  const sui_character = state.sui.locked_characters.find(by_id)
-
-  const spells = get_spells(sui_character?.classe)
-
-  return {
-    ...sui_character,
-    ...three_character,
-    spells,
-  }
-}
-
 /** @return {Type.ThreeEntity} */
 export function current_three_character(state = get_state()) {
   return state.characters.find(({ id }) => id === state.selected_character_id)
 }
 
-export function current_locked_character(state = get_state()) {
-  return state.sui.locked_characters.find(
+/** @return {Type.SuiCharacter} */
+export function current_sui_character(state = get_state()) {
+  return state.sui.characters.find(
     ({ id }) => id === state.selected_character_id,
   )
 }
@@ -338,6 +320,7 @@ const MODULES = [
   player_equipment,
   player_entities_interract,
   player_experience,
+  player_error,
 
   game_sky,
   game_render,
@@ -435,7 +418,7 @@ renderer.info.autoReset = false
 composer.setSize(window.innerWidth, window.innerHeight)
 
 const voxelmap_collider = new VoxelmapCollider({
-  chunkSize: WorldConf.defaultChunkDimensions,
+  chunkSize: WorldEnv.current.chunkDimensions,
   voxelsChunkOrdering: 'zxy',
 })
 const voxelmap_collisions = new VoxelmapCollisions({
@@ -548,6 +531,7 @@ const context = {
   events,
   actions,
   composer,
+  /** @type {CustomCameraControls & import("camera-controls").default} */
   // @ts-ignore
   camera_controls: new CustomCameraControls(
     camera,
@@ -601,6 +585,7 @@ const context = {
     context.camera_controls.minPolarAngle = Math.PI / 4 // Limit vertical rotation
     context.camera_controls.maxAzimuthAngle = Infinity // Allow full horizontal rotation
     context.camera_controls.minAzimuthAngle = -Infinity // Allow full horizontal rotation
+    // @ts-ignore
     context.camera_controls.enableDamping = true // Enable smooth camera movement
     context.camera_controls.dampingFactor = 0.05 // Adjust damping factor as needed
   },
@@ -738,3 +723,5 @@ export function disconnect_ws(reason = 'USER_DISCONNECTED') {
 }
 
 export { context, ws_status, ares_client }
+
+globalThis.get_state = get_state

@@ -10,6 +10,7 @@ SERVER_MAX_CHARACTERS_PER_PLAYER: You can't play with that many characters!
 SERVER_NOT_CONNECTED: Not connected
 SERVER_CLICK_TO_CONNECT: You are currently offline
 SERVER_RECONNECT_BUTTON: Reconnect
+SERVER_FEATURE_NOT_AVAILABLE: This feature is not available yet
 
 APP_LOGIN_AGAIN: Please login again
 APP_WALLET_NOT_FOUND: Wallet not found
@@ -29,10 +30,7 @@ APP_TAB_CHARACTERS_EXPLANATION_ALT: |
   Each character embarks on its own unique journey, boasting a personalized inventory and progression pathway.
   The freedom is yours: Stuff your characters as you see fit, and should you decide, you can easily withdraw them or their items to feature anything on the marketplace for trade.
   AresRPG is not just a game; it's a realm where your decisions craft your destiny, and your assets are truly your own.
-APP_LOCKED_CHARACTERS: 🔒 Selected characters
-APP_LOCKED_CHARACTERS_DESC: Those characters are currently in use, you can play with them in the game
-APP_UNLOCKED_CHARACTERS: Available characters
-APP_UNLOCKED_CHARACTERS_DESC: These one are only in your wallet, you can freely transfer or sell them
+APP_CHARACTERS: My characters
 APP_CHARACTER_NEW: New character
 
 APP_TAB_SHOP_SELL: Sell
@@ -166,7 +164,6 @@ APP_MINT_CARD_VAPOREONTEXT: |
   This Vaporeon is a pet which you can equip on AresRPG, he will follow you in your exploration and fights.
   Feed him with some $HSUI daily, and he will increase your stats
 
-APP_RECIPE_REQUIREMENTS: Requirements
 APP_RECIPE_TAILOR: Tailor
 APP_RECIPE_CRAFT: Craft
 APP_RECIPE_REVEAL: Reveal
@@ -180,6 +177,7 @@ APP_RECIPE_REVEALING: Revealing item
 APP_RECIPE_REVEALED: Item revealed
 APP_RECIPE_FAILED_TO_REVEAL: Failed to reveal item
 APP_RECIPE_CLOSE: Close
+APP_RECIPE_LEARNED: New recipe learned! ({0})
 
 APP_SERVER_ONLINE_PLAYERS: Online players
 APP_SERVER_TOTAL_PLAYERS: Registered players
@@ -201,11 +199,6 @@ APP_USER_UNLOCK_FAILED: Failed to unselect character, please retry shortly
 APP_USER_DELETE_FAILED: Failed to delete character, please retry shortly
 APP_USER_DELETING: Deleting character
 APP_USER_DELETED: Character deleted
-APP_USER_SELECTING: Selecting character
-APP_USER_SELECTED: Character selected
-APP_USER_UNSELECTING: Unselecting character
-APP_USER_UNSELECTED: Character unselected
-APP_USER_UNSELECTING_STUFF: You must unequip all items before unselecting this character
 
 APP_CHARACTER_NAME: Character name
 APP_CHARACTER_NAME_VALID: The character name must be between 3 and 20 chars
@@ -237,8 +230,6 @@ APP_GAME_CHAT_COPY_ADDRESS: Copy address
 APP_GAME_CHAT_COPIED: Address copied to clipboard
 APP_GAME_CHAT_NO_CHARACTER: You must select a character first
 APP_GAME_CHAT_NO_ONLINE: You must be online to send a message
-
-APP_GAME_INVENTORY_CLAIM_ALL: Claim all
 
 APP_ZONE_PLAYERS: Players
 
@@ -309,11 +300,14 @@ SUI_INVALID_CONTRACT: The contract is invalid, is your app up to date ? Try to r
 SUI_WAITING_SIGNATURE: Verifying your address signature
 SUI_SIGNATURE_ADDRESS_MISMATCH: The signature address does not match the connected wallet
 SUI_SIGNATURE_SUCCESS: Signature verified
+SUI_TRANSACTION_FAILED: The transaction failed, or you took too long to sign it
 
 WS_FAILED_TO_CONNECT: Failed to connect to the server, check https://status.aresrpg.world for more information
 WS_RECONNECTED: Back online!
 WS_CONNECTING_TO_SERVER: Connecting to the server
 WS_CONNECTED_TO_SERVER: Connected to the server
 WS_NOT_CONNECTED: Not connected to the server
+
+PLAYER_UNHANDLED_ERROR: Bad devs! They forgot to handle this error
 
 BROWSER_NO_PERF: Your device does not support WebGL or it is running under conditions that would cause major performance issues. Please try on a different device or ensure your browser and drivers are up to date.

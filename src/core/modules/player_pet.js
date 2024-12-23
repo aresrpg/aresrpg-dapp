@@ -1,9 +1,6 @@
 import { Vector3 } from 'three'
 
-import {
-  current_locked_character,
-  current_three_character,
-} from '../game/game.js'
+import { current_sui_character, current_three_character } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
 import { ENTITIES } from '../game/entities.js'
 import { get_ground_height_sync } from '../utils/terrain/world_utils.js'
@@ -77,7 +74,7 @@ export default function () {
         return selected_address
       })
       state_iterator().forEach(async state => {
-        const character = current_locked_character(state)
+        const character = current_sui_character(state)
 
         if (!character) return
 

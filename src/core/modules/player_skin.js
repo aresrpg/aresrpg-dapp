@@ -1,8 +1,6 @@
-import { setTimeout } from 'timers/promises'
-
 import {
   context,
-  current_locked_character,
+  current_sui_character,
   current_three_character,
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
@@ -10,6 +8,7 @@ import { ENTITIES } from '../game/entities.js'
 
 export function get_item_skin(sui_character) {
   if (sui_character.title?.item_type === 'primemachin') return 'primemachin'
+  if (sui_character.title?.item_type === 'anima') return 'anima'
 }
 
 /** @type {Type.Module} */
@@ -20,7 +19,7 @@ export default function () {
   return {
     observe() {
       state_iterator().forEach(async state => {
-        const character = current_locked_character(state)
+        const character = current_sui_character(state)
         const three_character = current_three_character(state)
 
         if (!character || !three_character) return

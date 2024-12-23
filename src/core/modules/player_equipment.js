@@ -1,6 +1,6 @@
 import {
   context,
-  current_locked_character,
+  current_sui_character,
   current_three_character,
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
@@ -18,7 +18,7 @@ export default function () {
       })
 
       state_iterator().forEach(async state => {
-        const character = current_locked_character(state)
+        const character = current_sui_character(state)
         const three_character = current_three_character(state)
 
         if (!character || !three_character) return

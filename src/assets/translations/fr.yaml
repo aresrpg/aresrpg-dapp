@@ -10,6 +10,7 @@ SERVER_MAX_CHARACTERS_PER_PLAYER: Vous ne pouvez pas jouer avec autant de person
 SERVER_NOT_CONNECTED: Hors ligne
 SERVER_CLICK_TO_CONNECT: Vous n'êtes actuellement pas connecté
 SERVER_RECONNECT_BUTTON: Se reconnecter
+SERVER_FEATURE_NOT_AVAILABLE: Cette fonctionnalité n'est pas encore disponible
 
 APP_LOGIN_AGAIN: Veuillez vous reconnecter
 APP_WALLET_NOT_FOUND: Portefeuille non trouvé
@@ -30,10 +31,7 @@ APP_TAB_CHARACTERS_EXPLANATION_ALT: |
   Chaque personnage se lance dans son propre voyage unique, avec un inventaire personnalisé et un chemin de progression.
   La liberté est vôtre: équipez vos personnages comme bon vous semble, et si vous le souhaitez, vous pouvez facilement les retirer ou leurs objets pour les mettre en vente sur le marché.
   AresRPG n'est pas seulement un jeu ; c'est un royaume dans lequel vos décisions façonnent votre destin, et vos actifs vous appartiennent véritablement.
-APP_LOCKED_CHARACTERS: 🔒 Personnages sélectionnés
-APP_LOCKED_CHARACTERS_DESC: Ces personnages sont actuellement utilisés, vous pouvez jouer avec eux dans le jeu
-APP_UNLOCKED_CHARACTERS: Personnages disponibles
-APP_UNLOCKED_CHARACTERS_DESC: Ceux-ci sont uniquement dans votre portefeuille, vous pouvez les transférer ou les vendre librement
+APP_CHARACTERS: Mes Personnages
 APP_CHARACTER_NEW: Nouveau personnage
 
 APP_TAB_SHOP_SELL: Vendre
@@ -167,7 +165,6 @@ APP_MINT_CARD_VAPOREONTEXT: |
   Ce Vaporeon est un familier que vous pouvez équiper sur AresRPG, il vous suivra dans vos explorations et combats.
   Nourrissez-le quotidiennement avec du $HSUI, et il augmentera vos statistiques
 
-APP_RECIPE_REQUIREMENTS: Requis
 APP_RECIPE_TAILOR: Tailleur
 APP_RECIPE_CRAFT: Fabriquer
 APP_RECIPE_REVEAL: Révéler
@@ -181,6 +178,7 @@ APP_RECIPE_REVEALING: Révélation de l'item
 APP_RECIPE_REVEALED: Item révélé
 APP_RECIPE_FAILED_TO_REVEAL: Échec de la révélation de l'item
 APP_RECIPE_CLOSE: Fermer
+APP_RECIPE_LEARNED: Nouvelle recette apprise! ({0})
 
 APP_SERVER_ONLINE_PLAYERS: Joueurs en ligne
 APP_SERVER_TOTAL_PLAYERS: Joueurs enregistrés
@@ -202,11 +200,6 @@ APP_USER_UNLOCK_FAILED: Échec de la désélection du personnage, veuillez rées
 APP_USER_DELETE_FAILED: Échec de la suppression du personnage, veuillez réessayer sous peu
 APP_USER_DELETING: Suppression du personnage
 APP_USER_DELETED: Personnage supprimé
-APP_USER_SELECTING: Sélection du personnage
-APP_USER_SELECTED: Personnage sélectionné
-APP_USER_UNSELECTING: Désélection du personnage
-APP_USER_UNSELECTED: Personnage désélectionné
-APP_USER_UNSELECTING_STUFF: Vous devez déséquiper tous les objets avant de désélectionner ce personnage
 
 APP_CHARACTER_NAME: Nom du personnage
 APP_CHARACTER_NAME_VALID: Le nom du personnage doit comporter entre 3 et 20 caractères
@@ -238,8 +231,6 @@ APP_GAME_CHAT_COPY_ADDRESS: Copier l'adresse
 APP_GAME_CHAT_COPIED: Adresse copiée dans le presse-papiers
 APP_GAME_CHAT_NO_CHARACTER: Vous devez d'abord sélectionner un personnage
 APP_GAME_CHAT_NO_ONLINE: Vous devez être en ligne pour envoyer un message
-
-APP_GAME_INVENTORY_CLAIM_ALL: Tout récupérer
 
 APP_ZONE_PLAYERS: Joueurs
 
@@ -310,11 +301,14 @@ SUI_INVALID_CONTRACT: Le contrat est invalide, votre application est-elle à jou
 SUI_WAITING_SIGNATURE: Vérification de la signature de votre adresse
 SUI_SIGNATURE_ADDRESS_MISMATCH: L'adresse de la signature ne correspond pas au wallet connecté
 SUI_SIGNATURE_SUCCESS: Signature vérifiée
+SUI_TRANSACTION_FAILED: La transaction a échoué, ou vous avez pris trop de temps pour la signer
 
 WS_FAILED_TO_CONNECT: Échec de la connexion au serveur, consultez https://status.aresrpg.world pour plus d'informations
 WS_RECONNECTED: De retour en ligne !
 WS_CONNECTING_TO_SERVER: Connexion au serveur
 WS_CONNECTED_TO_SERVER: Connecté au serveur
 WS_NOT_CONNECTED: Vous n'êtes pas connecté au serveur
+
+PLAYER_UNHANDLED_ERROR: Mauvais développeurs ! Ils ont oublié de gérer cette erreur
 
 BROWSER_NO_PERF: Votre appareil ne prend pas en charge WebGL ou fonctionne dans des conditions qui causeraient des problèmes de performance majeurs. Veuillez essayer sur un autre appareil ou vous assurer que votre navigateur et vos pilotes sont à jour.

@@ -1,18 +1,17 @@
 <template lang="pug">
 .recipe.material-2
   .top
-    img(:src="item_icon(recipe.template.item_type)")
+    img(:src="item_icon(recipe.item_type)")
     .name
-      span {{ recipe.template.name }}
-      .job #[b {{ t('APP_RECIPE_REQUIREMENTS') }}]: {{ t('APP_RECIPE_TAILOR') }} {{ recipe.level }}
-    .lvl Lvl. {{ recipe.template.level }}
+      span {{ recipe.name }}
+    .lvl Lvl. {{ recipe.level }}
   .bottom
     .ingredients
-      vs-tooltip(v-for="ingredient in recipe.ingredients" :key="ingredient.item_type")
+      vs-tooltip(v-for="ingredient in recipe.ingredients" :key="ingredient.name")
         template(#content) {{ ingredient.name }}
         .ingredient
-          img(:src="item_icon(ingredient.item_type)" :alt="ingredient.item_type" :class="{ token: ingredient.item_type.length > 20 }")
-          span x{{ pretty_amount(ingredient) }}
+          img(:src="item_icon(ingredient.item || ingredient.token)" :alt="ingredient.name" :class="{ token: !!ingredient.token }")
+          span x{{ ingredient.amount }}
     .btns
       vs-button(v-if="admin.admin_caps.length" type="gradient" size="small" color="#F4511E" @click="delete_recipe") Delete
       vs-button(v-if="is_finished" type="gradient" size="small" color="#76FF03" @click="reveal_craft" :disabled="currently_revealing || currently_crafting")
@@ -23,7 +22,7 @@
   vs-dialog(v-model="craft_dialog")
     template(#header) {{ t('APP_RECIPE_CRAFT_TITLE') }}
     i18n-t(keypath="APP_RECIPE_CRAFT_DESC")
-      b.itemname {{ recipe.template.name }} (Lvl. {{ recipe.template.level }})
+      b.itemname {{ recipe.name }} (Lvl. {{ recipe.level }})
     template(#footer)
       .dialog-footer
         vs-button(type="transparent" color="#E74C3C" @click="craft_dialog = false") {{ t('APP_RECIPE_CANCEL') }}
@@ -74,11 +73,11 @@ const is_finished = computed(() => {
 });
 
 async function craft_item() {
-  const tx = toast.tx(t('APP_RECIPE_CRAFTING'), props.recipe.template.name);
+  const tx = toast.tx(t('APP_RECIPE_CRAFTING'), props.recipe.name);
   try {
     currently_crafting.value = true;
     craft_dialog.value = false;
-    await sui_craft_item(props.recipe);
+    await sui_craft_item(props.recipe.type);
     tx.update('success', t('APP_RECIPE_CRAFTED'));
   } catch (error) {
     console.error(error);
@@ -88,7 +87,7 @@ async function craft_item() {
 }
 
 async function reveal_craft() {
-  const tx = toast.tx(t('APP_RECIPE_REVEALING'), props.recipe.template.name);
+  const tx = toast.tx(t('APP_RECIPE_REVEALING'), props.recipe.name);
   try {
     currently_revealing.value = true;
     selected_item.value = null;
@@ -119,18 +118,9 @@ onUnmounted(() => {
   SUI_EMITTER.off('ItemRevealedEvent', on_item_reveal);
 });
 
-function pretty_amount(ingredient) {
-  const token = sdk.SUPPORTED_TOKENS[ingredient.item_type];
-  // @ts-ignore
-  if (token?.decimal)
-    return (
-      new BN(ingredient.amount.toString())
-        // @ts-ignore
-        .dividedBy(new BN(10).pow(token.decimal))
-        .toFixed(2)
-    );
-
-  return ingredient.amount;
+function amount_with_decimal({ amount, decimals, token }) {
+  if (!token) return amount;
+  return new BN(amount).times(new BN(10).pow(decimals));
 }
 
 const has_required_ingredients = computed(() => {
@@ -144,7 +134,9 @@ const has_required_ingredients = computed(() => {
           ),
         );
 
-      acc[item.item_type] = acc[item.item_type].plus(item.amount);
+      acc[item.item_type ?? 'character'] = acc[item.item_type].plus(
+        item.amount ?? 0,
+      );
       return acc;
     },
     {},
@@ -152,8 +144,8 @@ const has_required_ingredients = computed(() => {
 
   return props.recipe.ingredients.every(ingredient => {
     return new BN(
-      items_by_type[ingredient.item_type] ?? 0,
-    ).isGreaterThanOrEqualTo(ingredient.amount);
+      items_by_type[ingredient.token ?? ingredient.item] ?? 0,
+    ).isGreaterThanOrEqualTo(amount_with_decimal(ingredient));
   });
 });
 

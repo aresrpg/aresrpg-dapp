@@ -5,7 +5,7 @@ import { FrontSide, Matrix4, PerspectiveCamera, Ray, Vector3 } from 'three'
 
 // Adapted from https://yomotsu.github.io/camera-controls/examples/collision-custom.html
 
-class CustomCameraControls extends CameraControls {
+export class CustomCameraControls extends CameraControls {
   #ORIGIN = new Vector3(0, 0, 0)
   #v3A = new Vector3()
   #v3B = new Vector3()
@@ -67,5 +67,3 @@ class CustomCameraControls extends CameraControls {
     return distance
   }
 }
-
-export { CustomCameraControls }

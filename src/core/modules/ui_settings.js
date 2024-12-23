@@ -121,6 +121,29 @@ export default function () {
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
 
+      terrain_folder
+        .add(
+          {
+            spawn_board: () => {
+              const { position } = current_three_character()
+              events.emit('SPAWN_BOARD', position)
+            },
+          },
+          'spawn_board',
+        )
+        .name('Spawn board')
+
+      terrain_folder
+        .add(
+          {
+            hide_board: () => {
+              events.emit('REMOVE_BOARD')
+            },
+          },
+          'hide_board',
+        )
+        .name('Hide board')
+
       camera_folder
         .add(settings.camera, 'is_free')
         .name('Free Camera')

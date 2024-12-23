@@ -140,7 +140,7 @@ export async function initialize_wallets(last_selected_wallet_name) {
           internal_emitter.emit('update', {
             accounts: accounts.map(({ address }) => ({ address })),
             // if present it will be the same for all accounts
-            chain: accounts[0].chains?.[0],
+            chain: accounts?.[0]?.chains?.[0],
             name,
           })
         }

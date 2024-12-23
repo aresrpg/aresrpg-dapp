@@ -78,7 +78,45 @@ const selected_item = inject('selected_item');
 const edit_mode_equipment = inject('edit_mode_equipment');
 const edit_mode = inject('edit_mode');
 const owned_items = inject('owned_items');
-const real_equipment = inject('equipment');
+const real_equipment = computed(() => {
+  if (!selected_character.value) return {};
+  const {
+    relic_1,
+    relic_2,
+    relic_3,
+    relic_4,
+    relic_5,
+    relic_6,
+    title,
+    amulet,
+    weapon,
+    left_ring,
+    belt,
+    right_ring,
+    boots,
+    hat,
+    cloak,
+    pet,
+  } = selected_character.value;
+  return {
+    relic_1,
+    relic_2,
+    relic_3,
+    relic_4,
+    relic_5,
+    relic_6,
+    title,
+    amulet,
+    weapon,
+    left_ring,
+    belt,
+    right_ring,
+    boots,
+    hat,
+    cloak,
+    pet,
+  };
+});
 
 const accept_loading = ref(false);
 
@@ -87,12 +125,12 @@ function start_edit_equipment() {
 }
 
 onMounted(() => {
-  Object.assign(edit_mode_equipment, real_equipment);
+  Object.assign(edit_mode_equipment, real_equipment.value);
 });
 
 function cancel_edit_equipment() {
   edit_mode.value = false;
-  Object.assign(edit_mode_equipment, real_equipment);
+  Object.assign(edit_mode_equipment, real_equipment.value);
   edit_mode_equipment.dragged_item = null;
   edit_mode_equipment.equipments = owned_items.value.filter(
     item => !is_consumable(item) && !is_resource(item) && !is_equipped(item),
@@ -104,7 +142,7 @@ async function accept_edit_equipment() {
   const to_equip = [];
   const to_unequip = [];
 
-  Object.entries(real_equipment).forEach(([slot, item]) => {
+  Object.entries(real_equipment.value).forEach(([slot, item]) => {
     if (edit_mode_equipment[slot] !== item) {
       if (edit_mode_equipment[slot])
         to_equip.push({ item: edit_mode_equipment[slot], slot });
