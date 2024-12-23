@@ -261,15 +261,17 @@ class VolumetricFogRenderpass extends Pass {
                 float cumulatedFog = 0.0;
                 float currentRayDepth = initialDistance * uRaymarchingStep;
                 const int MAX_NB_STEPS = 75;
+                const int QUALITY_DROP_STEP = 50;
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
-                  float step = min(uRaymarchingStep, fragDepth - currentRayDepth);
-                  currentRayDepth += step;
+                  float rayMarchingStep = uRaymarchingStep * (1.0 + 5.0 * float(i >= QUALITY_DROP_STEP));
+                  rayMarchingStep = min(rayMarchingStep, fragDepth - currentRayDepth);
+                  currentRayDepth += rayMarchingStep;
                   float  newFogSample = computeFog(vCameraWorldPosition + viewVectorNormalized * currentRayDepth);
                   cumulatedFog += 0.5 * (newFogSample + lastFogSample) * (currentRayDepth - lastRayDepth);
                   lastFogSample = newFogSample;
                   lastRayDepth = currentRayDepth;
 
-                  if (step < uRaymarchingStep) {
+                  if (rayMarchingStep < uRaymarchingStep) {
                     break;
                   }
                 }
