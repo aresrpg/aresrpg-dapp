@@ -206,19 +206,20 @@ class VolumetricFogRenderpass extends Pass {
                 return orthoZ;
             }
 
-            float sampleFog(const vec3 position) {
+            float sampleFogDensity(const vec3 position) {
                 float fogDensity = noise(0.06 * position + 0.1 * vec3(uTime, 0, 0));
                 fogDensity = smoothstep(uThreshold - uSmoothness, uThreshold + uSmoothness, fogDensity);
+                return fogDensity;
+            }
 
+            float isInDirectLight(const vec3 position)
+            {
                 vec4 shadowCoord = uShadowCameraVP * vec4(position, 1.0);
                 shadowCoord /= shadowCoord.w;
                 shadowCoord = 0.5 + 0.5 * shadowCoord;
 
                 float depth_shadowMap = unpackRGBAToDepth(texture(uShadowMap, shadowCoord.xy));
-                fogDensity *= ilumination;
-                float ilumination = step(shadowCoord.z, depth_shadowMap);
-
-                return fogDensity;
+                return step(shadowCoord.z, depth_shadowMap);
             }
 
             void main(void) {
@@ -232,7 +233,7 @@ class VolumetricFogRenderpass extends Pass {
 
                 float noise = texture(uNoiseTexture, fract(vNoiseTextureUv)).r;
 
-                float lastFogSample = sampleFog(vCameraWorldPosition);
+                float lastFogSample = sampleFogDensity(vCameraWorldPosition) * isInDirectLight(vCameraWorldPosition);
                 float lastRayDepth = 0.0;
                 float cumulatedFog = 0.0;
                 float currentRayDepth = lastRayDepth + noise * uRaymarchingStep;
@@ -240,7 +241,10 @@ class VolumetricFogRenderpass extends Pass {
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
                   float step = min(uRaymarchingStep, fragDepth - currentRayDepth);
                   currentRayDepth += step;
-                  float newFogSample = sampleFog(vCameraWorldPosition + viewVectorNormalized * currentRayDepth);
+                  vec3 samplePositionWorld = vCameraWorldPosition + viewVectorNormalized * currentRayDepth;
+                  float newFogSample =
+                    sampleFogDensity(samplePositionWorld) *
+                    isInDirectLight(samplePositionWorld);
                   cumulatedFog += 0.5 * (newFogSample + lastFogSample) * (currentRayDepth - lastRayDepth);
                   lastFogSample = newFogSample;
                   lastRayDepth = currentRayDepth;
