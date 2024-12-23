@@ -109,14 +109,14 @@ class VolumetricFogRenderpass extends Pass {
     this.light_shadow = light_shadow
 
     this.smoothness = 0.2
-    this.threshold = 0.6
+    this.uniformity = 0.25
     this.fog_color = new Color(0xffffff)
     this.fog_density = 0.08
     this.raymarching_step = 1
 
     this.light_color = new Color(0xffffff)
     this.ambient_light_intensity = 0
-    this.direct_light_intensity = 1;
+    this.direct_light_intensity = 1
 
     this.#camera = new PerspectiveCamera()
 
@@ -142,7 +142,7 @@ class VolumetricFogRenderpass extends Pass {
         uCameraNear: { value: 0 },
         uCameraFar: { value: 0 },
         uTime: { value: 0 },
-        uThreshold: { value: this.threshold },
+        uThreshold: { value: this.uniformity },
         uSmoothness: { value: this.smoothness },
         uFogColor: { value: this.fog_color },
         uFogDensity: { value: this.fog_density },
@@ -250,12 +250,12 @@ class VolumetricFogRenderpass extends Pass {
                 vec3 viewVector = fragmentWorldPosition - vCameraWorldPosition;                
                 vec3 viewVectorNormalized = normalize(viewVector);
 
-                float noise = texture(uNoiseTexture, fract(vNoiseTextureUv)).r;
+                float initialDistance = texture(uNoiseTexture, fract(vNoiseTextureUv)).r;
 
                 float lastFogSample = computeFog(vCameraWorldPosition);
                 float lastRayDepth = 0.0;
                 float cumulatedFog = 0.0;
-                float currentRayDepth = lastRayDepth + noise * uRaymarchingStep;
+                float currentRayDepth = initialDistance * uRaymarchingStep;
                 const int MAX_NB_STEPS = 75;
                 for (int i = 0; i < MAX_NB_STEPS; i++) {
                   float step = min(uRaymarchingStep, fragDepth - currentRayDepth);
@@ -341,13 +341,15 @@ class VolumetricFogRenderpass extends Pass {
     this.#material_fog.uniforms.uCameraNear.value = this.camera.near
     this.#material_fog.uniforms.uCameraFar.value = this.camera.far
     this.#material_fog.uniforms.uTime.value = performance.now() / 1000
-    this.#material_fog.uniforms.uThreshold.value = this.threshold - 0.5
+    this.#material_fog.uniforms.uThreshold.value = 1 - this.uniformity - 0.5
     this.#material_fog.uniforms.uSmoothness.value = 0.5 * this.smoothness
     this.#material_fog.uniforms.uFogColor.value = this.fog_color
     this.#material_fog.uniforms.uFogDensity.value = this.fog_density
-    this.#material_fog.uniforms.uLightColor.value = this.light_color;
-    this.#material_fog.uniforms.uAmbientLightIntensity.value = this.ambient_light_intensity
-    this.#material_fog.uniforms.uDirectLightIntensity.value = this.direct_light_intensity
+    this.#material_fog.uniforms.uLightColor.value = this.light_color
+    this.#material_fog.uniforms.uAmbientLightIntensity.value =
+      this.ambient_light_intensity
+    this.#material_fog.uniforms.uDirectLightIntensity.value =
+      this.direct_light_intensity
     this.#material_fog.uniforms.uRaymarchingStep.value = this.raymarching_step
     this.#material_fog.uniforms.uProjMatrixInverse.value =
       this.camera.projectionMatrixInverse

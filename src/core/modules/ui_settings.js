@@ -219,8 +219,8 @@ export default function () {
         .name('Enabled')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_fog_folder
-        .add(settings.postprocessing.volumetric_fog_pass, 'threshold', 0, 1)
-        .name('Threshold')
+        .add(settings.postprocessing.volumetric_fog_pass, 'uniformity', 0, 1)
+        .name('Uniformity')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_fog_folder
         .add(settings.postprocessing.volumetric_fog_pass, 'smoothness', 0, 1)
@@ -238,6 +238,32 @@ export default function () {
           2,
         )
         .name('Raymarching step')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .addColor(settings.postprocessing.volumetric_fog_pass, 'fog_color')
+        .name('Fog color')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .addColor(settings.postprocessing.volumetric_fog_pass, 'light_color')
+        .name('Light color')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'ambient_light_intensity',
+          0, 2,
+ 0.01
+        )
+        .name('Ambient light')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'direct_light_intensity',
+          0, 2,
+          0.01,
+        )
+        .name('Direct light')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_fog_folder.open()
 
