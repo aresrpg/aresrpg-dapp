@@ -194,14 +194,17 @@ export const INITIAL_STATE = {
 
       volumetric_fog_pass: {
         enabled: true,
+
         uniformity: 0.4,
         smoothness: 0.2,
         fog_density: 0.08,
-        raymarching_step: 1,
         fog_color: 0xffffff,
         light_color: 0xffffff,
         ambient_light_intensity: 0,
         direct_light_intensity: 1,
+
+        downscaling: 2,
+        raymarching_step: 1,
       },
 
       bloom_pass: {

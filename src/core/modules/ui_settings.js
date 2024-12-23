@@ -231,15 +231,6 @@ export default function () {
         .name('Density')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_fog_folder
-        .add(
-          settings.postprocessing.volumetric_fog_pass,
-          'raymarching_step',
-          0.1,
-          2,
-        )
-        .name('Raymarching step')
-        .onFinishChange(dispatch_postprocessing_change)
-      postprocessing_fog_folder
         .addColor(settings.postprocessing.volumetric_fog_pass, 'fog_color')
         .name('Fog color')
         .onFinishChange(dispatch_postprocessing_change)
@@ -251,8 +242,9 @@ export default function () {
         .add(
           settings.postprocessing.volumetric_fog_pass,
           'ambient_light_intensity',
-          0, 2,
- 0.01
+          0,
+          2,
+          0.01,
         )
         .name('Ambient light')
         .onFinishChange(dispatch_postprocessing_change)
@@ -260,10 +252,30 @@ export default function () {
         .add(
           settings.postprocessing.volumetric_fog_pass,
           'direct_light_intensity',
-          0, 2,
+          0,
+          2,
           0.01,
         )
         .name('Direct light')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'raymarching_step',
+          0.1,
+          2,
+        )
+        .name('Raymarch step')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'downscaling',
+          1,
+          4,
+          1,
+        )
+        .name('Downscaling')
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_fog_folder.open()
 
