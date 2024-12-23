@@ -198,7 +198,8 @@ export default function () {
             sun_color,
             smoothstep(sun_position.y, -0.1, 1.0),
           ),
-          intensity: smoothstep(Math.abs(sun_position.y), -0.1, 0.05),
+          intensity:
+            smoothstep(Math.abs(sun_position.y), -0.1, 0.05) * (1 + 2 * is_day),
         }
 
         const godrays = {
@@ -213,7 +214,7 @@ export default function () {
             ambient_color_day,
             is_day,
           ),
-          intensity: 0.5 + is_day,
+          intensity: 0.2 + 0.2 * is_day,
         }
 
         const sky_lights = {
