@@ -383,7 +383,7 @@ const camera = new PerspectiveCamera(
   70, // Field of view
   window.innerWidth / window.innerHeight, // Aspect ratio
   0.1, // Near clipping plane
-  500, // Far clipping plane
+  3000, // Far clipping plane
 )
 camera.layers.enableAll()
 
