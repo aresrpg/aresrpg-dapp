@@ -166,6 +166,8 @@ export default function () {
             if (current_fight_id) {
               const fight = state.visible_fights.get(current_fight_id)
               const { board_chunks, original_chunks } = await create_board(
+                // TODO: fight.position not yet exists! server WIP
+                // @ts-ignore
                 fight.position ?? state.characters[0].position,
               )
 

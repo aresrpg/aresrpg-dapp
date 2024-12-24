@@ -29,7 +29,7 @@
     "@mysten/wallet-standard": "0.13.20",
     "@mysten/zksend": "0.12.10",
     "@vercel/analytics": "1.4.1",
-    "@vueuse/core": "12.1.0",
+    "@vueuse/core": "12.2.0",
     "bignumber.js": "9.1.2",
     "camera-controls": "2.9.0",
     "dat.gui": "0.7.9",
@@ -45,7 +45,7 @@
     "troika-three-text": "0.52.3",
     "v-dropdown": "3.0.0",
     "vue": "3.5.13",
-    "vue-i18n": "10.0.5",
+    "vue-i18n": "11.0.0",
     "vue-next-breakpoints": "1.0.1",
     "vue-router": "4.5.0",
     "vuesax-alpha": "0.2.0-beta.80",
@@ -82,10 +82,10 @@
     "@types/dat.gui": "^0.7.13",
     "@types/node": "^22.10.2",
     "@types/three": "^0.171.0",
-    "@typescript-eslint/eslint-plugin": "^8.18.1",
-    "@typescript-eslint/parser": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
     "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/language-plugin-pug": "^2.1.10",
+    "@vue/language-plugin-pug": "^2.2.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "9.1.0",
     "eslint-config-standard": "17.1.0",
@@ -103,7 +103,7 @@
     "vite-plugin-pwa": "^0.21.1",
     "vite-plugin-wasm": "^3.4.1",
     "vue-eslint-parser": "^9.4.3",
-    "vue-tsc": "^2.1.10"
+    "vue-tsc": "^2.2.0"
   },
   "husky": {
     "hooks": {
