@@ -15,7 +15,6 @@ import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
 import { world_shared_setup } from '../utils/terrain/world_setup.js'
 import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
 import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
-import { BoardHelper } from '../utils/terrain/board_helper.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -28,7 +27,6 @@ export default function () {
 
   // patch containers
   const chunks_indexer = new ChunksIndexer()
-  const board_wrapper = new BoardHelper()
 
   return {
     tick() {
@@ -140,36 +138,8 @@ export default function () {
       })
 
       aiter(
-        abortable(
-          combine(
-            typed_on(events, 'SPAWN_BOARD', { signal }),
-            typed_on(events, 'REMOVE_BOARD', { signal }),
-          ),
-        ),
-      ).forEach(async position => {
-        if (!position) {
-          board_wrapper.visible = false
-        } else {
-          board_wrapper.board_pos = position.clone().floor()
-          board_wrapper.visible = true
-        }
-
-        const board_chunks = board_wrapper.visible
-          ? board_wrapper.iterBoardChunks()
-          : board_wrapper.iterOriginalChunks()
-        for await (const board_chunk of board_chunks) {
-          render_world_chunk(board_chunk)
-        }
-        if (board_wrapper.handler?.container) {
-          board_wrapper.handler.dispose()
-          scene.remove(board_wrapper.handler.container)
-        }
-        board_wrapper.highlight()
-        if (board_wrapper.visible && board_wrapper.handler?.container) {
-          scene.add(board_wrapper.handler.container)
-        }
-        board_wrapper.updated = false
-      })
+        abortable(typed_on(events, 'FORCE_RENDER_CHUNKS', { signal })),
+      ).forEach(chunks => chunks.forEach(render_world_chunk))
 
       aiter(abortable(setInterval(200, null))).reduce(async () => {
         voxelmap_viewer.setAdaptativeQuality({

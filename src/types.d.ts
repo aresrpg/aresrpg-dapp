@@ -191,8 +191,7 @@ declare namespace Type {
       SIGNATURE_NOT_VERIFIED: void // the signature was not verified
       RECONNECT_TO_SERVER: void // triggered when clicking on the reconnect button
       USER_LOGOUT: void // triggered when the user logs out
-      SPAWN_BOARD: import('three').Vector3 // spawn fight
-      REMOVE_BOARD: void
+      FORCE_RENDER_CHUNKS: any[] // render the chunks
     } & Packets &
       Actions
   >
