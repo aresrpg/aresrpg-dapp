@@ -41,7 +41,7 @@ async function create_board(position = new Vector3()) {
         individualChunks.forEach(item_chunk => {
           ChunkContainer.copySourceToTarget(item_chunk, original_chunk)
           if (
-            !this.container.overlapsBoard(
+            fight_board_container.overlapsBoard(
               WorldUtils.convert.asBox2(item_chunk.bounds),
             )
           )
