@@ -32,6 +32,7 @@ const SUINS_CACHE = new LRUCache({ max: 50 })
 
 const { t } = i18n.global
 
+/** @type {Awaited<ReturnType<typeof SDK>>} */
 export const sdk = await SDK({
   rpc_url: VITE_SUI_RPC,
   network: Network[NETWORK.toUpperCase()],
