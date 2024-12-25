@@ -1,5 +1,5 @@
 <script setup>
-import { inject, ref, watch, computed } from 'vue';
+import { inject, ref, watch, computed, provide } from 'vue';
 import Spells from '@aresrpg/aresrpg-sdk/spells';
 import { useI18n } from 'vue-i18n';
 
@@ -26,6 +26,10 @@ const { t } = useI18n();
 const color1 = ref('#FFFFFF');
 const color2 = ref('#FF9999');
 const color3 = ref('#111FFF');
+
+provide('create_character_color1', color1);
+provide('create_character_color2', color2);
+provide('create_character_color3', color3);
 
 const characters = [
   {
@@ -205,7 +209,7 @@ vs-dialog(v-model="new_character_dialog" full-screen)
       )
     .desc {{ selected_class_data.desc }}
     .perso
-      characterCanvasDisplay(:type="selected_class_type" :color1="color1" :color2="color2" :color3="color3")
+      characterCanvasDisplay(:type="selected_class_type")
     .right
       .spells
         SpellDisplay(:spells="selected_class_data.spells")

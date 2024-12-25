@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { inject, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import {
   Scene,
   PerspectiveCamera,
@@ -20,7 +20,11 @@ const canvas = ref(null);
 
 const running = ref(false);
 
-const props = defineProps(['type', 'color1', 'color2', 'color3']);
+const props = defineProps(['type']);
+
+const color1 = inject('create_character_color1');
+const color2 = inject('create_character_color2');
+const color3 = inject('create_character_color3');
 
 let senshi = null;
 let yajin = null;
@@ -98,17 +102,25 @@ async function display_classe(type) {
 }
 
 watchEffect(() => {
-  if (props.color1) {
-    senshi?.custom_colors.set_color(props.color1);
-    yajin?.custom_colors.set_color(props.color1);
+  if (color1.value) {
+    const color = new Color(color1.value);
+    senshi?.custom_colors.set_color1(color);
+    yajin?.custom_colors.set_color1(color);
   }
-  if (props.color2) {
-    senshi?.custom_colors.set_color2(props.color2);
-    yajin?.custom_colors.set_color2(props.color2);
+  if (color2.value) {
+    const color = new Color(color2.value);
+    senshi?.custom_colors.set_color2(color);
+    yajin?.custom_colors.set_color2(color);
   }
-  if (props.color3) {
-    senshi?.custom_colors.set_color3(props.color3);
-    yajin?.custom_colors.set_color3(props.color3);
+  if (color3.value) {
+    const color = new Color(color3.value);
+    senshi?.custom_colors.set_color3(color);
+    yajin?.custom_colors.set_color3(color);
+  }
+
+  if (renderer) {
+    senshi?.custom_colors.texture.update(renderer);
+    yajin?.custom_colors.texture.update(renderer);
   }
 });
 
