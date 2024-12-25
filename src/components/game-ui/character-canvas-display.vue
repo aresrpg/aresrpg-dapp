@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import {
   Scene,
   PerspectiveCamera,
@@ -20,7 +20,7 @@ const canvas = ref(null);
 
 const running = ref(false);
 
-const props = defineProps(['type']);
+const props = defineProps(['type', 'color1', 'color2', 'color3']);
 
 let senshi = null;
 let yajin = null;
@@ -96,6 +96,21 @@ async function display_classe(type) {
       break;
   }
 }
+
+watchEffect(() => {
+  if (props.color1) {
+    senshi?.custom_colors.set_color(props.color1);
+    yajin?.custom_colors.set_color(props.color1);
+  }
+  if (props.color2) {
+    senshi?.custom_colors.set_color2(props.color2);
+    yajin?.custom_colors.set_color2(props.color2);
+  }
+  if (props.color3) {
+    senshi?.custom_colors.set_color3(props.color3);
+    yajin?.custom_colors.set_color3(props.color3);
+  }
+});
 
 watch(
   props,

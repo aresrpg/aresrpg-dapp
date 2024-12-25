@@ -56,9 +56,12 @@ declare namespace Type {
     current_fight_id?: string
     custom_colors: null | {
       texture: import('@aresrpg/aresrpg-engine').CustomizableTexture
-      color1: import('three').Color
-      color2: import('three').Color
-      color3: import('three').Color
+      get_color1(): import('three').Color
+      get_color2(): import('three').Color
+      get_color3(): import('three').Color
+      set_color1(color: import('three').Color): void
+      set_color2(color: import('three').Color): void
+      set_color3(color: import('three').Color): void
     }
   }
 

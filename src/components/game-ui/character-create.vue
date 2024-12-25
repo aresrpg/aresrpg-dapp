@@ -205,7 +205,7 @@ vs-dialog(v-model="new_character_dialog" full-screen)
       )
     .desc {{ selected_class_data.desc }}
     .perso
-      characterCanvasDisplay(:type="selected_class_type")
+      characterCanvasDisplay(:type="selected_class_type" :color1="color1" :color2="color2" :color3="color3")
     .right
       .spells
         SpellDisplay(:spells="selected_class_data.spells")

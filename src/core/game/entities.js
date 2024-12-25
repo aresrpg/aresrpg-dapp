@@ -43,9 +43,11 @@ function fade_to_animation(from, to, duration = 0.3) {
 // ]
 
 function create_customizable_textures(
-  /** @type ReadonlyArray<Texture> */ textures,
+  /** @type ReadonlyArray<Texture> */
+  textures,
 ) {
-  const /** @type Map<string, Texture> */ base_textures = new Map()
+  /** @type Map<string, Texture> */
+  const base_textures = new Map()
   for (const texture of textures) {
     const match = texture.name.match(/(.+)_base$/)
     if (match && match[1]) {
@@ -58,10 +60,11 @@ function create_customizable_textures(
 
   const MAX_CUSTOMIZABLE_TEXTURES_COUNT = 3
 
-  const /** @type Map<string, CustomizableTexture> */ customizable_textures =
-      new Map()
+  /** @type Map<string, CustomizableTexture> */
+  const customizable_textures = new Map()
   for (const [base_texture_name, base_texture] of base_textures.entries()) {
-    const /** @type Map<string, Texture> */ additional_textures = new Map()
+    /** @type Map<string, Texture> */
+    const additional_textures = new Map()
     for (let i = 1; i <= MAX_CUSTOMIZABLE_TEXTURES_COUNT; i++) {
       const layer_texture = textures.find(
         tex => tex.name === `${base_texture_name}_color${i}`,
@@ -86,9 +89,8 @@ function create_custom_colors_api(
   /** @type Object3D */ model,
   /** @type ReadonlyArray<Texture> */ textures,
 ) {
-  let custom_colors = null
-  const /** @type Map<string, CustomizableTexture> */ customizable_textures =
-      create_customizable_textures(textures)
+  /** @type Map<string, CustomizableTexture> */
+  const customizable_textures = create_customizable_textures(textures)
   if (customizable_textures.size > 0) {
     // attach the customizable textures on the model
     model.traverse((/** @type any */ child) => {
@@ -120,32 +122,32 @@ function create_custom_colors_api(
       }
     }
 
-    custom_colors = {
+    return {
       texture: customizable_texture_diffuse,
-      set color1(value) {
+      set_color1(value) {
         customizable_texture_diffuse.setLayerColor('color1', value)
       },
-      get color1() {
+      get_color1() {
         return customizable_texture_diffuse.getLayerColor('color1')
       },
 
-      set color2(value) {
+      set_color2(value) {
         customizable_texture_diffuse.setLayerColor('color2', value)
       },
-      get color2() {
+      get_color2() {
         return customizable_texture_diffuse.getLayerColor('color2')
       },
 
-      set color3(value) {
+      set_color3(value) {
         customizable_texture_diffuse.setLayerColor('color3', value)
       },
-      get color3() {
+      get_color3() {
         return customizable_texture_diffuse.getLayerColor('color3')
       },
     }
   }
 
-  return custom_colors
+  return null
 }
 
 function entity_spawner(
@@ -252,10 +254,9 @@ function entity_spawner(
         title.dispose()
         dispose(origin)
 
-        // TODO: uncomment once the engine is upgraded
-        // if (custom_colors) {
-        //   custom_colors.texture.dispose()
-        // }
+        if (custom_colors) {
+          custom_colors.texture.dispose()
+        }
       },
       animate(name) {
         // allow to skip some animation frames when the entity is far away
