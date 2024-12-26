@@ -1,6 +1,6 @@
 export const BLOCKS = {
   // Blocks
-  STONE: '#ababab',
+  STONE: '#ababab', // Original
   WET_SAND: '#8D795B',
   GOLDEN_SAND: '#D8B570',
   LIGHT_SAND: '#FBE8A6',
@@ -17,30 +17,36 @@ export const BLOCKS = {
 }
 
 export const SCHEMATICS_BLOCKS = {
-  jungle_log: '#8e684f',
-  gray_stained_glass_pane: '#b3b3b3',
-  smooth_quartz_slab: '#f2f2f2',
-  spruce_planks: '#8e684f',
-  andesite_stairs: '#ababab',
-  spruce_stairs: '#8e684f',
-  stone_stairs: '#ababab',
-  smooth_quartz_stairs: '#f2f2f2',
-  stone_bricks: '#ababab',
-  spruce_fence: '#8e684f',
+  jungle_log: '#8e684f', // Original
+  spruce_planks: '#8e684e', // Adjusted -1
+  jungle_wood: '#8e684d', // Adjusted -2
+  spruce_log: '#8e684c', // Adjusted -3
+  spruce_stairs: '#8e684b', // Adjusted -4
+  spruce_fence: '#8e684a', // Adjusted -5
+
+  gray_stained_glass_pane: '#b3b3b3', // Original
+  light_gray_wool: '#b3b3b2', // Adjusted -1
+  light_gray_concrete: '#b3b3b1', // Adjusted -2
+
+  smooth_quartz_slab: '#f2f2f2', // Original
+  smooth_quartz_stairs: '#f2f2f1', // Adjusted -1
+  smoorth_quartz: '#f2f2f0', // Adjusted -2
+  quartz_pillar: '#f2f2ef', // Adjusted -3
+
+  andesite_stairs: '#ababaa', // Adjusted -1 from STONE
+  stone_stairs: '#ababa9', // Adjusted -2 from STONE
+  stone_bricks: '#ababa8', // Adjusted -3 from STONE
+
   cyan_terracotta: '#546E7A',
   clay: '#9E9E9E',
-  light_gray_wool: '#b3b3b3',
-  jungle_leaves: '#4e8a3e',
-  jungle_wood: '#8e684f',
-  smoorth_quartz: '#f2f2f2',
-  quartz_pillar: '#f2f2f2',
+
+  jungle_leaves: '#4e8a3e', // Original
+  birch_leaves: '#4e8a3d', // Adjusted -1
+  azalea_leaves: '#4e8a3c', // Adjusted -2
+  large_fern: '#4e8a3b', // Adjusted -3
+
   prismarine_bricks: '#2e6c6c',
   nether_bricks: '#2e2e2e',
-  birch_leaves: '#4e8a3e',
-  spruce_log: '#8e684f',
-  light_gray_concrete: '#b3b3b3',
-  azalea_leaves: '#4e8a3e',
-  large_fern: '#4e8a3e',
   basalt: '#3B3B3B',
   granit: '#B0B0B0',
 }
