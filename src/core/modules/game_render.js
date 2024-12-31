@@ -1,14 +1,15 @@
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+import { Vector2 } from 'three'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
-import { Color, PointLight, Vector2 } from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import { state_iterator } from '../utils/iterator.js'
-import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 import { GodraysPass } from '../game/rendering/godrays_pass.js'
+import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
+import { VolumetricFogRenderpass } from '../game/rendering/volumetric_fog_renderpass.js'
+import { state_iterator } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -49,10 +50,15 @@ export default function () {
 
       const underwater_pass = new UnderwaterPass()
       const godrays_pass = new GodraysPass(camera)
+      const volumetric_fog_pass = new VolumetricFogRenderpass(
+        camera,
+        directional_light.shadow,
+      )
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
       composer.addPass(godrays_pass)
+      composer.addPass(volumetric_fog_pass)
       composer.addPass(underwater_pass)
       composer.addPass(bloompass)
       composer.addPass(gamma_correction)
@@ -92,6 +98,29 @@ export default function () {
             godrays_pass.exposure = postprocessing.godrays_pass.exposure
             godrays_pass.samplesCount = postprocessing.godrays_pass.samplesCount
             godrays_pass.density = postprocessing.godrays_pass.density
+
+            volumetric_fog_pass.enabled =
+              postprocessing.volumetric_fog_pass.enabled
+            volumetric_fog_pass.uniformity =
+              postprocessing.volumetric_fog_pass.uniformity
+            volumetric_fog_pass.smoothness =
+              postprocessing.volumetric_fog_pass.smoothness
+            volumetric_fog_pass.fog_density =
+              postprocessing.volumetric_fog_pass.fog_density
+            volumetric_fog_pass.fog_color.set(
+              postprocessing.volumetric_fog_pass.fog_color,
+            )
+            volumetric_fog_pass.light_color.set(
+              postprocessing.volumetric_fog_pass.light_color,
+            )
+            volumetric_fog_pass.ambient_light_intensity =
+              postprocessing.volumetric_fog_pass.ambient_light_intensity
+            volumetric_fog_pass.direct_light_intensity =
+              postprocessing.volumetric_fog_pass.direct_light_intensity
+            volumetric_fog_pass.raymarching_step =
+              postprocessing.volumetric_fog_pass.raymarching_step
+            volumetric_fog_pass.downscaling =
+              postprocessing.volumetric_fog_pass.downscaling
 
             bloompass.enabled = postprocessing.bloom_pass.enabled
             bloompass.strength = postprocessing.bloom_pass.strength

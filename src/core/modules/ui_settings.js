@@ -212,6 +212,73 @@ export default function () {
         .onFinishChange(dispatch_postprocessing_change)
       postprocessing_bloom_folder.open()
 
+      const postprocessing_fog_folder =
+        postprocessing_folder.addFolder('Volumetric fog')
+      postprocessing_fog_folder
+        .add(settings.postprocessing.volumetric_fog_pass, 'enabled')
+        .name('Enabled')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(settings.postprocessing.volumetric_fog_pass, 'uniformity', 0, 1)
+        .name('Uniformity')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(settings.postprocessing.volumetric_fog_pass, 'smoothness', 0, 1)
+        .name('Smoothness')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(settings.postprocessing.volumetric_fog_pass, 'fog_density', 0, 0.1)
+        .name('Density')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .addColor(settings.postprocessing.volumetric_fog_pass, 'fog_color')
+        .name('Fog color')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .addColor(settings.postprocessing.volumetric_fog_pass, 'light_color')
+        .name('Light color')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'ambient_light_intensity',
+          0,
+          2,
+          0.01,
+        )
+        .name('Ambient light')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'direct_light_intensity',
+          0,
+          2,
+          0.01,
+        )
+        .name('Direct light')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'raymarching_step',
+          0.1,
+          2,
+        )
+        .name('Raymarch step')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder
+        .add(
+          settings.postprocessing.volumetric_fog_pass,
+          'downscaling',
+          1,
+          4,
+          1,
+        )
+        .name('Downscaling')
+        .onFinishChange(dispatch_postprocessing_change)
+      postprocessing_fog_folder.open()
+
       postprocessing_folder
         .add(settings.postprocessing.underwater_pass, 'enabled')
         .name('Enable underwater')

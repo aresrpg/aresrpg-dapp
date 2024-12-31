@@ -140,6 +140,10 @@ export const INITIAL_STATE = {
           color: new Color(0xffffff),
         },
 
+        volumetric_fog: {
+          color: new Color(0xffffff),
+        },
+
         directional: {
           position: new Vector3(0, 1, 0),
           color: new Color(0xffffff),
@@ -186,6 +190,21 @@ export const INITIAL_STATE = {
         exposure: 0.3,
         samplesCount: 100,
         density: 0.45,
+      },
+
+      volumetric_fog_pass: {
+        enabled: false,
+
+        uniformity: 0.4,
+        smoothness: 0.2,
+        fog_density: 0.08,
+        fog_color: 0xffffff,
+        light_color: 0xffffff,
+        ambient_light_intensity: 0,
+        direct_light_intensity: 1,
+
+        downscaling: 2,
+        raymarching_step: 1,
       },
 
       bloom_pass: {
@@ -380,6 +399,9 @@ scene.background = new Color('#000000')
 scene.fog = new Fog('#000000', 0.25 * camera.far, 0.98 * camera.far)
 
 const directional_light = new DirectionalLight(0xffffff, 1)
+directional_light.castShadow = true
+directional_light.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
+directional_light.shadow.mapSize.height = 4096
 
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
