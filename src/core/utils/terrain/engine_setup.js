@@ -7,9 +7,9 @@ import {
 import { BlocksBatch, WorldEnv } from '@aresrpg/aresrpg-world'
 import { Color, Vector2 } from 'three'
 
-import { BLOCKS_COLOR_MAPPING } from './world_settings.js'
 // DEV ONLY: LEAVE THIS LINE COMMENTED
 // import { BLOCKS_COLOR_MAPPING } from './world_setup.js'
+import { BLOCKS_COLOR_MAPPING } from './world_settings.js'
 import { altitude, FLAGS, LOD_MODE, patch_size } from './setup.js'
 
 const voxel_materials_list = Object.values(BLOCKS_COLOR_MAPPING).map(col => ({
@@ -27,15 +27,10 @@ export const voxel_engine_setup = () => {
       FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
         console.log(`block batch compute size: ${coords.length}`)
       const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
-      const blocks_batch = await BlocksBatch.proxyGen(pos_batch)
-      // const res = await WorldComputeProxy.current.computeBlocksBatch(
-      //   pos_batch,
-      //   {
-      //     includeEntitiesBlocks: true,
-      //   },
-      // )
-      const data = blocks_batch.map(block => ({
-        altitude: block.pos.y + 0.25,
+      const blocks_batch = new BlocksBatch(pos_batch)
+      await blocks_batch.process()
+      const data = blocks_batch.output.map(block => ({
+        altitude: block.data.level, // block.pos.y + 0.25,
         // @ts-ignore
         color: new Color(BLOCKS_COLOR_MAPPING[block.data.type]),
       }))

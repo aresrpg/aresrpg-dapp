@@ -3,10 +3,11 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
 import {
-  WorldComputeProxy,
   WorldUtils,
   WorldEnv,
-  ChunksIndexer,
+  ProcessingTask,
+  LowerChunksBatch,
+  UpperChunksBatch,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -20,13 +21,13 @@ import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
 export default function () {
   // world setup (main thread environement)
   world_shared_setup()
-  // make sure worker pool is ready
-  WorldComputeProxy.current.isReady()
+  ProcessingTask.initWorkerPool()
   // engine setup
   const { terrain_viewer, voxelmap_viewer } = voxel_engine_setup()
 
-  // patch containers
-  const chunks_indexer = new ChunksIndexer()
+  // chunks batch processing
+  const lower_chunks_batch = new LowerChunksBatch()
+  const upper_chunks_batch = new UpperChunksBatch()
 
   return {
     tick() {
@@ -46,6 +47,14 @@ export default function () {
           engine_chunk.voxels_chunk_data,
         )
       }
+
+      const on_chunks_processed = chunks =>
+        chunks?.forEach(chunk => {
+          render_world_chunk(chunk)
+        })
+
+      lower_chunks_batch.onTaskCompleted = on_chunks_processed
+      upper_chunks_batch.onTaskCompleted = on_chunks_processed
 
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -77,59 +86,16 @@ export default function () {
         const state = get_state()
         const player_position =
           current_three_character(state)?.position?.clone()
-        // check at least one world compute unit is available
-        if (player_position && WorldComputeProxy.workerPool) {
+        if (player_position) {
           const current_pos = player_position.clone().floor()
-
           // Query chunks around player position
           const view_center = WorldUtils.convert.asVect2(current_pos).floor()
-          const view_radius = state.settings.view_distance
-          const new_patch_keys = chunks_indexer.getIndexingChanges(
-            view_center,
-            view_radius,
-          )
-          const index_has_changed = new_patch_keys.length > 0
-          if (index_has_changed) {
-            // instanciate chunkset for each new patches
-            chunks_indexer.indexElements(new_patch_keys)
-            voxelmap_viewer.setVisibility(chunks_indexer.chunkIds())
-            // first process undeground chunks near player
-            // then process far chunks at ground surface
-            const batch = chunks_indexer.indexedElements
-            const priority_batch = batch.filter(
-              chunkset =>
-                chunkset.distanceTo(view_center) <=
-                WorldEnv.current.nearViewDist,
-            )
-            const pending_batch = priority_batch.map(
-              async chunkset =>
-                // only process undeground for chunks within near dist
-                await chunkset.processChunksBelowGroundSurface().then(chunks =>
-                  chunks.forEach(chunk => {
-                    render_world_chunk(chunk)
-                  }),
-                ),
-            )
-            // wait for first batch to complete before starting second batch
-            await Promise.all(pending_batch)
-            for (const chunkset of batch) {
-              // for chunks further away: process only surface part
-              chunkset.processChunksAboveGroundSurface().then(chunks =>
-                chunks.forEach(chunk => {
-                  render_world_chunk(chunk)
-                }),
-              )
-            }
-            // prioritize patches around player
-            // const indexedElements = chunks_indexer.indexedElements
-            // const prioritizedElements = prioritize_items_around_pos(
-            //   indexedElements,
-            //   view_center,
-            // )
-            // for (const chunks_processor of prioritizedElements) {
-
-            // }
-            terrain_viewer.setLod(camera.position, 50, camera.far)
+          const view_far = state.settings.view_distance
+          const view_near = WorldEnv.current.nearViewDist
+          if (upper_chunks_batch.isSyncNeeded(view_center, view_far)) {
+            lower_chunks_batch.syncView(view_center, view_near)
+            upper_chunks_batch.syncView(view_center, view_far)
+            voxelmap_viewer.setVisibility(upper_chunks_batch.chunkIds)
           }
           // Board
         }

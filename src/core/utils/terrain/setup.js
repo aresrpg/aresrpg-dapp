@@ -4,13 +4,13 @@ import { chunk_data_encoder } from './world_utils.js'
 
 // NB: LOD should be set to STATIC to limit over-computations and fix graphical issues
 export const LOD_MODE = {
-  DISABLED: 0,
+  NONE: 0,
   STATIC: 1,
   DYNAMIC: 2,
 }
 
 export const FLAGS = {
-  LOD_MODE: LOD_MODE.DISABLED,
+  LOD_MODE: LOD_MODE.NONE,
 }
 
 export const patch_size = { xz: 64, y: 64 }
