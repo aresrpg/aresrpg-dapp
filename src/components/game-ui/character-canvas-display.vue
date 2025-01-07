@@ -110,7 +110,7 @@ async function display_classe(type) {
 function set_color(classe, index, color) {
   if (classe) {
     console.log('SET COLOR (and update)', { index, color, renderer });
-    classe.custom_colors[`set_color${index}`](index, color);
+    classe.custom_colors[`set_color${index}`](color);
     if (classe.custom_colors.needsUpdate)
       classe.custom_colors.texture.update(renderer);
   }
