@@ -46,11 +46,11 @@ export default function () {
 
               if (Number.isNaN(ground_height)) continue
 
-              new_position.setY(ground_height)
+              // new_position.setY(ground_height)
 
-              mob.move(new_position)
-              mob.rotate(movement)
-              mob.animate('RUN')
+              // mob.move(new_position)
+              // mob.rotate(movement)
+              // mob.animate('RUN')
 
               // Check if mob has reached the target position
               if (new_position.distanceTo(mob.target_position) < 2) {

@@ -159,7 +159,13 @@ export default function () {
 
           const { current_fight_id } = character
 
-          // console.log('fight id is now', current_fight_id, last_fight_id)
+          if (current_fight_id)
+            console.log(
+              'fight id is now',
+              current_fight_id,
+              last_fight_id,
+              character,
+            )
 
           if (last_fight_id !== current_fight_id) {
             if (last_fight_id)
@@ -167,10 +173,11 @@ export default function () {
 
             if (current_fight_id) {
               const fight = state.visible_fights.get(current_fight_id)
+              console.log('creating board')
               const { board_chunks, original_chunks } = await create_board(
                 // TODO: fight.position not yet exists! server WIP
                 // @ts-ignore
-                fight.position ?? state.characters[0].position,
+                fight.position ?? character.position,
               )
 
               console.log('force render chunks', board_chunks)
@@ -191,24 +198,13 @@ export default function () {
       )
 
       context.events.on('packet/fightSpawn', async fight => {
-        const { visible_fights, characters } = context.get_state()
+        const { visible_fights } = context.get_state()
 
         fight.start_time = +fight.start_time
 
         visible_fights.set(fight.id, fight)
 
-        characters.forEach(character => {
-          if (
-            is_in_team(fight.team1, character.id) ||
-            is_in_team(fight.team2, character.id)
-            // || is_in_team(fight.spectators, character.id)
-          ) {
-            context.dispatch('action/join_fight', {
-              character_id: character.id,
-              fight_id: fight.id,
-            })
-          }
-        })
+        console.log('packet/fightSpawn', fight)
 
         try {
           fight_swords.set(
@@ -232,6 +228,41 @@ export default function () {
           }
         })
       })
+
+      state_iterator().reduce(
+        (last_characters_ids, { visible_fights, characters }) => {
+          const ids = characters.map(({ id }) => id)
+          const newly_added = ids.filter(
+            id => !last_characters_ids.includes(id),
+          )
+          const removed = last_characters_ids.filter(id => !ids.includes(id))
+
+          if (removed.length) {
+            // TODO: maybe handle when a character is removed ? if needed
+          }
+
+          if (newly_added.length) {
+            newly_added.forEach(id => {
+              visible_fights.forEach(fight => {
+                if (
+                  is_in_team(fight.team1, id) ||
+                  is_in_team(fight.team2, id) ||
+                  is_in_team(fight.spectators, id)
+                ) {
+                  console.log('joining fight', fight.id)
+                  context.dispatch('action/join_fight', {
+                    character_id: id,
+                    fight_id: fight.id,
+                  })
+                }
+              })
+            })
+          }
+
+          return ids
+        },
+        [],
+      )
 
       state_iterator().forEach(state => {
         if (!state.online) {

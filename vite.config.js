@@ -8,10 +8,10 @@ import ViteYaml from '@modyfi/vite-plugin-yaml'
 
 export default defineConfig({
   server: {
-    watch: {
-      usePolling: true,
-      interval: 100,
-    },
+    // watch: {
+    //   usePolling: true,
+    //   interval: 100,
+    // },
   },
   optimizeDeps: {
     include: ['events-polyfill'],

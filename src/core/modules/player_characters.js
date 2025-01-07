@@ -65,7 +65,7 @@ export default function () {
             const [should_select] = ids
             if (selected_character_id !== should_select) {
               // we select the first one, or null if there are none
-              context.dispatch('action/select_character', ids[0])
+              context.dispatch('action/select_character', should_select)
             }
           }
 
