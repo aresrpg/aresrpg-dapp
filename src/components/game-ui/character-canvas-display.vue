@@ -107,26 +107,36 @@ async function display_classe(type) {
   }
 }
 
+function set_color(classe, index, color) {
+  if (classe) {
+    console.log('SET COLOR (and update)', { index, color, renderer });
+    classe.custom_colors[`set_color${index}`](index, color);
+    if (classe.custom_colors.needsUpdate)
+      classe.custom_colors.texture.update(renderer);
+  }
+}
+
 watchEffect(() => {
   if (color1.value) {
     const color = new Color(color1.value);
-    senshi?.custom_colors.set_color1(color);
-    yajin?.custom_colors.set_color1(color);
+    set_color(senshi, 1, color);
+    set_color(yajin, 1, color);
+    set_color(senshi_female, 1, color);
+    set_color(yajin_female, 1, color);
   }
   if (color2.value) {
     const color = new Color(color2.value);
-    senshi?.custom_colors.set_color2(color);
-    yajin?.custom_colors.set_color2(color);
+    set_color(senshi, 2, color);
+    set_color(yajin, 2, color);
+    set_color(senshi_female, 2, color);
+    set_color(yajin_female, 2, color);
   }
   if (color3.value) {
     const color = new Color(color3.value);
-    senshi?.custom_colors.set_color3(color);
-    yajin?.custom_colors.set_color3(color);
-  }
-
-  if (renderer) {
-    senshi?.custom_colors.texture.update(renderer);
-    yajin?.custom_colors.texture.update(renderer);
+    set_color(senshi, 3, color);
+    set_color(yajin, 3, color);
+    set_color(senshi_female, 3, color);
+    set_color(yajin_female, 3, color);
   }
 });
 
@@ -158,6 +168,8 @@ onMounted(async () => {
     preserveDrawingBuffer: true,
   });
 
+  console.log('SET renderer', renderer);
+
   renderer.setClearColor(0xffffff, 0);
   // renderer.setClearColor(0xffffff, 1);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -176,6 +188,23 @@ onMounted(async () => {
   const clock = new Clock();
 
   await display_classe(props.type);
+
+  const color_1_default = new Color(0x00ffff);
+  const color_2_default = new Color(0x00ffff);
+  const color_3_default = new Color(0x00ffff);
+
+  set_color(senshi, 1, color_1_default);
+  set_color(yajin, 1, color_1_default);
+  set_color(senshi_female, 1, color_1_default);
+  set_color(yajin_female, 1, color_1_default);
+  set_color(senshi, 2, color_2_default);
+  set_color(yajin, 2, color_2_default);
+  set_color(senshi_female, 2, color_2_default);
+  set_color(yajin_female, 2, color_2_default);
+  set_color(senshi, 3, color_3_default);
+  set_color(yajin, 3, color_3_default);
+  set_color(senshi_female, 3, color_3_default);
+  set_color(yajin_female, 3, color_3_default);
 
   function animate() {
     if (!running.value) return;

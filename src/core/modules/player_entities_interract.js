@@ -103,6 +103,7 @@ export default function () {
               hovered_group.position,
             )
             if (distance < 10) {
+              console.log('Attack mob group', hovered_group)
               context.send_packet('packet/characterAttackMobGroup', {
                 id: character.id,
                 mob_group_id: current_hovered_group,

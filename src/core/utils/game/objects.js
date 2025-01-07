@@ -6,7 +6,7 @@ import dispose from '../three/dispose.js'
 import { get_fight_position } from './fight.js'
 
 export async function spawn_crescent_sword(fight, scene) {
-  const { model } = await MODELS.crescent_sword
+  const { model } = await MODELS.fight_sword
 
   const { x, y, z } = await get_fight_position(fight)
   const fight_timeout = fight.start_time + 60000

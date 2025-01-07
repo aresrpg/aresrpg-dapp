@@ -98,6 +98,11 @@ function create_custom_colors_api(
         const match = child.material.map.name.match(/(.+)_base/)
         if (match && match[1]) {
           const customizable_texture = customizable_textures.get(match[1])
+          console.log('customizable_texture', {
+            match,
+            customizable_texture,
+            model,
+          })
           if (customizable_texture) {
             child.material.map = customizable_texture.texture
           }
@@ -218,6 +223,7 @@ function entity_spawner(
       return equip_promise
     }
 
+    console.log('create_custom_colors_api', { skin, textures })
     const custom_colors = create_custom_colors_api(model, textures)
 
     return {
@@ -291,7 +297,7 @@ export const ENTITIES = {
     const type = ENTITIES[skin || `${classe}_${sex}`]
 
     if (type) return await type({ name, id })
-    return await ENTITIES.afegg({ name: 'Oeuftermath', id })
+    return await ENTITIES.oeuftermath({ name: 'Bouftou', id })
   },
 
   // ====== CHARACTERS ======
@@ -335,16 +341,30 @@ export const ENTITIES = {
 
   // ====== MOBS ======
 
-  chafer: entity_spawner(() => MODELS.chafer, {
+  araknomath: entity_spawner(() => MODELS.araknomath, {
     height: 1.5,
     radius: 0.8,
-    skin: 'chafer',
+    skin: 'araknomath',
   }),
-  hop_bunny: entity_spawner(() => MODELS.hop_bunny, {
+  bouftou: entity_spawner(() => MODELS.bouftou, {
     height: 1.5,
     radius: 0.8,
-    skin: 'hop_bunny',
-    scale: 0.8,
+    skin: 'bouftou',
+  }),
+  hophop: entity_spawner(() => MODELS.hophop, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'hophop',
+  }),
+  moka: entity_spawner(() => MODELS.moka, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'moka',
+  }),
+  moyumi: entity_spawner(() => MODELS.moyumi, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'moyumi',
   }),
 
   // ====== PETS ======
@@ -359,11 +379,6 @@ export const ENTITIES = {
     radius: 0.75,
     skin: 'suifren_bullshark',
   }),
-  afegg: entity_spawner(() => MODELS.afegg, {
-    height: 0.75,
-    radius: 0.75,
-    skin: 'afegg',
-  }),
   vaporeon: entity_spawner(() => MODELS.vaporeon, {
     height: 0.85,
     radius: 0.75,
@@ -376,9 +391,39 @@ export const ENTITIES = {
     skin: 'suicune',
     scale: 0.9,
   }),
-  pirate_parrot: entity_spawner(() => MODELS.pirate_parrot, {
+  corbac: entity_spawner(() => MODELS.corbac, {
     height: 0.75,
     radius: 0.75,
-    skin: 'pirate_parrot',
+    skin: 'corbac',
+  }),
+  krinan: entity_spawner(() => MODELS.krinan, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'krinan',
+  }),
+  mosho: entity_spawner(() => MODELS.mosho, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'mosho',
+  }),
+  oeuftermath: entity_spawner(() => MODELS.oeuftermath, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'oeuftermath',
+  }),
+  siluri: entity_spawner(() => MODELS.siluri, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'siluri',
+  }),
+  talokan: entity_spawner(() => MODELS.talokan, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'talokan',
+  }),
+  yago: entity_spawner(() => MODELS.yago, {
+    height: 0.75,
+    radius: 0.75,
+    skin: 'yago',
   }),
 }
