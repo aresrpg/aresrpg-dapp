@@ -57,6 +57,12 @@ function reset_classes() {
 function setup_classe(classe) {
   classe.move(new Vector3(0, 1, 0));
   classe.animate('IDLE');
+  if (classe.custom_colors) {
+    classe.custom_colors.set_color1(color1.value);
+    classe.custom_colors.set_color2(color2.value);
+    classe.custom_colors.set_color3(color3.value);
+    classe.custom_colors.texture.update(renderer);
+  }
 }
 
 async function display_classe(type) {
