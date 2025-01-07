@@ -98,12 +98,8 @@ function create_custom_colors_api(
         const match = child.material.map.name.match(/(.+)_base/)
         if (match && match[1]) {
           const customizable_texture = customizable_textures.get(match[1])
-          console.log('customizable_texture', {
-            match,
-            customizable_texture,
-            model,
-          })
           if (customizable_texture) {
+            child.material = child.material.clone()
             child.material.map = customizable_texture.texture
           }
         }
@@ -223,7 +219,6 @@ function entity_spawner(
       return equip_promise
     }
 
-    console.log('create_custom_colors_api', { skin, textures })
     const custom_colors = create_custom_colors_api(model, textures)
 
     return {
