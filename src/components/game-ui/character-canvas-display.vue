@@ -111,7 +111,7 @@ function set_color(classe, index, color) {
   if (classe) {
     console.log('SET COLOR (and update)', { index, color, renderer });
     classe.custom_colors[`set_color${index}`](color);
-    if (classe.custom_colors.needsUpdate)
+    if (classe.custom_colors.texture.needsUpdate)
       classe.custom_colors.texture.update(renderer);
   }
 }
