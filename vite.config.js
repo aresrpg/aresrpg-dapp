@@ -8,17 +8,22 @@ import ViteYaml from '@modyfi/vite-plugin-yaml'
 
 export default defineConfig({
   server: {
-    // watch: {
-    //   usePolling: true,
-    //   interval: 100,
-    // },
+    hmr: {
+      overlay: false, // Disable the error overlay
+      timeout: 5000, // Increase timeout
+    },
+    watch: {
+      usePolling: false,
+      useFsEvents: true,
+      ignored: ['**/node_modules/**', '**/dist/**'], // Ignore unnecessary files
+    },
   },
   optimizeDeps: {
     include: ['events-polyfill'],
   },
   build: {
     target: 'esnext',
-    minify: 'terser',
+    minify: 'esbuild',
     terserOptions: {
       compress: {
         drop_console: true,

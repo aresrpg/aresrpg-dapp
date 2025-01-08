@@ -40,7 +40,7 @@ let yajin_female = null;
 let scene = null;
 let renderer = null;
 const light = new DirectionalLight(0xffffff, 2);
-const ambient = new AmbientLight(0xffffff, 1);
+const ambient = new AmbientLight(0xffffff, 2);
 
 function reset_classes() {
   senshi?.remove();
@@ -115,7 +115,6 @@ async function display_classe(type) {
 
 function set_color(classe, index, color) {
   if (classe) {
-    console.log('SET COLOR (and update)', { index, color, renderer });
     classe.custom_colors[`set_color${index}`](color);
     if (classe.custom_colors.texture.needsUpdate)
       classe.custom_colors.texture.update(renderer);
@@ -174,8 +173,6 @@ onMounted(async () => {
     preserveDrawingBuffer: true,
   });
 
-  console.log('SET renderer', renderer);
-
   renderer.setClearColor(0xffffff, 0);
   // renderer.setClearColor(0xffffff, 1);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -195,9 +192,9 @@ onMounted(async () => {
 
   await display_classe(props.type);
 
-  const color_1_default = new Color(0x00ffff);
-  const color_2_default = new Color(0x00ffff);
-  const color_3_default = new Color(0x00ffff);
+  const color_1_default = new Color(0xffffff);
+  const color_2_default = new Color(0xff9999);
+  const color_3_default = new Color(0x111fff);
 
   set_color(senshi, 1, color_1_default);
   set_color(yajin, 1, color_1_default);

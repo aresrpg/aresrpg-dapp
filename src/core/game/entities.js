@@ -1,15 +1,4 @@
-import {
-  BoxGeometry,
-  Color,
-  Group,
-  LoopOnce,
-  Mesh,
-  Object3D,
-  Quaternion,
-  Texture,
-  Vector3,
-} from 'three'
-import { CustomizableTexture } from '@aresrpg/aresrpg-engine'
+import { BoxGeometry, Group, LoopOnce, Mesh, Quaternion, Vector3 } from 'three'
 
 import dispose from '../utils/three/dispose.js'
 
@@ -19,6 +8,7 @@ import { context } from './game.js'
 import { create_billboard_text } from './rendering/billboard_text.js'
 
 const MODEL_FORWARD = new Vector3(0, 0, 1)
+const LOADED_HATS = new Map()
 
 function fade_to_animation(from, to, duration = 0.3) {
   if (from !== to) {
@@ -42,121 +32,12 @@ function fade_to_animation(from, to, duration = 0.3) {
 //   'WALK',
 // ]
 
-function create_customizable_textures(
-  /** @type ReadonlyArray<Texture> */
-  textures,
-) {
-  /** @type Map<string, Texture> */
-  const base_textures = new Map()
-  for (const texture of textures) {
-    const match = texture.name.match(/(.+)_base$/)
-    if (match && match[1]) {
-      if (base_textures.has(match[1])) {
-        throw new Error(`Duplicate base texture "${texture.name}".`)
-      }
-      base_textures.set(match[1], texture)
-    }
-  }
-
-  const MAX_CUSTOMIZABLE_TEXTURES_COUNT = 3
-
-  /** @type Map<string, CustomizableTexture> */
-  const customizable_textures = new Map()
-  for (const [base_texture_name, base_texture] of base_textures.entries()) {
-    /** @type Map<string, Texture> */
-    const additional_textures = new Map()
-    for (let i = 1; i <= MAX_CUSTOMIZABLE_TEXTURES_COUNT; i++) {
-      const layer_texture = textures.find(
-        tex => tex.name === `${base_texture_name}_color${i}`,
-      )
-      if (!layer_texture) {
-        break
-      }
-      additional_textures.set(`color${i}`, layer_texture)
-    }
-
-    const customizable_texture = new CustomizableTexture({
-      baseTexture: base_texture,
-      additionalTextures: additional_textures,
-    })
-    customizable_textures.set(base_texture_name, customizable_texture)
-  }
-
-  return customizable_textures
-}
-
-function create_custom_colors_api(
-  /** @type Object3D */ model,
-  /** @type ReadonlyArray<Texture> */ textures,
-) {
-  /** @type Map<string, CustomizableTexture> */
-  const customizable_textures = create_customizable_textures(textures)
-  if (customizable_textures.size > 0) {
-    // attach the customizable textures on the model
-    model.traverse((/** @type any */ child) => {
-      if (child.material && child.material.map) {
-        const match = child.material.map.name.match(/(.+)_base/)
-        if (match && match[1]) {
-          const customizable_texture = customizable_textures.get(match[1])
-          if (customizable_texture) {
-            child.material = child.material.clone()
-            child.material.map = customizable_texture.texture
-          }
-        }
-      }
-    })
-
-    const customizable_texture_diffuse = customizable_textures.get('diffuse')
-    if (!customizable_texture_diffuse || customizable_textures.size > 1) {
-      throw new Error(
-        `Only diffuse texture is customizable. Got ${Array.from(customizable_textures.keys()).join(';')}.`,
-      )
-    }
-
-    for (const expected_layername of ['color1', 'color2', 'color3']) {
-      if (
-        !customizable_texture_diffuse.layerNames.includes(expected_layername)
-      ) {
-        throw new Error(
-          `Diffuse customizable texture is supposed to have a layer named "${expected_layername}".`,
-        )
-      }
-    }
-
-    return {
-      texture: customizable_texture_diffuse,
-      set_color1(value) {
-        customizable_texture_diffuse.setLayerColor('color1', value)
-      },
-      get_color1() {
-        return customizable_texture_diffuse.getLayerColor('color1')
-      },
-
-      set_color2(value) {
-        customizable_texture_diffuse.setLayerColor('color2', value)
-      },
-      get_color2() {
-        return customizable_texture_diffuse.getLayerColor('color2')
-      },
-
-      set_color3(value) {
-        customizable_texture_diffuse.setLayerColor('color3', value)
-      },
-      get_color3() {
-        return customizable_texture_diffuse.getLayerColor('color3')
-      },
-    }
-  }
-
-  return null
-}
-
 function entity_spawner(
   load_model,
   { skin, height, radius, scale = 1, hair = null },
 ) {
   return async ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
-    const { model, compute_animations, set_variant, textures } =
+    const { model, compute_animations, set_variant, custom_colors } =
       await load_model()
     const { mixer, actions } = compute_animations()
 
@@ -213,13 +94,15 @@ function entity_spawner(
         head.clear()
 
         if (!hat) return
+        const { item_type } = hat
+
+        // if(!LOADED_HATS.has(item_type))
+
         const { model: hat_model } = await MODELS[hat.item_type]
         head.add(hat_model)
       })
       return equip_promise
     }
-
-    const custom_colors = create_custom_colors_api(model, textures)
 
     return {
       id,
@@ -296,6 +179,8 @@ export const ENTITIES = {
   },
 
   // ====== CHARACTERS ======
+
+  // TODO: Remove the MODELS proxy as it is ambiguous
 
   senshi_male: entity_spawner(() => MODELS.senshi_male, {
     height: 1.5,
