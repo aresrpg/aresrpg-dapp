@@ -32,7 +32,7 @@ export default {
     fadeIn: 0,
     fadeOut: 0,
   },
-  cliff: {
+  cliff_up: {
     x: 0.65,
     y: 0.5,
     type: BLOCKS.ICE,
