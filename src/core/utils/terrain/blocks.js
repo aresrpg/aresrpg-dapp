@@ -1,15 +1,21 @@
 export const BLOCKS = {
   // Blocks
-  STONE: '#ababab', // Original
-  WET_SAND: '#8D795B',
+  TEMPO: '#352814',
+  GRASS: '#41980a',
+  GRASS_TEMPERATE: '#297018',
+  STONE: '#ababab',
+  SNOW: '0xe5e5e5',
+  WET_SAND: '#9D896B',
+  SAND: '#D9D1A9',
   GOLDEN_SAND: '#D8B570',
   LIGHT_SAND: '#FBE8A6',
   LUSH_GRASS: '#87A96B',
   MOSSY_GRASS: '#6C8E7C',
   VIBRANT_GRASS: '#67C39E',
+  MUD: '#473E37',
 
   COLD_WATER: '#4A90E2',
-
+  BROWN_GRASS: '#617B64',
   LIGHT_ICE: '#B3E5FC',
   ICE: '#74CCF4',
   DARK_ICE: '#81D4FA',
@@ -17,36 +23,48 @@ export const BLOCKS = {
 }
 
 export const SCHEMATICS_BLOCKS = {
-  jungle_log: '#8e684f', // Original
-  spruce_planks: '#8e684e', // Adjusted -1
-  jungle_wood: '#8e684d', // Adjusted -2
-  spruce_log: '#8e684c', // Adjusted -3
-  spruce_stairs: '#8e684b', // Adjusted -4
-  spruce_fence: '#8e684a', // Adjusted -5
-
-  gray_stained_glass_pane: '#b3b3b3', // Original
-  light_gray_wool: '#b3b3b2', // Adjusted -1
-  light_gray_concrete: '#b3b3b1', // Adjusted -2
-
-  smooth_quartz_slab: '#f2f2f2', // Original
-  smooth_quartz_stairs: '#f2f2f1', // Adjusted -1
-  smoorth_quartz: '#f2f2f0', // Adjusted -2
-  quartz_pillar: '#f2f2ef', // Adjusted -3
-
-  andesite_stairs: '#ababaa', // Adjusted -1 from STONE
-  stone_stairs: '#ababa9', // Adjusted -2 from STONE
-  stone_bricks: '#ababa8', // Adjusted -3 from STONE
-
+  gray_stained_glass_pane: '#b3b3b3',
+  stone_bricks: '#ababab',
   cyan_terracotta: '#546E7A',
   clay: '#9E9E9E',
-
-  jungle_leaves: '#4e8a3e', // Original
-  birch_leaves: '#4e8a3d', // Adjusted -1
-  azalea_leaves: '#4e8a3c', // Adjusted -2
-  large_fern: '#4e8a3b', // Adjusted -3
-
+  light_gray_wool: '#b3b3b3',
+  smoorth_quartz: '#f2f2f2',
+  quartz_pillar: '#f2f2f2',
   prismarine_bricks: '#2e6c6c',
   nether_bricks: '#2e2e2e',
+  light_gray_concrete: '#b3b3b3',
   basalt: '#3B3B3B',
   granit: '#B0B0B0',
+
+  Green_concrete: '#587058',
+  Black_concrete: '#000000',
+  Green_terracotta: '#508850',
+  Orange_terracotta: '#FFCE80',
+
+  Snow_block: '0xe5e5e5',
+  Andesite: '#C3C3C3',
+  Gravel: '#ABB3B3',
+  Cobblestone: '#8B8B8B',
+  Mossy_cobblestone: '#6A8546',
+  Smooth_red_sandstone: '#FFBE80',
+  Sandstone: '#FFF8B6',
+  Cut_sandstone: '#FBE8A6',
+
+  jungle_wood: '#8e684f',
+  Dark_oak_wood: '#3F2E1E',
+  Spruce_wood: '#3E2018',
+  Birch_wood: '#361810',
+  Oak_wood: '#9E785F',
+  Azalea_wood: '#765038',
+  Stripped_acacia_wood: '#765037',
+  Stripped_birch_wood: '#d7cda7',
+  Stripped_spruce_wood: '#63492b',
+  Oak_leaves: '#77ab2f',
+  Acacia_leaves: '#267A14',
+  jungle_leaves: '#4e8a3c',
+  Mangrove_leaves: '#4C763C',
+  Birch_leaves: '#4e8a3e',
+  azalea_leaves: '#4e8a3f',
+  Spruce_leaves: '#173C17',
+  Dark_oak_leaves: '#3F8C3F',
 }
