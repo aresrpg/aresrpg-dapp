@@ -141,7 +141,7 @@ export default {
       'trees/TEMPERATE_THIN_TREE_G4': 1,
       'trees/TEMPERATE_THIN_TREE_G5': 1,
       'trees/TEMPERATE_THIN_TREE_G6': 1,
-      'trees/TEMPERATE_LARGE_TREE_G1': 3,
+      'trees/TEMPERATE_LARGE_TREE_G1': 4,
       'trees/TEMPERATE_LARGE_TREE_G2': 1,
       'trees/TEMPERATE_LARGE_TREE_G3': 1,
       void: 20,
