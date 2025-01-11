@@ -29,6 +29,7 @@ const show_topbar = inject('show_topbar');
 const webgl_available = ref(true);
 
 onMounted(() => {
+  // @ts-ignore
   if (!WebGL.isWebGL2Available()) webgl_available.value = false;
   else {
     set_canvas(renderer_container.value);

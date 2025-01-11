@@ -589,6 +589,7 @@ export async function sui_buy_item(item) {
     if (rule_definition.hasLockingRule) should_be_locked = true
 
     await rule_definition.resolveRuleFunction({
+      kioskClient: sdk.kiosk_client,
       packageId: rule_definition.packageId,
       transaction: tx,
       itemType: item._type,
