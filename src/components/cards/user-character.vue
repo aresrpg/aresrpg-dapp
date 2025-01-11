@@ -1,6 +1,8 @@
 <template lang="pug">
 .character(:class="{ locked: props.locked, [props.character.classe]: true, male: props.character.sex === 'male' }")
   span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
+  .perso()
+    characterCanvasDisplay(:type="props.character.classe.toUpperCase() + '_' + props.character.sex.toUpperCase()" :isCreated="true")
   .field
     .title classe:
     .value {{ props.character.classe.toUpperCase() }}
@@ -30,6 +32,8 @@ rigid illness excess cruise wasp what sand assist axis cause heart veteran
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isValidSuiAddress } from '@mysten/sui/utils';
+
+import characterCanvasDisplay from '../game-ui/character-canvas-display.vue';
 
 import { experience_to_level } from '../../core/utils/game/experience.js';
 import { sui_delete_character } from '../../core/sui/client.js';
@@ -116,19 +120,34 @@ function has_equipment(character) {
   flex-flow column nowrap
   padding .6em 1em 0
   justify-content center
-  position: relative
-  overflow: hidden
+  position relative
+  overflow hidden
 
   &::before
-    content: ''
-    position: absolute
-    top: 0
-    right: 0
-    bottom: 0
-    left: 0
-    background: rgba(0, 0, 0, 0.8) // Adjust the 0.5 value to increase or decrease the darkening effect
-    z-index: 1
+    content ''
+    position absolute
+    top 0
+    right 0
+    bottom 0
+    left 0
+    z-index 1
+    filter blur(3px) brightness(50%)
+    
+  &.senshi::before
+    background url('https://assets.aresrpg.world/classe/senshi_female.jpg') center / cover,
+    rgba(0, 0, 0, 0.8)
+  &.senshi.male::before
+      background url('https://assets.aresrpg.world/classe/senshi_male.jpg') center / cover,
+      rgba(0, 0, 0, 0.8)
+  &.yajin::before
+    background url('https://assets.aresrpg.world/classe/yajin_female.jpg') center / cover,
+    rgba(0, 0, 0, 0.8)
+  &.yajin.male::before
+      background url('https://assets.aresrpg.world/classe/yajin_male.jpg') center / cover,
+      rgba(0, 0, 0, 0.8)
 
+  .perso
+    height 250px
   >*
     position: relative
     z-index: 20
