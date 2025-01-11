@@ -31,8 +31,11 @@
           .value(:class="{ negative: stat.value < 0 }") {{ stat.value }} {{ t(`APP_ITEM_${stat.name.toUpperCase()}`) }}
         .sepa(v-if="item.last_feed")
         .stomach(v-if="item.feed_level != null") #[b {{ item.food_name }}] {{ t('APP_ITEM_STOMACH') }}: {{ item.feed_level }} / {{ item.max_feed_level }}
+        .feed-percent(v-if="item.item_category === 'pet'")
+          span {{ t('APP_ITEM_FEED_PERCENT') }}:
+          .progress
+            .progress-bar(:style="{ width: item.feed_percent + '%' }")
         .last-feed(v-if="item.last_feed") {{ t('APP_ITEM_LAST_FEED') }}: {{ item.last_feed }}
-
 </template>
 
 <!-- export type SuiToken = {
@@ -227,11 +230,28 @@ const stats = computed(() => {
             opacity .9
             &.negative
               color #FF5722
-        .stomach, .last-feed
+        .feed-percent
+          display flex
+          gap .5em
+        .stomach, .last-feed, .feed-percent
           font-size .8em
           opacity .7
           font-style italic
           >b
             margin-right .25em
             color #64B5F6
+          .progress
+            width 180px
+            height 14px
+            background #50493c
+            border-radius 6px
+            .progress-bar
+              max-width 98%
+              min-width 10px
+              margin-left 2px
+              margin-top 2px
+              height 9px
+              background #ff6100
+              border-radius 6px
+              transition width .5s
 </style>

@@ -287,6 +287,7 @@ async function commit_stats() {
             min-width 10px
             margin-left 2px
             margin-top 2px
+            margin-bottom 3px
             height 9px
             background #ff6100
             border-radius 6px
