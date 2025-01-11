@@ -229,6 +229,16 @@ APP_CHARACTER_STAT_CANCEL: Annuler
 APP_CHARACTER_STAT_CONFIRM: Attribuer maintenant
 APP_CHARACTER_STAT_USE_DIALOG_TITLE: Confirmer l'attribution des caractéristiques
 
+APP_CHARACTER_SPELL_LEVEL: Niveau
+APP_CHARACTER_SPELL_TITLE: Mes sorts
+APP_CHARACTER_SPELL_CAPITAL: Capital sorts
+APP_CHARACTER_SPELL_LABEL_NAME: Nom
+APP_CHARACTER_SPELL_NEXT_COST: Coût du niveau suivant
+APP_CHARACTER_SPELL_CANCEL: Annuler
+APP_CHARACTER_SPELL_CONFIRM: Attribuer maintenant
+APP_CHARACTER_SPELL_USE_DIALOG_TITLE: Confirmer l'attribution des sorts
+APP_CHARACTER_SPELL_DESC: Êtes-vous sûr de vouloir attribuer {0} point(s) de capital ?
+
 APP_GAME_CHAT_COPY_ADDRESS: Copier l'adresse
 APP_GAME_CHAT_COPIED: Adresse copiée dans le presse-papiers
 APP_GAME_CHAT_NO_CHARACTER: Vous devez d'abord sélectionner un personnage

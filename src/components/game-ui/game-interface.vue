@@ -7,6 +7,7 @@
   .middle
     gameInventory(v-if="inventory_opened")
     gameCharacteristic(v-if="stats_opened")
+    gameSpell(v-if="spells_opened")
   .bottom_panel
     gameChat
     gameHealth(
@@ -27,6 +28,7 @@ import gameHealth from './game-health.vue';
 import gameSpellbar from './game-spellbar.vue';
 import gameInventory from './game-inventory.vue';
 import gameCharacteristic from './game-characteristic.vue';
+import gameSpell from './game-spells.vue';
 
 const stats_opened = ref(false);
 const spells_opened = ref(false);

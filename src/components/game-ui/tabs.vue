@@ -74,7 +74,7 @@ onMounted(async () => {
   .tab-content
     padding: .25em
     padding-top: 1em
-    background lighten(#212121, 7%)
+    background #313131cf //lighten(#212121, 7%)
     border-radius 6px
     height 100%
     &.no-bg
