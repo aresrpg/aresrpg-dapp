@@ -3,19 +3,26 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
 import {
-  WorldUtils,
-  WorldEnv,
   ProcessingTask,
   LowerChunksBatch,
   UpperChunksBatch,
+  BoardContainer,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
 import { abortable, combine, typed_on } from '../utils/iterator.js'
-import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
+import {
+  get_view_settings,
+  to_engine_chunk_format,
+} from '../utils/terrain/world_utils.js'
 import { world_shared_setup } from '../utils/terrain/world_setup.js'
 import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
 import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
+import {
+  highlight_board_edges,
+  highlight_board_start_pos,
+  init_board_handler,
+} from '../utils/terrain/board_helper.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -28,6 +35,12 @@ export default function () {
   // chunks batch processing
   const lower_chunks_batch = new LowerChunksBatch()
   const upper_chunks_batch = new UpperChunksBatch()
+  lower_chunks_batch.enqueue()
+  upper_chunks_batch.enqueue()
+  const board_wrapper = {
+    handler: null,
+    data: null,
+  }
 
   return {
     tick() {
@@ -89,15 +102,21 @@ export default function () {
         if (player_position) {
           const current_pos = player_position.clone().floor()
           // Query chunks around player position
-          const view_center = WorldUtils.convert.asVect2(current_pos).floor()
-          const view_far = state.settings.view_distance
-          const view_near = WorldEnv.current.nearViewDist
-          if (upper_chunks_batch.isSyncNeeded(view_center, view_far)) {
-            lower_chunks_batch.syncView(view_center, view_near)
-            upper_chunks_batch.syncView(view_center, view_far)
+          const view = get_view_settings(
+            current_pos,
+            state.settings.view_distance,
+          )
+          const view_changed = upper_chunks_batch.viewChanged(
+            view.center,
+            view.far,
+          )
+          if (view_changed) {
+            lower_chunks_batch.syncView(view.center, view.near)
+            upper_chunks_batch.syncView(view.center, view.far)
             voxelmap_viewer.setVisibility(upper_chunks_batch.chunkIds)
+            // FLAGS.LOD_MODE === LOD_MODE.STATIC &&
+            // terrain_viewer.setLod(camera.position, 50, camera.far)
           }
-          // Board
         }
         FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
           terrain_viewer.setLod(camera.position, 50, camera.far)
@@ -106,6 +125,49 @@ export default function () {
       aiter(
         abortable(typed_on(events, 'FORCE_RENDER_CHUNKS', { signal })),
       ).forEach(chunks => chunks.forEach(render_world_chunk))
+
+      aiter(
+        abortable(
+          combine(
+            typed_on(events, 'SPAWN_BOARD', { signal }),
+            typed_on(events, 'REMOVE_BOARD', { signal }),
+          ),
+        ),
+      ).forEach(async position => {
+        // remove board if showed
+        if (!position && BoardContainer.instance) {
+          const original_chunks =
+            BoardContainer.instance.restoreOriginalChunksContent()
+          for (const chunk of original_chunks) {
+            render_world_chunk(chunk)
+          }
+          BoardContainer.deleteInstance()
+          if (board_wrapper.handler?.container) {
+            const board_handler = board_wrapper.handler
+            board_handler.dispose()
+            scene.remove(board_handler.container)
+            board_wrapper.handler = null
+            board_wrapper.data = null
+          }
+        }
+        // display board if not showed
+        else if (!BoardContainer.instance) {
+          BoardContainer.createInstance(position)
+          const board = await BoardContainer.instance.genBoardContent()
+          const modified_chunks =
+            BoardContainer.instance.overrideOriginalChunksContent(board.chunk)
+          for (const chunk of modified_chunks) {
+            render_world_chunk(chunk)
+          }
+          const board_data = board.patch.toStub()
+          board_data.elevation = BoardContainer.instance.boardElevation
+          const board_handler = init_board_handler(board_data)
+          highlight_board_edges(board_data, board_handler)
+          highlight_board_start_pos(board_data, board_handler)
+          board_wrapper.handler = board_handler
+          scene.add(board_handler.container)
+        }
+      })
 
       aiter(abortable(setInterval(200, null))).reduce(async () => {
         voxelmap_viewer.setAdaptativeQuality({

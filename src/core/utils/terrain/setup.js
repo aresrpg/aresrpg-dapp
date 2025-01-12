@@ -10,7 +10,7 @@ export const LOD_MODE = {
 }
 
 export const FLAGS = {
-  LOD_MODE: LOD_MODE.NONE,
+  LOD_MODE: LOD_MODE.STATIC,
 }
 
 export const patch_size = { xz: 64, y: 64 }
