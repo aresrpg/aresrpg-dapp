@@ -132,34 +132,26 @@ function has_equipment(character) {
     left 0
     z-index 1
     filter blur(3px) brightness(50%)
+    background: #d7d7d78c;
     
-  &.senshi::before
-    background url('https://assets.aresrpg.world/classe/senshi_female.jpg') center / cover,
-    rgba(0, 0, 0, 0.8)
-  &.senshi.male::before
-      background url('https://assets.aresrpg.world/classe/senshi_male.jpg') center / cover,
-      rgba(0, 0, 0, 0.8)
-  &.yajin::before
-    background url('https://assets.aresrpg.world/classe/yajin_female.jpg') center / cover,
-    rgba(0, 0, 0, 0.8)
-  &.yajin.male::before
-      background url('https://assets.aresrpg.world/classe/yajin_male.jpg') center / cover,
-      rgba(0, 0, 0, 0.8)
+  // &.senshi::before
+  //   background url('https://assets.aresrpg.world/classe/senshi_female.jpg') center / cover,
+  //   rgba(0, 0, 0, 0.8)
+  // &.senshi.male::before
+  //     background url('https://assets.aresrpg.world/classe/senshi_male.jpg') center / cover,
+  //     rgba(0, 0, 0, 0.8)
+  // &.yajin::before
+  //   background url('https://assets.aresrpg.world/classe/yajin_female.jpg') center / cover,
+  //   rgba(0, 0, 0, 0.8)
+  // &.yajin.male::before
+  //     background url('https://assets.aresrpg.world/classe/yajin_male.jpg') center / cover,
+  //     rgba(0, 0, 0, 0.8)
 
   .perso
     height 250px
   >*
     position: relative
     z-index: 20
-
-  &.senshi
-    background: url('https://assets.aresrpg.world/classe/senshi_female.jpg') center / cover
-    &.male
-      background: url('https://assets.aresrpg.world/classe/senshi_male.jpg') center / cover
-  &.yajin
-    background: url('https://assets.aresrpg.world/classe/yajin_female.jpg') center / cover
-    &.male
-      background: url('https://assets.aresrpg.world/classe/yajin_male.jpg') center / cover
 
   &.locked
     border 1px solid #FFCA28
