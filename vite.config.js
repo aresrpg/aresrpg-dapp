@@ -13,6 +13,9 @@ export default defineConfig({
       interval: 100,
     },
   },
+  optimizeDeps: {
+    include: ['events-polyfill'],
+  },
   build: {
     target: 'esnext',
     minify: 'terser',

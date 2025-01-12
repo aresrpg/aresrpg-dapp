@@ -1,4 +1,4 @@
-import { EventEmitter, on, once } from 'events'
+import { EventEmitter, once } from 'events'
 import assert from 'assert'
 import { setInterval } from 'timers/promises'
 
