@@ -3,6 +3,8 @@ import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import { WorldUtils } from '@aresrpg/aresrpg-world'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
 
+const MAX_TEAM_SIZE = 6
+
 export const init_board_handler = board_data => {
   if (board_data?.content.length > 0) {
     // convert to board hanlder format
@@ -55,21 +57,22 @@ export const highlight_board_start_pos = (board_data, board_handler) => {
   })
   const board_items = FightBoards.iter_board_data(board_data)
   const sorted_board_items = FightBoards.sort_by_side(board_items, board_data)
-  const sorted_start_pos = {}
-  sorted_start_pos.first = FightBoards.random_select_items(
-    sorted_board_items.first,
-    6,
-  )
-  sorted_start_pos.second = FightBoards.random_select_items(
-    sorted_board_items.second,
-    6,
-  )
-  const first_player_side = sorted_start_pos.first.map(block =>
-    to_local_pos(block.pos),
-  )
-  const second_player_side = sorted_start_pos.second.map(block =>
-    to_local_pos(block.pos),
-  )
+  // const sorted_start_pos = {}
+  // sorted_start_pos.first = FightBoards.random_select_items(
+  //   sorted_board_items.first,
+  //   6,
+  // )
+  // sorted_start_pos.second = FightBoards.random_select_items(
+  //   sorted_board_items.second,
+  //   6,
+  // )
+  const { team_1, team_2 } = FightBoards.get_fight_start_positions({
+    team_1_blocks: sorted_board_items.first,
+    team_2_blocks: sorted_board_items.second,
+    max_team_size: MAX_TEAM_SIZE,
+  })
+  const first_player_side = team_1.map(block => to_local_pos(block.pos))
+  const second_player_side = team_2.map(block => to_local_pos(block.pos))
   board_handler.displaySquares(first_player_side, new Color(0x0000ff))
   board_handler.displaySquares(second_player_side, new Color(0x00ff00))
 }

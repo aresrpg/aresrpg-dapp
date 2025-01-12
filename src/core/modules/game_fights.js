@@ -12,56 +12,66 @@ import { spawn_crescent_sword } from '../utils/game/objects.js'
 import { state_iterator } from '../utils/iterator.js'
 import { chunk_data_encoder } from '../utils/terrain/world_utils.js'
 
-const fight_board_container = new BoardContainer()
+// const fight_board_container = new BoardContainer()
 const MAX_TEAM_SIZE = 6
 
 function is_in_team(team, character_id) {
   return team.some(({ id }) => id === character_id)
 }
 
-async function create_board(position = new Vector3()) {
-  await fight_board_container.localCache.buildCacheAroundPos(position)
-  const board_data = fight_board_container.genBoardContent(position)
-  const board_stub = board_data.patch.toStub()
-
-  const [board_chunks, original_chunks] =
-    fight_board_container.localCache.cachedChunks.map(
-      ({ chunkKey, margin, rawData, chunkId }) => {
-        const target_chunk = new ChunkContainer(chunkKey, margin)
-        const original_chunk = new ChunkContainer(chunkKey, margin)
-        rawData.forEach((val, i) => {
-          target_chunk.rawData[i] = chunk_data_encoder(val)
-        })
-        const patch_key = WorldUtils.convert.serializePatchId(
-          WorldUtils.convert.asVect2(chunkId),
-        )
-        const cached_data =
-          fight_board_container.localCache.patchLookup[patch_key]
-        const { individualChunks } = cached_data.itemsLayer
-        individualChunks.forEach(item_chunk => {
-          ChunkContainer.copySourceToTarget(item_chunk, original_chunk)
-          if (
-            fight_board_container.overlapsBoard(
-              WorldUtils.convert.asBox2(item_chunk.bounds),
-            )
-          )
-            ChunkContainer.copySourceToTarget(item_chunk, target_chunk)
-        })
-        ChunkContainer.copySourceToTarget(board_data.chunk, target_chunk, false)
-        return [target_chunk, original_chunk]
-      },
+export const init_board_handler = board_data => {
+  if (board_data?.content.length > 0) {
+    // convert to board hanlder format
+    const board_size = board_data.bounds.getSize(new Vector2())
+    const size = { x: board_size.x, z: board_size.y }
+    const origin = WorldUtils.convert.asVect3(
+      board_data.bounds.min,
+      board_data.elevation,
     )
+    const squares = []
+    board_data.content.forEach(block_cat => {
+      const square = {
+        type: block_cat, // dummy
+        category: Math.max(0, block_cat - 1),
+      }
+      squares.push(square)
+    })
+    const board = { origin, size, squares }
+    const board_handler = new BoardOverlaysHandler({ board })
+    return board_handler
+  }
+}
 
-  const board_size = board_stub.bounds.getSize(new Vector2())
-  const border_blocks = FightBoards.extract_border_blocks(board_stub)
-  const origin = WorldUtils.convert.asVect3(board_stub.bounds.min, position.y)
-  const squares = Array.from(board_stub.content).map(type => ({
+async function create_board(position = new Vector3()) {
+  const fight_board_container = BoardContainer.createInstance(position)
+  const board = await BoardContainer.instance.genBoardContent()
+  const board_chunks = BoardContainer.instance.overrideOriginalChunksContent(
+    board.chunk,
+  )
+  // for (const chunk of board_chunks) {
+  //   render_world_chunk(chunk)
+  // }
+  const board_data = board.patch.toStub()
+  board_data.elevation = BoardContainer.instance.boardElevation
+  const board_handler = init_board_handler(board_data)
+  // highlight_board_edges(board_data, board_handler)
+  // highlight_board_start_pos(board_data, board_handler)
+  // board_wrapper.handler = board_handler
+  // scene.add(board_handler.container)
+  // await fight_board_container.localCache
+  // const board_data = fight_board_container.genBoardContent(position)
+  // const board_stub = board_data.patch.toStub()
+
+  const board_size = board_data.bounds.getSize(new Vector2())
+  const border_blocks = FightBoards.extract_border_blocks(board_data)
+  const origin = WorldUtils.convert.asVect3(board_data.bounds.min, position.y)
+  const squares = Array.from(board_data.content).map(type => ({
     type, // dummy
     category: Math.max(0, type - 1),
   }))
   const sorted_border_blocks = FightBoards.sort_by_side(
     border_blocks,
-    board_stub,
+    board_data,
   )
   const start_overlay = new BoardOverlaysHandler({
     board: {
@@ -76,8 +86,8 @@ async function create_board(position = new Vector3()) {
     },
   })
   const to_local_pos = pos => ({
-    x: pos.x - board_stub.bounds.min.x,
-    z: pos.y - board_stub.bounds.min.y,
+    x: pos.x - board_data.bounds.min.x,
+    z: pos.y - board_data.bounds.min.y,
   })
 
   return {
