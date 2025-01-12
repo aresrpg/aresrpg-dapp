@@ -6,7 +6,7 @@ import {
   ProcessingTask,
   LowerChunksBatch,
   UpperChunksBatch,
-  BoardContainer,
+  BoardProcessor,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -135,13 +135,13 @@ export default function () {
         ),
       ).forEach(async position => {
         // remove board if showed
-        if (!position && BoardContainer.instance) {
+        if (!position && BoardProcessor.instance) {
           const original_chunks =
-            BoardContainer.instance.restoreOriginalChunksContent()
+            BoardProcessor.instance.restoreOriginalChunksContent()
           for (const chunk of original_chunks) {
             render_world_chunk(chunk)
           }
-          BoardContainer.deleteInstance()
+          BoardProcessor.deleteInstance()
           if (board_wrapper.handler?.container) {
             const board_handler = board_wrapper.handler
             board_handler.dispose()
@@ -151,16 +151,16 @@ export default function () {
           }
         }
         // display board if not showed
-        else if (!BoardContainer.instance) {
-          BoardContainer.createInstance(position)
-          const board = await BoardContainer.instance.genBoardContent()
+        else if (!BoardProcessor.instance) {
+          BoardProcessor.createInstance(position)
+          const board = await BoardProcessor.instance.genBoardContent()
           const modified_chunks =
-            BoardContainer.instance.overrideOriginalChunksContent(board.chunk)
+            BoardProcessor.instance.overrideOriginalChunksContent(board.chunk)
           for (const chunk of modified_chunks) {
             render_world_chunk(chunk)
           }
           const board_data = board.patch.toStub()
-          board_data.elevation = BoardContainer.instance.boardElevation
+          board_data.elevation = BoardProcessor.instance.boardElevation
           const board_handler = init_board_handler(board_data)
           highlight_board_edges(board_data, board_handler)
           highlight_board_start_pos(board_data, board_handler)

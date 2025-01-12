@@ -1,8 +1,4 @@
-import {
-  BoardContainer,
-  ChunkContainer,
-  WorldUtils,
-} from '@aresrpg/aresrpg-world'
+import { BoardProcessor, WorldUtils } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
@@ -43,16 +39,16 @@ export const init_board_handler = board_data => {
 }
 
 async function create_board(position = new Vector3()) {
-  const fight_board_container = BoardContainer.createInstance(position)
-  const board = await BoardContainer.instance.genBoardContent()
-  const board_chunks = BoardContainer.instance.overrideOriginalChunksContent(
+  const fight_board_container = BoardProcessor.createInstance(position)
+  const board = await BoardProcessor.instance.genBoardContent()
+  const board_chunks = BoardProcessor.instance.overrideOriginalChunksContent(
     board.chunk,
   )
   // for (const chunk of board_chunks) {
   //   render_world_chunk(chunk)
   // }
   const board_data = board.patch.toStub()
-  board_data.elevation = BoardContainer.instance.boardElevation
+  board_data.elevation = BoardProcessor.instance.boardElevation
   const board_handler = init_board_handler(board_data)
   // highlight_board_edges(board_data, board_handler)
   // highlight_board_start_pos(board_data, board_handler)
@@ -167,7 +163,7 @@ export default function () {
 
           const { current_fight_id } = character
 
-          console.log('fight id is now', current_fight_id, last_fight_id)
+          // console.log('fight id is now', current_fight_id, last_fight_id)
 
           if (last_fight_id !== current_fight_id) {
             if (last_fight_id)
