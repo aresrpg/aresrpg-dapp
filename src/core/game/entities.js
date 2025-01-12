@@ -175,7 +175,7 @@ export const ENTITIES = {
     const type = ENTITIES[skin || `${classe}_${sex}`]
 
     if (type) return await type({ name, id })
-    return await ENTITIES.oeuftermath({ name: 'Bouftou', id })
+    return await ENTITIES.oeuftermath({ name: 'Oeuftermath', id })
   },
 
   // ====== CHARACTERS ======
@@ -290,6 +290,7 @@ export const ENTITIES = {
     height: 0.75,
     radius: 0.75,
     skin: 'oeuftermath',
+    scale: 0.7,
   }),
   siluri: entity_spawner(() => MODELS.siluri, {
     height: 0.75,
