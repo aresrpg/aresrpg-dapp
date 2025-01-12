@@ -240,6 +240,11 @@ APP_CHARACTER_SPELL_CONFIRM: Use now
 APP_CHARACTER_SPELL_USE_DIALOG_TITLE: Confirm Spell allocation
 APP_CHARACTER_SPELL_DESC: Are you sure you want to use {0} capital point(s)?
 
+APP_CHARACTER_LEVELUP_DESC: You gain {points} points to upgrade your characteristics and {spellPoints} point(s) for your spells
+APP_CHARACTER_LEVELUP_TITLE: Informations
+APP_CHARACTER_LEVELUP_INFO: You are now level {level}
+APP_CHARACTER_LEVELUP_CLOSE: Close
+
 
 APP_GAME_CHAT_COPY_ADDRESS: Copy address
 APP_GAME_CHAT_COPIED: Address copied to clipboard

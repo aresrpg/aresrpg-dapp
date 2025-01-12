@@ -241,6 +241,13 @@ APP_CHARACTER_SPELL_CONFIRM: Attribuer maintenant
 APP_CHARACTER_SPELL_USE_DIALOG_TITLE: Confirmer l'attribution des sorts
 APP_CHARACTER_SPELL_DESC: Êtes-vous sûr de vouloir attribuer {0} point(s) de capital ?
 
+
+
+APP_CHARACTER_LEVELUP_DESC: Vous gagnez {points} points pour améliorer vos caractéristiques et {spellPoints} point(s) pour vos sorts
+APP_CHARACTER_LEVELUP_TITLE: Informations
+APP_CHARACTER_LEVELUP_INFO: Vous passez niveau {level}
+APP_CHARACTER_LEVELUP_CLOSE: Fermer
+
 APP_GAME_CHAT_COPY_ADDRESS: Copier l'adresse
 APP_GAME_CHAT_COPIED: Adresse copiée dans le presse-papiers
 APP_GAME_CHAT_NO_CHARACTER: Vous devez d'abord sélectionner un personnage

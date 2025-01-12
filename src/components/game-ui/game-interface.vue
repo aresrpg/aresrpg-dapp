@@ -8,6 +8,7 @@
     gameInventory(v-if="inventory_opened")
     gameCharacteristic(v-if="stats_opened")
     gameSpell(v-if="spells_opened")
+    gamePopupLevelup(v-if="levelup_dialog" v-model:isOpen="levelup_dialog" :details="levelup_details")
   .bottom_panel
     gameChat
     gameHealth(
@@ -19,7 +20,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 import characterSelectVue from './character-select.vue';
 import zoneVue from './zone.vue';
@@ -29,10 +30,14 @@ import gameSpellbar from './game-spellbar.vue';
 import gameInventory from './game-inventory.vue';
 import gameCharacteristic from './game-characteristic.vue';
 import gameSpell from './game-spells.vue';
+import gamePopupLevelup from './game-popup-levelup.vue';
+import { context } from '../../core/game/game';
 
 const stats_opened = ref(false);
 const spells_opened = ref(false);
 const inventory_opened = ref(false);
+const levelup_dialog = ref(false);
+const levelup_details = ref({});
 
 function open_inventory() {
   if (stats_opened.value) stats_opened.value = false;
@@ -51,6 +56,19 @@ function open_spells() {
   if (stats_opened.value) stats_opened.value = false;
   spells_opened.value = !spells_opened.value;
 }
+
+function open_popup_levelup(details) {
+  levelup_details.value = details;
+  levelup_dialog.value = true;
+}
+
+onMounted(() => {
+  context.events.on('LEVEL_UP', open_popup_levelup);
+});
+
+onUnmounted(() => {
+  context.events.off('LEVEL_UP', open_popup_levelup);
+});
 </script>
 
 <style lang="stylus" scoped>
