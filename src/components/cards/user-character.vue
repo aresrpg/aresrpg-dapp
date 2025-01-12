@@ -2,7 +2,7 @@
 .character(:class="{ locked: props.locked, [props.character.classe]: true, male: props.character.sex === 'male' }")
   span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
   .perso()
-    characterCanvasDisplay(:type="props.character.classe.toUpperCase() + '_' + props.character.sex.toUpperCase()" :isCreated="true")
+    characterCanvasDisplay(:type="props.character.classe.toUpperCase() + '_' + props.character.sex.toUpperCase()" :color_1="props.character.color_1" :color_2="props.character.color_2" :color_3="props.character.color_3")
   .field
     .title classe:
     .value {{ props.character.classe.toUpperCase() }}

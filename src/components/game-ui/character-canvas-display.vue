@@ -20,11 +20,11 @@ const canvas = ref(null);
 
 const running = ref(false);
 
-const props = defineProps(['type', 'isCreated']);
+const props = defineProps(['type', 'color_1', 'color_2', 'color_3']);
 
-const color1 = props.isCreated ? ref(null) : inject('create_character_color1');
-const color2 = props.isCreated ? ref(null) : inject('create_character_color2');
-const color3 = props.isCreated ? ref(null) : inject('create_character_color3');
+const color1 = props.color_1 ? ref(props.color_1) : inject('create_character_color1');
+const color2 = props.color_2 ? ref(props.color_2) : inject('create_character_color2');
+const color3 = props.color_3 ? ref(props.color_3) : inject('create_character_color3');
 
 let senshi = null;
 let yajin = null;
