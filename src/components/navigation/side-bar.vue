@@ -11,7 +11,7 @@
     vs-sidebar-item(id="characters" @click="router.push('/characters')") {{ t('APP_SIDEBAR_CHARACTERS') }}
       template(#icon)
         i.bx.bxs-user-account
-    vs-sidebar-item(v-if="has_characters" id="world" @click="router.push('/world')" ) {{ t('APP_SIDEBAR_WORLD') }}
+    vs-sidebar-item(v-if="is_world_visible" id="world" @click="router.push('/world')" ) {{ t('APP_SIDEBAR_WORLD') }}
       template(#icon)
         i.bx.bx-world
     vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('APP_SIDEBAR_SHOP') }}
@@ -58,19 +58,10 @@ const active_sidebar = ref('world');
 const sidebar_reduced = inject('sidebar_reduced');
 const admin_policies = inject('admin');
 
-const has_characters = ref(context.get_state().characters.length > 0)
+const characters = inject('characters');
+const account = inject('current_account');
 
-const update_has_character = () => {
-  has_characters.value = context.get_state().characters.filter(({id}) => id !== "default").length > 0;
-};
-
-onMounted(async () => {
-  context.events.on('STATE_UPDATED', update_has_character);
-});
-
-onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_has_character);
-});
+const is_world_visible = computed(() => !account.value || characters.value?.filter(({id}) => id !== "default").length > 0);
 
 watch(
   route,
