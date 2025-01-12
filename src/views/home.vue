@@ -23,6 +23,7 @@ const lang = ref('');
 const sidebar_reduced = inject('sidebar_reduced');
 const lang_dialog = ref(false);
 const show_topbar = ref(true);
+const in_maintenance = ref(false);
 
 provide('show_topbar', show_topbar);
 
@@ -67,8 +68,12 @@ onMounted(() => {
         vs-option(v-for="lang in langs" :key="lang" :value="lang") {{ lang }}
 
   // nav containing the address
-  TopBar(v-if="show_topbar")
-  .mobile(v-if="breakpoints.mobile.matches")
+  TopBar(v-if="show_topbar && !in_maintenance")
+  .maintenance(v-if="in_maintenance")
+    serverInfo.info
+    img(src="../assets/mobile/moai.png")
+    span {{ t('APP_MAINTENANCE') }}
+  .mobile(v-else-if="breakpoints.mobile.matches")
     serverInfo.info
     img(src="../assets/mobile/moai.png")
     span {{  t('APP_SCREEN_TOO_SMALL') }}
@@ -135,7 +140,7 @@ h3.title
       .view
         overflow-y auto
         height 100%
-  >.mobile
+  >.mobile, .maintenance
     display flex
     justify-content center
     align-items center

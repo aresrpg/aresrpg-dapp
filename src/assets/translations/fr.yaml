@@ -12,6 +12,7 @@ SERVER_CLICK_TO_CONNECT: Vous n'êtes actuellement pas connecté
 SERVER_RECONNECT_BUTTON: Se reconnecter
 SERVER_FEATURE_NOT_AVAILABLE: Cette fonctionnalité n'est pas encore disponible
 
+APP_MAINTENANCE: AresRPG est actuellement en maintenance, veuillez revenir plus tard
 APP_LOGIN_AGAIN: Veuillez vous reconnecter
 APP_WALLET_NOT_FOUND: Portefeuille non trouvé
 APP_OUTDATED: L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour AresRPG.

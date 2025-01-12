@@ -12,6 +12,7 @@ SERVER_CLICK_TO_CONNECT: サーバーに接続していません
 SERVER_RECONNECT_BUTTON: 再接続
 SERVER_FEATURE_NOT_AVAILABLE: この機能はまだ利用できません
 
+APP_MAINTENANCE: AresRPGは現在メンテナンス中です。後で戻ってきてください。
 APP_LOGIN_AGAIN: もう一度ログインしてください。
 APP_WALLET_NOT_FOUND: ウォレットが見つかりません。
 APP_OUTDATED: アプリが古くなっており、この機能を使用できません。アプ"リを更新してください。
