@@ -60,9 +60,12 @@ export default function () {
       camera.add(listener)
 
       events.once('STATE_UPDATED', () => {
-        audio_buffer.then(() => {
-          if (!signal.aborted) main_audio.play()
-        })
+        const main_audio_autoplay = window.location.hostname !== 'localhost'
+        if (main_audio_autoplay) {
+          audio_buffer.then(() => {
+            if (!signal.aborted) main_audio.play()
+          })
+        }
         const audio_interval = setInterval(() => {
           main_audio.context.resume()
           if (main_audio.context.state === 'running') {
