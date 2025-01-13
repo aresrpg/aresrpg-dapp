@@ -167,7 +167,11 @@ export const INITIAL_STATE = {
       color: new Color(0x29b6f6),
     },
 
-    view_distance: 100,
+    terrain: {
+      use_lod: true,
+      show_board: false,
+      view_distance: 100,
+    },
 
     camera: {
       is_free: false,

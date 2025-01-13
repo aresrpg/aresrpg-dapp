@@ -6,7 +6,7 @@ import {
 } from '@aresrpg/aresrpg-engine'
 import {
   BlocksProcessing,
-  BlocksProcessingMode,
+  BlocksProcessingRecipe,
   WorldEnv,
 } from '@aresrpg/aresrpg-world'
 import { Color, Vector2 } from 'three'
@@ -28,7 +28,7 @@ const chunks_range = WorldEnv.current.chunks.range
 // use dedicated workerpool for LOD
 const worker_pool_lod = get_dedicated_worker_pool(1)
 const blocks_processing_params = {
-  mode: BlocksProcessingMode.Peak,
+  recipe: BlocksProcessingRecipe.Peak,
 }
 
 export const voxel_engine_setup = () => {
@@ -58,9 +58,8 @@ export const voxel_engine_setup = () => {
       return data
     },
   }
-
   const voxelmap_viewer = new VoxelmapViewer(
-    chunks_range.bottomId,
+    chunks_range.bottomId + 1,
     chunks_range.topId,
     voxel_materials_list,
     {

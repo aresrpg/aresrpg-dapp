@@ -66,6 +66,54 @@ export default function () {
           render_world_chunk(chunk)
         })
 
+      const get_view_pos = () => {
+        const state = get_state()
+        return current_three_character(state)?.position?.clone().floor()
+      }
+
+      const get_view_dist = () => {
+        const state = get_state()
+        return state.settings.terrain.view_distance
+      }
+
+      const on_board_visible = async () => {
+        if (!BoardProcessor.instance) {
+          const view_pos = get_view_pos()
+          BoardProcessor.createInstance(view_pos)
+          const board = await BoardProcessor.instance.genBoardContent()
+          const modified_chunks =
+            BoardProcessor.instance.overrideOriginalChunksContent(board.chunk)
+          for (const chunk of modified_chunks) {
+            render_world_chunk(chunk)
+          }
+          const board_data = board.patch.toStub()
+          board_data.elevation = BoardProcessor.instance.boardElevation
+          const board_handler = init_board_handler(board_data)
+          highlight_board_edges(board_data, board_handler)
+          highlight_board_start_pos(board_data, board_handler)
+          board_wrapper.handler = board_handler
+          scene.add(board_handler.container)
+        }
+      }
+
+      const on_board_hidden = () => {
+        if (BoardProcessor.instance) {
+          const original_chunks =
+            BoardProcessor.instance.restoreOriginalChunksContent()
+          for (const chunk of original_chunks) {
+            render_world_chunk(chunk)
+          }
+          BoardProcessor.deleteInstance()
+          if (board_wrapper.handler?.container) {
+            const board_handler = board_wrapper.handler
+            board_handler.dispose()
+            scene.remove(board_handler.container)
+            board_wrapper.handler = null
+            board_wrapper.data = null
+          }
+        }
+      }
+
       lower_chunks_batch.onTaskCompleted = on_chunks_processed
       upper_chunks_batch.onTaskCompleted = on_chunks_processed
 
@@ -74,38 +122,12 @@ export default function () {
 
       scene.add(terrain_viewer.container)
 
-      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
-        async (
-          { last_view_distance, last_far_view_distance },
-          { settings: { view_distance, far_view_distance } },
-        ) => {
-          if (last_view_distance) {
-            if (
-              last_view_distance !== view_distance ||
-              last_far_view_distance !== far_view_distance
-            ) {
-              // await reset_chunks(true)
-            }
-          }
-
-          return {
-            last_view_distance: view_distance,
-            last_far_view_distance: far_view_distance,
-          }
-        },
-      )
-
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
-        const state = get_state()
-        const player_position =
-          current_three_character(state)?.position?.clone()
-        if (player_position) {
-          const current_pos = player_position.clone().floor()
+        const current_pos = get_view_pos()
+        const view_dist = get_view_dist()
+        if (current_pos) {
           // Query chunks around player position
-          const view = get_view_settings(
-            current_pos,
-            state.settings.view_distance,
-          )
+          const view = get_view_settings(current_pos, view_dist)
           const view_changed = upper_chunks_batch.viewChanged(
             view.center,
             view.far,
@@ -126,48 +148,20 @@ export default function () {
         abortable(typed_on(events, 'FORCE_RENDER_CHUNKS', { signal })),
       ).forEach(chunks => chunks.forEach(render_world_chunk))
 
-      aiter(
-        abortable(
-          combine(
-            typed_on(events, 'SPAWN_BOARD', { signal }),
-            typed_on(events, 'REMOVE_BOARD', { signal }),
-          ),
-        ),
-      ).forEach(async position => {
-        // remove board if showed
-        if (!position && BoardProcessor.instance) {
-          const original_chunks =
-            BoardProcessor.instance.restoreOriginalChunksContent()
-          for (const chunk of original_chunks) {
-            render_world_chunk(chunk)
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
+        ({ previous_show_board }, { settings: { terrain } }) => {
+          const { show_board, use_lod } = terrain
+          const board_state_changed = terrain.show_board !== previous_show_board
+          if (board_state_changed) {
+            show_board ? on_board_visible() : on_board_hidden()
           }
-          BoardProcessor.deleteInstance()
-          if (board_wrapper.handler?.container) {
-            const board_handler = board_wrapper.handler
-            board_handler.dispose()
-            scene.remove(board_handler.container)
-            board_wrapper.handler = null
-            board_wrapper.data = null
+          terrain_viewer.parameters.lod.enabled = use_lod
+
+          return {
+            previous_show_board: terrain.show_board,
           }
-        }
-        // display board if not showed
-        else if (!BoardProcessor.instance) {
-          BoardProcessor.createInstance(position)
-          const board = await BoardProcessor.instance.genBoardContent()
-          const modified_chunks =
-            BoardProcessor.instance.overrideOriginalChunksContent(board.chunk)
-          for (const chunk of modified_chunks) {
-            render_world_chunk(chunk)
-          }
-          const board_data = board.patch.toStub()
-          board_data.elevation = BoardProcessor.instance.boardElevation
-          const board_handler = init_board_handler(board_data)
-          highlight_board_edges(board_data, board_handler)
-          highlight_board_start_pos(board_data, board_handler)
-          board_wrapper.handler = board_handler
-          scene.add(board_handler.container)
-        }
-      })
+        },
+      )
 
       aiter(abortable(setInterval(200, null))).reduce(async () => {
         voxelmap_viewer.setAdaptativeQuality({

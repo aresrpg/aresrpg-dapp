@@ -7,8 +7,8 @@ import { Object3D, Vector3 } from 'three'
 import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import {
+  get_nearest_floor_pos,
   get_sea_level,
-  get_ground_height_sync,
 } from '../utils/terrain/world_utils.js'
 
 import { play_step_sound } from './game_audio.js'
@@ -83,7 +83,7 @@ export default function () {
 
       if (player.target_position) {
         // FIX to handle async block request
-        const ground_height = get_ground_height_sync(
+        const ground_height = get_nearest_floor_pos(
           player.target_position,
           player.height,
         )

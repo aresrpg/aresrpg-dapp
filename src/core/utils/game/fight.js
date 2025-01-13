@@ -1,4 +1,4 @@
-import { get_ground_height_async } from '../terrain/world_utils.js'
+import { get_nearest_floor_pos } from '../terrain/world_utils.js'
 
 export async function get_fight_position(fight) {
   const position = {
@@ -7,6 +7,6 @@ export async function get_fight_position(fight) {
   }
   return {
     ...position,
-    y: await get_ground_height_async(position, 1),
+    y: get_nearest_floor_pos(position, 1),
   }
 }

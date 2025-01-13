@@ -7,7 +7,7 @@ import {
   VIEW_DISTANCE_MIN,
   current_three_character,
 } from '../game/game.js'
-import { get_ground_height_async } from '../utils/terrain/world_utils.js'
+import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -62,7 +62,7 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
 
-                const ground_level = await get_ground_height_async(
+                const ground_level = get_nearest_floor_pos(
                   new Vector3(Math.floor(x), 0, Math.floor(z)),
                 )
 
@@ -112,7 +112,7 @@ export default function () {
 
       terrain_folder
         .add(
-          settings,
+          settings.terrain,
           'view_distance',
           VIEW_DISTANCE_MIN,
           VIEW_DISTANCE_MAX,
@@ -122,27 +122,18 @@ export default function () {
         .onFinishChange(handle_change('action/view_distance'))
 
       terrain_folder
-        .add(
-          {
-            spawn_board: () => {
-              const { position } = current_three_character()
-              events.emit('SPAWN_BOARD', position)
-            },
-          },
-          'spawn_board',
+        .add(settings.terrain, 'use_lod')
+        .name('enable LOD')
+        .onFinishChange(() =>
+          dispatch('action/terrain_changed', settings.terrain),
         )
-        .name('Spawn board')
 
       terrain_folder
-        .add(
-          {
-            hide_board: () => {
-              events.emit('REMOVE_BOARD')
-            },
-          },
-          'hide_board',
+        .add(settings.terrain, 'show_board')
+        .name('show board')
+        .onFinishChange(() =>
+          dispatch('action/terrain_changed', settings.terrain),
         )
-        .name('Hide board')
 
       camera_folder
         .add(settings.camera, 'is_free')

@@ -5,10 +5,7 @@ import { Vector3 } from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import {
-  get_ground_height_sync,
-  get_ground_height_async,
-} from '../utils/terrain/world_utils.js'
+import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
 
 const MOVE_INTERVAL = 5000 // 5 seconds in milliseconds
 const MOVE_PROBABILITY = 0.1 // 10% chance to move
@@ -39,7 +36,7 @@ export default function () {
               const movement = direction.multiplyScalar(MOB_SPEED * delta)
 
               const new_position = mob.position.clone().add(movement)
-              const ground_height = get_ground_height_sync(
+              const ground_height = get_nearest_floor_pos(
                 new_position,
                 mob.height,
               )
@@ -92,7 +89,7 @@ export default function () {
                 ).add(new Vector3(offset_x, 0, offset_z))
 
                 target_position.setY(
-                  await get_ground_height_async(target_position, mob.height),
+                  get_nearest_floor_pos(target_position, mob.height),
                 )
 
                 mob.target_position = target_position

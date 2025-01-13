@@ -1,13 +1,11 @@
-import {
-  // WorldDevSetup,
-  WorldEnv,
-} from '@aresrpg/aresrpg-world'
+import { Heightmap, WorldEnv } from '@aresrpg/aresrpg-world'
+// import { WorldDevSetup } from '@aresrpg/aresrpg-world'
 import workerpool from 'workerpool'
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 
 import { chunk_data_encoder } from './world_utils.js'
 import {
-  BLOCKS_COLOR_MAPPING as BLOCKS_COLOR_MAPPING_DAPP,
+  // BLOCKS_COLOR_MAPPING as BLOCKS_COLOR_MAPPING_DAPP,
   LANDSCAPE,
   SCHEMATICS_BLOCKS_MAPPING,
 } from './world_settings.js'
@@ -25,7 +23,10 @@ const SEA_LEVEL = 76
  *
  * @param world_env targeted env or main thread env by default
  */
-export const world_shared_setup = (world_env = WorldEnv.current) => {
+export const world_shared_setup = (
+  world_env = WorldEnv.current,
+  heightmap_instance = Heightmap.instance,
+) => {
   world_env.seaLevel = SEA_LEVEL // TODO: remove hardcoded sea
   world_env.chunks.dataEncoder = chunk_data_encoder
   world_env.chunks.dataDecoder = val => voxelmapDataPacking.getMaterialId(val)
@@ -50,6 +51,10 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
 
   // DEV ONLY: LEAVE THIS LINE COMMENTED
   // WorldDevSetup.EnvOverride(world_env)
+
+  heightmap_instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
+  heightmap_instance.heightmap.sampling.harmonicsCount = 6
+  heightmap_instance.amplitude.sampling.seed = 'amplitude_mod'
 }
 
 export const get_dedicated_worker_pool = (worker_count = 1) => {
