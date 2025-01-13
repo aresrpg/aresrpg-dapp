@@ -157,7 +157,7 @@ export default function () {
 
           const { current_fight_id } = character
 
-          console.log('fight id is now', current_fight_id, last_fight_id)
+          // console.log('fight id is now', current_fight_id, last_fight_id)
 
           if (last_fight_id !== current_fight_id) {
             if (last_fight_id)
