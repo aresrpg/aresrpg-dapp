@@ -34,14 +34,27 @@ export default function () {
       terrain_viewer.update()
     },
     observe({ camera, events, signal, scene, get_state, physics }) {
+      const chunksSentToEngine = new Map();
+
       const render_world_chunk = world_chunk => {
         const engine_chunk = to_engine_chunk_format(world_chunk)
         voxelmap_viewer.invalidatePatch(engine_chunk.id)
-        voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id) &&
+        if (voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id)) {
           voxelmap_viewer.enqueuePatch(
             engine_chunk.id,
             engine_chunk.voxels_chunk_data,
           )
+
+          const chunkIdString = `${engine_chunk.id.x}_${engine_chunk.id.y}_${engine_chunk.id.z}`;
+          if (!chunksSentToEngine.has(chunkIdString)) {
+            chunksSentToEngine.set(chunkIdString, 1);
+          } else {
+            const alreadySendsCount = chunksSentToEngine.get(chunkIdString);
+            chunksSentToEngine.set(chunkIdString, alreadySendsCount + 1);
+            console.log(`Chunk ${chunkIdString} was already sent ${alreadySendsCount} times.`);
+          }
+        }
+        
         physics.voxelmap_collider.setChunk(
           engine_chunk.id,
           engine_chunk.voxels_chunk_data,
