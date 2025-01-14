@@ -9,7 +9,7 @@ import {
   BlocksProcessingRecipe,
   WorldEnv,
 } from '@aresrpg/aresrpg-world'
-import { Color, Vector2 } from 'three'
+import { Color, Vector3 } from 'three'
 
 import {
   // BLOCKS_COLOR_MAPPING, // DEV ONLY: LEAVE THIS LINE COMMENTED
@@ -39,7 +39,7 @@ export const voxel_engine_setup = () => {
     async sampleHeightmap(coords) {
       FLAGS.LOD_MODE === LOD_MODE.DYNAMIC &&
         console.log(`block batch compute size: ${coords.length}`)
-      const pos_batch = coords.map(({ x, z }) => new Vector2(x, z))
+      const pos_batch = coords.map(({ x, z }) => new Vector3(x, 0, z))
       const blocks_batch = new BlocksProcessing(pos_batch)
       const batch_res = await blocks_batch.delegate(
         blocks_processing_params,

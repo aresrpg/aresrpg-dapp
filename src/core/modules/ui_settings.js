@@ -7,7 +7,7 @@ import {
   VIEW_DISTANCE_MIN,
   current_three_character,
 } from '../game/game.js'
-import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
+import { get_nearest_floor_pos_async } from '../utils/terrain/world_utils.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -62,7 +62,7 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
 
-                const ground_level = get_nearest_floor_pos(
+                const ground_level = await get_nearest_floor_pos_async(
                   new Vector3(Math.floor(x), 0, Math.floor(z)),
                 )
 

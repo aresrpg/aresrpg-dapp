@@ -9,7 +9,10 @@ import { sui_get_character } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { current_three_character } from '../game/game.js'
 import { ENTITIES } from '../game/entities.js'
-import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
+import {
+  get_nearest_floor_pos,
+  get_nearest_floor_pos_async,
+} from '../utils/terrain/world_utils.js'
 
 import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
 import { tick_pet } from './player_pet.js'
@@ -174,7 +177,10 @@ export default function () {
           const { visible_mobs_group } = get_state()
 
           try {
-            spawn_position.y = get_nearest_floor_pos(spawn_position, 1)
+            spawn_position.y = await get_nearest_floor_pos_async(
+              spawn_position,
+              1,
+            )
             visible_mobs_group.set(group_id, {
               id: group_id,
               position: spawn_position,
