@@ -19,43 +19,146 @@ import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
 
 async function compressBuffer(buffer) {
   const stream = new ReadableStream({
-    type: "bytes",
+    type: 'bytes',
     start(controller) {
-      controller.enqueue(new Uint8Array(buffer.buffer));
-      controller.close();
-    }
-  });
-  const readableCompressionStream = stream.pipeThrough(new CompressionStream("gzip"));
-  const response = new Response(readableCompressionStream);
-  return await response.arrayBuffer();
+      controller.enqueue(new Uint8Array(buffer))
+      controller.close()
+    },
+  })
+  const readableCompressionStream = stream.pipeThrough(
+    new CompressionStream('gzip'),
+  )
+  const response = new Response(readableCompressionStream)
+  return await response.arrayBuffer()
 }
 
 async function decompressBuffer(buffer) {
   const stream = new ReadableStream({
-    type: "bytes",
+    type: 'bytes',
     start(controller) {
-      controller.enqueue(new Uint8Array(buffer));
-      controller.close();
-    }
-  });
-  const readableDecompressionStream = stream.pipeThrough(new DecompressionStream("gzip"));
-  const response = new Response(readableDecompressionStream);
-  return await response.arrayBuffer();
+      controller.enqueue(new Uint8Array(buffer))
+      controller.close()
+    },
+  })
+  const readableDecompressionStream = stream.pipeThrough(
+    new DecompressionStream('gzip'),
+  )
+  const response = new Response(readableDecompressionStream)
+  return await response.arrayBuffer()
 }
 
 function bytesToString(bytes) {
   if (bytes < 1024) {
-    return `${bytes.toLocaleString()}B`;
+    return `${bytes}B`
   }
-  bytes /= 1024;
+  bytes /= 1024
   if (bytes < 1024) {
-    return `${bytes.toLocaleString()}KB`;
+    return `${bytes}KB`
   }
-  bytes /= 1024;
+  bytes /= 1024
   if (bytes < 1024) {
-    return `${bytes.toLocaleString()}MB`;
+    return `${bytes}MB`
   }
-  return `${bytes.toLocaleString()}GB`;
+  return `${bytes}GB`
+}
+
+const compressionStats = {
+  totalUncompressedSize: 0,
+  totalCompressedSize: 0,
+  totalTestedArraybuffersCount: 0,
+  minUncompressedSize: Infinity,
+  maxUncompressedSize: -Infinity,
+  minCompressedSize: Infinity,
+  maxCompressedSize: -Infinity,
+  maxCompressionRatio: Infinity,
+  minCompressionRatio: -Infinity,
+}
+
+window.setInterval(() => {
+  const uncompressed = {
+    average:
+      compressionStats.totalUncompressedSize /
+      compressionStats.totalTestedArraybuffersCount,
+    min: compressionStats.minUncompressedSize,
+    max: compressionStats.maxUncompressedSize,
+  }
+  const compressed = {
+    average:
+      compressionStats.totalCompressedSize /
+      compressionStats.totalTestedArraybuffersCount,
+    min: compressionStats.minCompressedSize,
+    max: compressionStats.maxCompressedSize,
+  }
+
+  console.log(`Compression stats:
+- tested ${compressionStats.totalTestedArraybuffersCount} arraybuffers
+- uncompressed:
+  - average size: ${bytesToString(uncompressed.average)}
+  - min size:     ${bytesToString(uncompressed.min)}
+  - max size:     ${bytesToString(uncompressed.max)}
+- compressed:
+  - average size: ${bytesToString(compressed.average)}\t${((100 * compressed.average) / uncompressed.average).toFixed(1)} %
+  - min size:     ${bytesToString(compressed.min)}\t${((100 * compressed.min) / uncompressed.min).toFixed(1)} %
+  - max size:     ${bytesToString(compressed.max)}\t${((100 * compressed.max) / uncompressed.max).toFixed(1)} %
+`)
+}, 1000)
+
+async function testBuffer(sourceBuffer) {
+  const uncompressedByteLength = sourceBuffer.byteLength
+  compressionStats.minUncompressedSize = Math.min(
+    uncompressedByteLength,
+    compressionStats.minUncompressedSize,
+  )
+  compressionStats.maxUncompressedSize = Math.max(
+    uncompressedByteLength,
+    compressionStats.maxUncompressedSize,
+  )
+  compressionStats.totalUncompressedSize += uncompressedByteLength
+
+  const compressedArrayBuffer = await compressBuffer(sourceBuffer.slice())
+  const compressedByteLength = compressedArrayBuffer.byteLength
+  compressionStats.minCompressedSize = Math.min(
+    compressedByteLength,
+    compressionStats.minCompressedSize,
+  )
+  compressionStats.maxCompressedSize = Math.max(
+    compressedByteLength,
+    compressionStats.maxCompressedSize,
+  )
+  compressionStats.totalCompressedSize += compressedByteLength
+
+  const compressionRatio =
+    compressionStats.totalCompressedSize /
+    compressionStats.totalUncompressedSize
+  compressionStats.maxCompressionRatio = Math.min(
+    compressionRatio,
+    compressionStats.maxCompressionRatio,
+  )
+  compressionStats.minCompressionRatio = Math.max(
+    compressionRatio,
+    compressionStats.minCompressionRatio,
+  )
+
+  const decompressedBuffer = await decompressBuffer(compressedArrayBuffer)
+  const decompressedByteLength = decompressedBuffer.byteLength
+
+  if (decompressedByteLength !== uncompressedByteLength) {
+    throw new Error(
+      `Compression/decompression went wrong: Decompressed length = ${decompressedByteLength} (expected ${uncompressedByteLength})`,
+    )
+  }
+  const sourceUint8 = new Uint8Array(sourceBuffer)
+  const decompressedUint8 = new Uint8Array(decompressedBuffer)
+  if (sourceUint8.length !== decompressedUint8.length) {
+    throw new Error()
+  }
+  for (let i = 0; i < sourceUint8.length; i++) {
+    if (sourceUint8[i] !== decompressedUint8[i]) {
+      throw new Error(`Compression/decompression went wrong: data changed`)
+    }
+  }
+
+  compressionStats.totalTestedArraybuffersCount++
 }
 
 /** @type {Type.Module} */
@@ -75,33 +178,7 @@ export default function () {
       terrain_viewer.update()
     },
     observe({ camera, events, signal, scene, get_state, physics }) {
-      const chunksSentToEngine = new Map();
-
-      const compressionStats = {
-        totalUncompressedSize: 0,
-        totalCompressedSize: 0,
-        totalTestedChunksCount: 0,
-        minUncompressedSize: Infinity,
-        maxUncompressedSize: -Infinity,
-        minCompressedSize: Infinity,
-        maxCompressedSize: -Infinity,
-        maxCompressionRatio: Infinity,
-        minCompressionRatio: -Infinity,
-      };
-
-      window.setInterval(() => {
-        console.log(`Compression stats:
-  - tested ${compressionStats.totalTestedChunksCount} chunks
-  - uncompressed:
-    - average size: ${bytesToString(compressionStats.totalUncompressedSize / compressionStats.totalTestedChunksCount)}
-    - min size:     ${bytesToString(compressionStats.minUncompressedSize)}
-    - max size:     ${bytesToString(compressionStats.maxUncompressedSize)}
-  - compressed:
-      - average size: ${bytesToString(compressionStats.totalCompressedSize / compressionStats.totalTestedChunksCount)}
-      - min size:     ${bytesToString(compressionStats.minCompressedSize)}
-      - max size:     ${bytesToString(compressionStats.maxCompressedSize)}
-`)
-      }, 1000);
+      const chunksSentToEngine = new Map()
 
       const render_world_chunk = world_chunk => {
         const engine_chunk = to_engine_chunk_format(world_chunk)
@@ -112,53 +189,23 @@ export default function () {
             engine_chunk.voxels_chunk_data,
           )
 
-          const chunkIdString = `${engine_chunk.id.x}_${engine_chunk.id.y}_${engine_chunk.id.z}`;
+          const chunkIdString = `${engine_chunk.id.x}_${engine_chunk.id.y}_${engine_chunk.id.z}`
           if (!chunksSentToEngine.has(chunkIdString)) {
-            chunksSentToEngine.set(chunkIdString, 1);
+            chunksSentToEngine.set(chunkIdString, 1)
           } else {
-            const alreadySendsCount = chunksSentToEngine.get(chunkIdString);
-            chunksSentToEngine.set(chunkIdString, alreadySendsCount + 1);
-            console.log(`Chunk ${chunkIdString} was already sent ${alreadySendsCount} times.`);
+            const alreadySendsCount = chunksSentToEngine.get(chunkIdString)
+            chunksSentToEngine.set(chunkIdString, alreadySendsCount + 1)
+            console.log(
+              `Chunk ${chunkIdString} was already sent ${alreadySendsCount} times.`,
+            )
           }
 
-          (async () => {
+          ;(async () => {
             if (engine_chunk.voxels_chunk_data.isEmpty) {
-              return;
+              return
             }
-            const sourceBuffer = engine_chunk.voxels_chunk_data.data.slice();
-            const uncompressedByteLength = sourceBuffer.byteLength;
-            compressionStats.minUncompressedSize = Math.min(uncompressedByteLength, compressionStats.minUncompressedSize);
-            compressionStats.maxUncompressedSize = Math.max(uncompressedByteLength, compressionStats.maxUncompressedSize);
-            compressionStats.totalUncompressedSize += uncompressedByteLength
-
-            const compressedArrayBuffer = await compressBuffer(sourceBuffer.slice());
-            const compressedByteLength = compressedArrayBuffer.byteLength;
-            compressionStats.minCompressedSize = Math.min(compressedByteLength, compressionStats.minCompressedSize);
-            compressionStats.maxCompressedSize = Math.max(compressedByteLength, compressionStats.maxCompressedSize);
-            compressionStats.totalCompressedSize += compressedByteLength;
-
-            const compressionRatio = compressionStats.totalCompressedSize / compressionStats.totalUncompressedSize;
-            compressionStats.maxCompressionRatio = Math.min(compressionRatio, compressionStats.maxCompressionRatio);
-            compressionStats.minCompressionRatio = Math.max(compressionRatio, compressionStats.minCompressionRatio);
-
-            const decompressedArrayBuffer = await decompressBuffer(compressedArrayBuffer);
-            const decompressedByteLength = decompressedArrayBuffer.byteLength;
-            const decompressedBuffer = new Uint16Array(decompressedArrayBuffer);
-
-            if (decompressedByteLength !== uncompressedByteLength) {
-              throw new Error(`Compression/decompression went wrong: Decompressed length = ${decompressedByteLength} (expected ${initialByteLength})`);
-            }
-            if (sourceBuffer.length !== decompressedBuffer.length) {
-              throw new Error(`Compression/decompression went wrong: wrong size`);
-            }
-            for (let i = 0; i < sourceBuffer.length; i++) {
-              if (sourceBuffer[i] !== decompressedBuffer[i]) {
-                throw new Error(`Compression/decompression went wrong: data changed`);
-              }
-            }
-
-            compressionStats.totalTestedChunksCount++;
-          })();
+            void testBuffer(engine_chunk.voxels_chunk_data.data.buffer.slice())
+          })()
         }
 
         physics.voxelmap_collider.setChunk(
