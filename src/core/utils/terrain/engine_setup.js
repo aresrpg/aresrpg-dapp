@@ -17,6 +17,7 @@ import { BLOCKS_COLOR_MAPPING } from './world_settings.js'
 const blocks_color_mapping = Object.values(BLOCKS_COLOR_MAPPING)
 const voxel_materials_list = blocks_color_mapping.map(col => ({
   color: new Color(col),
+  emission: 0, // TODO: add emissive
 }))
 
 const chunks_range = WorldEnv.current.chunks.range
