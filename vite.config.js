@@ -1,10 +1,9 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { nodePolyfills } from 'vite-plugin-node-polyfill'
 import Icons from 'unplugin-icons/vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import ViteYaml from '@modyfi/vite-plugin-yaml'
 
 export default defineConfig({
   server: {
@@ -56,7 +55,6 @@ export default defineConfig({
       runtimeOnly: true,
       compositionOnly: true,
     }),
-    ViteYaml(),
     nodePolyfills({
       include: [
         'stream',
