@@ -1,5 +1,5 @@
 import { Heightmap, WorldEnv } from '@aresrpg/aresrpg-world'
-// import { WorldDevSetup } from '@aresrpg/aresrpg-world'
+// import { EnvOverride, BlocksColorOverride } from '@aresrpg/aresrpg-world'
 import workerpool from 'workerpool'
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 
@@ -50,7 +50,7 @@ export const world_shared_setup = (
   world_env.boardSettings.boardThickness = 3
 
   // DEV ONLY: LEAVE THIS LINE COMMENTED
-  // WorldDevSetup.EnvOverride(world_env)
+  // EnvOverride(world_env)
 
   heightmap_instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
   heightmap_instance.heightmap.sampling.harmonicsCount = 6
@@ -73,6 +73,6 @@ export const get_dedicated_worker_pool = (worker_count = 1) => {
 }
 
 // DEV ONLY: LEAVE THIS LINE COMMENTED
-// export const BLOCKS_COLOR_MAPPING = WorldDevSetup.BlocksColorOverride(
+// export const BLOCKS_COLOR_MAPPING = BlocksColorOverride(
 //   BLOCKS_COLOR_MAPPING_DAPP,
 // )

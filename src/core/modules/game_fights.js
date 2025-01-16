@@ -6,7 +6,6 @@ import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
 import { context, current_three_character } from '../game/game.js'
 import { spawn_crescent_sword } from '../utils/game/objects.js'
 import { state_iterator } from '../utils/iterator.js'
-import { chunk_data_encoder } from '../utils/terrain/world_utils.js'
 
 // const fight_board_container = new BoardContainer()
 const MAX_TEAM_SIZE = 6

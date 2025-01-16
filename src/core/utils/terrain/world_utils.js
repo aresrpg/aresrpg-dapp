@@ -8,7 +8,6 @@ import {
   getPatchId,
   WorldEnv,
 } from '@aresrpg/aresrpg-world'
-import { ProcessingState } from '@aresrpg/aresrpg-world/dist/processing/TaskProcessing.js'
 import { Vector2, Vector3 } from 'three'
 
 import { color_to_block_type, hex_to_int } from './world_settings.js'
