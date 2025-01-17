@@ -58,16 +58,13 @@ export const world_shared_setup = (
 }
 
 export const get_dedicated_worker_pool = (worker_count = 1) => {
-  const worker_type = 'module' // WorldEnv.current.workerPool.type
-  const worker_opts = {}
-  if (worker_type) {
-    // By default, Vite uses a module worker in dev mode, which can cause your application to fail.
-    // Therefore, we need to use a module worker in dev mode and a classic worker in prod mode.
-    worker_opts.type = worker_type
-  }
+  // By default, Vite uses a module worker in dev mode, which can cause your application to fail.
+  // Therefore, we need to use a module worker in dev mode and a classic worker in prod mode.
   const worker_pool = workerpool.pool(WORLD_WORKER_URL, {
     maxWorkers: worker_count,
-    workerOpts: worker_opts,
+    workerOpts: {
+      type: import.meta.env.DEV ? 'module' : 'classic',
+    },
   })
   return worker_pool
 }

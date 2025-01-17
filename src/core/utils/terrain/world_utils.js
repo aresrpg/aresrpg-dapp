@@ -6,6 +6,7 @@ import {
   BlocksProcessing,
   BlocksProcessingRecipe,
   getPatchId,
+  ProcessingState,
   WorldEnv,
 } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
@@ -58,7 +59,12 @@ export async function get_nearest_floor_pos_async(raw_pos, entity_height = 0) {
   blocks_processing_request.input.push(requested_pos)
   const batch_res = await blocks_processing_request.deferredPromise
   const matching_block = batch_res.find(block => equal_pos(block.pos))
-  const floor_height = matching_block?.pos?.y || 0
+  const floor_height = matching_block?.pos?.y
+
+  if (!floor_height) {
+    throw new Error(`No floor found at ${requested_pos}`)
+  }
+
   // console.log(`floor height ${floor_height}`)
   return floor_height + entity_height * 0.5
 }
