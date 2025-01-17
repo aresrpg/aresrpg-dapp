@@ -1,16 +1,16 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
+  asVect2,
   BlockMode,
   BlockProcessor,
   BlocksProcessing,
   BlocksProcessingRecipe,
+  getPatchId,
   WorldEnv,
-  WorldUtils,
 } from '@aresrpg/aresrpg-world'
 import { ProcessingState } from '@aresrpg/aresrpg-world/dist/processing/TaskProcessing.js'
 import { Vector2, Vector3 } from 'three'
 
-// import * as WorldUtils from '@aresrpg/aresrpg-world/worldUtils'
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 
 /**
@@ -92,14 +92,8 @@ export function map_blocks_to_type(biome) {
 
 export const get_view_settings = (view_pos, view_dist) => {
   const patch_dims = WorldEnv.current.patchDimensions
-  const view_center = WorldUtils.convert.getPatchId(
-    WorldUtils.convert.asVect2(view_pos),
-    patch_dims,
-  )
-  const view_far = WorldUtils.convert.getPatchId(
-    new Vector2(view_dist),
-    patch_dims,
-  ).x
+  const view_center = getPatchId(asVect2(view_pos), patch_dims)
+  const view_far = getPatchId(new Vector2(view_dist), patch_dims).x
   const view_near = Math.min(view_far, WorldEnv.current.patchViewCount.near)
   const view_settings = {
     center: view_center,

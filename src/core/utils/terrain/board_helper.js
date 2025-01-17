@@ -1,7 +1,7 @@
 import { Color, Vector2 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
-import { WorldUtils } from '@aresrpg/aresrpg-world'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
+import { asVect3 } from '@aresrpg/aresrpg-world'
 
 const MAX_TEAM_SIZE = 6
 
@@ -10,10 +10,7 @@ export const init_board_handler = board_data => {
     // convert to board hanlder format
     const board_size = board_data.bounds.getSize(new Vector2())
     const size = { x: board_size.x, z: board_size.y }
-    const origin = WorldUtils.convert.asVect3(
-      board_data.bounds.min,
-      board_data.elevation,
-    )
+    const origin = asVect3(board_data.bounds.min, board_data.elevation)
     const squares = []
     board_data.content.forEach(block_cat => {
       const square = {

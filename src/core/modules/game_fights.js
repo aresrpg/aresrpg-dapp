@@ -1,4 +1,4 @@
-import { BoardProcessor, WorldUtils } from '@aresrpg/aresrpg-world'
+import { asVect3, BoardProcessor } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
@@ -20,10 +20,7 @@ export const init_board_handler = board_data => {
     // convert to board hanlder format
     const board_size = board_data.bounds.getSize(new Vector2())
     const size = { x: board_size.x, z: board_size.y }
-    const origin = WorldUtils.convert.asVect3(
-      board_data.bounds.min,
-      board_data.elevation,
-    )
+    const origin = asVect3(board_data.bounds.min, board_data.elevation)
     const squares = []
     board_data.content.forEach(block_cat => {
       const square = {
@@ -60,7 +57,7 @@ async function create_board(position = new Vector3()) {
 
   const board_size = board_data.bounds.getSize(new Vector2())
   const border_blocks = FightBoards.extract_border_blocks(board_data)
-  const origin = WorldUtils.convert.asVect3(board_data.bounds.min, position.y)
+  const origin = asVect3(board_data.bounds.min, position.y)
   const squares = Array.from(board_data.content).map(type => ({
     type, // dummy
     category: Math.max(0, type - 1),
