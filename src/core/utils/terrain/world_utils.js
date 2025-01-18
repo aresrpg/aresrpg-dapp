@@ -33,6 +33,7 @@ const renew_blocks_processing_request = () => {
   }
   blocks_processing_req.deferProcessing().then(task => {
     console.log(
+      // @ts-ignore
       `run scheduled processing task with ${task.input.length} blocks`,
     )
   })
@@ -58,6 +59,7 @@ export async function get_nearest_floor_pos_async(raw_pos, entity_height = 0) {
   // enqueue pos in current task
   blocks_processing_request.input.push(requested_pos)
   const batch_res = await blocks_processing_request.deferredPromise
+  // @ts-ignore
   const matching_block = batch_res.find(block => equal_pos(block.pos))
   const floor_height = matching_block?.pos?.y
 

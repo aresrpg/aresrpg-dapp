@@ -61,7 +61,11 @@ const admin_policies = inject('admin');
 const characters = inject('characters');
 const account = inject('current_account');
 
-const is_world_visible = computed(() => !account.value || characters.value?.filter(({id}) => id !== "default").length > 0);
+const is_world_visible = computed(
+  () =>
+    !account.value ||
+    characters.value?.filter(({ id }) => id !== 'default').length > 0,
+);
 
 watch(
   route,

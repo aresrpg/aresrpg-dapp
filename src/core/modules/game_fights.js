@@ -84,7 +84,7 @@ async function create_board(position = new Vector3()) {
 
   return {
     board_chunks,
-    original_chunks,
+    // original_chunks,
     show_start_positions() {
       const board_items = FightBoards.iter_board_data(this.data)
       const sorted_board_items = FightBoards.sort_by_side(

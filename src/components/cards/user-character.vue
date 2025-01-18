@@ -133,7 +133,7 @@ function has_equipment(character) {
     z-index 1
     filter blur(3px) brightness(50%)
     background: #d7d7d78c;
-    
+
   // &.senshi::before
   //   background url('https://assets.aresrpg.world/classe/senshi_female.jpg') center / cover,
   //   rgba(0, 0, 0, 0.8)
