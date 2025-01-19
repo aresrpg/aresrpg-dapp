@@ -10,18 +10,20 @@ import {
 } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
 
+import logger from '../../../logger.js'
+
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 
 /**
  * perform calls in main thread to remain sync and doesn't use caching
  * prefer using async version to avoid performance loss
  */
-export function get_nearest_floor_pos(pos, entity_height = 0) {
+export function get_nearest_floor_pos(pos) {
   // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
   const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
   const blocks_request = BlocksProcessing.getFloorPositions([requested_pos])
   const [floor_block] = blocks_request.process()
-  return floor_block.pos.y + entity_height * 0.5
+  return floor_block.pos
 }
 /**
  * deferring task execution to allow grouping multiple block requests in same batch
@@ -47,7 +49,7 @@ let blocks_processing_task //= renew_blocks_processing_request()
 /**
  * better version grouping multiple isolated request in same batch
  */
-export async function get_nearest_floor_pos_async(raw_pos, entity_height = 0) {
+export async function get_nearest_floor_pos_async(raw_pos) {
   // console.log(`get_nearest_floor_pos`)
   const requested_pos = new Vector3(raw_pos.x, raw_pos.y, raw_pos.z).floor()
   const equal_pos = pos =>
@@ -72,7 +74,7 @@ export async function get_nearest_floor_pos_async(raw_pos, entity_height = 0) {
     }
 
     // console.log(`floor height ${floor_height}`)
-    return floor_height + entity_height * 0.5
+    return floor_height
   } else {
     console.warn(`unexpected missing task`)
     // send dummy value until ready

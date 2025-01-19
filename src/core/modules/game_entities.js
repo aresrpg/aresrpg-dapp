@@ -133,6 +133,11 @@ export default function () {
 
             if (sui_data.pet) await spawn_pet(sui_data)
             if (sui_data.hat) await three_character.equip_hat(sui_data.hat)
+            else await three_character.set_hair()
+
+            three_character.custom_colors.set_color1(sui_data.color_1)
+            three_character.custom_colors.set_color2(sui_data.color_2)
+            three_character.custom_colors.set_color3(sui_data.color_3)
 
             three_character.move(default_three_character.object3d.position)
 
@@ -177,10 +182,6 @@ export default function () {
           const { visible_mobs_group } = get_state()
 
           try {
-            spawn_position.y = await get_nearest_floor_pos_async(
-              spawn_position,
-              1,
-            )
             visible_mobs_group.set(group_id, {
               id: group_id,
               position: spawn_position,
@@ -198,20 +199,21 @@ export default function () {
                     spawn_position,
                   }
 
-                  // find a position in 4 block range of entity position
                   const position = new Vector3(
                     spawn_position.x + Math.random() * 4 - 2,
-                    0,
+                    spawn_position.y,
                     spawn_position.z + Math.random() * 4 - 2,
                   )
 
-                  const ground_height = get_nearest_floor_pos(
-                    position,
-                    spawned_mob.height,
-                  )
+                  const surface_block = get_nearest_floor_pos(position)
 
-                  position.setY(ground_height)
-                  spawned_mob.move(position)
+                  spawned_mob.move(
+                    new Vector3(
+                      surface_block.x,
+                      surface_block.y + spawned_mob.height * 0.5,
+                      surface_block.z,
+                    ),
+                  )
                   return spawned_mob
                 }),
               ),

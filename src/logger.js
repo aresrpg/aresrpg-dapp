@@ -54,4 +54,9 @@ export default {
     strong: '#F44336',
     light: '#EF9A9A',
   }),
+  WARNING: logger({
+    header: 'warning',
+    strong: '#FFC107',
+    light: '#FFECB3',
+  }),
 }

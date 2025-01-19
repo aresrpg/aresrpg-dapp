@@ -39,18 +39,13 @@ export default function () {
               const movement = direction.multiplyScalar(MOB_SPEED * delta)
 
               const new_position = mob.position.clone().add(movement)
-              const ground_height = get_nearest_floor_pos(
-                new_position,
-                mob.height,
-              )
+              const surface_block = get_nearest_floor_pos(new_position)
 
-              if (Number.isNaN(ground_height)) continue
+              new_position.setY(surface_block.y + mob.height * 0.5)
 
-              // new_position.setY(ground_height)
-
-              // mob.move(new_position)
-              // mob.rotate(movement)
-              // mob.animate('RUN')
+              mob.move(new_position)
+              mob.rotate(movement)
+              mob.animate('RUN')
 
               // Check if mob has reached the target position
               if (new_position.distanceTo(mob.target_position) < 2) {
@@ -85,20 +80,17 @@ export default function () {
 
                 const offset_x = get_random_offset(MAX_MOVE_DISTANCE)
                 const offset_z = get_random_offset(MAX_MOVE_DISTANCE)
-                const target_position = new Vector3(
-                  spawn_position.x,
-                  0, // the target Y is corrected in the tick function
-                  spawn_position.z,
-                ).add(new Vector3(offset_x, 0, offset_z))
 
-                target_position.setY(
-                  await get_nearest_floor_pos_async(
-                    target_position,
-                    mob.height,
-                  ),
-                )
+                const surface_block = await get_nearest_floor_pos_async({
+                  x: spawn_position.x + offset_x,
+                  y: spawn_position.y,
+                  z: spawn_position.z + offset_z,
+                })
 
-                mob.target_position = target_position
+                mob.target_position = {
+                  ...surface_block,
+                  y: surface_block.y + mob.height * 0.5,
+                }
               }
             }),
           ).catch(error => {
