@@ -32,19 +32,17 @@ export function tick_pet(character, pet, delta) {
     const movement = direction.multiplyScalar(PET_SPEED * delta)
 
     const new_position = pet.position.clone().add(movement)
-    const terrain_height = get_nearest_floor_pos(new_position, pet.height)
+    const surface_block = get_nearest_floor_pos(new_position)
 
-    if (!Number.isNaN(terrain_height)) {
-      new_position.setY(terrain_height)
+    new_position.setY(surface_block.y + pet.height * 0.5)
 
-      pet.move(new_position)
-      pet.rotate(movement)
-      pet.animate('RUN')
+    pet.move(new_position)
+    pet.rotate(movement)
+    pet.animate('RUN')
 
-      // Check if pet has reached the target position
-      if (new_position.distanceTo(pet.target_position) < 2) {
-        pet.target_position = null
-      }
+    // Check if pet has reached the target position
+    if (new_position.distanceTo(pet.target_position) < 2) {
+      pet.target_position = null
     }
   } else {
     pet.animate('IDLE')

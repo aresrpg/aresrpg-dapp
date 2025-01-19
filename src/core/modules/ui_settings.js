@@ -62,17 +62,15 @@ export default function () {
                 // @ts-ignore
                 const { x, z } = player.position
 
-                const ground_level = await get_nearest_floor_pos_async(
-                  new Vector3(Math.floor(x), 0, Math.floor(z)),
+                const surface_block = await get_nearest_floor_pos_async(
+                  new Vector3(Math.floor(x), 200, Math.floor(z)),
                 )
+
+                surface_block.y += 1
 
                 dispatch('packet/characterPosition', {
                   id: player.id,
-                  position: {
-                    x,
-                    y: ground_level + 10,
-                    z,
-                  },
+                  position: surface_block,
                 })
               }
             },

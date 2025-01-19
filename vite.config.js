@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
-import { nodePolyfills } from 'vite-plugin-node-polyfill'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import Icons from 'unplugin-icons/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -69,7 +69,7 @@ export default defineConfig({
       ],
       globals: {
         // Don't polyfill these globals
-        process: false,
+        process: true,
         Buffer: false,
       },
       overrides: {

@@ -33,25 +33,29 @@ import yago from '../../assets/models/pets/yago.glb?url'
 import { load } from '../utils/three/load_model.js'
 
 const AVAILABLE_MODELS = {
-  senshi_female_hair,
-  senshi_female,
   senshi_male_hair,
   senshi_male,
+  senshi_female_hair,
+  senshi_female,
   yajin_female_hair,
   yajin_female,
   yajin_male_hair,
   yajin_male,
+
   anima,
   fud,
   mokan,
   primemachin,
   suicunio,
+
   fight_sword,
+
   araknomath,
   bouftou,
   hophop,
   moka,
   moyumi,
+
   corbac,
   krinan,
   mosho,

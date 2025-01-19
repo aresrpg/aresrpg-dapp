@@ -82,17 +82,9 @@ export default function () {
       const is_underwater = player.position.y < get_sea_level()
 
       if (player.target_position) {
-        // FIX to handle async block request
-        const ground_height = get_nearest_floor_pos(
-          player.target_position,
-          player.height,
-        )
-
-        if (!Number.isNaN(ground_height)) {
-          player.target_position.y = ground_height
-          player.move(player.target_position)
-          player.target_position = null
-        }
+        const surface_block = get_nearest_floor_pos(player.target_position)
+        player.move(surface_block)
+        player.target_position = null
         return
       }
 

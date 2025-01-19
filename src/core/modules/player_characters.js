@@ -89,12 +89,24 @@ export default function () {
 
           added.forEach(sui_character => {
             ENTITIES.from_character(sui_character)
-              .then(three_character => {
+              .then(async three_character => {
                 context.dispatch('action/add_character', {
                   sui_character,
                   three_character,
                 })
-                return three_character.set_hair()
+                await three_character.set_hair()
+
+                if (three_character.id !== 'default') {
+                  three_character.custom_colors.set_color1(
+                    sui_character.color_1,
+                  )
+                  three_character.custom_colors.set_color2(
+                    sui_character.color_2,
+                  )
+                  three_character.custom_colors.set_color3(
+                    sui_character.color_3,
+                  )
+                }
               })
               .catch(error => {
                 console.error('Error adding character', sui_character, error)
