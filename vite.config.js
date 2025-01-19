@@ -36,7 +36,7 @@ export default defineConfig({
         entryFileNames: 'assets/[name]-[hash].js',
       },
     },
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 3000,
     sourcemap: false,
     assetsInlineLimit: 4096,
     cssCodeSplit: true,
@@ -60,7 +60,15 @@ export default defineConfig({
         'timers/promises',
         'util',
         'crypto',
+        'process', // Add process
+        'os', // Add os
+        'child_process', // Add child_process
       ],
+      globals: {
+        // Don't polyfill these globals
+        process: false,
+        Buffer: false,
+      },
       overrides: {
         events: 'events-polyfill',
       },
@@ -85,6 +93,7 @@ export default defineConfig({
       ],
       registerType: 'prompt',
       workbox: {
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/\.html$/, /\/api\//],
         cleanupOutdatedCaches: true,
