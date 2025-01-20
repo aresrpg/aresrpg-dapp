@@ -5,7 +5,7 @@ import { BLOCKS } from '../blocks.js'
 export default {
   Plaine: {
     x: 0,
-    y: 0.305,
+    y: 0.31,
     type: BLOCKS.GRASS_TEMPERATE,
     subtype: BLOCKS.STONE,
     fadeIn: 0,
@@ -31,7 +31,7 @@ export default {
   },
   Cliff_start_1: {
     x: 0.2,
-    y: 0.305,
+    y: 0.31,
     type: BLOCKS.GRASS_TEMPERATE,
     subtype: BLOCKS.STONE,
     fadeIn: 0,
@@ -83,7 +83,7 @@ export default {
   },
   Cliff_down_1: {
     x: 0.35,
-    y: 0.305,
+    y: 0.31,
     type: BLOCKS.GRASS_TEMPERATE,
     subtype: BLOCKS.STONE,
     fadeIn: 0,
@@ -103,7 +103,7 @@ export default {
   },
   Valley: {
     x: 0.4,
-    y: 0.305,
+    y: 0.31,
     type: BLOCKS.GRASS_TEMPERATE,
     subtype: BLOCKS.STONE,
     fadeIn: 0,
@@ -123,7 +123,7 @@ export default {
   },
   Cliff_start_2: {
     x: 0.47,
-    y: 0.305,
+    y: 0.31,
     type: BLOCKS.GRASS_TEMPERATE,
     subtype: BLOCKS.STONE,
     fadeIn: 0,
