@@ -13,6 +13,8 @@ export const BLOCKS = {
   MOSSY_GRASS: '#6C8E7C',
   VIBRANT_GRASS: '#67C39E',
   MUD: '#473E37',
+  BLACKSTONE: '##2F2F2F',
+  RED_CONCRETE: '#F04E23',
 
   COLD_WATER: '#4A90E2',
   BROWN_GRASS: '#617B64',
@@ -34,6 +36,7 @@ export const SCHEMATICS_BLOCKS = {
   nether_bricks: '#2e2e2e',
   light_gray_concrete: '#b3b3b3',
   basalt: '#3B3B3B',
+  smooth_basalt: '#434343',
   granit: '#B0B0B0',
 
   Green_concrete: '#587058',
@@ -41,6 +44,7 @@ export const SCHEMATICS_BLOCKS = {
   Green_terracotta: '#508850',
   Orange_terracotta: '#FFCE80',
 
+  red_concrete: '#9B111E',
   Snow_block: '0xe5e5e5',
   Andesite: '#C3C3C3',
   Gravel: '#ABB3B3',
@@ -49,6 +53,8 @@ export const SCHEMATICS_BLOCKS = {
   Smooth_red_sandstone: '#FFBE80',
   Sandstone: '#FFF8B6',
   Cut_sandstone: '#FBE8A6',
+  Packed_ice: '#8ABFE2',
+  Blue_ice: '#6DB3F2',
 
   jungle_wood: '#8e684f',
   Dark_oak_wood: '#3F2E1E',
