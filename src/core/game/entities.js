@@ -230,6 +230,7 @@ export const ENTITIES = {
     height: 1.5,
     radius: 0.8,
     skin: 'bouftou',
+    scale: 1.2,
   }),
   hophop: entity_spawner(() => MODELS.hophop, {
     height: 1.5,
@@ -290,7 +291,7 @@ export const ENTITIES = {
     height: 0.75,
     radius: 0.75,
     skin: 'oeuftermath',
-    scale: 0.7,
+    scale: 0.5,
   }),
   siluri: entity_spawner(() => MODELS.siluri, {
     height: 0.75,
