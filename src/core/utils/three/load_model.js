@@ -77,70 +77,88 @@ function create_custom_colors_api(
   /** @type ReadonlyArray<Texture> */ textures,
 ) {
   /** @type Map<string, CustomizableTexture> */
-  const customizable_textures = create_customizable_textures(textures)
-  if (customizable_textures.size > 0) {
+  const all_customizable_textures = create_customizable_textures(textures)
+  /** @type Set<CustomizableTexture> */
+  const used_customizable_textures = new Set()
+
+  if (all_customizable_textures.size > 0) {
     // attach the customizable textures on the model
     model.traverse((/** @type any */ child) => {
       if (child.material && child.material.map) {
         const match = child.material.map.name.match(/(.+)_base/)
         if (match && match[1]) {
-          const customizable_texture = customizable_textures.get(match[1])
+          const customizable_texture = all_customizable_textures.get(match[1])
           if (customizable_texture) {
             child.material = child.material.clone()
             child.material.map = customizable_texture.texture
+            used_customizable_textures.add(customizable_texture)
           }
         }
       }
     })
 
-    const customizable_texture_diffuse = customizable_textures.get('diffuse')
-    if (!customizable_texture_diffuse || customizable_textures.size > 1) {
+    for (const loaded_customizable_texture of all_customizable_textures.values()) {
+      if (!used_customizable_textures.has(loaded_customizable_texture)) {
+        loaded_customizable_texture.dispose()
+      }
+    }
+
+    if (
+      !all_customizable_textures.has('diffuse') ||
+      all_customizable_textures.size > 1
+    ) {
       throw new Error(
-        `Only diffuse texture is customizable. Got ${Array.from(customizable_textures.keys()).join(';')}.`,
+        `Only diffuse texture is customizable. Got ${Array.from(all_customizable_textures.keys()).join(';')}.`,
       )
     }
 
     try {
-      for (const expected_layername of ['color1', 'color2', 'color3']) {
-        if (
-          !customizable_texture_diffuse.layerNames.includes(expected_layername)
-        ) {
-          throw new Error(
-            `Diffuse customizable texture is supposed to have a layer named "${expected_layername}".`,
-          )
+      for (const customizable_texture of used_customizable_textures) {
+        for (const expected_layername of ['color1', 'color2', 'color3']) {
+          if (!customizable_texture.layerNames.includes(expected_layername)) {
+            throw new Error(
+              `Diffuse customizable texture is supposed to have a layer named "${expected_layername}".`,
+            )
+          }
         }
       }
     } catch (error) {}
 
     return {
       needsUpdate() {
-        return customizable_texture_diffuse.needsUpdate
+        for (const customizable_texture of used_customizable_textures.values()) {
+          if (customizable_texture.needsUpdate) {
+            return true
+          }
+        }
+        return false
       },
       update(/** @type WebGLRenderer */ renderer) {
-        customizable_texture_diffuse.update(renderer)
+        for (const customizable_texture of used_customizable_textures.values()) {
+          if (customizable_texture.needsUpdate) {
+            customizable_texture.update(renderer)
+          }
+        }
       },
       dispose() {
-        customizable_texture_diffuse.dispose()
+        for (const customizable_texture of used_customizable_textures.values()) {
+          customizable_texture.dispose()
+        }
       },
       set_color1(value) {
-        customizable_texture_diffuse.setLayerColor('color1', value)
+        for (const customizable_texture of used_customizable_textures.values()) {
+          customizable_texture.setLayerColor('color1', value)
+        }
       },
-      get_color1() {
-        return customizable_texture_diffuse.getLayerColor('color1')
-      },
-
       set_color2(value) {
-        customizable_texture_diffuse.setLayerColor('color2', value)
+        for (const customizable_texture of used_customizable_textures.values()) {
+          customizable_texture.setLayerColor('color2', value)
+        }
       },
-      get_color2() {
-        return customizable_texture_diffuse.getLayerColor('color2')
-      },
-
       set_color3(value) {
-        customizable_texture_diffuse.setLayerColor('color3', value)
-      },
-      get_color3() {
-        return customizable_texture_diffuse.getLayerColor('color3')
+        for (const customizable_texture of used_customizable_textures.values()) {
+          customizable_texture.setLayerColor('color3', value)
+        }
       },
     }
   }
