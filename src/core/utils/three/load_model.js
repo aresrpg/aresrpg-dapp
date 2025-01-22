@@ -3,6 +3,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import {
   AnimationMixer,
+  Color,
   DefaultLoadingManager,
   Object3D,
   Texture,
@@ -145,17 +146,17 @@ function create_custom_colors_api(
           customizable_texture.dispose()
         }
       },
-      set_color1(value) {
+      set_color1(/** @type Color */ value) {
         for (const customizable_texture of used_customizable_textures.values()) {
           customizable_texture.setLayerColor('color1', value)
         }
       },
-      set_color2(value) {
+      set_color2(/** @type Color */ value) {
         for (const customizable_texture of used_customizable_textures.values()) {
           customizable_texture.setLayerColor('color2', value)
         }
       },
-      set_color3(value) {
+      set_color3(/** @type Color */ value) {
         for (const customizable_texture of used_customizable_textures.values()) {
           customizable_texture.setLayerColor('color3', value)
         }
