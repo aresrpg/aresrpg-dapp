@@ -145,6 +145,13 @@ function create_custom_colors_api(
     }
   }
 
+  const get_layer_color = name => {
+    const customizable_texture = used_customizable_textures
+      .values()
+      .next().value
+    return customizable_texture.getLayerColor(name)
+  }
+
   return {
     needsUpdate() {
       for (const customizable_texture of used_customizable_textures.values()) {
@@ -174,6 +181,15 @@ function create_custom_colors_api(
     },
     set_color3(/** @type Color */ value) {
       set_layer_color(layer_names.color3, value)
+    },
+    get_color1() {
+      return get_layer_color(layer_names.color1)
+    },
+    get_color2() {
+      return get_layer_color(layer_names.color2)
+    },
+    get_color3() {
+      return get_layer_color(layer_names.color3)
     },
   }
 }

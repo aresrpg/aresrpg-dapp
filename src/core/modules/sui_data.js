@@ -51,6 +51,10 @@ export const DEFAULT_SUI_CHARACTER = () => ({
   personal_kiosk_cap_id: null,
 
   _type: null,
+
+  color_1: 0,
+  color_2: 0,
+  color_3: 0,
 })
 
 export const SUI_EMITTER = new EventEmitter()

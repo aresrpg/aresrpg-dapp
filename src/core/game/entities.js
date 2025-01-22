@@ -187,7 +187,7 @@ function entity_spawner(
           custom_hat_colors?.set_color3(color_3)
         }
 
-        if (custom_colors.needsUpdate()) custom_colors.texture.update(renderer)
+        if (custom_colors.needsUpdate()) custom_colors.update(renderer)
         if (custom_hat_colors?.needsUpdate()) custom_hat_colors.update(renderer)
       },
     }
