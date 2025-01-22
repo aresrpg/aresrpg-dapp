@@ -1,6 +1,6 @@
 import { setInterval } from 'timers/promises'
 
-import { Vector3 } from 'three'
+import { Color, Vector3 } from 'three'
 import { aiter } from 'iterator-helper'
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
@@ -135,9 +135,11 @@ export default function () {
             if (sui_data.hat) await three_character.equip_hat(sui_data.hat)
             else await three_character.set_hair()
 
-            three_character.custom_colors.set_color1(sui_data.color_1)
-            three_character.custom_colors.set_color2(sui_data.color_2)
-            three_character.custom_colors.set_color3(sui_data.color_3)
+            three_character.set_colors({
+              color_1: new Color(sui_data.color_1),
+              color_2: new Color(sui_data.color_2),
+              color_3: new Color(sui_data.color_3),
+            })
 
             three_character.move(default_three_character.object3d.position)
 

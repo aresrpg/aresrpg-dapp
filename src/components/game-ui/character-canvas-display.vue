@@ -14,23 +14,15 @@ import { nanoid } from 'nanoid';
 
 import dispose from '../../core/utils/three/dispose.js';
 import { ENTITIES } from '../../core/game/entities.js';
+import { hex_to_int } from '../../core/utils/terrain/world_settings.js';
 
 const scene_div = ref(null);
 const canvas = ref(null);
-
 const running = ref(false);
 
-const props = defineProps(['type', 'color_1', 'color_2', 'color_3']);
+const props = defineProps(['type', 'colors']);
 
-const color1 = props.color_1
-  ? ref(props.color_1)
-  : inject('create_character_color1');
-const color2 = props.color_2
-  ? ref(props.color_2)
-  : inject('create_character_color2');
-const color3 = props.color_3
-  ? ref(props.color_3)
-  : inject('create_character_color3');
+const create_character_colors = inject('create_character_colors', null);
 
 let senshi = null;
 let yajin = null;
@@ -54,15 +46,28 @@ function reset_classes() {
   yajin_female = null;
 }
 
-function setup_classe(classe) {
+function set_color(classe, colors) {
+  if (classe?.custom_colors)
+    classe.set_colors(
+      {
+        color_1: new Color(
+          typeof colors[0] === 'number' ? colors[0] : hex_to_int(colors[0]),
+        ),
+        color_2: new Color(
+          typeof colors[1] === 'number' ? colors[1] : hex_to_int(colors[1]),
+        ),
+        color_3: new Color(
+          typeof colors[2] === 'number' ? colors[2] : hex_to_int(colors[2]),
+        ),
+      },
+      renderer,
+    );
+}
+
+function setup_classe(classe, colors) {
   classe.move(new Vector3(0, 1, 0));
   classe.animate('IDLE');
-  if (classe.custom_colors) {
-    classe.custom_colors.set_color1(color1.value);
-    classe.custom_colors.set_color2(color2.value);
-    classe.custom_colors.set_color3(color3.value);
-    classe.custom_colors.update(renderer);
-  }
+  set_color(classe, colors);
 }
 
 async function display_classe(type) {
@@ -75,7 +80,7 @@ async function display_classe(type) {
           scene_override: scene,
         });
         await senshi.set_hair();
-        setup_classe(senshi);
+        setup_classe(senshi, props.colors ?? create_character_colors.senshi);
       }
       break;
     case 'YAJIN_MALE':
@@ -85,7 +90,7 @@ async function display_classe(type) {
           scene_override: scene,
         });
         await yajin.set_hair();
-        setup_classe(yajin);
+        setup_classe(yajin, props.colors ?? create_character_colors.yajin);
       }
       break;
     case 'SENSHI_FEMALE':
@@ -95,7 +100,10 @@ async function display_classe(type) {
           scene_override: scene,
         });
         await senshi_female.set_hair();
-        setup_classe(senshi_female);
+        setup_classe(
+          senshi_female,
+          props.colors ?? create_character_colors.senshi_female,
+        );
       }
       break;
     case 'YAJIN_FEMALE':
@@ -105,7 +113,10 @@ async function display_classe(type) {
           scene_override: scene,
         });
         await yajin_female.set_hair();
-        setup_classe(yajin_female);
+        setup_classe(
+          yajin_female,
+          props.colors ?? create_character_colors.yajin_female,
+        );
       }
       break;
     default:
@@ -113,37 +124,14 @@ async function display_classe(type) {
   }
 }
 
-function set_color(classe, index, color) {
-  if (classe) {
-    classe.custom_colors[`set_color${index}`](color);
-    if (classe.custom_colors.needsUpdate())
-      classe.custom_colors.update(renderer);
-  }
-}
-
-watchEffect(() => {
-  if (color1.value) {
-    const color = new Color(color1.value);
-    set_color(senshi, 1, color);
-    set_color(yajin, 1, color);
-    set_color(senshi_female, 1, color);
-    set_color(yajin_female, 1, color);
-  }
-  if (color2.value) {
-    const color = new Color(color2.value);
-    set_color(senshi, 2, color);
-    set_color(yajin, 2, color);
-    set_color(senshi_female, 2, color);
-    set_color(yajin_female, 2, color);
-  }
-  if (color3.value) {
-    const color = new Color(color3.value);
-    set_color(senshi, 3, color);
-    set_color(yajin, 3, color);
-    set_color(senshi_female, 3, color);
-    set_color(yajin_female, 3, color);
-  }
-});
+if (create_character_colors)
+  watch(create_character_colors, () => {
+    if (!create_character_colors) return;
+    set_color(senshi, create_character_colors.senshi);
+    set_color(senshi_female, create_character_colors.senshi_female);
+    set_color(yajin, create_character_colors.yajin);
+    set_color(yajin_female, create_character_colors.yajin_female);
+  });
 
 watch(
   props,
@@ -151,7 +139,7 @@ watch(
     display_classe(type).catch(error => {
       console.error('Failed to display classe', error);
     }),
-  { immediate: true },
+  // { immediate: true },
 );
 
 onMounted(async () => {
@@ -192,22 +180,10 @@ onMounted(async () => {
 
   await display_classe(props.type);
 
-  const color_1_default = new Color(0xffffff);
-  const color_2_default = new Color(0xff9999);
-  const color_3_default = new Color(0x111fff);
-
-  set_color(senshi, 1, color_1_default);
-  set_color(yajin, 1, color_1_default);
-  set_color(senshi_female, 1, color_1_default);
-  set_color(yajin_female, 1, color_1_default);
-  set_color(senshi, 2, color_2_default);
-  set_color(yajin, 2, color_2_default);
-  set_color(senshi_female, 2, color_2_default);
-  set_color(yajin_female, 2, color_2_default);
-  set_color(senshi, 3, color_3_default);
-  set_color(yajin, 3, color_3_default);
-  set_color(senshi_female, 3, color_3_default);
-  set_color(yajin_female, 3, color_3_default);
+  // set_color(senshi, create_character_colors.senshi);
+  // set_color(senshi_female, create_character_colors.senshi_female);
+  // set_color(yajin, create_character_colors.yajin);
+  // set_color(yajin_female, create_character_colors.yajin_female);
 
   function animate() {
     if (!running.value) return;

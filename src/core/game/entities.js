@@ -8,7 +8,6 @@ import { context } from './game.js'
 import { create_billboard_text } from './rendering/billboard_text.js'
 
 const MODEL_FORWARD = new Vector3(0, 0, 1)
-const LOADED_HATS = new Map()
 
 function fade_to_animation(from, to, duration = 0.3) {
   if (from !== to) {
@@ -33,6 +32,7 @@ function fade_to_animation(from, to, duration = 0.3) {
 // ]
 
 function entity_spawner(
+  /** @type {() => Promise<ReturnType<Awaited<ReturnType<typeof import("../utils/three/load_model.js")["load"]>>>>} */
   load_model,
   { skin, height, radius, scale = 1, hair = null },
 ) {
@@ -87,19 +87,22 @@ function entity_spawner(
 
     // this function must be atomic, to avoid having both hair and helmet equipped at the same time
     let equip_promise = Promise.resolve()
+    let custom_hat_colors = null
 
     async function equip_hat(hat) {
       equip_promise = equip_promise.then(async () => {
+        // @ts-ignore
         const head = find_head_bone(model)
         head.clear()
 
         if (!hat) return
-        const { item_type } = hat
-
+        // const { item_type } = hat
         // if(!LOADED_HATS.has(item_type))
 
-        const { model: hat_model } = await MODELS[hat.item_type]
+        const { model: hat_model, custom_colors: new_custom_hat_colors } =
+          await MODELS[hat.item_type]
         head.add(hat_model)
+        custom_hat_colors = new_custom_hat_colors
       })
       return equip_promise
     }
@@ -165,6 +168,28 @@ function entity_spawner(
         if (id === 'default') return
         await equip_hat({ item_type: hair })
       },
+      set_colors({ color_1, color_2, color_3 }, renderer = context.renderer) {
+        if (!custom_colors)
+          throw new Error('This entity does not support custom colors')
+
+        if (!custom_colors.get_color1().equals(color_1)) {
+          custom_colors.set_color1(color_1)
+          custom_hat_colors?.set_color1(color_1)
+        }
+
+        if (!custom_colors.get_color2().equals(color_2)) {
+          custom_colors.set_color2(color_2)
+          custom_hat_colors?.set_color2(color_2)
+        }
+
+        if (!custom_colors.get_color3().equals(color_3)) {
+          custom_colors.set_color3(color_3)
+          custom_hat_colors?.set_color3(color_3)
+        }
+
+        if (custom_colors.needsUpdate()) custom_colors.texture.update(renderer)
+        if (custom_hat_colors?.needsUpdate()) custom_hat_colors.update(renderer)
+      },
     }
   }
 }
@@ -221,6 +246,11 @@ export const ENTITIES = {
 
   // ====== MOBS ======
 
+  aragne: entity_spawner(() => MODELS.aragne, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'aragne',
+  }),
   araknomath: entity_spawner(() => MODELS.araknomath, {
     height: 1.5,
     radius: 0.8,

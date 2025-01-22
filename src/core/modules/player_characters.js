@@ -97,15 +97,11 @@ export default function () {
                 await three_character.set_hair()
 
                 if (three_character.id !== 'default') {
-                  three_character.custom_colors.set_color1(
-                    sui_character.color_1,
-                  )
-                  three_character.custom_colors.set_color2(
-                    sui_character.color_2,
-                  )
-                  three_character.custom_colors.set_color3(
-                    sui_character.color_3,
-                  )
+                  three_character.set_colors({
+                    color_1: new Color(sui_character.color_1),
+                    color_2: new Color(sui_character.color_2),
+                    color_3: new Color(sui_character.color_3),
+                  })
                 }
               })
               .catch(error => {
