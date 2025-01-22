@@ -69,7 +69,6 @@ function create_customizable_textures(
 function create_custom_colors_api(
   /** @type Object3D */ model,
   /** @type ReadonlyArray<Texture> */ textures,
-  name = '',
 ) {
   /** @type Map<string, CustomizableTexture> */
   const customizable_textures = create_customizable_textures(textures)
@@ -166,7 +165,7 @@ export async function load(
     return {
       model: cloned,
       textures,
-      custom_colors: create_custom_colors_api(cloned, textures, path),
+      custom_colors: create_custom_colors_api(cloned, textures),
       skinned_mesh: cloned.getObjectByName(mesh_name),
       async set_variant(variant) {
         await functions.selectVariant(cloned, variant)
