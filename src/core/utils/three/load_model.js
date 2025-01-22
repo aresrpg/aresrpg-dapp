@@ -30,6 +30,12 @@ GLTF_LOADER.setMeshoptDecoder(MeshoptDecoder)
 
 GLTF_LOADER.register(parser => new GLTFMaterialsVariantsExtension(parser))
 
+const layer_names = {
+  color1: 'color1',
+  color2: 'color2',
+  color3: 'color3',
+}
+
 function create_customizable_textures(
   /** @type ReadonlyArray<Texture> */
   textures,
@@ -46,21 +52,18 @@ function create_customizable_textures(
     }
   }
 
-  const MAX_CUSTOMIZABLE_TEXTURES_COUNT = 3
-
   /** @type Map<string, CustomizableTexture> */
   const customizable_textures = new Map()
   for (const [base_texture_name, base_texture] of base_textures.entries()) {
     /** @type Map<string, Texture> */
     const additional_textures = new Map()
-    for (let i = 1; i <= MAX_CUSTOMIZABLE_TEXTURES_COUNT; i++) {
+    for (const layer_name of Object.values(layer_names)) {
       const layer_texture = textures.find(
-        tex => tex.name === `${base_texture_name}_color${i}`,
+        tex => tex.name === `${base_texture_name}_${layer_name}`,
       )
-      if (!layer_texture) {
-        break
+      if (layer_texture) {
+        additional_textures.set(layer_name, layer_texture)
       }
-      additional_textures.set(`color${i}`, layer_texture)
     }
 
     const customizable_texture = new CustomizableTexture({
@@ -115,7 +118,7 @@ function create_custom_colors_api(
 
     try {
       for (const customizable_texture of used_customizable_textures) {
-        for (const expected_layername of ['color1', 'color2', 'color3']) {
+        for (const expected_layername of Object.values(layer_names)) {
           if (!customizable_texture.layerNames.includes(expected_layername)) {
             throw new Error(
               `Diffuse customizable texture is supposed to have a layer named "${expected_layername}".`,
@@ -124,6 +127,15 @@ function create_custom_colors_api(
         }
       }
     } catch (error) {}
+
+    const set_layer_color = (
+      /** @type string */ name,
+      /** @type Color */ color,
+    ) => {
+      for (const customizable_texture of used_customizable_textures.values()) {
+        customizable_texture.setLayerColor(name, color)
+      }
+    }
 
     return {
       needsUpdate() {
@@ -147,19 +159,13 @@ function create_custom_colors_api(
         }
       },
       set_color1(/** @type Color */ value) {
-        for (const customizable_texture of used_customizable_textures.values()) {
-          customizable_texture.setLayerColor('color1', value)
-        }
+        set_layer_color(layer_names.color1, value)
       },
       set_color2(/** @type Color */ value) {
-        for (const customizable_texture of used_customizable_textures.values()) {
-          customizable_texture.setLayerColor('color2', value)
-        }
+        set_layer_color(layer_names.color2, value)
       },
       set_color3(/** @type Color */ value) {
-        for (const customizable_texture of used_customizable_textures.values()) {
-          customizable_texture.setLayerColor('color3', value)
-        }
+        set_layer_color(layer_names.color3, value)
       },
     }
   }
