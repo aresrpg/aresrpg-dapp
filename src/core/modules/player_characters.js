@@ -16,8 +16,8 @@ export default function () {
         }
 
         if (player.custom_colors) {
-          if (player.custom_colors.texture.needsUpdate) {
-            player.custom_colors.texture.update(renderer)
+          if (player.custom_colors.needsUpdate()) {
+            player.custom_colors.update(renderer)
           }
         }
       }

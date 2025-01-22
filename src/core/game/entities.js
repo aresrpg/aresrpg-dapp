@@ -139,7 +139,7 @@ function entity_spawner(
         dispose(origin)
 
         if (custom_colors) {
-          custom_colors.texture.dispose()
+          custom_colors.dispose()
         }
       },
       animate(name) {

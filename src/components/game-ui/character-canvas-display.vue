@@ -61,7 +61,7 @@ function setup_classe(classe) {
     classe.custom_colors.set_color1(color1.value);
     classe.custom_colors.set_color2(color2.value);
     classe.custom_colors.set_color3(color3.value);
-    classe.custom_colors.texture.update(renderer);
+    classe.custom_colors.update(renderer);
   }
 }
 
@@ -116,8 +116,8 @@ async function display_classe(type) {
 function set_color(classe, index, color) {
   if (classe) {
     classe.custom_colors[`set_color${index}`](color);
-    if (classe.custom_colors.texture.needsUpdate)
-      classe.custom_colors.texture.update(renderer);
+    if (classe.custom_colors.needsUpdate())
+      classe.custom_colors.update(renderer);
   }
 }
 

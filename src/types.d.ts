@@ -55,7 +55,9 @@ declare namespace Type {
     mob_group_id?: string
     current_fight_id?: string
     custom_colors: null | {
-      texture: import('@aresrpg/aresrpg-engine').CustomizableTexture
+      needsUpdate(): boolean
+      update(renderer: import('three').WebGLRenderer): void
+      dispose(): void
       get_color1(): import('three').Color
       get_color2(): import('three').Color
       get_color3(): import('three').Color
