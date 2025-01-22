@@ -86,7 +86,10 @@ function create_custom_colors_api(
   const used_customizable_textures = new Set()
 
   // mapping texture name -> attribute on the THREE material
-  const mappings = new Map([['diffuse', 'map']])
+  const mappings = new Map([
+    ['diffuse', 'map'],
+    ['emissive', 'emissiveMap'],
+  ])
 
   if (all_customizable_textures.size > 0) {
     // attach the customizable textures on the model
