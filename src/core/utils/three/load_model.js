@@ -91,90 +91,91 @@ function create_custom_colors_api(
     ['emissive', 'emissiveMap'],
   ])
 
-  if (all_customizable_textures.size > 0) {
-    // attach the customizable textures on the model
-    model.traverse((/** @type any */ child) => {
-      let material_cloned_once = false
-      if (child.material) {
-        for (const [texture_name, material_attribute] of mappings.entries()) {
-          if (
-            child.material[material_attribute] &&
-            child.material[material_attribute].name === `${texture_name}_base`
-          ) {
-            const customizable_texture =
-              all_customizable_textures.get(texture_name)
-            if (customizable_texture) {
-              if (!material_cloned_once) {
-                child.material = child.material.clone()
-                material_cloned_once = true
-              }
-              child.material[material_attribute] = customizable_texture.texture
-              used_customizable_textures.add(customizable_texture)
+  // attach the customizable textures on the model
+  model.traverse((/** @type any */ child) => {
+    let material_cloned_once = false
+    if (child.material) {
+      for (const [texture_name, material_attribute] of mappings.entries()) {
+        if (
+          child.material[material_attribute] &&
+          child.material[material_attribute].name === `${texture_name}_base`
+        ) {
+          const customizable_texture =
+            all_customizable_textures.get(texture_name)
+          if (customizable_texture) {
+            if (!material_cloned_once) {
+              child.material = child.material.clone()
+              material_cloned_once = true
             }
+            child.material[material_attribute] = customizable_texture.texture
+            used_customizable_textures.add(customizable_texture)
           }
         }
       }
-    })
-
-    for (const loaded_customizable_texture of all_customizable_textures.values()) {
-      if (!used_customizable_textures.has(loaded_customizable_texture)) {
-        loaded_customizable_texture.dispose()
-      }
     }
+  })
 
-    for (const customizable_texture of used_customizable_textures) {
-      for (const expected_layername of Object.values(layer_names)) {
-        if (!customizable_texture.layerNames.includes(expected_layername)) {
-          throw new Error(
-            `Customizable texture is supposed to have a layer named "${expected_layername}".`,
-          )
-        }
-      }
-    }
-
-    const set_layer_color = (
-      /** @type string */ name,
-      /** @type Color */ color,
-    ) => {
-      for (const customizable_texture of used_customizable_textures.values()) {
-        customizable_texture.setLayerColor(name, color)
-      }
-    }
-
-    return {
-      needsUpdate() {
-        for (const customizable_texture of used_customizable_textures.values()) {
-          if (customizable_texture.needsUpdate) {
-            return true
-          }
-        }
-        return false
-      },
-      update(/** @type WebGLRenderer */ renderer) {
-        for (const customizable_texture of used_customizable_textures.values()) {
-          if (customizable_texture.needsUpdate) {
-            customizable_texture.update(renderer)
-          }
-        }
-      },
-      dispose() {
-        for (const customizable_texture of used_customizable_textures.values()) {
-          customizable_texture.dispose()
-        }
-      },
-      set_color1(/** @type Color */ value) {
-        set_layer_color(layer_names.color1, value)
-      },
-      set_color2(/** @type Color */ value) {
-        set_layer_color(layer_names.color2, value)
-      },
-      set_color3(/** @type Color */ value) {
-        set_layer_color(layer_names.color3, value)
-      },
+  for (const loaded_customizable_texture of all_customizable_textures.values()) {
+    if (!used_customizable_textures.has(loaded_customizable_texture)) {
+      loaded_customizable_texture.dispose()
     }
   }
 
-  return null
+  if (used_customizable_textures.size === 0) {
+    // no customizable textures for this model
+    return null
+  }
+
+  for (const customizable_texture of used_customizable_textures) {
+    for (const expected_layername of Object.values(layer_names)) {
+      if (!customizable_texture.layerNames.includes(expected_layername)) {
+        throw new Error(
+          `Customizable texture is supposed to have a layer named "${expected_layername}".`,
+        )
+      }
+    }
+  }
+
+  const set_layer_color = (
+    /** @type string */ name,
+    /** @type Color */ color,
+  ) => {
+    for (const customizable_texture of used_customizable_textures.values()) {
+      customizable_texture.setLayerColor(name, color)
+    }
+  }
+
+  return {
+    needsUpdate() {
+      for (const customizable_texture of used_customizable_textures.values()) {
+        if (customizable_texture.needsUpdate) {
+          return true
+        }
+      }
+      return false
+    },
+    update(/** @type WebGLRenderer */ renderer) {
+      for (const customizable_texture of used_customizable_textures.values()) {
+        if (customizable_texture.needsUpdate) {
+          customizable_texture.update(renderer)
+        }
+      }
+    },
+    dispose() {
+      for (const customizable_texture of used_customizable_textures.values()) {
+        customizable_texture.dispose()
+      }
+    },
+    set_color1(/** @type Color */ value) {
+      set_layer_color(layer_names.color1, value)
+    },
+    set_color2(/** @type Color */ value) {
+      set_layer_color(layer_names.color2, value)
+    },
+    set_color3(/** @type Color */ value) {
+      set_layer_color(layer_names.color3, value)
+    },
+  }
 }
 
 export async function load(
