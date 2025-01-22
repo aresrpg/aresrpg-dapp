@@ -85,17 +85,29 @@ function create_custom_colors_api(
   /** @type Set<CustomizableTexture> */
   const used_customizable_textures = new Set()
 
+  // mapping texture name -> attribute on the THREE material
+  const mappings = new Map([['diffuse', 'map']])
+
   if (all_customizable_textures.size > 0) {
     // attach the customizable textures on the model
     model.traverse((/** @type any */ child) => {
-      if (child.material && child.material.map) {
-        const match = child.material.map.name.match(/(.+)_base/)
-        if (match && match[1]) {
-          const customizable_texture = all_customizable_textures.get(match[1])
-          if (customizable_texture) {
-            child.material = child.material.clone()
-            child.material.map = customizable_texture.texture
-            used_customizable_textures.add(customizable_texture)
+      let material_cloned_once = false
+      if (child.material) {
+        for (const [texture_name, material_attribute] of mappings.entries()) {
+          if (
+            child.material[material_attribute] &&
+            child.material[material_attribute].name === `${texture_name}_base`
+          ) {
+            const customizable_texture =
+              all_customizable_textures.get(texture_name)
+            if (customizable_texture) {
+              if (!material_cloned_once) {
+                child.material = child.material.clone()
+                material_cloned_once = true
+              }
+              child.material[material_attribute] = customizable_texture.texture
+              used_customizable_textures.add(customizable_texture)
+            }
           }
         }
       }
@@ -107,26 +119,15 @@ function create_custom_colors_api(
       }
     }
 
-    if (
-      !all_customizable_textures.has('diffuse') ||
-      all_customizable_textures.size > 1
-    ) {
-      throw new Error(
-        `Only diffuse texture is customizable. Got ${Array.from(all_customizable_textures.keys()).join(';')}.`,
-      )
-    }
-
-    try {
-      for (const customizable_texture of used_customizable_textures) {
-        for (const expected_layername of Object.values(layer_names)) {
-          if (!customizable_texture.layerNames.includes(expected_layername)) {
-            throw new Error(
-              `Diffuse customizable texture is supposed to have a layer named "${expected_layername}".`,
-            )
-          }
+    for (const customizable_texture of used_customizable_textures) {
+      for (const expected_layername of Object.values(layer_names)) {
+        if (!customizable_texture.layerNames.includes(expected_layername)) {
+          throw new Error(
+            `Customizable texture is supposed to have a layer named "${expected_layername}".`,
+          )
         }
       }
-    } catch (error) {}
+    }
 
     const set_layer_color = (
       /** @type string */ name,
