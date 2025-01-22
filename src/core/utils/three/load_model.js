@@ -1,7 +1,13 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
-import { AnimationMixer, DefaultLoadingManager, Object3D, Texture } from 'three'
+import {
+  AnimationMixer,
+  DefaultLoadingManager,
+  Object3D,
+  Texture,
+  WebGLRenderer,
+} from 'three'
 import { MeshoptDecoder } from 'meshoptimizer'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { CustomizableTexture } from '@aresrpg/aresrpg-engine'
@@ -107,7 +113,15 @@ function create_custom_colors_api(
     } catch (error) {}
 
     return {
-      texture: customizable_texture_diffuse,
+      needsUpdate() {
+        return customizable_texture_diffuse.needsUpdate
+      },
+      update(/** @type WebGLRenderer */ renderer) {
+        customizable_texture_diffuse.update(renderer)
+      },
+      dispose() {
+        customizable_texture_diffuse.dispose()
+      },
       set_color1(value) {
         customizable_texture_diffuse.setLayerColor('color1', value)
       },
