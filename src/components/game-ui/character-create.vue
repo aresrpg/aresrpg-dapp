@@ -1,5 +1,5 @@
 <script setup>
-import { inject, ref, watch, computed, provide } from 'vue';
+import { inject, ref, watch, computed, provide, reactive } from 'vue';
 import Spells from '@aresrpg/aresrpg-sdk/spells';
 import { useI18n } from 'vue-i18n';
 
@@ -8,8 +8,8 @@ import {
   sui_is_character_name_taken,
 } from '../../core/sui/client.js';
 import toast from '../../toast.js';
-
 import { characters_references } from '../../core/utils/game/spells.js';
+import { character_colors } from '../../core/utils/character_colors.js';
 
 import characterCanvasDisplay from './character-canvas-display.vue';
 import SpellDisplay from './menu_spell_display.vue';
@@ -25,13 +25,30 @@ const new_character_dialog = inject('new_character_dialog');
 const emits = defineEmits(['cancel']);
 const { t } = useI18n();
 
-const color1 = ref('#FFFFFF');
-const color2 = ref('#FF9999');
-const color3 = ref('#111FFF');
+const create_character_colors = reactive(character_colors);
 
-provide('create_character_color1', color1);
-provide('create_character_color2', color2);
-provide('create_character_color3', color3);
+provide('create_character_colors', create_character_colors);
+
+const classe_type = computed(() => {
+  const base = selected_class_type.value.split('_')[0].toLocaleLowerCase();
+  if (selected_class_type.value.includes('FEMALE')) return `${base}_female`;
+  return base;
+});
+
+const color1 = computed({
+  get: () => create_character_colors[classe_type.value][0],
+  set: value => (create_character_colors[classe_type.value][0] = value),
+});
+
+const color2 = computed({
+  get: () => create_character_colors[classe_type.value][1],
+  set: value => (create_character_colors[classe_type.value][1] = value),
+});
+
+const color3 = computed({
+  get: () => create_character_colors[classe_type.value][2],
+  set: value => (create_character_colors[classe_type.value][2] = value),
+});
 
 function get_character_skin({ classe, female }) {
   if (classe === 'SENSHI')
@@ -111,13 +128,16 @@ async function create_character() {
 
   try {
     cancel();
+    const [color_1, color_2, color_3] =
+      create_character_colors[`${classe}${female ? '_female' : ''}`];
+    console.log('colors are', color_1, color_2, color_3);
     await sui_create_character({
       name: new_character_name.value,
       type: classe,
       male: !female,
-      color_1: color1.value,
-      color_2: color2.value,
-      color_3: color3.value,
+      color_1,
+      color_2,
+      color_3,
     });
     tx.update('success', t('APP_CHARACTER_CREATE_OK'));
 

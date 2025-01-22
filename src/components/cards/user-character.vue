@@ -2,7 +2,7 @@
 .character(:class="{ locked: props.locked, [props.character.classe]: true, male: props.character.sex === 'male' }")
   span.name {{ props.character.name }} #[b.xp Lvl {{ experience_to_level(props.character.experience) }}]
   .perso()
-    characterCanvasDisplay(:type="props.character.classe.toUpperCase() + '_' + props.character.sex.toUpperCase()" :color_1="props.character.color_1" :color_2="props.character.color_2" :color_3="props.character.color_3")
+    characterCanvasDisplay(:type="props.character.classe.toUpperCase() + '_' + props.character.sex.toUpperCase()" :colors="[props.character.color_1, props.character.color_2, props.character.color_3]")
   .field
     .title classe:
     .value {{ props.character.classe.toUpperCase() }}
@@ -27,14 +27,13 @@
           vs-button(type="transparent" color="#E74C3C" @click="delete_dialog = false") {{ t('APP_USER_CANCEL') }}
           vs-button(type="transparent" color="#2ECC71" @click="delete_character") {{ t('APP_USER_CONFIRM') }}
 </template>
-rigid illness excess cruise wasp what sand assist axis cause heart veteran
+
 <script setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { isValidSuiAddress } from '@mysten/sui/utils';
 
 import characterCanvasDisplay from '../game-ui/character-canvas-display.vue';
-
 import { experience_to_level } from '../../core/utils/game/experience.js';
 import { sui_delete_character } from '../../core/sui/client.js';
 import toast from '../../toast.js';

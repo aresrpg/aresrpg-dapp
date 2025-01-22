@@ -14,6 +14,7 @@ import mokan from '../../assets/models/equipment/mokan.glb?url'
 import primemachin from '../../assets/models/equipment/primemachin.glb?url'
 import suicunio from '../../assets/models/equipment/suicunio.glb?url'
 import fight_sword from '../../assets/models/misc/fight_sword.glb?url'
+import aragne from '../../assets/models/mobs/aragne.glb?url'
 import araknomath from '../../assets/models/mobs/araknomath.glb?url'
 import bouftou from '../../assets/models/mobs/bouftou.glb?url'
 import hophop from '../../assets/models/mobs/hophop.glb?url'
@@ -50,6 +51,7 @@ const AVAILABLE_MODELS = {
 
   fight_sword,
 
+  aragne,
   araknomath,
   bouftou,
   hophop,

@@ -65,6 +65,18 @@ declare namespace Type {
       set_color2(color: import('three').Color): void
       set_color3(color: import('three').Color): void
     }
+    set_colors: (
+      {
+        color_1,
+        color_2,
+        color_3,
+      }: {
+        color_1: import('three').Color
+        color_2: import('three').Color
+        color_3: import('three').Color
+      },
+      renderer?: any,
+    ) => void
   }
 
   type MobGroup = Omit<
