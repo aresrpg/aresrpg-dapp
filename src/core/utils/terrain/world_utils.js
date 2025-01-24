@@ -6,65 +6,78 @@ import {
   getPatchId,
   ProcessingState,
   WorldEnv,
+  WorkerPool,
 } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
 
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 
 /**
- * perform call directly in main thread to remain sync
+ * perform calls in main thread to remain sync and doesn't use caching
  * prefer using async version to avoid performance loss
  */
 export function get_nearest_floor_pos(pos, entity_height = 0) {
-  // console.log(`get_nearest_floor_pos: warn costly, prefer using async version`)
-  // const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
-  // const blocks_request = BlocksProcessing.getFloorPositions([requested_pos])
-  // const [floor_block] = blocks_request.process()
-  // console.log(floor_block.pos.y)
-  // return floor_block.pos.y + entity_height * 0.5
-  return 128
+  // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
+  const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
+  const blocks_request = BlocksProcessing.getFloorPositions([requested_pos])
+  const [floor_block] = blocks_request.process()
+  return floor_block.pos.y + entity_height * 0.5
 }
-
+/**
+ * deferring task execution to allow grouping multiple block requests in same batch
+ * @returns
+ */
 const renew_blocks_processing_request = () => {
-  const blocks_request = BlocksProcessing.getFloorPositions([])
-  blocks_request.defer().then(task => {
-    console.log(
-      // @ts-ignore
-      `run scheduled processing task with ${task.processingInput.length} blocks`,
-    )
-  })
-  return blocks_request
+  if (WorkerPool.default) {
+    const task = BlocksProcessing.getFloorPositions([])
+    task.onStarted = () =>
+      console.log(
+        `run scheduled task with ${task.processingInput.length} blocks`,
+      )
+    task.defer()
+    return task
+  } else {
+    console.warn(`waiting for workers to be ready`)
+  }
 }
 
-let blocks_processing_request //= renew_blocks_processing_request()
+let blocks_processing_task //= renew_blocks_processing_request()
+// console.log(`this line run several time why? isn't top level code supposed to run only once even when module is imported several times?`)
 
 /**
- * optimized version running in worker at the cost of being async
+ * better version grouping multiple isolated request in same batch
  */
 export async function get_nearest_floor_pos_async(raw_pos, entity_height = 0) {
   // console.log(`get_nearest_floor_pos`)
   const requested_pos = new Vector3(raw_pos.x, raw_pos.y, raw_pos.z).floor()
   const equal_pos = pos =>
     pos.x === requested_pos.x && pos.z === requested_pos.z
-  // check if previous request is still in waiting state to use it or create another
-  const renewal_needed =
-    blocks_processing_request.processingState !== ProcessingState.Waiting
-  blocks_processing_request = renewal_needed
-    ? renew_blocks_processing_request()
-    : blocks_processing_request
-  // enqueue pos in current task
-  blocks_processing_request.processingInput.push(requested_pos)
-  const batch_res = await blocks_processing_request.deferredPromise
-  // @ts-ignore
-  const matching_block = batch_res.find(block => equal_pos(block.pos))
-  const floor_height = matching_block?.pos?.y
+  // try recycling previous task to avoid recreating one for each individual pos request
+  const use_previous_task =
+    blocks_processing_task?.processingState === ProcessingState.None ||
+    blocks_processing_task?.processingState === ProcessingState.Waiting ||
+    blocks_processing_task?.processingState === ProcessingState.Scheduled
+  blocks_processing_task = use_previous_task
+    ? blocks_processing_task
+    : renew_blocks_processing_request()
+  if (blocks_processing_task) {
+    // enqueue pos in current batch
+    blocks_processing_task.processingInput.push(requested_pos)
+    const batch_res = await blocks_processing_task.promise
+    const matching_block = batch_res.find(block => equal_pos(block.pos))
+    const floor_height = matching_block?.pos?.y
 
-  if (!floor_height) {
-    throw new Error(`No floor found at ${requested_pos}`)
+    if (!floor_height) {
+      throw new Error(`No floor found at ${requested_pos}`)
+    }
+
+    // console.log(`floor height ${floor_height}`)
+    return floor_height + entity_height * 0.5
+  } else {
+    console.warn(`unexpected missing task`)
+    // send dummy value until ready
+    return 128
   }
-
-  // console.log(`floor height ${floor_height}`)
-  return floor_height + entity_height * 0.5
 }
 // export const get_nearest_floor_pos_async = (raw_pos, entity_height = 0) => 128
 
