@@ -1,18 +1,19 @@
 import { Heightmap, WorldEnv } from '@aresrpg/aresrpg-world'
-// import { EnvOverride, BlocksColorOverride } from '@aresrpg/aresrpg-world'
-import workerpool from 'workerpool'
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 
 import { chunk_data_encoder } from './world_utils.js'
+// DEV ONLY: LEAVE THIS LINE COMMENTED
+// import { EnvOverride, BlocksColorOverride } from '@aresrpg/aresrpg-world'
 import {
-  // BLOCKS_COLOR_MAPPING as BLOCKS_COLOR_MAPPING_DAPP,
+  // BLOCKS_COLOR_MAPPING as BLOCKS_COLOR_MAPPING_DAPP, // DEV ONLY: LEAVE THIS LINE COMMENTED
   LANDSCAPE,
   SCHEMATICS_BLOCKS_MAPPING,
 } from './world_settings.js'
 import { SCHEMATICS_FILES } from './schematics_files.js'
 // @ts-ignore
-import WORLD_WORKER_URL from './world_compute_worker.js?url&worker'
-
+import world_worker_url from './world_compute_worker.js?url&worker'
+export const WORLD_WORKER_URL = world_worker_url
+export const WORLD_WORKER_COUNT = 4
 // TODO: remove hardcoding and retrieve dynamic value from world
 const SEA_LEVEL = 76
 
@@ -41,7 +42,7 @@ export const world_shared_setup = (
 
   // WORKER POOL
   world_env.workerPool.url = WORLD_WORKER_URL
-  world_env.workerPool.count = 4
+  world_env.workerPool.count = WORLD_WORKER_COUNT
   // @ts-ignore
   world_env.workerPool.type = 'module'
 
@@ -51,22 +52,9 @@ export const world_shared_setup = (
 
   // DEV ONLY: LEAVE THIS LINE COMMENTED
   // EnvOverride(world_env)
-
   heightmap_instance.heightmap.params.spreading = 0.42 // (1.42 - 1)
   heightmap_instance.heightmap.sampling.harmonicsCount = 6
   heightmap_instance.amplitude.sampling.seed = 'amplitude_mod'
-}
-
-export const get_dedicated_worker_pool = (worker_count = 1) => {
-  // By default, Vite uses a module worker in dev mode, which can cause your application to fail.
-  // Therefore, we need to use a module worker in dev mode and a classic worker in prod mode.
-  const worker_pool = workerpool.pool(WORLD_WORKER_URL, {
-    maxWorkers: worker_count,
-    workerOpts: {
-      type: import.meta.env.DEV ? 'module' : 'classic',
-    },
-  })
-  return worker_pool
 }
 
 // DEV ONLY: LEAVE THIS LINE COMMENTED

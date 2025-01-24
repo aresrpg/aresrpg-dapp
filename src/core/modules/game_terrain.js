@@ -3,10 +3,9 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
 import {
-  ProcessingTask,
-  LowerChunksBatch,
-  UpperChunksBatch,
-  BoardProcessor,
+  ChunksProvider,
+  BoardProvider,
+  WorkerPool,
 } from '@aresrpg/aresrpg-world'
 
 import { current_three_character } from '../game/game.js'
@@ -15,7 +14,11 @@ import {
   get_view_settings,
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
-import { world_shared_setup } from '../utils/terrain/world_setup.js'
+import {
+  world_shared_setup,
+  WORLD_WORKER_COUNT,
+  WORLD_WORKER_URL,
+} from '../utils/terrain/world_setup.js'
 import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
 import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
 import {
@@ -28,15 +31,15 @@ import {
 export default function () {
   // world setup (main thread environement)
   world_shared_setup()
-  ProcessingTask.initWorkerPool()
+  const chunks_processing_worker_pool = new WorkerPool(
+    WORLD_WORKER_URL,
+    WORLD_WORKER_COUNT,
+  )
+  // chunks batch processing
+  const chunks_provider = new ChunksProvider(chunks_processing_worker_pool)
   // engine setup
   const { terrain_viewer, voxelmap_viewer } = voxel_engine_setup()
 
-  // chunks batch processing
-  const lower_chunks_batch = new LowerChunksBatch()
-  const upper_chunks_batch = new UpperChunksBatch()
-  lower_chunks_batch.enqueue()
-  upper_chunks_batch.enqueue()
   const board_wrapper = {
     handler: null,
     data: null,
@@ -77,17 +80,17 @@ export default function () {
       }
 
       const on_board_visible = async () => {
-        if (!BoardProcessor.instance) {
+        if (!BoardProvider.instance) {
           const view_pos = get_view_pos()
-          BoardProcessor.createInstance(view_pos)
-          const board = await BoardProcessor.instance.genBoardContent()
+          BoardProvider.createInstance(view_pos)
+          const board = await BoardProvider.instance.genBoardContent()
           const modified_chunks =
-            BoardProcessor.instance.overrideOriginalChunksContent(board.chunk)
+            BoardProvider.instance.overrideOriginalChunksContent(board.chunk)
           for (const chunk of modified_chunks) {
             render_world_chunk(chunk)
           }
           const board_data = board.patch.toStub()
-          board_data.elevation = BoardProcessor.instance.boardElevation
+          board_data.elevation = BoardProvider.instance.boardElevation
           const board_handler = init_board_handler(board_data)
           highlight_board_edges(board_data, board_handler)
           highlight_board_start_pos(board_data, board_handler)
@@ -97,13 +100,13 @@ export default function () {
       }
 
       const on_board_hidden = () => {
-        if (BoardProcessor.instance) {
+        if (BoardProvider.instance) {
           const original_chunks =
-            BoardProcessor.instance.restoreOriginalChunksContent()
+            BoardProvider.instance.restoreOriginalChunksContent()
           for (const chunk of original_chunks) {
             render_world_chunk(chunk)
           }
-          BoardProcessor.deleteInstance()
+          BoardProvider.deleteInstance()
           if (board_wrapper.handler?.container) {
             const board_handler = board_wrapper.handler
             board_handler.dispose()
@@ -114,8 +117,7 @@ export default function () {
         }
       }
 
-      lower_chunks_batch.onTaskCompleted = on_chunks_processed
-      upper_chunks_batch.onTaskCompleted = on_chunks_processed
+      chunks_provider.onChunkProcessed = on_chunks_processed
 
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -128,14 +130,14 @@ export default function () {
         if (current_pos) {
           // Query chunks around player position
           const view = get_view_settings(current_pos, view_dist)
-          const view_changed = upper_chunks_batch.viewChanged(
+          const view_changed = chunks_provider.viewChanged(
             view.center,
+            view.near,
             view.far,
           )
           if (view_changed) {
-            lower_chunks_batch.syncView(view.center, view.near)
-            upper_chunks_batch.syncView(view.center, view.far)
-            voxelmap_viewer.setVisibility(upper_chunks_batch.chunkIds)
+            chunks_provider.rescheduleTasks(view.center, view.near, view.far)
+            voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
             // FLAGS.LOD_MODE === LOD_MODE.STATIC &&
             // terrain_viewer.setLod(camera.position, 50, camera.far)
           }
