@@ -1,4 +1,4 @@
-import { asVect3, BoardProcessor } from '@aresrpg/aresrpg-world'
+import { asVect3, BoardProvider } from '@aresrpg/aresrpg-world'
 import { Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
@@ -35,16 +35,16 @@ export const init_board_handler = board_data => {
 }
 
 async function create_board(position = new Vector3()) {
-  const fight_board_container = BoardProcessor.createInstance(position)
-  const board = await BoardProcessor.instance.genBoardContent()
-  const board_chunks = BoardProcessor.instance.overrideOriginalChunksContent(
+  const fight_board_container = BoardProvider.createInstance(position)
+  const board = await BoardProvider.instance.genBoardContent()
+  const board_chunks = BoardProvider.instance.overrideOriginalChunksContent(
     board.chunk,
   )
   // for (const chunk of board_chunks) {
   //   render_world_chunk(chunk)
   // }
   const board_data = board.patch.toStub()
-  board_data.elevation = BoardProcessor.instance.boardElevation
+  board_data.elevation = BoardProvider.instance.boardElevation
   const board_handler = init_board_handler(board_data)
   // highlight_board_edges(board_data, board_handler)
   // highlight_board_start_pos(board_data, board_handler)

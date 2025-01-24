@@ -2,9 +2,7 @@ import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   asVect2,
   BlockMode,
-  BlockProcessor,
   BlocksProcessing,
-  BlocksProcessingRecipe,
   getPatchId,
   ProcessingState,
   WorldEnv,
@@ -18,29 +16,27 @@ import { color_to_block_type, hex_to_int } from './world_settings.js'
  * prefer using async version to avoid performance loss
  */
 export function get_nearest_floor_pos(pos, entity_height = 0) {
-  console.log(`get_nearest_floor_pos: warn costly, prefer using async version`)
-  const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
-  const block_request = new BlockProcessor(requested_pos)
-  const floor_block = block_request.getFloorBlock()
+  // console.log(`get_nearest_floor_pos: warn costly, prefer using async version`)
+  // const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
+  // const blocks_request = BlocksProcessing.getFloorPositions([requested_pos])
+  // const [floor_block] = blocks_request.process()
   // console.log(floor_block.pos.y)
-  return floor_block.pos.y + entity_height * 0.5
+  // return floor_block.pos.y + entity_height * 0.5
+  return 128
 }
 
 const renew_blocks_processing_request = () => {
-  const blocks_processing_req = new BlocksProcessing([])
-  blocks_processing_req.processingParams = {
-    recipe: BlocksProcessingRecipe.Floor,
-  }
-  blocks_processing_req.deferProcessing().then(task => {
+  const blocks_request = BlocksProcessing.getFloorPositions([])
+  blocks_request.defer().then(task => {
     console.log(
       // @ts-ignore
-      `run scheduled processing task with ${task.input.length} blocks`,
+      `run scheduled processing task with ${task.processingInput.length} blocks`,
     )
   })
-  return blocks_processing_req
+  return blocks_request
 }
 
-let blocks_processing_request = renew_blocks_processing_request()
+let blocks_processing_request //= renew_blocks_processing_request()
 
 /**
  * optimized version running in worker at the cost of being async
@@ -57,7 +53,7 @@ export async function get_nearest_floor_pos_async(raw_pos, entity_height = 0) {
     ? renew_blocks_processing_request()
     : blocks_processing_request
   // enqueue pos in current task
-  blocks_processing_request.input.push(requested_pos)
+  blocks_processing_request.processingInput.push(requested_pos)
   const batch_res = await blocks_processing_request.deferredPromise
   // @ts-ignore
   const matching_block = batch_res.find(block => equal_pos(block.pos))
@@ -70,6 +66,7 @@ export async function get_nearest_floor_pos_async(raw_pos, entity_height = 0) {
   // console.log(`floor height ${floor_height}`)
   return floor_height + entity_height * 0.5
 }
+// export const get_nearest_floor_pos_async = (raw_pos, entity_height = 0) => 128
 
 export const get_sea_level = () => WorldEnv.current.seaLevel
 
