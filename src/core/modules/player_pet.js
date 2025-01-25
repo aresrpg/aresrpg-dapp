@@ -1,13 +1,21 @@
 import { Vector3 } from 'three'
+import { VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
 
 import { current_sui_character, current_three_character } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
 import { ENTITIES } from '../game/entities.js'
-import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
+import logger from '../../logger.js'
 
 const PET_SPEED = 8.0 // Adjust this value to set the pet's movement speed
+const PET_COLLISION_RADIUS = 0.2
+const PET_COLLISION_HEIGHT = 0.9
 
-export function tick_pet(character, pet, delta) {
+export function tick_pet(
+  character,
+  pet,
+  delta,
+  /** @type VoxelmapCollisions | null */ voxelmap_collisions,
+) {
   if (character) {
     const distance_to_player = pet.position.distanceTo(character.position)
 
@@ -25,16 +33,40 @@ export function tick_pet(character, pet, delta) {
     if (distance_to_player < 1) pet.target_position = null
   }
 
-  if (pet.target_position) {
+  if (pet.target_position && voxelmap_collisions) {
     const direction = new Vector3()
       .subVectors(pet.target_position, pet.position)
       .normalize()
-    const movement = direction.multiplyScalar(PET_SPEED * delta)
+    const velocity = direction.clone().multiplyScalar(PET_SPEED)
 
-    const new_position = pet.position.clone().add(movement)
-    const surface_block = get_nearest_floor_pos(new_position)
+    const pet_center = new Vector3(0, 0.5 * pet.height, 0)
 
-    new_position.setY(surface_block.y + pet.height * 0.5)
+    const pet_collisions = voxelmap_collisions.entityMovement(
+      {
+        radius: PET_COLLISION_RADIUS,
+        height: PET_COLLISION_HEIGHT,
+        position: new Vector3().subVectors(pet.position, pet_center),
+        velocity,
+      },
+      {
+        deltaTime: delta,
+        ascendSpeed: 20,
+        gravity: 500,
+        missingVoxels: {
+          considerAsBlocking: true,
+          exportAsList: false,
+        },
+      },
+    )
+
+    if (pet_collisions.computationStatus === 'partial') {
+      logger.WARNING(
+        'Physics engine lacked some info to compute pet collisions.',
+      )
+    }
+
+    const new_position = pet_collisions.position.add(pet_center)
+    const movement = new Vector3().subVectors(new_position, pet.position)
 
     pet.move(new_position)
     pet.rotate(movement)
@@ -57,11 +89,11 @@ export default function () {
   const pets = new Map()
 
   return {
-    async tick(_, __, delta) {
+    async tick(_, { physics }, delta) {
       const character = current_three_character()
 
       const pet = pets.get(character?.id)
-      if (pet) tick_pet(character, pet, delta)
+      if (pet) tick_pet(character, pet, delta, physics.voxelmap_collisions)
     },
     observe() {
       state_iterator().reduce((last_address, { sui: { selected_address } }) => {
