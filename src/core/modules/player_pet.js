@@ -33,10 +33,15 @@ export function tick_pet(
     if (distance_to_player < 1) pet.target_position = null
   }
 
-  if (pet.target_position && voxelmap_collisions) {
+  if (voxelmap_collisions) {
     const direction = new Vector3()
-      .subVectors(pet.target_position, pet.position)
-      .normalize()
+
+    if (pet.target_position) {
+      direction
+        .subVectors(pet.target_position, pet.position)
+        // .setY(0)
+        .normalize()
+    }
     const velocity = direction.clone().multiplyScalar(PET_SPEED)
 
     const pet_center = new Vector3(0, 0.5 * pet.height, 0)
@@ -51,7 +56,7 @@ export function tick_pet(
       {
         deltaTime: delta,
         ascendSpeed: 20,
-        gravity: 500,
+        gravity: 5000,
         missingVoxels: {
           considerAsBlocking: true,
           exportAsList: false,
@@ -66,17 +71,26 @@ export function tick_pet(
     }
 
     const new_position = pet_collisions.position.add(pet_center)
+    const horizontal_movement = new Vector3()
+      .subVectors(new_position, pet.position)
+      .setY(0)
 
     pet.move(new_position)
-    pet.rotate(direction)
-    pet.animate('RUN')
+
+    if (horizontal_movement.lengthSq() > 0.00001) {
+      pet.rotate(direction)
+      pet.animate('RUN')
+    } else {
+      pet.animate('IDLE')
+    }
 
     // Check if pet has reached the target position
-    if (new_position.distanceTo(pet.target_position) < 2) {
+    if (
+      pet.target_position &&
+      new_position.distanceTo(pet.target_position) < 2
+    ) {
       pet.target_position = null
     }
-  } else {
-    pet.animate('IDLE')
   }
 
   pet?.mixer.update(delta)
