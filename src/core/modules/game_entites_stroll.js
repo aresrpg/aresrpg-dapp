@@ -5,16 +5,16 @@ import { Vector3 } from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import {
-  get_nearest_floor_pos,
-  get_nearest_floor_pos_async,
-} from '../utils/terrain/world_utils.js'
+import { get_nearest_floor_pos_async } from '../utils/terrain/world_utils.js'
+import logger from '../../logger.js'
 
 const MOVE_INTERVAL = 5000 // 5 seconds in milliseconds
 const MOVE_PROBABILITY = 0.1 // 10% chance to move
 const MAX_MOVE_DISTANCE = 6
 const MOB_SPEED = 4.0
 const MAX_ANIMATION_DISTANCE = 50
+const MOB_COLLISION_RADIUS = 0.4
+const MOB_COLLISION_HEIGHT = 1.1
 
 function get_random_offset(max_distance) {
   return (Math.random() - 0.5) * 2 * max_distance
@@ -23,7 +23,7 @@ function get_random_offset(max_distance) {
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick(state, _, delta) {
+    tick(state, { physics }, delta) {
       const { visible_mobs_group } = state
       const character = current_three_character(state)
       if (!character) return
@@ -32,27 +32,62 @@ export default function () {
           if (
             mob.position.distanceTo(character.position) < MAX_ANIMATION_DISTANCE
           ) {
+            const direction = new Vector3()
+
             if (mob.target_position) {
-              const direction = new Vector3()
+              direction
                 .subVectors(mob.target_position, mob.position)
+                .setY(0)
                 .normalize()
-              const movement = direction.multiplyScalar(MOB_SPEED * delta)
+            }
+            const velocity = direction.clone().multiplyScalar(MOB_SPEED)
 
-              const new_position = mob.position.clone().add(movement)
-              const surface_block = get_nearest_floor_pos(new_position)
+            const mob_center = new Vector3(0, 0.5 * mob.height, 0)
 
-              new_position.setY(surface_block.y + mob.height * 0.5)
+            const mob_collisions = physics.voxelmap_collisions.entityMovement(
+              {
+                radius: MOB_COLLISION_RADIUS,
+                height: MOB_COLLISION_HEIGHT,
+                position: new Vector3().subVectors(mob.position, mob_center),
+                velocity,
+              },
+              {
+                deltaTime: delta,
+                ascendSpeed: 20,
+                gravity: 5000,
+                missingVoxels: {
+                  considerAsBlocking: true,
+                  exportAsList: false,
+                },
+              },
+            )
 
-              mob.move(new_position)
-              mob.rotate(movement)
+            if (mob_collisions.computationStatus === 'partial') {
+              logger.WARNING(
+                'Physics engine lacked some info to compute mobs stroll collisions.',
+              )
+            }
+
+            const new_position = mob_collisions.position.add(mob_center)
+            const horizontal_movement = new Vector3()
+              .subVectors(new_position, mob.position)
+              .setY(0)
+
+            mob.move(new_position)
+
+            if (horizontal_movement.lengthSq() > 0.00001) {
+              mob.rotate(direction)
               mob.animate('RUN')
-
-              // Check if mob has reached the target position
-              if (new_position.distanceTo(mob.target_position) < 2) {
-                mob.target_position = null
-              }
             } else {
               mob.animate('IDLE')
+            }
+
+            // Check if mob has reached the target position
+            if (
+              mob.target_position &&
+              new_position.distanceTo(mob.target_position) < 2
+            ) {
+              mob.target_position = null
             }
 
             mob.mixer.update(delta)
