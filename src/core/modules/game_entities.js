@@ -349,6 +349,10 @@ export default function () {
             await character.equip_hat(item).catch(error => {
               console.error('Error equipping hat:', error)
             })
+          if (item.item_category === ITEM_CATEGORY.CLOAK)
+            await character.equip_cape(item).catch(error => {
+              console.error('Error equipping cloak:', error)
+            })
         }
 
         const skin = get_item_skin(character)

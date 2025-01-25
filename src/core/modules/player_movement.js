@@ -251,7 +251,7 @@ export default function () {
       }
       return state
     },
-    observe({ events, signal, dispatch, send_packet }) {
+    observe({ signal, dispatch, send_packet }) {
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
         last_position => {
           const state = context.get_state()

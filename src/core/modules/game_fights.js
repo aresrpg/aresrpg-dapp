@@ -3,18 +3,21 @@ import { Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
 
-import { context, current_three_character } from '../game/game.js'
+import {
+  context,
+  current_sui_character,
+  current_three_character,
+} from '../game/game.js'
 import { spawn_crescent_sword } from '../utils/game/objects.js'
 import { state_iterator } from '../utils/iterator.js'
 
-// const fight_board_container = new BoardContainer()
 const MAX_TEAM_SIZE = 6
 
 function is_in_team(team, character_id) {
   return team.some(({ id }) => id === character_id)
 }
 
-export const init_board_handler = board_data => {
+function init_board_handler(board_data) {
   if (board_data?.content.length > 0) {
     // convert to board hanlder format
     const board_size = board_data.bounds.getSize(new Vector2())
@@ -34,25 +37,31 @@ export const init_board_handler = board_data => {
   }
 }
 
-async function create_board(position = new Vector3()) {
-  const fight_board_container = BoardProvider.createInstance(position)
-  const board = await BoardProvider.instance.genBoardContent()
-  const board_chunks = BoardProvider.instance.overrideOriginalChunksContent(
+function is_in_fight(fight, character_id) {
+  return (
+    fight.team1.some(({ id }) => id === character_id) ||
+    fight.team2.some(({ id }) => id === character_id) ||
+    fight.spectators.some(({ id }) => id === character_id)
+  )
+}
+
+export async function create_board(position = new Vector3()) {
+  // seems the boardprocessor is made to have a single instance so we have to call that each time
+  // and it will erase the previous instance
+  BoardProvider.createInstance(position)
+
+  const { instance: board_processor } = BoardProvider
+
+  const board = await board_processor.genBoardContent()
+  const board_chunks = board_processor.overrideOriginalChunksContent(
     board.chunk,
   )
-  // for (const chunk of board_chunks) {
-  //   render_world_chunk(chunk)
-  // }
+  const original_chunks = board_processor.restoreOriginalChunksContent()
   const board_data = board.patch.toStub()
-  board_data.elevation = BoardProvider.instance.boardElevation
+
+  board_data.elevation = board_processor.boardElevation
+
   const board_handler = init_board_handler(board_data)
-  // highlight_board_edges(board_data, board_handler)
-  // highlight_board_start_pos(board_data, board_handler)
-  // board_wrapper.handler = board_handler
-  // scene.add(board_handler.container)
-  // await fight_board_container.localCache
-  // const board_data = fight_board_container.genBoardContent(position)
-  // const board_stub = board_data.patch.toStub()
 
   const board_size = board_data.bounds.getSize(new Vector2())
   const border_blocks = FightBoards.extract_border_blocks(board_data)
@@ -82,29 +91,27 @@ async function create_board(position = new Vector3()) {
     z: pos.y - board_data.bounds.min.y,
   })
 
+  const board_items = FightBoards.iter_board_data(board_data)
+  const sorted_board_items = FightBoards.sort_by_side(board_items, board_data)
+  const { team_1, team_2 } = FightBoards.get_fight_start_positions({
+    team_1_blocks: sorted_board_items.first,
+    team_2_blocks: sorted_board_items.second,
+    max_team_size: MAX_TEAM_SIZE,
+  })
+
+  const team_1_positions = team_1.map(block => to_local_pos(block.pos))
+  const team_2_positions = team_2.map(block => to_local_pos(block.pos))
+
   return {
     board_chunks,
-    // original_chunks,
+    original_chunks,
+    team_1_positions,
+    team_2_positions,
+    squares,
     show_start_positions() {
-      const board_items = FightBoards.iter_board_data(this.data)
-      const sorted_board_items = FightBoards.sort_by_side(
-        board_items,
-        this.data,
-      )
-      const { team_1, team_2 } = FightBoards.get_fight_start_positions({
-        team_1_blocks: sorted_board_items.first,
-        team_2_blocks: sorted_board_items.second,
-        max_team_size: MAX_TEAM_SIZE,
-      })
-      start_overlay.displaySquares(
-        team_1.map(({ pos }) => to_local_pos(pos)),
-        new Color(0x1976d2),
-      )
-      start_overlay.displaySquares(
-        team_2.map(({ pos }) => to_local_pos(pos)),
-        new Color(0xd32f2f),
-      )
-      context.scene.add(start_overlay.container)
+      board_handler.displaySquares(team_1_positions, new Color(0x1976d2))
+      board_handler.displaySquares(team_2_positions, new Color(0xd32f2f))
+      context.scene.add(board_handler.container)
     },
     hide_start_positions() {
       start_overlay.clearSquares()
@@ -128,6 +135,11 @@ async function create_board(position = new Vector3()) {
       edge_overlay.clearSquares()
       edge_overlay.dispose()
       context.scene.remove(edge_overlay.container)
+    },
+    dispose(scene) {
+      BoardProvider.deleteInstance()
+      board_handler.dispose()
+      scene.remove(board_handler.container)
     },
   }
 }
@@ -159,14 +171,6 @@ export default function () {
 
           const { current_fight_id } = character
 
-          if (current_fight_id)
-            console.log(
-              'fight id is now',
-              current_fight_id,
-              last_fight_id,
-              character,
-            )
-
           if (last_fight_id !== current_fight_id) {
             if (last_fight_id)
               context.events.emit('FORCE_RENDER_CHUNKS', last_original_chunks)
@@ -175,10 +179,14 @@ export default function () {
               const fight = state.visible_fights.get(current_fight_id)
               console.log('creating board')
               const { board_chunks, original_chunks } = await create_board(
-                // TODO: fight.position not yet exists! server WIP
-                // @ts-ignore
-                fight.position ?? character.position,
+                new Vector3(
+                  fight.position.x,
+                  fight.position.y,
+                  fight.position.z,
+                ),
               )
+
+              fight_swords.get(current_fight_id)?.()
 
               console.log('force render chunks', board_chunks)
               context.events.emit('FORCE_RENDER_CHUNKS', board_chunks)
@@ -203,8 +211,16 @@ export default function () {
         fight.start_time = +fight.start_time
 
         visible_fights.set(fight.id, fight)
-
         console.log('packet/fightSpawn', fight)
+
+        const { id } = current_sui_character()
+
+        if (is_in_fight(fight, id)) {
+          context.dispatch('action/join_fight', {
+            character_id: id,
+            fight_id: fight.id,
+          })
+        }
 
         try {
           fight_swords.set(

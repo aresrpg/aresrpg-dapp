@@ -2,7 +2,7 @@ import { BoxGeometry, Group, LoopOnce, Mesh, Quaternion, Vector3 } from 'three'
 
 import dispose from '../utils/three/dispose.js'
 
-import { MODELS, find_head_bone } from './models.js'
+import { MODELS, find_bone } from './models.js'
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
 import { context } from './game.js'
 import { create_billboard_text } from './rendering/billboard_text.js'
@@ -86,13 +86,14 @@ function entity_spawner(
     current_animation?.play()
 
     // this function must be atomic, to avoid having both hair and helmet equipped at the same time
-    let equip_promise = Promise.resolve()
+    let equip_hat_promise = Promise.resolve()
+    let equip_cape_promise = Promise.resolve()
     let custom_hat_colors = null
 
     async function equip_hat(hat) {
-      equip_promise = equip_promise.then(async () => {
+      equip_hat_promise = equip_hat_promise.then(async () => {
         // @ts-ignore
-        const head = find_head_bone(model)
+        const head = find_bone(model, 'Head')
         head.clear()
 
         if (!hat) return
@@ -104,7 +105,24 @@ function entity_spawner(
         head.add(hat_model)
         custom_hat_colors = new_custom_hat_colors
       })
-      return equip_promise
+      return equip_hat_promise
+    }
+
+    async function equip_cape(cape) {
+      equip_cape_promise = equip_cape_promise.then(async () => {
+        // @ts-ignore
+        const back = find_bone(model, 'cape')
+        back.clear()
+
+        if (!cape) return
+
+        const { model: cape_model } = await MODELS[cape.item_type]
+
+        cape_model.rotation.set(0, Math.PI, Math.PI)
+        cape_model.position.y += 1.8
+        back.add(cape_model)
+      })
+      return equip_cape_promise
     }
 
     return {
@@ -164,6 +182,7 @@ function entity_spawner(
       set_variant,
       custom_colors,
       equip_hat,
+      equip_cape,
       async set_hair() {
         if (id === 'default') return
         await equip_hat({ item_type: hair })
@@ -260,7 +279,7 @@ export const ENTITIES = {
     height: 1.5,
     radius: 0.8,
     skin: 'bouftou',
-    scale: 1.2,
+    scale: 1.7,
   }),
   hophop: entity_spawner(() => MODELS.hophop, {
     height: 1.5,

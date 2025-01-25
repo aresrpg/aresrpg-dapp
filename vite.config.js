@@ -18,7 +18,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['events-polyfill'],
+    include: ['events-polyfill', 'buffer'],
   },
   build: {
     target: 'esnext',
@@ -57,6 +57,7 @@ export default defineConfig({
     }),
     nodePolyfills({
       include: [
+        'buffer',
         'stream',
         'events',
         'path',
@@ -68,9 +69,8 @@ export default defineConfig({
         'child_process', // Add child_process
       ],
       globals: {
-        // Don't polyfill these globals
         process: true,
-        Buffer: false,
+        Buffer: true,
       },
       overrides: {
         events: 'events-polyfill',

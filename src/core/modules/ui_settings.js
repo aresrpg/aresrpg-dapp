@@ -5,9 +5,12 @@ import {
   INITIAL_STATE,
   VIEW_DISTANCE_MAX,
   VIEW_DISTANCE_MIN,
+  context,
   current_three_character,
 } from '../game/game.js'
 import { get_nearest_floor_pos_async } from '../utils/terrain/world_utils.js'
+
+import { create_board } from './game_fights.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -119,19 +122,33 @@ export default function () {
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
 
-      terrain_folder
-        .add(settings.terrain, 'use_lod')
-        .name('enable LOD')
-        .onFinishChange(() =>
-          dispatch('action/terrain_changed', settings.terrain),
-        )
+      terrain_folder.add(settings.terrain, 'use_lod').name('enable LOD')
 
       terrain_folder
-        .add(settings.terrain, 'show_board')
-        .name('show board')
-        .onFinishChange(() =>
-          dispatch('action/terrain_changed', settings.terrain),
+        .add(
+          {
+            show_board: async () => {
+              const player = current_three_character()
+              if (player?.position) {
+                const { board_chunks, show_edges, show_start_positions } =
+                  await create_board(
+                    new Vector3(
+                      player.position.x,
+                      player.position.y,
+                      player.position.z,
+                    ),
+                  )
+                context.events.emit('FORCE_RENDER_CHUNKS', board_chunks)
+                setTimeout(() => {
+                  show_edges()
+                  show_start_positions()
+                }, 2000)
+              }
+            },
+          },
+          'show_board',
         )
+        .name('Create fight board')
 
       camera_folder
         .add(settings.camera, 'is_free')
