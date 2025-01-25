@@ -51,6 +51,7 @@ declare namespace Type {
     skin: string
     set_variant: (variant: string) => Promise<void>
     equip_hat(hat: SuiItem): Promise<void>
+    equip_cape(cape: SuiItem): Promise<void>
     set_hair(): Promise<void>
     mob_group_id?: string
     current_fight_id?: string
@@ -137,7 +138,6 @@ declare namespace Type {
     'action/show_fps': boolean
     'action/target_fps': number
     'action/postprocessing_changed': State['settings']['postprocessing']
-    'action/terrain_changed': State['settings']['terrain']
     'action/keydown': string
     'action/keyup': string
     'action/mousedown': number

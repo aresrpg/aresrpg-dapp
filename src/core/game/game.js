@@ -131,7 +131,7 @@ export const INITIAL_STATE = {
 
     sky: {
       paused: false,
-      value: 0.78,
+      value: 0,
 
       lights: {
         version: -1,
@@ -168,9 +168,8 @@ export const INITIAL_STATE = {
     },
 
     terrain: {
-      use_lod: true,
-      show_board: false,
-      view_distance: 100,
+      use_lod: false,
+      view_distance: 200,
     },
 
     camera: {

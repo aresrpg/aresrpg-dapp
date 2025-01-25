@@ -47,7 +47,7 @@ export const world_shared_setup = (
   world_env.workerPool.type = 'module'
 
   // BOARDS
-  world_env.boardSettings.boardRadius = 20
+  world_env.boardSettings.boardRadius = 15
   world_env.boardSettings.boardThickness = 3
 
   // DEV ONLY: LEAVE THIS LINE COMMENTED

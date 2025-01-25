@@ -9,8 +9,13 @@ import yajin_female from '../../assets/models/characters/yajin_female.glb?url'
 import yajin_male_hair from '../../assets/models/characters/yajin_male_hair.glb?url'
 import yajin_male from '../../assets/models/characters/yajin_male.glb?url'
 import anima from '../../assets/models/equipment/anima.glb?url'
+import cape_bouffante from '../../assets/models/equipment/cape_bouffante.glb?url'
+import cape_lorito from '../../assets/models/equipment/cape_lorito.glb?url'
+import capuche_mo from '../../assets/models/equipment/capuche_mo.glb?url'
+import coiffe_bouftou from '../../assets/models/equipment/coiffe_bouftou.glb?url'
 import fud from '../../assets/models/equipment/fud.glb?url'
 import mokan from '../../assets/models/equipment/mokan.glb?url'
+import momaku from '../../assets/models/equipment/momaku.glb?url'
 import primemachin from '../../assets/models/equipment/primemachin.glb?url'
 import suicunio from '../../assets/models/equipment/suicunio.glb?url'
 import fight_sword from '../../assets/models/misc/fight_sword.glb?url'
@@ -44,8 +49,13 @@ const AVAILABLE_MODELS = {
   yajin_male,
 
   anima,
+  cape_bouffante,
+  cape_lorito,
+  capuche_mo,
+  coiffe_bouftou,
   fud,
   mokan,
+  momaku,
   primemachin,
   suicunio,
 
@@ -92,15 +102,15 @@ export const MODELS = new Proxy(/** @type {any} */ ({}), {
   },
 })
 
-/** @type {(origin: Type.Object3D) => Type.Object3D} */
-export function find_head_bone(origin) {
-  let head_bone = null
+/** @type {(origin: Type.Object3D, name: string) => Type.Object3D} */
+export function find_bone(origin, name) {
+  let bone = null
   origin.traverse(child => {
     // @ts-ignore
-    if (child.isBone && child.name.includes('Head')) head_bone = child
+    if (child.isBone && child.name.includes(name)) bone = child
   })
 
-  assert(head_bone, 'Head bone not found')
+  assert(bone, `${name} bone not found`)
 
-  return head_bone
+  return bone
 }

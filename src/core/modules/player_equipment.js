@@ -25,7 +25,7 @@ export default function () {
         if (!current_equipments.has(character.id))
           current_equipments.set(character.id, {})
 
-        const { hat } = character
+        const { hat, cloak } = character
         const current_equipment = current_equipments.get(character.id)
 
         if (hat?.id !== current_equipment.hat?.id) {
@@ -35,6 +35,12 @@ export default function () {
           else await three_character.set_hair()
 
           current_equipments.set(character.id, { ...current_equipment, hat })
+        }
+
+        if (cloak?.id !== current_equipment.cloak?.id) {
+          // if null, it will remove the cloak
+          await three_character.equip_cape(cloak)
+          current_equipments.set(character.id, { ...current_equipment, cloak })
         }
       })
     },

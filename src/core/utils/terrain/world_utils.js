@@ -10,8 +10,6 @@ import {
 } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
 
-import logger from '../../../logger.js'
-
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 
 /**
