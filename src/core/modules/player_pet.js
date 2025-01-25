@@ -39,7 +39,7 @@ export function tick_pet(
     if (pet.target_position) {
       direction
         .subVectors(pet.target_position, pet.position)
-        // .setY(0)
+        .setY(0)
         .normalize()
     }
     const velocity = direction.clone().multiplyScalar(PET_SPEED)
