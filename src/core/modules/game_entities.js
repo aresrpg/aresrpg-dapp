@@ -58,11 +58,11 @@ export default function () {
 
     spawned_pets.set(character.id, spawned_pet)
 
-    tick_pet(character, spawned_pet, 0)
+    tick_pet(character, spawned_pet, 0, null)
   }
 
   return {
-    tick({ visible_characters }, __, delta) {
+    tick({ visible_characters }, { physics }, delta) {
       // handle entities movement
       for (const character of visible_characters.values()) {
         if (character.target_position) {
@@ -82,7 +82,7 @@ export default function () {
           character.rotate(movement)
 
           const pet = spawned_pets.get(character.id)
-          if (pet) tick_pet(character, pet, delta)
+          if (pet) tick_pet(character, pet, delta, physics.voxelmap_collisions)
 
           if (new_position.distanceTo(character.target_position) < 0.01)
             character.target_position = null
