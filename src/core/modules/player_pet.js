@@ -66,10 +66,9 @@ export function tick_pet(
     }
 
     const new_position = pet_collisions.position.add(pet_center)
-    const movement = new Vector3().subVectors(new_position, pet.position)
 
     pet.move(new_position)
-    pet.rotate(movement)
+    pet.rotate(direction)
     pet.animate('RUN')
 
     // Check if pet has reached the target position
