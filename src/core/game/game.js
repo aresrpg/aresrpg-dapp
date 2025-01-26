@@ -169,7 +169,7 @@ export const INITIAL_STATE = {
 
     terrain: {
       use_lod: false,
-      chunk_streaming: true,
+      chunk_streaming: false,
       view_distance: 200,
     },
 
