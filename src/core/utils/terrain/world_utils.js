@@ -129,13 +129,16 @@ export const chunk_data_encoder = (val, mode = BlockMode.REGULAR) =>
     ? voxelmapDataPacking.encode(mode === BlockMode.CHECKERBOARD, val)
     : voxelmapDataPacking.encodeEmpty()
 
-export const to_engine_chunk_format = world_chunk => {
+export const to_engine_chunk_format = (
+  world_chunk,
+  { encode = false } = {},
+) => {
   const { id } = world_chunk
   const is_empty = world_chunk.isEmpty()
   const size = world_chunk.extendedDims
   const data = is_empty ? [] : world_chunk.rawData
   const voxels_chunk_data = {
-    data,
+    data: encode ? data.map(chunk_data_encoder) : data,
     isEmpty: is_empty,
     size,
     dataOrdering: 'zxy',

@@ -169,6 +169,7 @@ export default function () {
         const { visible_mobs_group } = get_state()
         ids.forEach(id => {
           if (visible_mobs_group.has(id)) {
+            const pos = visible_mobs_group.get(id).position
             visible_mobs_group.get(id).entities.forEach(mob => mob.remove())
             visible_mobs_group.delete(id)
           }

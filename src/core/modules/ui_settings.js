@@ -123,6 +123,9 @@ export default function () {
         .onFinishChange(handle_change('action/view_distance'))
 
       terrain_folder.add(settings.terrain, 'use_lod').name('enable LOD')
+      terrain_folder
+        .add(settings.terrain, 'chunk_streaming')
+        .name('Stream chunks from server')
 
       terrain_folder
         .add(
