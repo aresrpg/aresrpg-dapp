@@ -65,14 +65,14 @@ export async function get_nearest_floor_pos_async(raw_pos) {
     blocks_processing_task.processingInput.push(requested_pos)
     const batch_res = await blocks_processing_task.promise
     const matching_block = batch_res.find(block => equal_pos(block.pos))
-    const floor_height = matching_block?.pos?.y
+    const surface_block = matching_block?.pos
 
-    if (!floor_height) {
+    if (!surface_block) {
       throw new Error(`No floor found at ${requested_pos}`)
     }
 
     // console.log(`floor height ${floor_height}`)
-    return floor_height
+    return surface_block
   } else {
     console.warn(`unexpected missing task`)
     // send dummy value until ready

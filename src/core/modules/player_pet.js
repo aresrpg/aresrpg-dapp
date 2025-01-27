@@ -65,9 +65,9 @@ export function tick_pet(
     )
 
     if (pet_collisions.computationStatus === 'partial') {
-      logger.WARNING(
-        'Physics engine lacked some info to compute pet collisions.',
-      )
+      // logger.WARNING(
+      //   'Physics engine lacked some info to compute pet collisions.',
+      // )
     }
 
     const new_position = pet_collisions.position.add(pet_center)

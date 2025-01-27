@@ -137,7 +137,8 @@ export default function () {
 
       events.on('packet/chunk', async ({ key, column }) => {
         COMPRESSED_CHUNK_CACHE.set(key, column)
-        if (COMPRESSED_CHUNK_CACHE.size > 100) {
+        console.log('Received chunk', key)
+        if (COMPRESSED_CHUNK_CACHE.size > 300) {
           logger.WARNING(
             `Cached chunks from the servers are getting too big! (${COMPRESSED_CHUNK_CACHE.size})`,
           )
@@ -180,8 +181,9 @@ export default function () {
             )
           })
 
-          supposed_visible_chunks =
-            current_columns_ids.flatMap(column_to_chunk_ids)
+          supposed_visible_chunks = spiral_array(chunk_position, 0, 4).flatMap(
+            column_to_chunk_ids,
+          )
 
           return current_columns_ids
         },
@@ -228,8 +230,7 @@ export default function () {
       )
 
       state_iterator().forEach(({ settings: { terrain } }) => {
-        const { use_lod, chunk_streaming } = terrain
-
+        const { use_lod } = terrain
         terrain_viewer.parameters.lod.enabled = use_lod
       })
 
