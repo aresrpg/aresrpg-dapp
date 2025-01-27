@@ -33,13 +33,17 @@ export default function () {
             mob.position.distanceTo(character.position) < MAX_ANIMATION_DISTANCE
           ) {
             const direction = new Vector3()
+            mob.mixer.update(delta)
 
-            if (mob.target_position) {
-              direction
-                .subVectors(mob.target_position, mob.position)
-                .setY(0)
-                .normalize()
+            if (!mob.target_position) {
+              mob.animate('IDLE')
+              continue
             }
+
+            direction
+              .subVectors(mob.target_position, mob.position)
+              .setY(0)
+              .normalize()
             const velocity = direction.clone().multiplyScalar(MOB_SPEED)
 
             const mob_center = new Vector3(0, 0.5 * mob.height, 0)
@@ -78,8 +82,6 @@ export default function () {
             if (horizontal_movement.lengthSq() > 0.00001) {
               mob.rotate(direction)
               mob.animate('RUN')
-            } else {
-              mob.animate('IDLE')
             }
 
             // Check if mob has reached the target position
@@ -89,8 +91,6 @@ export default function () {
             ) {
               mob.target_position = null
             }
-
-            mob.mixer.update(delta)
           }
         }
       }
