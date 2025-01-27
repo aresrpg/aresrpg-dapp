@@ -137,7 +137,6 @@ export default function () {
 
       events.on('packet/chunk', async ({ key, column }) => {
         COMPRESSED_CHUNK_CACHE.set(key, column)
-        console.log('Received chunk', key)
         if (COMPRESSED_CHUNK_CACHE.size > 300) {
           logger.WARNING(
             `Cached chunks from the servers are getting too big! (${COMPRESSED_CHUNK_CACHE.size})`,
