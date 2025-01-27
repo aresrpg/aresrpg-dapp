@@ -63,9 +63,9 @@ export default function () {
             )
 
             if (mob_collisions.computationStatus === 'partial') {
-              logger.WARNING(
-                'Physics engine lacked some info to compute mobs stroll collisions.',
-              )
+              // logger.WARNING(
+              //   'Physics engine lacked some info to compute mobs stroll collisions.',
+              // )
             }
 
             const new_position = mob_collisions.position.add(mob_center)

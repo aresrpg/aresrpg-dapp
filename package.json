@@ -14,10 +14,10 @@
     "publish:mainnet": "git tag mainnet-$(node -p -e \"require('./package.json').version\") && git push origin mainnet-$(node -p -e \"require('./package.json').version\")"
   },
   "dependencies": {
-    "@aresrpg/aresrpg-engine": "2.7.0",
+    "@aresrpg/aresrpg-engine": "2.7.1",
     "@aresrpg/aresrpg-protocol": "5.1.9",
-    "@aresrpg/aresrpg-sdk": "5.0.32",
-    "@aresrpg/aresrpg-world": "1.8.7",
+    "@aresrpg/aresrpg-sdk": "5.0.33",
+    "@aresrpg/aresrpg-world": "1.8.8",
     "@bufbuild/buf": "1.50.0",
     "@bufbuild/protobuf": "2.2.3",
     "@bufbuild/protoc-gen-es": "2.2.3",
@@ -90,7 +90,7 @@
     "eslint-plugin-node": "^11.1.0",
     "events-polyfill": "gist:e2c3b3969513bbd62c1dc2ba2a565fbf",
     "husky": "^4.3.8",
-    "lint-staged": "15.4.2",
+    "lint-staged": "15.4.3",
     "prettier": "3.4.2",
     "pug": "^3.0.3",
     "stylus": "^0.64.0",
