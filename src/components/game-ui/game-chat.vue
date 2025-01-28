@@ -30,7 +30,7 @@ import ContextMenu from '@imengyu/vue3-context-menu';
 import { useI18n } from 'vue-i18n';
 
 import toast from '../../toast.js';
-import { context } from '../../core/game/game.js';
+import { context, current_sui_character } from '../../core/game/game.js';
 import {
   get_alias,
   sui_get_character_name,
@@ -139,6 +139,17 @@ async function send_message() {
   current_message.value = '';
 
   if (msg.startsWith('/')) {
+    if (msg.startsWith('/teleport')) {
+      const [x, y, z] = msg.split(' ').slice(1);
+      if (!x || !y || !z) toast.error('Invalid teleport command');
+      else
+        context.send_packet('packet/serverCommand', {
+          command: 'teleport',
+          args: [current_sui_character().id, x, y, z],
+        });
+      return;
+    }
+
     increase_loading();
     try {
       await sui_console_command(msg);

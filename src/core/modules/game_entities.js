@@ -190,7 +190,8 @@ export default function () {
                   const spawned_mob = {
                     ...(await ENTITIES[skin]({
                       id,
-                      name: `${name} (${level})`,
+                      // name: `${name} (${level})`,
+                      name: `${id} (${spawn_position.x}, ${spawn_position.y}, ${spawn_position.z})`,
                       scale_factor: size,
                     })),
                     name,

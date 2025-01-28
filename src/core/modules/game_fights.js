@@ -178,7 +178,12 @@ export default function () {
             if (current_fight_id) {
               const fight = state.visible_fights.get(current_fight_id)
               console.log('creating board')
-              const { board_chunks, original_chunks } = await create_board(
+              const {
+                board_chunks,
+                original_chunks,
+                show_start_positions,
+                show_edges,
+              } = await create_board(
                 new Vector3(
                   fight.position.x,
                   fight.position.y,
@@ -186,10 +191,15 @@ export default function () {
                 ),
               )
 
-              fight_swords.get(current_fight_id)?.()
+              // remove sword after the fight started
+              // fight_swords.get(current_fight_id)?.()
 
               console.log('force render chunks', board_chunks)
               context.events.emit('FORCE_RENDER_CHUNKS', board_chunks)
+
+              show_start_positions()
+              show_edges()
+
               return {
                 last_fight_id: current_fight_id,
                 original_chunks,
