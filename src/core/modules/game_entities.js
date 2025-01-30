@@ -130,6 +130,7 @@ export default function () {
 
             if (sui_data.pet) await spawn_pet(sui_data)
             if (sui_data.hat) await three_character.equip_hat(sui_data.hat)
+            if (sui_data.cloak) await three_character.equip_cape(sui_data.cloak)
             else await three_character.set_hair()
 
             three_character.set_colors({

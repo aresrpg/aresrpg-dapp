@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@aresrpg/aresrpg-engine": "2.7.1",
-    "@aresrpg/aresrpg-protocol": "5.1.10",
+    "@aresrpg/aresrpg-protocol": "5.1.11",
     "@aresrpg/aresrpg-sdk": "5.0.33",
     "@aresrpg/aresrpg-world": "1.8.8",
     "@bufbuild/buf": "1.50.0",
