@@ -48,9 +48,7 @@ function is_in_fight(fight, character_id) {
 export async function create_board(position = new Vector3()) {
   // seems the boardprocessor is made to have a single instance so we have to call that each time
   // and it will erase the previous instance
-  BoardProvider.createInstance(position)
-
-  const { instance: board_processor } = BoardProvider
+  const board_processor = new BoardProvider(position)
 
   const board = await board_processor.genBoardContent()
   const board_chunks = board_processor.overrideOriginalChunksContent(
@@ -215,6 +213,7 @@ export default function () {
         },
       )
 
+      // this handles joining a fight when the character is already selected
       context.events.on('packet/fightSpawn', async fight => {
         const { visible_fights } = context.get_state()
 
@@ -224,6 +223,8 @@ export default function () {
         console.log('packet/fightSpawn', fight)
 
         const { id } = current_sui_character()
+
+        console.log('current id on fight packet reception', id)
 
         if (is_in_fight(fight, id)) {
           context.dispatch('action/join_fight', {
@@ -255,6 +256,8 @@ export default function () {
         })
       })
 
+      // this handles joining a fight when a character is selected
+      // because for reconnecting in fight, we could receive the packet before characters are loaded
       state_iterator().reduce(
         (last_characters_ids, { visible_fights, characters }) => {
           const ids = characters.map(({ id }) => id)
