@@ -13,14 +13,15 @@ import { Vector2, Vector3 } from 'three'
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 
 /**
- * perform calls in main thread to remain sync and doesn't use caching
- * prefer using async version to avoid performance loss
+ * performs individual block processing call synchroneously in main thread (without cache)
+ * prefer using batch async version to improve performances
  */
 export function get_nearest_floor_pos(pos) {
   // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
   const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
-  const blocks_request = BlocksProcessing.getFloorPositions([requested_pos])
-  const [floor_block] = blocks_request.process()
+  const [floor_block] = BlocksProcessing.getFloorPositions([
+    requested_pos,
+  ]).process()
   return floor_block.pos
 }
 /**
@@ -45,14 +46,15 @@ let blocks_processing_task //= renew_blocks_processing_request()
 // console.log(`this line run several time why? isn't top level code supposed to run only once even when module is imported several times?`)
 
 /**
- * better version grouping multiple isolated request in same batch
+ * async version grouping multiple isolated requests in same batch
+ * and running in separate worker
  */
 export async function get_nearest_floor_pos_async(raw_pos) {
   // console.log(`get_nearest_floor_pos`)
   const requested_pos = new Vector3(raw_pos.x, raw_pos.y, raw_pos.z).floor()
   const equal_pos = pos =>
     pos.x === requested_pos.x && pos.z === requested_pos.z
-  // try recycling previous task to avoid recreating one for each individual pos request
+  // try recycling previous task to avoid recreating one each time a block request is received
   const use_previous_task =
     blocks_processing_task?.processingState === ProcessingState.None ||
     blocks_processing_task?.processingState === ProcessingState.Waiting ||
