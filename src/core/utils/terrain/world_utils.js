@@ -18,10 +18,16 @@ import { color_to_block_type, hex_to_int } from './world_settings.js'
  */
 export function get_nearest_floor_pos(pos) {
   // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
-  const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
+  const requested_pos = new Vector3(pos.x, pos.y + 1, pos.z).floor()
   const [floor_block] = BlocksProcessing.getFloorPositions([
     requested_pos,
   ]).process()
+  // if (floor_block.pos.y <= 10) {
+  //   console.warn(
+  //     `abnormal height ${floor_block.pos.y} (original height ${pos.y})`,
+  //   )
+  //   floor_block.pos.y = 10
+  // }
   return floor_block.pos
 }
 /**
