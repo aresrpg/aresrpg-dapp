@@ -16,7 +16,7 @@ const SEA_LEVEL = 76
  * @param world_env targeted env or main thread env (no arguments) by default
  */
 export const world_shared_setup = (world_env = WorldEnv.current) => {
-  world_env.seeds.main = 'test' // common seed use everywhere
+  world_env.seeds.main = 'aresrpg' // common seed use everywhere
   world_env.seaLevel = SEA_LEVEL // TODO: remove hardcoded sea
   world_env.chunks.dataEncoder = chunk_data_encoder
   world_env.chunks.dataDecoder = val => voxelmapDataPacking.getMaterialId(val)
@@ -25,6 +25,7 @@ export const world_shared_setup = (world_env = WorldEnv.current) => {
   // EXTERNAL CONFIGS/RESOURCES
   world_env.biomes.rawConf = LANDSCAPE
   world_env.schematics.globalBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
+  // @ts-ignore
   world_env.schematics.filesIndex = SCHEMATICS_FILES
 
   // WORKER POOL
