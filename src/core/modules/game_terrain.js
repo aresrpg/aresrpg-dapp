@@ -248,7 +248,10 @@ export default function () {
         abortable(typed_on(events, 'FORCE_RENDER_CHUNKS', { signal })),
       ).forEach(chunks =>
         chunks.forEach(chunk =>
-          render_world_chunk(chunk, { ignore_collision: true }),
+          render_world_chunk(chunk.toStub(), {
+            ignore_collision: true,
+            skip_encoding: true,
+          }),
         ),
       )
 
