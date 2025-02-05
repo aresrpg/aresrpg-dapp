@@ -9,7 +9,7 @@ const WS_URL = 'ws://localhost:3000'
 
 // used to adapt chunk data to engine format before forwarding to client
 const chunk_data_adapter = chunk_stub =>
-  format_chunk_data(chunk_stub.metadata, chunk_stub.rawdata, { encode: true })
+  format_chunk_data(chunk_stub, { encode: true })
 
 const { wsInitState } = chunksStreamClientWorkerSetup(
   WS_URL,

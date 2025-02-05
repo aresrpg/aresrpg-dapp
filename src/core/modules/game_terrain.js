@@ -6,7 +6,6 @@ import {
   ChunkContainer,
   ChunksScheduler,
   WorkerPool,
-  BrowserWorkerProxy,
   ChunksStreamClientProxy,
   parseThreeStub,
 } from '@aresrpg/aresrpg-world'
@@ -20,6 +19,7 @@ import { current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import {
   format_chunk_data,
+  setup_chunks_local_provider,
   get_view_state,
 } from '../utils/terrain/world_utils.js'
 import {
@@ -54,21 +54,13 @@ export default function () {
 
   // world setup (main thread environement)
   world_shared_setup()
-  const worker_proxy_factory = worker_id =>
-    new BrowserWorkerProxy(WORLD_WORKER_URL, worker_id)
-  const chunks_processing_worker_pool = new WorkerPool()
-  chunks_processing_worker_pool.init(worker_proxy_factory, WORLD_WORKER_COUNT)
 
-  // chunk stream from remote server
+  // try using chunk stream from remote server by default
   const chunks_stream_client = new ChunksStreamClientProxy(
     CHUNKS_CLIENT_WORKER_URL,
   )
-  let chunks_local_provider = chunks_stream_client
-  chunks_stream_client.onServiceFail = error_msg => {
-    console.warn(`error from chunk streaming service reported: ${error_msg}`)
-    console.warn(`falling back to local gen`)
-    chunks_local_provider = new ChunksScheduler(chunks_processing_worker_pool)
-  }
+  let chunks_provider = chunks_stream_client
+
   // engine setup
   const { terrain_viewer, voxelmap_viewer } = voxel_engine_setup()
 
@@ -111,12 +103,16 @@ export default function () {
     observe({ camera, events, signal, scene, get_state, physics }) {
       function render_world_chunk(
         chunk_data,
-        { ignore_collision = false, no_formatting = false } = {},
+        {
+          ignore_collision = false,
+          skip_formatting = false,
+          skip_encoding = false,
+        } = {},
       ) {
-        const engine_chunk = no_formatting
+        const engine_chunk = skip_formatting
           ? chunk_data
           : format_chunk_data(chunk_data, {
-              encode: true,
+              encode: !skip_encoding,
             })
 
         // allow replacing exisiting chunks (needed for board)
@@ -137,13 +133,21 @@ export default function () {
           )
       }
 
-      // chunks_local_provider.onChunkAvailable = render_world_chunk
+      // fallbacking to chunks local generation if streaming failed
+      chunks_stream_client.onServiceFail = error_msg => {
+        console.warn(`error from local chunk streaming service: ${error_msg}`)
+        console.warn(`fallback to local generation`)
+        chunks_provider = setup_chunks_local_provider()
+        chunks_provider.onChunkAvailable = chunk =>
+          render_world_chunk(chunk, { skip_encoding: true })
+      }
+
       chunks_stream_client.onChunkAvailable = chunk => {
         chunk.id = parseThreeStub(chunk.id)
         chunk.voxels_chunk_data.size = parseThreeStub(
           chunk.voxels_chunk_data.size,
         )
-        render_world_chunk(chunk, { no_formatting: true })
+        render_world_chunk(chunk, { skip_formatting: true })
       }
 
       window.dispatchEvent(new Event('assets_loading'))
@@ -221,14 +225,14 @@ export default function () {
           const view_state = get_view_state(current_pos, view_distance)
           const { center, near, far } = view_state
 
-          const view_state_changed = chunks_local_provider.viewChanged(
+          const view_state_changed = chunks_provider.viewChanged(
             center,
             near,
             far,
           )
           if (view_state_changed) {
-            chunks_stream_client.requestChunksServer(center, near, far)
-            voxelmap_viewer.setVisibility(chunks_stream_client.chunkIds)
+            chunks_provider.requestChunks(center, near, far)
+            voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
             // chunks_provider.scheduleTasks(view.center, view.near, view.far)
             // voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
 

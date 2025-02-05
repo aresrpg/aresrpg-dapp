@@ -9,10 +9,12 @@ import {
   ProcessingState,
   WorldEnv,
   WorkerPool,
+  ChunksScheduler,
 } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
 
 import { color_to_block_type, hex_to_int } from './world_settings.js'
+import { WORLD_WORKER_COUNT, WORLD_WORKER_URL } from './world_setup.js'
 
 /**
  * performs individual block processing call synchroneously in main thread (without cache)
@@ -141,11 +143,8 @@ export const chunk_data_encoder = (val, mode = BlockMode.REGULAR) =>
 
 export const encode_chunk_rawdata = rawdata => rawdata.map(chunk_data_encoder)
 
-export const format_chunk_data = (
-  metadata,
-  rawdata,
-  { encode = false } = {},
-) => {
+export const format_chunk_data = (chunk_data, { encode = false } = {}) => {
+  const { metadata, rawdata } = chunk_data
   const id = parseChunkKey(metadata.chunkKey)
   const bounds = parseThreeStub(metadata.bounds)
   const extended_bounds = bounds.clone().expandByScalar(metadata.margin)
@@ -166,4 +165,18 @@ export const format_chunk_data = (
     voxels_chunk_data,
   }
   return engine_chunk
+}
+
+/**
+ * Local gen
+ */
+
+export const setup_chunks_local_provider = () => {
+  const chunks_processing_worker_pool = new WorkerPool()
+  chunks_processing_worker_pool.init(WORLD_WORKER_URL, WORLD_WORKER_COUNT)
+  const chunks_local_provider = new ChunksScheduler(
+    chunks_processing_worker_pool,
+  )
+  chunks_local_provider.skipBlobCompression = true
+  return chunks_local_provider
 }
