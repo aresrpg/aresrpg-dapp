@@ -4,9 +4,11 @@ import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
 import {
   ChunkContainer,
-  ChunksProvider,
+  ChunksScheduler,
   WorkerPool,
-  WorldEnv,
+  BrowserWorkerProxy,
+  ChunksStreamClientProxy,
+  parseThreeStub,
 } from '@aresrpg/aresrpg-world'
 import {
   decompress_chunk_column,
@@ -17,13 +19,14 @@ import {
 import { current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import {
-  get_view_settings,
-  to_engine_chunk_format,
+  format_chunk_data,
+  get_view_state,
 } from '../utils/terrain/world_utils.js'
 import {
   world_shared_setup,
   WORLD_WORKER_COUNT,
   WORLD_WORKER_URL,
+  CHUNKS_CLIENT_WORKER_URL,
 } from '../utils/terrain/world_setup.js'
 import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
 import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
@@ -51,12 +54,21 @@ export default function () {
 
   // world setup (main thread environement)
   world_shared_setup()
-  const chunks_processing_worker_pool = new WorkerPool(
-    WORLD_WORKER_URL,
-    WORLD_WORKER_COUNT,
+  const worker_proxy_factory = worker_id =>
+    new BrowserWorkerProxy(WORLD_WORKER_URL, worker_id)
+  const chunks_processing_worker_pool = new WorkerPool()
+  chunks_processing_worker_pool.init(worker_proxy_factory, WORLD_WORKER_COUNT)
+
+  // chunk stream from remote server
+  const chunks_stream_client = new ChunksStreamClientProxy(
+    CHUNKS_CLIENT_WORKER_URL,
   )
-  // chunks batch processing
-  const chunks_provider = new ChunksProvider(chunks_processing_worker_pool)
+  let chunks_local_provider = chunks_stream_client
+  chunks_stream_client.onServiceFail = error_msg => {
+    console.warn(`error from chunk streaming service reported: ${error_msg}`)
+    console.warn(`falling back to local gen`)
+    chunks_local_provider = new ChunksScheduler(chunks_processing_worker_pool)
+  }
   // engine setup
   const { terrain_viewer, voxelmap_viewer } = voxel_engine_setup()
 
@@ -79,10 +91,9 @@ export default function () {
                     voxelmap_viewer.doesPatchRequireVoxelsData(id),
                   )
                   .forEach(chunk => {
-                    const { id, voxels_chunk_data } = to_engine_chunk_format(
-                      chunk,
-                      { encode: true },
-                    )
+                    const { id, voxels_chunk_data } = format_chunk_data(chunk, {
+                      encode: true,
+                    })
                     voxelmap_viewer.enqueuePatch(id, voxels_chunk_data)
                     // @ts-ignore
                     physics.voxelmap_collider.setChunk(id, voxels_chunk_data)
@@ -99,12 +110,16 @@ export default function () {
     },
     observe({ camera, events, signal, scene, get_state, physics }) {
       function render_world_chunk(
-        world_chunk,
-        { ignore_collision = false } = {},
+        chunk_data,
+        { ignore_collision = false, no_formatting = false } = {},
       ) {
-        const engine_chunk = to_engine_chunk_format(world_chunk)
+        const engine_chunk = no_formatting
+          ? chunk_data
+          : format_chunk_data(chunk_data, {
+              encode: true,
+            })
 
-        // make sure the chunk is not already rendered
+        // allow replacing exisiting chunks (needed for board)
         voxelmap_viewer.invalidatePatch(engine_chunk.id)
 
         if (voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id)) {
@@ -122,13 +137,14 @@ export default function () {
           )
       }
 
-      const on_chunks_processed = chunks => {
-        chunks?.forEach(chunk => {
-          render_world_chunk(chunk)
-        })
+      // chunks_local_provider.onChunkAvailable = render_world_chunk
+      chunks_stream_client.onChunkAvailable = chunk => {
+        chunk.id = parseThreeStub(chunk.id)
+        chunk.voxels_chunk_data.size = parseThreeStub(
+          chunk.voxels_chunk_data.size,
+        )
+        render_world_chunk(chunk, { no_formatting: true })
       }
-
-      chunks_provider.onChunkProcessed = on_chunks_processed
 
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -202,15 +218,19 @@ export default function () {
 
         if (current_pos) {
           // Query chunks around player position
-          const view = get_view_settings(current_pos, view_distance)
-          const view_changed = chunks_provider.viewChanged(
-            view.center,
-            view.near,
-            view.far,
+          const view_state = get_view_state(current_pos, view_distance)
+          const { center, near, far } = view_state
+
+          const view_state_changed = chunks_local_provider.viewChanged(
+            center,
+            near,
+            far,
           )
-          if (view_changed) {
-            chunks_provider.rescheduleTasks(view.center, view.near, view.far)
-            voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
+          if (view_state_changed) {
+            chunks_stream_client.requestChunksServer(center, near, far)
+            voxelmap_viewer.setVisibility(chunks_stream_client.chunkIds)
+            // chunks_provider.scheduleTasks(view.center, view.near, view.far)
+            // voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
 
             if (FLAGS.LOD_MODE === LOD_MODE.STATIC)
               terrain_viewer.setLod(camera.position, 50, camera.far)

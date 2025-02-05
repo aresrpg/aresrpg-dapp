@@ -4,7 +4,12 @@ import {
   TerrainViewer,
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
-import { BlocksProcessing, WorldEnv, WorkerPool } from '@aresrpg/aresrpg-world'
+import {
+  BlocksProcessing,
+  WorldEnv,
+  WorkerPool,
+  BrowserWorkerProxy,
+} from '@aresrpg/aresrpg-world'
 import { Color, Vector3 } from 'three'
 
 import { altitude, FLAGS, LOD_MODE, patch_size } from './setup.js'
@@ -23,7 +28,9 @@ const voxel_materials_list = blocks_color_mapping.map(col => ({
 const chunks_range = WorldEnv.current.chunks.range
 
 // use dedicated workerpool for LOD
-const lod_dedicated_worker_pool = new WorkerPool(WORLD_WORKER_URL, 1)
+const worker_proxy_factory = worker_id =>
+  new BrowserWorkerProxy(WORLD_WORKER_URL, worker_id)
+const lod_dedicated_worker_pool = new WorkerPool(worker_proxy_factory, 1)
 
 export const voxel_engine_setup = () => {
   const map = {

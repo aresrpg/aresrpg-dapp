@@ -1,9 +1,11 @@
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   asVect2,
+  parseChunkKey,
+  parseThreeStub,
+  getPatchId,
   BlockMode,
   BlocksProcessing,
-  getPatchId,
   ProcessingState,
   WorldEnv,
   WorkerPool,
@@ -22,12 +24,12 @@ export function get_nearest_floor_pos(pos) {
   const [floor_block] = BlocksProcessing.getFloorPositions([
     requested_pos,
   ]).process()
-  // if (floor_block.pos.y <= 10) {
-  //   console.warn(
-  //     `abnormal height ${floor_block.pos.y} (original height ${pos.y})`,
-  //   )
-  //   floor_block.pos.y = 10
-  // }
+  if (floor_block.pos.y <= 10) {
+    console.warn(
+      `abnormal height ${floor_block.pos.y} (original height ${pos.y})`,
+    )
+    floor_block.pos.y = 10
+  }
   return floor_block.pos
 }
 /**
@@ -115,17 +117,17 @@ export function map_blocks_to_type(biome) {
   }, {})
 }
 
-export const get_view_settings = (view_pos, view_dist) => {
+export const get_view_state = (view_pos, view_dist) => {
   const patch_dims = WorldEnv.current.patchDimensions
   const view_center = getPatchId(asVect2(view_pos), patch_dims)
   const view_far = getPatchId(new Vector2(view_dist), patch_dims).x
   const view_near = Math.min(view_far, WorldEnv.current.patchViewCount.near)
-  const view_settings = {
+  const view_state = {
     center: view_center,
     near: view_near,
     far: view_far,
   }
-  return view_settings
+  return view_state
 }
 
 /**
@@ -137,19 +139,27 @@ export const chunk_data_encoder = (val, mode = BlockMode.REGULAR) =>
     ? voxelmapDataPacking.encode(mode === BlockMode.CHECKERBOARD, val)
     : voxelmapDataPacking.encodeEmpty()
 
-export const to_engine_chunk_format = (
-  world_chunk,
+export const encode_chunk_rawdata = rawdata => rawdata.map(chunk_data_encoder)
+
+export const format_chunk_data = (
+  metadata,
+  rawdata,
   { encode = false } = {},
 ) => {
-  const { id } = world_chunk
-  const is_empty = world_chunk.isEmpty()
-  const size = world_chunk.extendedDims
-  const data = is_empty ? [] : world_chunk.rawData
+  const id = parseChunkKey(metadata.chunkKey)
+  const bounds = parseThreeStub(metadata.bounds)
+  const extended_bounds = bounds.clone().expandByScalar(metadata.margin)
+  const size = extended_bounds.getSize(new Vector3())
+  const data = metadata.isEmpty
+    ? []
+    : encode
+      ? encode_chunk_rawdata(rawdata)
+      : rawdata
   const voxels_chunk_data = {
-    data: encode ? data.map(chunk_data_encoder) : data,
-    isEmpty: is_empty,
+    data,
     size,
     dataOrdering: 'zxy',
+    isEmpty: metadata.isEmpty,
   }
   const engine_chunk = {
     id,
