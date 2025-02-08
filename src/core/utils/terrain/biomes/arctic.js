@@ -1,6 +1,13 @@
-import { Snow } from '@aresrpg/aresrpg-engine'
-
 import { BLOCKS } from '../blocks.js'
+
+const rocks_icepic_1 = {
+  'rocks/ARCTIC_ICEPIC_G1': 1,
+  'rocks/ARCTIC_ICEPIC_G2': 1,
+  'rocks/ARCTIC_ICEPIC_G3': 1,
+  'rocks/ARCTIC_ICEPIC_G4': 1,
+  'rocks/ARCTIC_ICEPIC_G5': 1,
+  'rocks/ARCTIC_ICEPIC_G6': 1,
+}
 
 export default {
   abyss: {
@@ -52,12 +59,7 @@ export default {
     fadeIn: 5,
     fadeOut: 5,
     flora: {
-      'rocks/ARCTIC_ICEPIC_G1': 1,
-      'rocks/ARCTIC_ICEPIC_G2': 1,
-      'rocks/ARCTIC_ICEPIC_G3': 1,
-      'rocks/ARCTIC_ICEPIC_G4': 1,
-      'rocks/ARCTIC_ICEPIC_G5': 1,
-      'rocks/ARCTIC_ICEPIC_G6': 1,
+      ...rocks_icepic_1,
       void: 60,
     },
   },
