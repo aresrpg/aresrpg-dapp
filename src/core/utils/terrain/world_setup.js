@@ -6,7 +6,10 @@ import { LANDSCAPE, SCHEMATICS_BLOCKS_MAPPING } from './world_settings.js'
 import { SCHEMATICS_FILES } from './schematics_files.js'
 // @ts-ignore
 import world_worker_url from './world_compute_worker.js?url&worker'
+// @ts-ignore
+import chunks_client_worker_url from './chunks_stream_client_worker.js?url&worker'
 export const WORLD_WORKER_URL = world_worker_url
+export const CHUNKS_CLIENT_WORKER_URL = chunks_client_worker_url
 export const WORLD_WORKER_COUNT = 4
 // TODO: remove hardcoding and retrieve dynamic value from world
 const SEA_LEVEL = 76

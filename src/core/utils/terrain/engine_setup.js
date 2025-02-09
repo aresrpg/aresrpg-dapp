@@ -23,7 +23,8 @@ const voxel_materials_list = blocks_color_mapping.map(col => ({
 const chunks_range = WorldEnv.current.chunks.range
 
 // use dedicated workerpool for LOD
-const lod_dedicated_worker_pool = new WorkerPool(WORLD_WORKER_URL, 1)
+const lod_dedicated_worker_pool = new WorkerPool()
+lod_dedicated_worker_pool.init(WORLD_WORKER_URL, 1)
 
 export const voxel_engine_setup = () => {
   const map = {
