@@ -64,7 +64,7 @@ export default function () {
   let supposed_visible_chunks = []
 
   return {
-    tick(_, { physics }) {
+    tick(_, { renderer, physics }) {
       if (!busy_rendering) {
         const next_column = columns_to_render_queue.shift()
         if (next_column) {
@@ -76,14 +76,14 @@ export default function () {
                   // @ts-ignore
                   .map(ChunkContainer.fromStub)
                   .filter(({ id }) =>
-                    voxelmap_viewer.doesPatchRequireVoxelsData(id),
+                    voxelmap_viewer.doesChunkRequireVoxelsData(id),
                   )
                   .forEach(chunk => {
                     const { id, voxels_chunk_data } = to_engine_chunk_format(
                       chunk,
                       { encode: true },
                     )
-                    voxelmap_viewer.enqueuePatch(id, voxels_chunk_data)
+                    voxelmap_viewer.enqueueChunk(id, voxels_chunk_data)
                     // @ts-ignore
                     physics.voxelmap_collider.setChunk(id, voxels_chunk_data)
                     voxelmap_viewer.setVisibility(supposed_visible_chunks)
@@ -95,7 +95,7 @@ export default function () {
         }
       }
 
-      terrain_viewer.update()
+      terrain_viewer.update(renderer)
     },
     observe({ camera, events, signal, scene, get_state, physics }) {
       function render_world_chunk(
@@ -105,10 +105,10 @@ export default function () {
         const engine_chunk = to_engine_chunk_format(world_chunk)
 
         // make sure the chunk is not already rendered
-        voxelmap_viewer.invalidatePatch(engine_chunk.id)
+        voxelmap_viewer.invalidateChunk(engine_chunk.id)
 
-        if (voxelmap_viewer.doesPatchRequireVoxelsData(engine_chunk.id)) {
-          voxelmap_viewer.enqueuePatch(
+        if (voxelmap_viewer.doesChunkRequireVoxelsData(engine_chunk.id)) {
+          voxelmap_viewer.enqueueChunk(
             engine_chunk.id,
             engine_chunk.voxels_chunk_data,
           )
@@ -171,10 +171,10 @@ export default function () {
             exclude_positions(last_columns_ids),
           )
 
-          columns_to_remove.forEach(id => voxelmap_viewer.invalidatePatch(id))
+          columns_to_remove.forEach(id => voxelmap_viewer.invalidateChunk(id))
           columns_to_add.forEach(id => {
             // since we renders those chunks, they also need to be invalidated in case they previously existed
-            voxelmap_viewer.invalidatePatch(id)
+            voxelmap_viewer.invalidateChunk(id)
             columns_to_render_queue.push(
               COMPRESSED_CHUNK_CACHE.get(`${id.x}:${id.z}`),
             )
