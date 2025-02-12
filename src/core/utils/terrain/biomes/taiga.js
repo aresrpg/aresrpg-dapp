@@ -1,5 +1,3 @@
-import { BlockType } from '@aresrpg/aresrpg-world'
-
 import { BLOCKS } from '../blocks.js'
 
 export default {

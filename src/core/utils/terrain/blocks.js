@@ -2,7 +2,7 @@ export const BLOCKS = {
   // Blocks
   TEMPO: '#352814',
   GRASS: '#41980a',
-  GRASS_TEMPERATE: '#297018',
+  GRASS_TEMPERATE: { color: '#297018', emission: 0 },
   STONE: '#ababab',
   SNOW: '0xe5e5e5',
   WET_SAND: '#9D896B',
