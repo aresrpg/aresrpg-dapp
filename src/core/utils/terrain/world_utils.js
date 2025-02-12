@@ -87,13 +87,15 @@ export const get_sea_level = () => WorldEnv.current.seaLevel
 
 export function map_blocks_to_type(biome) {
   return Object.entries(biome).reduce((acc, [key, value]) => {
-    // Check if type and subtype are numbers (color or BlockType IDs)
+    // For types that are strings (hex colors) or objects with color property
     const type =
-      typeof value.type === 'string'
+      typeof value.type === 'object' || typeof value.type === 'string'
         ? color_to_block_type[hex_to_int(value.type)]
         : value.type
+
+    // Same for subtypes
     const subtype =
-      typeof value.subtype === 'string'
+      typeof value.subtype === 'object' || typeof value.subtype === 'string'
         ? color_to_block_type[hex_to_int(value.subtype)]
         : value.subtype
 

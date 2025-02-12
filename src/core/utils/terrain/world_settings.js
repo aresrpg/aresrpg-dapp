@@ -1,4 +1,3 @@
-// import { BiomeType, BlockType } from '@aresrpg/aresrpg-world/biomes'
 import { BiomeType, BlockType } from '@aresrpg/aresrpg-world'
 
 import { map_blocks_to_type } from './world_utils.js'
@@ -14,7 +13,16 @@ import GLACIER from './biomes/glacier.js'
 import { BLOCKS, SCHEMATICS_BLOCKS } from './blocks.js'
 
 // Convert hex string to number
-export const hex_to_int = hex => parseInt(hex.replace('#', ''), 16)
+export const hex_to_int = value => {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') return parseInt(value.replace('#', ''), 16)
+  if (typeof value === 'object' && value !== null) {
+    return typeof value.color === 'string'
+      ? parseInt(value.color.replace('#', ''), 16)
+      : value.color
+  }
+  throw new Error(`Invalid color value: ${value}`)
+}
 
 // Extract unique colors from block definitions
 const unique_block_colors = [
@@ -26,11 +34,21 @@ const unique_block_colors = [
   ),
 ]
 
-// Generate new block type entries for each unique color
+const normalize_material = value => {
+  if (typeof value === 'object' && value !== null) {
+    return {
+      color: hex_to_int(value.color),
+      emission: value.emission ?? 0,
+    }
+  }
+  return hex_to_int(value)
+}
+
+// Generate new block type entries for each unique color/material
 const additional_block_types = unique_block_colors.reduce(
-  (color_mapping, color, index) => ({
-    ...color_mapping,
-    [BlockType.LAST_PLACEHOLDER + index]: hex_to_int(color),
+  (mapping, value, index) => ({
+    ...mapping,
+    [BlockType.LAST_PLACEHOLDER + index]: normalize_material(value),
   }),
   {},
 )
@@ -42,7 +60,7 @@ export const BLOCKS_COLOR_MAPPING = {
   [BlockType.HOLE]: 0x000000,
   [BlockType.BEDROCK]: 0xababab,
   [BlockType.WATER]: 0x74ccf4,
-  [BlockType.ICE]: 0x74ccf5,
+  [BlockType.ICE]: { color: 0x74ccf5, emissive: 0.1 },
   [BlockType.MUD]: 0x795548,
   [BlockType.TRUNK]: 0x795549,
   [BlockType.SAND]: 0xc2b280,
@@ -57,9 +75,9 @@ export const BLOCKS_COLOR_MAPPING = {
 
 // Create a reverse mapping from color to block type id for efficient lookup
 export const color_to_block_type = Object.entries(BLOCKS_COLOR_MAPPING).reduce(
-  (type_lookup, [type_id, color]) => ({
+  (type_lookup, [type_id, material]) => ({
     ...type_lookup,
-    [color]: +type_id,
+    [typeof material === 'object' ? material.color : material]: +type_id,
   }),
   {},
 )
