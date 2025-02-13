@@ -25,40 +25,69 @@ export const FLAGS = {
   LOD_MODE: LOD_MODE.STATIC,
 }
 
-export const patch_size = { xz: 64, y: 64 }
-export const altitude = { min: -1, max: 400 }
+export const world_settings = {
+  seed: 'aresrpg',
+  sea_level: 76,
+  patch_view: {
+    near: 4,
+  },
+  biomes: {
+    landscape: LANDSCAPE,
+    size: 8,
+    interpolation_range: 0.1,
+  },
+  schematics: {
+    blocks_mapping: SCHEMATICS_BLOCKS_MAPPING,
+    files: SCHEMATICS_FILES,
+  },
+  boards: {
+    radius: 20,
+    thickness: 3,
+  },
+  heightmap: {
+    spread: 0.42,
+    harmonics: 6,
+  },
+  chunks: {
+    size: { xz: 64, y: 64 },
+    altitude: { min: -1, max: 400 },
+  },
+}
 
-// TODO: this function should be removed and the config should be given to world creation
-// ? @see https://github.com/aresrpg/aresrpg-dapp/issues/237
 export async function apply_world_env_configuration() {
   // chunks gen
   WorldEnv.current.chunks.range.bottomId = Math.floor(
-    altitude.min / patch_size.y,
+    world_settings.chunks.altitude.min / world_settings.chunks.size.y,
   )
-  WorldEnv.current.chunks.range.topId = Math.floor(altitude.max / patch_size.y)
+  WorldEnv.current.chunks.range.topId = Math.floor(
+    world_settings.chunks.altitude.max / world_settings.chunks.size.y,
+  )
 
-  WorldEnv.current.seeds.main = 'aresrpg' // common seed use everywhere
-  WorldEnv.current.seaLevel = 76 // TODO: remove hardcoded sea
   WorldEnv.current.chunks.dataEncoder = chunk_data_encoder
   WorldEnv.current.chunks.dataDecoder = val =>
     voxelmapDataPacking.getMaterialId(val)
-  WorldEnv.current.patchViewCount.near = 4 // chunks view below ground surface
+
+  WorldEnv.current.seeds.main = world_settings.seed
+  WorldEnv.current.seaLevel = world_settings.sea_level
+  WorldEnv.current.patchViewCount.near = world_settings.patch_view.near // chunks view below ground surface
 
   // EXTERNAL CONFIGS/RESOURCES
-  WorldEnv.current.biomes.rawConf = LANDSCAPE
-  WorldEnv.current.schematics.globalBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
-  // @ts-ignore
-  WorldEnv.current.schematics.filesIndex = SCHEMATICS_FILES
+  WorldEnv.current.biomes.rawConf = world_settings.biomes.landscape
+  WorldEnv.current.schematics.globalBlocksMapping =
+    world_settings.schematics.blocks_mapping
+  WorldEnv.current.schematics.filesIndex = world_settings.schematics.files
 
   // WORKER POOL
   WorldEnv.current.workerPool.url = WORLD_WORKER_URL
   WorldEnv.current.workerPool.count = WORLD_WORKER_COUNT
 
   // BOARDS conf
-  WorldEnv.current.boardSettings.boardRadius = 15
-  WorldEnv.current.boardSettings.boardThickness = 3
+  WorldEnv.current.boardSettings.boardRadius = world_settings.boards.radius
+  WorldEnv.current.boardSettings.boardThickness =
+    world_settings.boards.thickness
 
   // BIOME tuning
-  WorldEnv.current.biomes.periodicity = 8 // biome size
-  WorldEnv.current.biomes.bilinearInterpolationRange = 0.1
+  WorldEnv.current.biomes.periodicity = world_settings.biomes.size
+  WorldEnv.current.biomes.bilinearInterpolationRange =
+    world_settings.biomes.interpolation_range
 }

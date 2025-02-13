@@ -10,10 +10,9 @@ import { Color, Vector3 } from 'three'
 import { BLOCKS_COLOR_MAPPING } from '@aresrpg/aresrpg-sdk/world'
 
 import {
-  altitude,
   FLAGS,
   LOD_MODE,
-  patch_size,
+  world_settings,
   WORLD_WORKER_URL,
 } from './voxel_world.js'
 
@@ -29,7 +28,7 @@ const lod_dedicated_worker_pool = new WorkerPool(WORLD_WORKER_URL, 1)
 
 export function create_voxel_engine(chunks_range) {
   const map = {
-    altitude,
+    altitude: world_settings.chunks.altitude,
     voxelMaterialsList: voxel_materials_list,
     async sampleHeightmap(/** @type Float32Array */ coords) {
       const samples_count = coords.length / 2
@@ -72,7 +71,7 @@ export function create_voxel_engine(chunks_range) {
     chunks_range.topId,
     voxels_materials_store,
     {
-      chunkSize: patch_size,
+      chunkSize: world_settings.chunks.size,
       computationOptions: {
         method: EComputationMethod.CPU_MULTITHREADED,
         threadsCount: 4,
