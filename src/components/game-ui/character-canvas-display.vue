@@ -11,10 +11,10 @@ import {
   Color,
 } from 'three';
 import { nanoid } from 'nanoid';
+import { hex_to_int } from '@aresrpg/aresrpg-sdk/world';
 
 import dispose from '../../core/utils/three/dispose.js';
 import { ENTITIES } from '../../core/game/entities.js';
-import { hex_to_int } from '../../core/utils/terrain/world_settings.js';
 
 const scene_div = ref(null);
 const canvas = ref(null);

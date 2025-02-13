@@ -1,16 +1,14 @@
-import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   asVect2,
-  BlockMode,
   BlocksProcessing,
   getPatchId,
   ProcessingState,
   WorldEnv,
   WorkerPool,
+  BlockMode,
 } from '@aresrpg/aresrpg-world'
 import { Vector2, Vector3 } from 'three'
-
-import { color_to_block_type, hex_to_int } from './world_settings.js'
+import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 
 /**
  * performs individual block processing call synchroneously in main thread (without cache)
@@ -24,6 +22,7 @@ export function get_nearest_floor_pos(pos) {
   ]).process()
   return floor_block.pos
 }
+
 /**
  * deferring task execution to allow grouping multiple block requests in same batch
  * @returns
@@ -43,7 +42,6 @@ const renew_blocks_processing_request = () => {
 }
 
 let blocks_processing_task //= renew_blocks_processing_request()
-// console.log(`this line run several time why? isn't top level code supposed to run only once even when module is imported several times?`)
 
 /**
  * async version grouping multiple isolated requests in same batch
@@ -73,7 +71,6 @@ export async function get_nearest_floor_pos_async(raw_pos) {
       throw new Error(`No floor found at ${requested_pos}`)
     }
 
-    // console.log(`floor height ${floor_height}`)
     return surface_block
   } else {
     console.warn(`unexpected missing task`)
@@ -81,37 +78,10 @@ export async function get_nearest_floor_pos_async(raw_pos) {
     return 128
   }
 }
-// export const get_nearest_floor_pos_async = (raw_pos, entity_height = 0) => 128
 
 export const get_sea_level = () => WorldEnv.current.seaLevel
 
-export function map_blocks_to_type(biome) {
-  return Object.entries(biome).reduce((acc, [key, value]) => {
-    // For types that are strings (hex colors) or objects with color property
-    const type =
-      typeof value.type === 'object' || typeof value.type === 'string'
-        ? color_to_block_type[hex_to_int(value.type)]
-        : value.type
-
-    // Same for subtypes
-    const subtype =
-      typeof value.subtype === 'object' || typeof value.subtype === 'string'
-        ? color_to_block_type[hex_to_int(value.subtype)]
-        : value.subtype
-
-    // If we get undefined, fallback to original value (in case mapping fails)
-    return {
-      ...acc,
-      [key]: {
-        ...value,
-        type: type !== undefined ? type : value.type,
-        subtype: subtype !== undefined ? subtype : value.subtype,
-      },
-    }
-  }, {})
-}
-
-export const get_view_settings = (view_pos, view_dist) => {
+export function get_view_settings(view_pos, view_dist) {
   const patch_dims = WorldEnv.current.patchDimensions
   const view_center = getPatchId(asVect2(view_pos), patch_dims)
   const view_far = getPatchId(new Vector2(view_dist), patch_dims).x
@@ -124,19 +94,13 @@ export const get_view_settings = (view_pos, view_dist) => {
   return view_settings
 }
 
-/**
- * Chunks related
- */
+export function chunk_data_encoder(value, mode = BlockMode.REGULAR) {
+  if (value)
+    return voxelmapDataPacking.encode(mode === BlockMode.CHECKERBOARD, value)
+  return voxelmapDataPacking.encodeEmpty()
+}
 
-export const chunk_data_encoder = (val, mode = BlockMode.REGULAR) =>
-  val
-    ? voxelmapDataPacking.encode(mode === BlockMode.CHECKERBOARD, val)
-    : voxelmapDataPacking.encodeEmpty()
-
-export const to_engine_chunk_format = (
-  world_chunk,
-  { encode = false } = {},
-) => {
+export function to_engine_chunk_format(world_chunk, { encode = false } = {}) {
   const { id } = world_chunk
   const is_empty = world_chunk.isEmpty()
   const size = world_chunk.extendedDims

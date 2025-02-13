@@ -21,13 +21,14 @@ import {
   to_engine_chunk_format,
 } from '../utils/terrain/world_utils.js'
 import {
-  world_shared_setup,
+  apply_world_env_configuration,
+  FLAGS,
+  LOD_MODE,
   WORLD_WORKER_COUNT,
   WORLD_WORKER_URL,
-} from '../utils/terrain/world_setup.js'
-import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
-import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
+} from '../game/voxel_world.js'
 import logger from '../../logger.js'
+import { create_voxel_engine } from '../game/voxel_engine.js'
 
 // TODO: The server won't send twice the same chunk for a session, unless time has passed
 // TODO: monitor this map to avoid killing the client's memory
@@ -49,8 +50,8 @@ function column_to_chunk_ids({ x, z }) {
 export default function () {
   const columns_to_render_queue = []
 
-  // world setup (main thread environement)
-  world_shared_setup()
+  apply_world_env_configuration()
+
   const chunks_processing_worker_pool = new WorkerPool(
     WORLD_WORKER_URL,
     WORLD_WORKER_COUNT,
@@ -58,7 +59,9 @@ export default function () {
   // chunks batch processing
   const chunks_provider = new ChunksProvider(chunks_processing_worker_pool)
   // engine setup
-  const { terrain_viewer, voxelmap_viewer } = voxel_engine_setup()
+  const { terrain_viewer, voxelmap_viewer } = create_voxel_engine(
+    WorldEnv.current.chunks.range,
+  )
 
   let busy_rendering = false
   let supposed_visible_chunks = []

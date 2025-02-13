@@ -8,7 +8,6 @@ import { i18n, translate } from '../../i18n.js'
 import { context, disconnect_ws } from '../game/game.js'
 import {
   pretty_print_mists,
-  sdk,
   sui_get_admin_caps,
   sui_get_characters,
   sui_get_finished_crafts,
@@ -28,7 +27,7 @@ import TwemojiScroll from '~icons/twemoji/scroll?width=36px&height=36px'
 
 export const DEFAULT_SUI_CHARACTER = () => ({
   id: 'default',
-  name: 'Oeuftermath',
+  name: 'Lost soul',
   classe: 'default',
   sex: 'default',
   realm: 'overworld',

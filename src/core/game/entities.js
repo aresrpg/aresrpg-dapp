@@ -219,7 +219,7 @@ export const ENTITIES = {
     const type = ENTITIES[skin || `${classe}_${sex}`]
 
     if (type) return await type({ name, id })
-    return await ENTITIES.oeuftermath({ name: 'Oeuftermath', id })
+    return await ENTITIES.ghost({ name: 'Void', id })
   },
 
   // ====== CHARACTERS ======
@@ -261,6 +261,11 @@ export const ENTITIES = {
     radius: 0.8,
     skin: 'anima',
     hair: 'anima_hair',
+  }),
+  ghost: entity_spawner(() => MODELS.ghost, {
+    height: 1.5,
+    radius: 0.8,
+    skin: 'ghost',
   }),
 
   // ====== MOBS ======

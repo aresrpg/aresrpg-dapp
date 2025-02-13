@@ -36,6 +36,7 @@ import suifren_capy from '../../assets/models/pets/suifren_capy.glb?url'
 import talokan from '../../assets/models/pets/talokan.glb?url'
 import vaporeon from '../../assets/models/pets/vaporeon.glb?url'
 import yago from '../../assets/models/pets/yago.glb?url'
+import ghost from '../../assets/models/characters/ghost.glb?url'
 import { load } from '../utils/three/load_model.js'
 
 const AVAILABLE_MODELS = {
@@ -47,6 +48,7 @@ const AVAILABLE_MODELS = {
   yajin_female,
   yajin_male_hair,
   yajin_male,
+  ghost,
 
   anima,
   cape_bouffante,
