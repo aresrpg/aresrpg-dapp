@@ -1,56 +1,40 @@
-import { WorldEnv } from '@aresrpg/aresrpg-world'
-import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+import { getWorldEnv } from '@aresrpg/aresrpg-world'
 
-import { chunk_data_encoder } from './world_utils.js'
+// import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+// import { chunk_data_encoder } from './world_utils.js'
 import { LANDSCAPE, SCHEMATICS_BLOCKS_MAPPING } from './world_settings.js'
 import { SCHEMATICS_FILES } from './schematics_files.js'
-// @ts-ignore
-import world_worker_url from './world_compute_worker.js?url&worker'
-// @ts-ignore
-import chunks_client_worker_url from './chunks_stream_client_worker.js?url&worker'
-export const WORLD_WORKER_URL = world_worker_url
-export const CHUNKS_CLIENT_WORKER_URL = chunks_client_worker_url
-export const WORLD_WORKER_COUNT = 4
 // TODO: remove hardcoding and retrieve dynamic value from world
 const SEA_LEVEL = 76
 
 /**
- * World environment setup to be shared by main and workers threads
- * @param world_env targeted env or main thread env (no arguments) by default
+ * World environment setup
  */
-export const world_shared_setup = (world_env = WorldEnv.current) => {
-  world_env.seeds.main = 'aresrpg' // common seed use everywhere
-  world_env.seaLevel = SEA_LEVEL // TODO: remove hardcoded sea
-  world_env.chunks.dataEncoder = chunk_data_encoder
-  world_env.chunks.dataDecoder = val => voxelmapDataPacking.getMaterialId(val)
-  world_env.patchViewCount.near = 4 // chunks view below ground surface
+const setup_world_environment = () => {
+  const world_env = getWorldEnv()
+  const { rawSettings: world_env_settings } = world_env
+
+  world_env_settings.seeds.main = 'aresrpg' // common seed use everywhere
+  world_env_settings.biomes.seaLevel = SEA_LEVEL // TODO: remove hardcoded sea
+  // world_env.chunks.dataEncoder = chunk_data_encoder
+  // world_env.chunks.dataDecoder = val => voxelmapDataPacking.getMaterialId(val)
+  world_env_settings.patchViewRanges.near = 4 // chunks view below ground surface
 
   // EXTERNAL CONFIGS/RESOURCES
-  world_env.biomes.rawConf = LANDSCAPE
-  world_env.schematics.globalBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
+  world_env_settings.biomes.rawConf = LANDSCAPE
+  world_env_settings.schematics.globalBlocksMapping = SCHEMATICS_BLOCKS_MAPPING
   // @ts-ignore
-  world_env.schematics.filesIndex = SCHEMATICS_FILES
-
-  // WORKER POOL
-  world_env.workerPool.url = WORLD_WORKER_URL
-  world_env.workerPool.count = WORLD_WORKER_COUNT
+  world_env_settings.schematics.filesIndex = SCHEMATICS_FILES
 
   // BOARDS conf
-  world_env.boardSettings.boardRadius = 15
-  world_env.boardSettings.boardThickness = 3
+  world_env_settings.boards.boardRadius = 15
+  world_env_settings.boards.boardThickness = 3
 
   // BIOME tuning
-  world_env.biomes.periodicity = 8 // biome size
-  world_env.biomes.bilinearInterpolationRange = 0.1
+  world_env_settings.biomes.periodicity = 8 // biome size
+  world_env_settings.biomes.bilinearInterpolationRange = 0.1
 
-  // DEV ONLY: LEAVE COMMENTED!
-  // EnvOverride(world_env)
+  return world_env
 }
 
-// DEV ONLY: LEAVE COMMENTED!
-// import { EnvOverride, BlocksColorOverride } from '@aresrpg/aresrpg-world'
-// import { BLOCKS_COLOR_MAPPING as BLOCKS_COLOR_MAPPING_DAPP } from './world_settings.js'
-
-// export const BLOCKS_COLOR_MAPPING = BlocksColorOverride(
-//   BLOCKS_COLOR_MAPPING_DAPP,
-// )
+export const world_shared_env = setup_world_environment()

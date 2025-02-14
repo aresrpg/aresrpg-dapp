@@ -1,3 +1,4 @@
+import { Vector2, Vector3 } from 'three'
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
 import {
   asVect2,
@@ -7,14 +8,16 @@ import {
   BlockMode,
   BlocksProcessing,
   ProcessingState,
-  WorldEnv,
   WorkerPool,
-  ChunksScheduler,
+  ChunksPolling,
+  getWorldDemoEnvSettings,
+  chunksWsClient,
 } from '@aresrpg/aresrpg-world'
-import { Vector2, Vector3 } from 'three'
 
 import { color_to_block_type, hex_to_int } from './world_settings.js'
-import { WORLD_WORKER_COUNT, WORLD_WORKER_URL } from './world_setup.js'
+import { world_shared_env } from './world_setup.js'
+// @ts-ignore
+import chunks_service_worker_url from './chunks_polling_worker.js?url&worker'
 
 /**
  * performs individual block processing call synchroneously in main thread (without cache)
@@ -93,7 +96,7 @@ export async function get_nearest_floor_pos_async(raw_pos) {
 }
 // export const get_nearest_floor_pos_async = (raw_pos, entity_height = 0) => 128
 
-export const get_sea_level = () => WorldEnv.current.seaLevel
+export const get_sea_level = () => world_shared_env.getSeaLevel()
 
 export function map_blocks_to_type(biome) {
   return Object.entries(biome).reduce((acc, [key, value]) => {
@@ -117,19 +120,6 @@ export function map_blocks_to_type(biome) {
       },
     }
   }, {})
-}
-
-export const get_view_state = (view_pos, view_dist) => {
-  const patch_dims = WorldEnv.current.patchDimensions
-  const view_center = getPatchId(asVect2(view_pos), patch_dims)
-  const view_far = getPatchId(new Vector2(view_dist), patch_dims).x
-  const view_near = Math.min(view_far, WorldEnv.current.patchViewCount.near)
-  const view_state = {
-    center: view_center,
-    near: view_near,
-    far: view_far,
-  }
-  return view_state
 }
 
 /**
@@ -168,15 +158,59 @@ export const format_chunk_data = (chunk_data, { encode = false } = {}) => {
 }
 
 /**
- * Local gen
+ * Polling chunks either from remote or local source
  */
 
-export const setup_chunks_local_provider = () => {
-  const chunks_processing_worker_pool = new WorkerPool()
-  chunks_processing_worker_pool.init(WORLD_WORKER_URL, WORLD_WORKER_COUNT)
-  const chunks_local_provider = new ChunksScheduler(
-    chunks_processing_worker_pool,
+export const init_chunks_polling_service = on_chunk_ready => {
+  let is_remote_available = false
+  const chunks_polling = new ChunksPolling()
+  const get_visible_chunk_ids = chunks_polling.getVisibleChunkIds
+  // try using remote source first
+  const WS_URL = 'ws://localhost:3000'
+  const { requestChunkOverWs, wsInitState } = chunksWsClient(
+    WS_URL,
+    on_chunk_ready,
   )
-  chunks_local_provider.skipBlobCompression = true
-  return chunks_local_provider
+
+  wsInitState
+    .then(() => {
+      console.log(`chunks stream client service listening on ${WS_URL} `)
+      is_remote_available = true
+    })
+    // fallback to using local source if failing
+    .catch(() => {
+      console.warn(
+        `chunks stream client failed to start on ${WS_URL}, fallbacking to local gen `,
+      )
+      const world_env_settings = getWorldDemoEnvSettings() // world_shared_env.rawSettings
+      // create workerpool to produce chunks locally
+      const chunks_processing_worker_pool = new WorkerPool()
+      chunks_processing_worker_pool.init(4)
+      chunks_processing_worker_pool
+        .loadWorldEnv(world_env_settings)
+        .then(() => {
+          console.log(`local chunks workerpool ready`)
+          // configure to poll chunks from local source
+          chunks_polling.chunksWorkerPool = chunks_processing_worker_pool
+          // skip compression for local gen
+          chunks_polling.skipBlobCompression = true
+        })
+    })
+
+  // this will look for chunks depending on current view state
+  const poll_chunks = (current_pos, view_dist) => {
+    // make sure service is available either from remote or local source
+    if (is_remote_available || chunks_polling.chunksWorkerPool) {
+      const patch_dims = world_shared_env.getPatchDimensions() // WorldEnv.current.patchDimensions
+      const view_pos = getPatchId(asVect2(current_pos), patch_dims)
+      const view_range = getPatchId(new Vector2(view_dist), patch_dims).x
+      if (is_remote_available) {
+        const view_state = { viewPos: view_pos, viewRange: view_range }
+        requestChunkOverWs(view_state)
+      }
+      return chunks_polling.pollChunks(view_pos, view_range)
+    }
+    return null
+  }
+  return { poll_chunks, get_visible_chunk_ids }
 }

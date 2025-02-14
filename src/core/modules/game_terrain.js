@@ -2,13 +2,7 @@ import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
-import {
-  ChunkContainer,
-  ChunksScheduler,
-  WorkerPool,
-  ChunksStreamClientProxy,
-  parseThreeStub,
-} from '@aresrpg/aresrpg-world'
+import { Biome, ChunkContainer } from '@aresrpg/aresrpg-world'
 import {
   decompress_chunk_column,
   spiral_array,
@@ -19,23 +13,19 @@ import { current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import {
   format_chunk_data,
-  setup_chunks_local_provider,
-  get_view_state,
+  init_chunks_polling_service,
 } from '../utils/terrain/world_utils.js'
-import {
-  world_shared_setup,
-  WORLD_WORKER_COUNT,
-  WORLD_WORKER_URL,
-  CHUNKS_CLIENT_WORKER_URL,
-} from '../utils/terrain/world_setup.js'
 import { voxel_engine_setup } from '../utils/terrain/engine_setup.js'
 import { FLAGS, LOD_MODE } from '../utils/terrain/setup.js'
 import logger from '../../logger.js'
+import { world_shared_env } from '../utils/terrain/world_setup.js'
 
 // TODO: The server won't send twice the same chunk for a session, unless time has passed
 // TODO: monitor this map to avoid killing the client's memory
 // TODO: it should not be a lru because we don't want to loose chunks, unless we are able to regenerate them efficiently on the client
 const COMPRESSED_CHUNK_CACHE = new Map()
+
+Biome.instance.parseBiomesConfig(world_shared_env.rawSettings.biomes.rawConf)
 
 function exclude_positions(positions) {
   return ({ x, y, z }) =>
@@ -51,15 +41,6 @@ function column_to_chunk_ids({ x, z }) {
 /** @type {Type.Module} */
 export default function () {
   const columns_to_render_queue = []
-
-  // world setup (main thread environement)
-  world_shared_setup()
-
-  // try using chunk stream from remote server by default
-  const chunks_stream_client = new ChunksStreamClientProxy(
-    CHUNKS_CLIENT_WORKER_URL,
-  )
-  let chunks_provider = chunks_stream_client
 
   // engine setup
   const { terrain_viewer, voxelmap_viewer } = voxel_engine_setup()
@@ -133,22 +114,10 @@ export default function () {
           )
       }
 
-      // fallbacking to chunks local generation if streaming failed
-      chunks_stream_client.onServiceFail = error_msg => {
-        console.warn(`error from local chunk streaming service: ${error_msg}`)
-        console.warn(`fallback to local generation`)
-        chunks_provider = setup_chunks_local_provider()
-        chunks_provider.onChunkAvailable = chunk =>
-          render_world_chunk(chunk, { skip_encoding: true })
-      }
-
-      chunks_stream_client.onChunkAvailable = chunk => {
-        chunk.id = parseThreeStub(chunk.id)
-        chunk.voxels_chunk_data.size = parseThreeStub(
-          chunk.voxels_chunk_data.size,
-        )
-        render_world_chunk(chunk, { skip_formatting: true })
-      }
+      const on_chunk_ready = chunk =>
+        render_world_chunk(chunk, { skip_formatting: false })
+      const { poll_chunks, get_visible_chunk_ids } =
+        init_chunks_polling_service(on_chunk_ready)
 
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
@@ -215,27 +184,22 @@ export default function () {
 
         if (state.settings.terrain.chunk_streaming) return
 
+        // Query chunks around player position
         const current_pos = current_three_character(state)
           ?.position?.clone()
           .floor()
-        const { view_distance } = state.settings.terrain
-
         if (current_pos) {
-          // Query chunks around player position
-          const view_state = get_view_state(current_pos, view_distance)
-          const { center, near, far } = view_state
-
-          const view_state_changed = chunks_provider.viewChanged(
-            center,
-            near,
-            far,
-          )
-          if (view_state_changed) {
-            chunks_provider.requestChunks(center, near, far)
-            voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
-            // chunks_provider.scheduleTasks(view.center, view.near, view.far)
-            // voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
-
+          const { view_distance } = state.settings.terrain
+          const scheduled_tasks = poll_chunks(current_pos, view_distance)
+          if (scheduled_tasks) {
+            voxelmap_viewer.setVisibility(get_visible_chunk_ids())
+            scheduled_tasks.forEach(scheduled_task =>
+              scheduled_task.then(task_chunks =>
+                task_chunks.forEach(chunk =>
+                  render_world_chunk(chunk, { skip_formatting: false }),
+                ),
+              ),
+            )
             if (FLAGS.LOD_MODE === LOD_MODE.STATIC)
               terrain_viewer.setLod(camera.position, 50, camera.far)
           }
