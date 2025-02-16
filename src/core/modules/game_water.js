@@ -140,6 +140,13 @@ export default function () {
       vUv = uv;
     `,
     )
+    parameters.vertexShader = parameters.vertexShader.replace(
+      '#include <worldpos_vertex>',
+      `
+      #include <worldpos_vertex>
+      vWorldPosition = worldPosition.xyz;
+    `,
+    )
 
     parameters.fragmentShader = parameters.fragmentShader.replace(
       'void main() {',
