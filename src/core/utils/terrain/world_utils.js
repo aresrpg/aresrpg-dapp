@@ -8,16 +8,32 @@ import {
   BlockMode,
   BlocksProcessing,
   ProcessingState,
-  WorkerPool,
   ChunksPolling,
-  getWorldDemoEnvSettings,
-  chunksWsClient,
+  WorkerPool,
 } from '@aresrpg/aresrpg-world'
 
 import { color_to_block_type, hex_to_int } from './world_settings.js'
 import { world_shared_env } from './world_setup.js'
 // @ts-ignore
-import chunks_service_worker_url from './chunks_polling_worker.js?url&worker'
+// import chunks_service_worker_url from './chunks_polling_worker.js?url&worker'
+
+const world_env_settings = world_shared_env.rawSettings // getWorldDemoEnvSettings()
+
+/**
+ * Global purpose workerpool for handling tasks like:
+ *  individual blocks, board processing
+ */
+
+const create_default_workerpool = () => {
+  const default_worker_pool = new WorkerPool()
+  default_worker_pool.init(1)
+  default_worker_pool.loadWorldEnv(world_env_settings).then(() => {
+    console.log(`default workerpool ready`)
+  })
+  return default_worker_pool
+}
+
+export const shared_worker_pool = create_default_workerpool()
 
 /**
  * performs individual block processing call synchroneously in main thread (without cache)
@@ -42,7 +58,7 @@ export function get_nearest_floor_pos(pos) {
  * @returns
  */
 const renew_blocks_processing_request = () => {
-  if (WorkerPool.default) {
+  if (shared_worker_pool.ready) {
     const task = BlocksProcessing.getFloorPositions([])
     task.onStarted = () =>
       console.log(
@@ -161,41 +177,21 @@ export const format_chunk_data = (chunk_data, { encode = false } = {}) => {
  * Polling chunks either from remote or local source
  */
 
-export const init_chunks_polling_service = on_chunk_ready => {
-  let is_remote_available = false
+export const init_chunks_polling_service = () => {
+  const is_remote_available = false
   const chunks_polling = new ChunksPolling()
   const get_visible_chunk_ids = chunks_polling.getVisibleChunkIds
-  // try using remote source first
-  const WS_URL = 'ws://localhost:3000'
-  const { requestChunkOverWs, wsInitState } = chunksWsClient(
-    WS_URL,
-    on_chunk_ready,
-  )
 
-  wsInitState
-    .then(() => {
-      console.log(`chunks stream client service listening on ${WS_URL} `)
-      is_remote_available = true
-    })
-    // fallback to using local source if failing
-    .catch(() => {
-      console.warn(
-        `chunks stream client failed to start on ${WS_URL}, fallbacking to local gen `,
-      )
-      const world_env_settings = getWorldDemoEnvSettings() // world_shared_env.rawSettings
-      // create workerpool to produce chunks locally
-      const chunks_processing_worker_pool = new WorkerPool()
-      chunks_processing_worker_pool.init(4)
-      chunks_processing_worker_pool
-        .loadWorldEnv(world_env_settings)
-        .then(() => {
-          console.log(`local chunks workerpool ready`)
-          // configure to poll chunks from local source
-          chunks_polling.chunksWorkerPool = chunks_processing_worker_pool
-          // skip compression for local gen
-          chunks_polling.skipBlobCompression = true
-        })
-    })
+  // create workerpool to produce chunks locally
+  const chunks_processing_worker_pool = new WorkerPool()
+  chunks_processing_worker_pool.init(4)
+  chunks_processing_worker_pool.loadWorldEnv(world_env_settings).then(() => {
+    console.log(`local chunks workerpool ready`)
+    // configure to poll chunks from local source
+    chunks_polling.chunksWorkerPool = chunks_processing_worker_pool
+    // skip compression for local gen
+    chunks_polling.skipBlobCompression = true
+  })
 
   // this will look for chunks depending on current view state
   const poll_chunks = (current_pos, view_dist) => {
@@ -204,10 +200,6 @@ export const init_chunks_polling_service = on_chunk_ready => {
       const patch_dims = world_shared_env.getPatchDimensions() // WorldEnv.current.patchDimensions
       const view_pos = getPatchId(asVect2(current_pos), patch_dims)
       const view_range = getPatchId(new Vector2(view_dist), patch_dims).x
-      if (is_remote_available) {
-        const view_state = { viewPos: view_pos, viewRange: view_range }
-        requestChunkOverWs(view_state)
-      }
       return chunks_polling.pollChunks(view_pos, view_range)
     }
     return null
