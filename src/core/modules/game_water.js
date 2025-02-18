@@ -14,7 +14,7 @@ import {
   MeshStandardMaterial,
   RepeatWrapping,
   RGBAFormat,
-  TextureLoader
+  TextureLoader,
 } from 'three'
 
 import texture_url from '../../assets/water/texture.png?url'
@@ -101,16 +101,21 @@ float noise(vec3 v){
 
 /** @type {Type.Module} */
 export default function () {
-  const waterViewDistance = 3000;
+  const waterViewDistance = 3000
   const patch_size = world_settings.chunks.size.xz
-  const patches_count = Math.ceil(2 * waterViewDistance / patch_size);
+  const patches_count = Math.ceil((2 * waterViewDistance) / patch_size)
 
   const colorsTextureBuffer = new Uint8Array(4 * patches_count * patches_count)
-  const dataTexture = new DataTexture(colorsTextureBuffer, patches_count, patches_count, RGBAFormat)
-  dataTexture.magFilter = LinearFilter;
-  dataTexture.minFilter = LinearFilter;
-  dataTexture.wrapS = ClampToEdgeWrapping;
-  dataTexture.wrapT = ClampToEdgeWrapping;
+  const dataTexture = new DataTexture(
+    colorsTextureBuffer,
+    patches_count,
+    patches_count,
+    RGBAFormat,
+  )
+  dataTexture.magFilter = LinearFilter
+  dataTexture.minFilter = LinearFilter
+  dataTexture.wrapS = ClampToEdgeWrapping
+  dataTexture.wrapT = ClampToEdgeWrapping
 
   const texture = new TextureLoader().load(texture_url)
   texture.minFilter = LinearMipMapLinearFilter
@@ -249,23 +254,19 @@ export default function () {
   }
 
   function build_geometry() {
-    const meshSize = patch_size * patches_count;
+    const meshSize = patch_size * patches_count
     const geometry = new BufferGeometry()
     geometry.setAttribute(
       'position',
-      new Float32BufferAttribute([
-        0, 0, 0,
-        meshSize, 0, 0,
-        0, 0, meshSize,
-        meshSize, 0, meshSize,
-      ], 3),
+      new Float32BufferAttribute(
+        [0, 0, 0, meshSize, 0, 0, 0, 0, meshSize, meshSize, 0, meshSize],
+        3,
+      ),
     )
-    geometry.setAttribute('uv', new Float32BufferAttribute([
-      0, 0,
-      1, 0,
-      0, 1,
-      1, 1,
-    ], 2))
+    geometry.setAttribute(
+      'uv',
+      new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 1, 1], 2),
+    )
     geometry.setIndex([0, 1, 3, 0, 3, 2])
     return geometry
   }
@@ -292,9 +293,12 @@ export default function () {
       mesh.receiveShadow = true
       mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
-      const getPatchWaterColor = (/** @type number */ patchX, /** @type number */ patchZ) => {
-        return [41, 182, 246];
-      };
+      const getPatchWaterColor = (
+        /** @type number */ patchX,
+        /** @type number */ patchZ,
+      ) => {
+        return [41, 182, 246]
+      }
 
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
@@ -323,21 +327,33 @@ export default function () {
           water_origin_patch_id.z * patch_size,
         )
 
-        const water_color = getPatchWaterColor(player_patch_id.x, player_patch_id.z)
-        dispatch('action/water_changed', { color: new Color(water_color[0] / 255, water_color[1] / 255, water_color[2] / 255) })
+        const water_color = getPatchWaterColor(
+          player_patch_id.x,
+          player_patch_id.z,
+        )
+        dispatch('action/water_changed', {
+          color: new Color(
+            water_color[0] / 255,
+            water_color[1] / 255,
+            water_color[2] / 255,
+          ),
+        })
 
         for (let dPatchY = 0; dPatchY < patches_count; dPatchY++) {
           for (let dPatchX = 0; dPatchX < patches_count; dPatchX++) {
-            const color = getPatchWaterColor(water_origin_patch_id.x + dPatchX, water_origin_patch_id.y + dPatchY);
+            const color = getPatchWaterColor(
+              water_origin_patch_id.x + dPatchX,
+              water_origin_patch_id.y + dPatchY,
+            )
 
-            const index = dPatchX + dPatchY * patches_count;
-            colorsTextureBuffer[4 * index + 0] = color[0];
-            colorsTextureBuffer[4 * index + 1] = color[1];
-            colorsTextureBuffer[4 * index + 2] = color[2];
-            colorsTextureBuffer[4 * index + 3] = 255;
+            const index = dPatchX + dPatchY * patches_count
+            colorsTextureBuffer[4 * index + 0] = color[0]
+            colorsTextureBuffer[4 * index + 1] = color[1]
+            colorsTextureBuffer[4 * index + 2] = color[2]
+            colorsTextureBuffer[4 * index + 3] = 255
           }
         }
-        dataTexture.needsUpdate = true;
+        dataTexture.needsUpdate = true
 
         material_uniforms.uEnvMap.value = scene.environment
 

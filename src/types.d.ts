@@ -148,6 +148,7 @@ declare namespace Type {
     'action/free_camera': boolean
     'action/camera_went_underwater': boolean
     'action/sky_lights_change': State['settings']['sky_lights']
+    'action/water_changed': State['settings']['water']
     'action/add_character': {
       sui_character: SuiCharacter & { skin?: string }
       three_character: ThreeEntity
