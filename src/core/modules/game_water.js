@@ -3,6 +3,9 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import {
   BufferGeometry,
+  ClampToEdgeWrapping,
+  Color,
+  DataTexture,
   DoubleSide,
   Float32BufferAttribute,
   LinearFilter,
@@ -10,13 +13,15 @@ import {
   Mesh,
   MeshStandardMaterial,
   RepeatWrapping,
+  RGBAFormat,
   TextureLoader,
 } from 'three'
 
-import { abortable, typed_on } from '../utils/iterator.js'
+import texture_url from '../../assets/water/texture.png?url'
 import { current_three_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import texture_url from '../../assets/water/texture.png?url'
+import { world_settings } from '../game/voxel_world.js'
+import { abortable } from '../utils/iterator.js'
 import { get_sea_level } from '../utils/terrain/world_utils.js'
 
 const noise = `//	Simplex 3D Noise
@@ -96,7 +101,24 @@ float noise(vec3 v){
 
 /** @type {Type.Module} */
 export default function () {
-  const base_size = 500
+  const water_view_distance = 3000
+  const patch_size = world_settings.chunks.size.xz
+  const patches_count = Math.ceil((2 * water_view_distance) / patch_size)
+
+  const patches_colors_texture_buffer = new Uint8Array(
+    4 * patches_count * patches_count,
+  )
+  const patches_colors_texture = new DataTexture(
+    patches_colors_texture_buffer,
+    patches_count,
+    patches_count,
+    RGBAFormat,
+  )
+  patches_colors_texture.magFilter = LinearFilter
+  patches_colors_texture.minFilter = LinearFilter
+  patches_colors_texture.wrapS = ClampToEdgeWrapping
+  patches_colors_texture.wrapT = ClampToEdgeWrapping
+
   const texture = new TextureLoader().load(texture_url)
   texture.minFilter = LinearMipMapLinearFilter
   texture.magFilter = LinearFilter
@@ -104,7 +126,7 @@ export default function () {
   texture.wrapT = RepeatWrapping
 
   const material_uniforms = {
-    uColor: { value: null },
+    uColorTexture: { value: patches_colors_texture },
     uF0: { value: 0 },
     uEta: { value: 0 },
     uEnvMap: { value: null },
@@ -130,21 +152,21 @@ export default function () {
       varying vec3 vWorldPosition;
 
       void main() {
+        vUv = uv;
     `,
     )
     parameters.vertexShader = parameters.vertexShader.replace(
-      '#include <begin_vertex>',
+      '#include <worldpos_vertex>',
       `
-      #include <begin_vertex>
-      vWorldPosition = transformed.xyz;
-      vUv = uv;
+      #include <worldpos_vertex>
+      vWorldPosition = worldPosition.xyz;
     `,
     )
 
     parameters.fragmentShader = parameters.fragmentShader.replace(
       'void main() {',
       `
-      uniform vec3 uColor;
+      uniform sampler2D uColorTexture;
       uniform float uF0;
       uniform float uEta;
       uniform samplerCube uEnvMap;
@@ -176,7 +198,7 @@ export default function () {
       }
 
       float computeFoam(float cameraDistance) {
-        vec2 textureCoords = ${Math.ceil(base_size / 15).toFixed(1)} * vUv;
+        vec2 textureCoords = 4.0 * vUv * ${patches_count.toFixed(1)};
         textureCoords += 0.2 * vec2(
           noise(vec3(0.1 * vWorldPosition.xz, 0.2 * uTime)),
           noise(vec3(0.1 * vWorldPosition.zx, 0.2 * uTime))
@@ -220,7 +242,8 @@ export default function () {
       env *= smoothstep(0.9, 1.0, env);
 
       float foam = computeFoam(cameraDistance);
-      vec3 surfaceColor = clamp(uColor + foam, vec3(0), vec3(1));
+      vec3 waterColor = texture(uColorTexture, vUv).rgb;
+      vec3 surfaceColor = clamp(waterColor + foam, vec3(0), vec3(1));
       surfaceColor += env;
 
       float alpha = mix(0.2, 0.98, pow(fresnelFactor, 0.4));
@@ -230,6 +253,24 @@ export default function () {
       diffuseColor = vec4(surfaceColor, alpha);
     `,
     )
+  }
+
+  function build_geometry() {
+    const mesh_size = patch_size * patches_count
+    const geometry = new BufferGeometry()
+    geometry.setAttribute(
+      'position',
+      new Float32BufferAttribute(
+        [0, 0, 0, mesh_size, 0, 0, 0, 0, mesh_size, mesh_size, 0, mesh_size],
+        3,
+      ),
+    )
+    geometry.setAttribute(
+      'uv',
+      new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 1, 1], 2),
+    )
+    geometry.setIndex([0, 1, 3, 0, 3, 2])
+    return geometry
   }
 
   return {
@@ -248,80 +289,18 @@ export default function () {
       material_uniforms.uF0.value = Math.pow((1 - eta) / (1 + eta), 2)
       material_uniforms.uEta.value = eta
     },
-    observe({ scene, get_state, events, signal }) {
-      function build_geometry() {
-        const position_buffer = []
-        const uv_buffer = []
-        const index_buffer = []
-
-        const uv_list = [
-          { x: 0, z: 0 },
-          { x: 1, z: 0 },
-          { x: 0, z: 1 },
-          { x: 1, z: 1 },
-        ]
-
-        let square_index_start = 0
-        for (let d_x = -5; d_x <= 5; d_x++) {
-          for (let d_z = -5; d_z <= 5; d_z++) {
-            for (const uv of uv_list) {
-              position_buffer.push(
-                base_size * (d_x + uv.x),
-                0,
-                base_size * (d_z + uv.z),
-              )
-              uv_buffer.push(uv.x, uv.z)
-            }
-
-            index_buffer.push(
-              square_index_start + 0,
-              square_index_start + 1,
-              square_index_start + 2,
-            )
-            index_buffer.push(
-              square_index_start + 1,
-              square_index_start + 3,
-              square_index_start + 2,
-            )
-            square_index_start += 4
-          }
-        }
-
-        const geometry = new BufferGeometry()
-        geometry.setAttribute(
-          'position',
-          new Float32BufferAttribute(position_buffer, 3),
-        )
-        geometry.setAttribute('uv', new Float32BufferAttribute(uv_buffer, 2))
-        geometry.setIndex(index_buffer)
-        return geometry
-      }
-
+    observe({ scene, get_state, dispatch }) {
       const mesh = new Mesh(build_geometry(), material)
       mesh.name = 'water'
       mesh.receiveShadow = true
       mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
-      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
-        ({ last_water_color }, state) => {
-          const color_changed =
-            !last_water_color ||
-            !last_water_color.equals(state.settings.water.color)
-
-          if (color_changed) {
-            last_water_color = state.settings.water.color
-
-            material_uniforms.uColor.value = state.settings.water.color
-          }
-
-          return {
-            last_water_color,
-          }
-        },
-        {
-          last_water_color: null,
-        },
-      )
+      const get_patch_water_color = (
+        /** @type number */ patch_x,
+        /** @type number */ patch_z,
+      ) => {
+        return [41, 182, 246]
+      }
 
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
@@ -336,11 +315,44 @@ export default function () {
           player_position_z = player.position.z
         }
 
+        const player_patch_id = {
+          x: Math.floor(player_position_x / patch_size),
+          z: Math.floor(player_position_z / patch_size),
+        }
+        const water_origin_patch_id = {
+          x: player_patch_id.x - Math.floor(patches_count / 2),
+          z: player_patch_id.z - Math.floor(patches_count / 2),
+        }
         mesh.position.set(
-          base_size * Math.floor(player_position_x / base_size),
+          water_origin_patch_id.x * patch_size,
           water_level,
-          base_size * Math.floor(player_position_z / base_size),
+          water_origin_patch_id.z * patch_size,
         )
+
+        const water_color = get_patch_water_color(
+          player_patch_id.x,
+          player_patch_id.z,
+        )
+        dispatch('action/water_changed', {
+          color: new Color(
+            water_color[0] / 255,
+            water_color[1] / 255,
+            water_color[2] / 255,
+          ),
+        })
+
+        for (let d_patch_y = 0; d_patch_y < patches_count; d_patch_y++) {
+          for (let d_patch_x = 0; d_patch_x < patches_count; d_patch_x++) {
+            const color = get_patch_water_color(
+              water_origin_patch_id.x + d_patch_x,
+              water_origin_patch_id.y + d_patch_y,
+            )
+
+            const index = d_patch_x + d_patch_y * patches_count
+            patches_colors_texture_buffer.set(color, 4 * index)
+          }
+        }
+        patches_colors_texture.needsUpdate = true
 
         material_uniforms.uEnvMap.value = scene.environment
 
@@ -348,6 +360,18 @@ export default function () {
           scene.add(mesh)
         }
       })
+    },
+    reduce(state, { type, payload }) {
+      if (type === 'action/water_changed') {
+        return {
+          ...state,
+          settings: {
+            ...state.settings,
+            water: payload,
+          },
+        }
+      }
+      return state
     },
   }
 }

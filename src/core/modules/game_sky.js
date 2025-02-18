@@ -45,6 +45,8 @@ export default function () {
         night_nz,
       ])
 
+      const fog_color_uniform = { value: new Color() }
+
       const material = new ShaderMaterial({
         name: 'skybox_shader',
         uniforms: {
@@ -54,6 +56,7 @@ export default function () {
           uSunColor: { value: new Color() },
           uNightTexture: { value: night_texture },
           uNightRotation: { value: new Matrix4() },
+          uFogColor: fog_color_uniform,
         },
         vertexShader: `
         varying vec3 vRayDirection;
@@ -72,6 +75,7 @@ export default function () {
         uniform float uSunGlowSize;
         uniform mat4 uNightRotation;
         uniform samplerCube uNightTexture;
+        uniform vec3 uFogColor;
 
         varying vec3 vRayDirection;
 
@@ -107,7 +111,8 @@ export default function () {
           vec3 rayDirection = normalize(vRayDirection);
           vec3 sunDirection = uSunDirection;
 
-          vec3 color = getSky(rayDirection, sunDirection) + getSun(rayDirection, sunDirection);
+          vec3 rawColor = getSky(rayDirection, sunDirection) + getSun(rayDirection, sunDirection);
+          vec3 color = mix(uFogColor, rawColor, smoothstep(0.0, 0.05, rayDirection.y));
           gl_FragColor = vec4(color, 1);
         }`,
         side: BackSide,
@@ -187,6 +192,7 @@ export default function () {
           fog_color,
           smoothstep(Math.abs(sun_position.y - 0.0), 0, 0.15),
         )
+        fog_color_uniform.value = fog_color
 
         const directional = {
           position:
