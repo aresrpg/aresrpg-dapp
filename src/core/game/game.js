@@ -35,7 +35,7 @@ import { create_client } from '@aresrpg/aresrpg-protocol'
 import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
-import { WorldEnv } from '@aresrpg/aresrpg-world'
+import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
@@ -110,8 +110,8 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
 
-export const VIEW_DISTANCE_MIN = 50
-export const VIEW_DISTANCE_MAX = 1000
+export const VIEW_DISTANCE_MIN = 1
+export const VIEW_DISTANCE_MAX = 16
 
 export const INITIAL_STATE = {
   settings: {
@@ -168,9 +168,10 @@ export const INITIAL_STATE = {
     },
 
     terrain: {
-      use_lod: false,
-      chunk_streaming: false,
-      view_distance: 200,
+      use_lod: true,
+      use_local_generation: false,
+      use_caverns: true,
+      view_distance: 4,
     },
 
     camera: {
@@ -422,7 +423,7 @@ renderer.info.autoReset = false
 composer.setSize(window.innerWidth, window.innerHeight)
 
 const voxelmap_collider = new VoxelmapCollider({
-  chunkSize: WorldEnv.current.chunkDimensions,
+  chunkSize: world_settings.getChunkDimensions(),
   voxelsChunkOrdering: 'zxy',
 })
 const voxelmap_collisions = new VoxelmapCollisions({

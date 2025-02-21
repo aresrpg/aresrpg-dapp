@@ -8,7 +8,7 @@ import {
   context,
   current_three_character,
 } from '../game/game.js'
-import { get_nearest_floor_pos_async } from '../utils/terrain/world_utils.js'
+import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
 
 import { create_board } from './game_fights.js'
 
@@ -19,6 +19,13 @@ export default function () {
   return {
     observe({ events, dispatch, signal, on_game_hide, on_game_show }) {
       const gui = new GUI()
+
+      gui.useLocalStorage = true
+
+      gui.remember(settings, settings.sky)
+      gui.remember(settings.terrain)
+      gui.remember(settings.camera)
+      gui.remember(settings.postprocessing)
 
       signal.addEventListener('abort', () => {
         gui.destroy()
@@ -39,7 +46,9 @@ export default function () {
       const camera_folder = gui.addFolder('Camera Settings')
       const postprocessing_folder = gui.addFolder('Postprocessing Settings')
 
-      const handle_change = name => value => dispatch(name, value)
+      const handle_change = name => value => {
+        dispatch(name, value)
+      }
 
       const dispatch_postprocessing_change = () => {
         settings.postprocessing.version++
@@ -59,17 +68,15 @@ export default function () {
       game_folder
         .add(
           {
-            teleport: async () => {
+            teleport: () => {
               const player = current_three_character()
               if (player?.position) {
                 // @ts-ignore
                 const { x, z } = player.position
 
-                const surface_block = await get_nearest_floor_pos_async(
-                  new Vector3(Math.floor(x), 200, Math.floor(z)),
+                const surface_block = get_nearest_floor_pos(
+                  new Vector3(Math.floor(x), 300, Math.floor(z)),
                 )
-
-                surface_block.y += 1
 
                 dispatch('packet/characterPosition', {
                   id: player.id,
@@ -95,7 +102,9 @@ export default function () {
       daytime_folder
         .add(settings.sky, 'paused')
         .name('Pause cycle')
-        .onChange(paused => events.emit('SKY_CYCLE_PAUSED', paused))
+        .onChange(paused => {
+          events.emit('SKY_CYCLE_PAUSED', paused)
+        })
 
       const daytime_value_control = daytime_folder
         .add(settings.sky, 'value', 0, 1, 0.001)
@@ -117,15 +126,31 @@ export default function () {
           'view_distance',
           VIEW_DISTANCE_MIN,
           VIEW_DISTANCE_MAX,
-          50,
+          1,
         )
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
 
-      terrain_folder.add(settings.terrain, 'use_lod').name('enable LOD')
       terrain_folder
-        .add(settings.terrain, 'chunk_streaming')
-        .name('Stream chunks from server')
+        .add(settings.terrain, 'use_lod')
+        .name('enable LOD')
+        .onFinishChange(value => {
+          dispatch('action/terrain_settings', { use_lod: value })
+        })
+
+      terrain_folder
+        .add(settings.terrain, 'use_local_generation')
+        .name('Generate chunks locally')
+        .onFinishChange(value => {
+          dispatch('action/terrain_settings', { use_local_generation: value })
+        })
+
+      terrain_folder
+        .add(settings.terrain, 'use_caverns')
+        .name('Generate caverns (local generation only)')
+        .onFinishChange(value => {
+          dispatch('action/terrain_settings', { use_caverns: value })
+        })
 
       terrain_folder
         .add(

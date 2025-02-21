@@ -1,10 +1,10 @@
 import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
 import { clamp } from 'three/src/math/MathUtils.js'
+import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import { get_sea_level } from '../utils/terrain/world_utils.js'
 
 import { is_hovering_mob_group } from './player_entities_interract.js'
 
@@ -40,7 +40,7 @@ export default function () {
       }
       camera_controls.update(delta)
 
-      const is_underwater = camera.position.y <= get_sea_level()
+      const is_underwater = camera.position.y <= world_settings.getSeaLevel()
       if (camera_state.is_underwater !== is_underwater) {
         dispatch('action/camera_went_underwater', is_underwater)
       }

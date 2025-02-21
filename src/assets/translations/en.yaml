@@ -252,6 +252,7 @@ APP_GAME_CHAT_NO_CHARACTER: You must select a character first
 APP_GAME_CHAT_NO_ONLINE: You must be online to send a message
 
 APP_ZONE_PLAYERS: Players
+APP_ZONE_CHUNKS_LOADING: Generating chunks
 
 APP_PLEASE_CONNECT: Welcome on AresRPG, please connect to the server to get started
 

@@ -5,7 +5,7 @@ import { Vector3 } from 'three'
 
 import { abortable } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
-import { get_nearest_floor_pos_async } from '../utils/terrain/world_utils.js'
+import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
 import logger from '../../logger.js'
 
 const MOVE_INTERVAL = 5000 // 5 seconds in milliseconds
@@ -104,32 +104,28 @@ export default function () {
         visible_mobs_group.forEach(({ entities }) => {
           // this kinda is background task, we do not need to wait for it (it has a catch block)
           // ? Could it become a problem if the get_ground_height takes more time than MOVE_INTERVAL?
-          Promise.all(
-            entities.map(async mob => {
-              // 10% chance to move the mob
-              const should_move = Math.random() < MOVE_PROBABILITY
-              if (should_move) {
-                const { mob_group_id } = mob
-                const { position: spawn_position } =
-                  visible_mobs_group.get(mob_group_id)
+          entities.forEach(mob => {
+            // 10% chance to move the mob
+            const should_move = Math.random() < MOVE_PROBABILITY
+            if (should_move) {
+              const { mob_group_id } = mob
+              const { position: spawn_position } =
+                visible_mobs_group.get(mob_group_id)
 
-                const offset_x = get_random_offset(MAX_MOVE_DISTANCE)
-                const offset_z = get_random_offset(MAX_MOVE_DISTANCE)
+              const offset_x = get_random_offset(MAX_MOVE_DISTANCE)
+              const offset_z = get_random_offset(MAX_MOVE_DISTANCE)
 
-                const surface_block = await get_nearest_floor_pos_async({
-                  x: spawn_position.x + offset_x,
-                  y: spawn_position.y,
-                  z: spawn_position.z + offset_z,
-                })
+              const surface_block = get_nearest_floor_pos({
+                x: spawn_position.x + offset_x,
+                y: spawn_position.y,
+                z: spawn_position.z + offset_z,
+              })
 
-                mob.target_position = {
-                  ...surface_block,
-                  y: surface_block.y + mob.height * 0.5,
-                }
+              mob.target_position = {
+                ...surface_block,
+                y: surface_block.y + mob.height * 0.5,
               }
-            }),
-          ).catch(error => {
-            console.error('Error moving mobs:', error)
+            }
           })
         })
       })
