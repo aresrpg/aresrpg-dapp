@@ -1,14 +1,14 @@
 import {
-  asVect2,
   BlocksProcessing,
-  getPatchId,
   ProcessingState,
-  WorldEnv,
-  WorkerPool,
   BlockMode,
+  parseChunkKey,
+  parseThreeStub,
 } from '@aresrpg/aresrpg-world'
-import { Vector2, Vector3 } from 'three'
+import { Vector3 } from 'three'
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
+import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
 /**
  * performs individual block processing call synchroneously in main thread (without cache)
@@ -16,29 +16,27 @@ import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
  */
 export function get_nearest_floor_pos(pos) {
   // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
-  const requested_pos = new Vector3(pos.x, pos.y, pos.z).floor()
+  const requested_pos = new Vector3(pos.x, pos.y + 1, pos.z).floor()
   const [floor_block] = BlocksProcessing.getFloorPositions([
     requested_pos,
   ]).process()
   return floor_block.pos
 }
 
+const default_worker_pool = new WorkerPool()
+default_worker_pool.init(1)
+await default_worker_pool.loadWorldEnv(world_settings.rawSettings)
+
 /**
  * deferring task execution to allow grouping multiple block requests in same batch
  * @returns
  */
 const renew_blocks_processing_request = () => {
-  if (WorkerPool.default) {
-    const task = BlocksProcessing.getFloorPositions([])
-    task.onStarted = () =>
-      console.log(
-        `run scheduled task with ${task.processingInput.length} blocks`,
-      )
-    task.defer()
-    return task
-  } else {
-    console.warn(`waiting for workers to be ready`)
-  }
+  const task = BlocksProcessing.getFloorPositions([])
+  task.onStarted = () =>
+    console.log(`run scheduled task with ${task.processingInput.length} blocks`)
+  task.defer()
+  return task
 }
 
 let blocks_processing_task //= renew_blocks_processing_request()
@@ -79,41 +77,25 @@ export async function get_nearest_floor_pos_async(raw_pos) {
   }
 }
 
-export const get_sea_level = () => WorldEnv.current.seaLevel
-
-export function get_view_settings(view_pos, view_dist) {
-  const patch_dims = WorldEnv.current.patchDimensions
-  const view_center = getPatchId(asVect2(view_pos), patch_dims)
-  const view_far = getPatchId(new Vector2(view_dist), patch_dims).x
-  const view_near = Math.min(view_far, WorldEnv.current.patchViewCount.near)
-  const view_settings = {
-    center: view_center,
-    near: view_near,
-    far: view_far,
-  }
-  return view_settings
-}
-
 export function chunk_data_encoder(value, mode = BlockMode.REGULAR) {
   if (value)
     return voxelmapDataPacking.encode(mode === BlockMode.CHECKERBOARD, value)
   return voxelmapDataPacking.encodeEmpty()
 }
 
-export function to_engine_chunk_format(world_chunk, { encode = false } = {}) {
-  const { id } = world_chunk
-  const is_empty = world_chunk.isEmpty()
-  const size = world_chunk.extendedDims
-  const data = is_empty ? [] : world_chunk.rawData
-  const voxels_chunk_data = {
-    data: encode ? data.map(chunk_data_encoder) : data,
-    isEmpty: is_empty,
-    size,
-    dataOrdering: 'zxy',
+export function to_engine_chunk_format({ metadata, rawdata }) {
+  const data = rawdata.map(chunk_data_encoder)
+
+  return {
+    id: parseChunkKey(metadata.chunkKey),
+    voxels_chunk_data: {
+      data,
+      size: parseThreeStub(metadata.bounds)
+        .clone()
+        .expandByScalar(metadata.margin)
+        .getSize(new Vector3()),
+      dataOrdering: 'zxy',
+      isEmpty: !rawdata.length,
+    },
   }
-  const engine_chunk = {
-    id,
-    voxels_chunk_data,
-  }
-  return engine_chunk
 }

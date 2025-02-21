@@ -29,10 +29,13 @@ export default function () {
             ...state,
             settings: {
               ...state.settings,
-              view_distance: Math.max(
-                VIEW_DISTANCE_MIN,
-                Math.min(VIEW_DISTANCE_MAX, payload),
-              ),
+              terrain: {
+                ...state.settings.terrain,
+                view_distance: Math.max(
+                  VIEW_DISTANCE_MIN,
+                  Math.min(VIEW_DISTANCE_MAX, payload),
+                ),
+              },
             },
           }
         case 'action/free_camera':
@@ -43,6 +46,17 @@ export default function () {
               camera: {
                 ...state.settings.camera,
                 is_free: payload,
+              },
+            },
+          }
+        case 'action/terrain_settings':
+          return {
+            ...state,
+            settings: {
+              ...state.settings,
+              terrain: {
+                ...state.settings.terrain,
+                ...payload,
               },
             },
           }

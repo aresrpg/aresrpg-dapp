@@ -5,6 +5,8 @@
   .players {{ t('APP_ZONE_PLAYERS') }} {{ server_info.online_players }} / {{ server_info.max_players }}
   .version Version {{ pkg.version }}
   .biome Biome #[b {{ biome }}]
+  .chunks-loading(v-if="chunks_generating > 0")
+    .status-text(:style="{ color: progress_color }") {{ t('APP_ZONE_CHUNKS_LOADING') }} ({{ chunks_generating }})
 </template>
 
 <script setup>
@@ -22,6 +24,15 @@ const server_info = inject('server_info');
 const { t } = useI18n();
 const chunk_position = computed(() => to_chunk_position(position));
 const biome = ref(null);
+const chunks_generating = ref(0);
+
+const progress_color = computed(() => {
+  if (chunks_generating.value >= 30) return '#ff4d4d'; // red
+  if (chunks_generating.value >= 10) return '#ffa64d'; // orange
+  return '#4dff88'; // green
+});
+
+let last_biome_update = Date.now();
 
 function update_position(state) {
   const pos = current_three_character(state)?.position;
@@ -33,17 +44,26 @@ function update_position(state) {
     if (position.y !== y) position.y = y;
     if (position.z !== z) position.z = z;
 
-    biome.value = Biome.instance.getBiomeType(new Vector3(x, y, z));
+    if (Date.now() - last_biome_update > 1000) {
+      last_biome_update = Date.now();
+      biome.value = Biome.instance.getBiomeType(new Vector3(x, y, z));
+    }
   }
+}
+
+function update_chunks_generating_count(amount) {
+  chunks_generating.value = amount;
 }
 
 onMounted(() => {
   context.events.on('STATE_UPDATED', update_position);
+  context.events.on('CHUNKS_GENERATING', update_chunks_generating_count);
   update_position();
 });
 
 onUnmounted(() => {
   context.events.off('STATE_UPDATED', update_position);
+  context.events.off('CHUNKS_GENERATING', update_chunks_generating_count);
 });
 </script>
 
@@ -59,6 +79,10 @@ onUnmounted(() => {
   .position
     font-size 1em
     color #EEEEEE
+  .chunks-loading
+    .status-text
+      font-size .8em
+      transition color 0.3s ease
   .players
     margin-top .5em
     font-size .8em

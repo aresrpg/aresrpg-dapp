@@ -145,6 +145,7 @@ declare namespace Type {
     'action/window_focus': boolean
     'action/select_character': string
     'action/view_distance': number
+    'action/terrain_settings': Partial<State['settings']['terrain']>
     'action/free_camera': boolean
     'action/camera_went_underwater': boolean
     'action/sky_lights_change': State['settings']['sky_lights']
@@ -217,6 +218,7 @@ declare namespace Type {
       RECONNECT_TO_SERVER: void // triggered when clicking on the reconnect button
       USER_LOGOUT: void // triggered when the user logs out
       FORCE_RENDER_CHUNKS: any[] // render the chunks
+      CHUNKS_GENERATING: number // the number of chunks being generated
     } & Packets &
       Actions
   >

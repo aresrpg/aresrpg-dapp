@@ -2,38 +2,32 @@ import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
-import {
-  ChunkContainer,
-  ChunksProvider,
-  WorkerPool,
-  WorldEnv,
-} from '@aresrpg/aresrpg-world'
+import { ChunksProcessing } from '@aresrpg/aresrpg-world'
+import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
 import {
   decompress_chunk_column,
+  compress_chunk_column,
   spiral_array,
   to_chunk_position,
 } from '@aresrpg/aresrpg-sdk/chunk'
+import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+import { LRUCache } from 'lru-cache'
 
 import { current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
-import {
-  get_view_settings,
-  to_engine_chunk_format,
-} from '../utils/terrain/world_utils.js'
-import {
-  apply_world_env_configuration,
-  FLAGS,
-  LOD_MODE,
-  WORLD_WORKER_COUNT,
-  WORLD_WORKER_URL,
-} from '../game/voxel_world.js'
-import logger from '../../logger.js'
+import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
 import { create_voxel_engine } from '../game/voxel_engine.js'
 
-// TODO: The server won't send twice the same chunk for a session, unless time has passed
-// TODO: monitor this map to avoid killing the client's memory
-// TODO: it should not be a lru because we don't want to loose chunks, unless we are able to regenerate them efficiently on the client
-const COMPRESSED_CHUNK_CACHE = new Map()
+// The server won't send twice the same chunk for a session, unless time has passed
+// If the cache was too full, then local generation would be used to retrieve missing ones
+const COMPRESSED_CHUNK_CACHE = new LRUCache({
+  maxSize: 100 * 1024 * 1024, // 100mb limit
+  // @ts-ignore - Use a rough estimation of the base64 size of a chunk
+  sizeCalculation: item => Math.ceil(item.length * 0.75), // base64 size in bytes
+})
+
+// From 0 to top, there are 6 chunks stacked in a column
+const CHUNKS_PER_COLUMN = 6
 
 function exclude_positions(positions) {
   return ({ x, y, z }) =>
@@ -43,185 +37,214 @@ function exclude_positions(positions) {
 }
 
 function column_to_chunk_ids({ x, z }) {
-  return Array.from({ length: 6 }).map((_, y) => ({ x, y, z }))
+  return Array.from({ length: CHUNKS_PER_COLUMN }).map((_, y) => ({ x, y, z }))
 }
+
+function column_to_surface_ids({ x, z }) {
+  const surface = CHUNKS_PER_COLUMN / 2
+  return Array.from({ length: surface }).map((_, y) => ({
+    x,
+    y: y + surface,
+    z,
+  }))
+}
+
+const chunks_processing_worker_pool = new WorkerPool()
+
+chunks_processing_worker_pool.init(navigator.hardwareConcurrency)
+
+await chunks_processing_worker_pool.loadWorldEnv(world_settings.rawSettings)
 
 /** @type {Type.Module} */
 export default function () {
-  const columns_to_render_queue = []
-
-  apply_world_env_configuration()
-
-  const chunks_processing_worker_pool = new WorkerPool(
-    WORLD_WORKER_URL,
-    WORLD_WORKER_COUNT,
-  )
-  // chunks batch processing
-  const chunks_provider = new ChunksProvider(chunks_processing_worker_pool)
   // engine setup
-  const { terrain_viewer, voxelmap_viewer } = create_voxel_engine(
-    WorldEnv.current.chunks.range,
-  )
-
-  let busy_rendering = false
-  let supposed_visible_chunks = []
+  const { terrain_viewer, voxelmap_viewer } = create_voxel_engine()
 
   return {
-    tick(_, { renderer, physics }) {
-      if (!busy_rendering) {
-        const next_column = columns_to_render_queue.shift()
-        if (next_column) {
-          busy_rendering = true
-          decompress_chunk_column(next_column)
-            .then(
-              decompressed_column => {
-                decompressed_column
-                  // @ts-ignore
-                  .map(ChunkContainer.fromStub)
-                  .filter(({ id }) =>
-                    voxelmap_viewer.doesChunkRequireVoxelsData(id),
-                  )
-                  .forEach(chunk => {
-                    const { id, voxels_chunk_data } = to_engine_chunk_format(
-                      chunk,
-                      { encode: true },
-                    )
-                    voxelmap_viewer.enqueueChunk(id, voxels_chunk_data)
-                    // @ts-ignore
-                    physics.voxelmap_collider.setChunk(id, voxels_chunk_data)
-                    voxelmap_viewer.setVisibility(supposed_visible_chunks)
-                  })
-              },
-              error => console.error(error),
-            )
-            .finally(() => (busy_rendering = false))
-        }
-      }
-
-      terrain_viewer.update(renderer)
-    },
     observe({ camera, events, signal, scene, get_state, physics }) {
       function render_world_chunk(
         world_chunk,
         { ignore_collision = false } = {},
       ) {
-        const engine_chunk = to_engine_chunk_format(world_chunk)
+        const { id, voxels_chunk_data } = to_engine_chunk_format(world_chunk)
 
-        // make sure the chunk is not already rendered
-        voxelmap_viewer.invalidateChunk(engine_chunk.id)
-
-        if (voxelmap_viewer.doesChunkRequireVoxelsData(engine_chunk.id)) {
-          voxelmap_viewer.enqueueChunk(
-            engine_chunk.id,
-            engine_chunk.voxels_chunk_data,
-          )
-        }
+        voxelmap_viewer.invalidateChunk(id)
+        // @ts-ignore
+        voxelmap_viewer.enqueueChunk(id, voxels_chunk_data)
 
         if (!ignore_collision)
-          physics.voxelmap_collider.setChunk(
-            engine_chunk.id,
-            // @ts-ignore
-            engine_chunk.voxels_chunk_data,
-          )
+          // @ts-ignore
+          physics.voxelmap_collider.setChunk(id, voxels_chunk_data)
       }
-
-      const on_chunks_processed = chunks => {
-        chunks?.forEach(chunk => {
-          render_world_chunk(chunk)
-        })
-      }
-
-      chunks_provider.onChunkProcessed = on_chunks_processed
 
       window.dispatchEvent(new Event('assets_loading'))
       // this notify the player_movement module that the terrain is ready
 
       scene.add(terrain_viewer.container)
 
-      events.on('packet/chunk', async ({ key, column }) => {
-        COMPRESSED_CHUNK_CACHE.set(key, column)
-        if (COMPRESSED_CHUNK_CACHE.size > 300) {
-          logger.WARNING(
-            `Cached chunks from the servers are getting too big! (${COMPRESSED_CHUNK_CACHE.size})`,
-          )
-        }
-      })
+      events.on('packet/chunk', async ({ key, column }) =>
+        COMPRESSED_CHUNK_CACHE.set(key, column),
+      )
 
-      // ? Handling of server chunks
-      aiter(abortable(setInterval(1000, null))).reduce(
-        async last_columns_ids => {
+      function chunk_processor() {
+        const queue = new Map()
+
+        return {
+          schedule_chunks_generation({
+            columns_to_generate = [],
+            all_visible_columns = [],
+          }) {
+            // simply remove unwanted columns from the queue
+            queue.forEach((task, key) => {
+              if (!all_visible_columns.includes(key)) {
+                task.cancel()
+                queue.delete(key)
+              }
+            })
+
+            const { use_caverns } = get_state().settings.terrain
+
+            // queue new columns to generate if they are not already in the queue
+            columns_to_generate
+              .filter(key => !queue.has(key))
+              .forEach(key => {
+                const processing_task = use_caverns
+                  ? ChunksProcessing.fullChunks(key)
+                  : // this isn't used for the gameplay, it's mostly for map editors as it ignores the caverns
+                    ChunksProcessing.upperChunks(key)
+
+                queue.set(key, processing_task)
+
+                processing_task.processingParams.skipBlobCompression = true
+                processing_task
+                  .delegate(chunks_processing_worker_pool)
+                  .then(async chunks => {
+                    chunks.forEach(chunk => render_world_chunk(chunk))
+                    // after processing, we can save the compressed column
+                    const compressed_column =
+                      await compress_chunk_column(chunks)
+                    COMPRESSED_CHUNK_CACHE.set(key, compressed_column)
+                  })
+                  .finally(() => {
+                    queue.delete(key)
+                    events.emit('CHUNKS_GENERATING', queue.size)
+                  })
+              })
+          },
+          async decompress_and_show_column(compressed_column) {
+            const chunks = await decompress_chunk_column(compressed_column)
+            chunks.forEach(chunk => render_world_chunk(chunk))
+          },
+        }
+      }
+
+      const { schedule_chunks_generation, decompress_and_show_column } =
+        chunk_processor()
+
+      // Handling of visibility
+      aiter(abortable(setInterval(1000, null)))
+        .reduce(async last_columns_ids => {
           const state = get_state()
           const character = current_three_character(state)
 
-          if (
-            !character ||
-            character.id === 'default' ||
-            !state.settings.terrain.chunk_streaming
-          )
-            return last_columns_ids
+          if (!character) return last_columns_ids
 
           const chunk_position = to_chunk_position(character.position)
-          const current_columns_ids = spiral_array(chunk_position, 0, 4).filter(
-            ({ x, z }) => COMPRESSED_CHUNK_CACHE.has(`${x}:${z}`),
+
+          // Positions of chunk columns which the player should currently see
+          const current_columns_positions = spiral_array(
+            chunk_position,
+            0,
+            state.settings.terrain.view_distance,
           )
 
-          // ? "chunk id" is just the position of the chunk
-          const columns_to_remove = last_columns_ids.filter(
-            exclude_positions(current_columns_ids),
+          // Positions which the player saw in the last update but not anymore
+          const columns_positions_to_remove = last_columns_ids.filter(
+            exclude_positions(current_columns_positions),
           )
 
-          const columns_to_add = current_columns_ids.filter(
+          // Positions which the player didn't see in the last update but now does
+          const columns_positions_to_add = current_columns_positions.filter(
             exclude_positions(last_columns_ids),
           )
 
-          columns_to_remove.forEach(id => voxelmap_viewer.invalidateChunk(id))
-          columns_to_add.forEach(id => {
-            // since we renders those chunks, they also need to be invalidated in case they previously existed
-            voxelmap_viewer.invalidateChunk(id)
-            columns_to_render_queue.push(
-              COMPRESSED_CHUNK_CACHE.get(`${id.x}:${id.z}`),
-            )
+          const view_changed =
+            columns_positions_to_add.length ||
+            columns_positions_to_remove.length
+
+          const missing_columns = current_columns_positions
+            .map(column_position => {
+              const chunks_positions = state.settings.terrain.use_caverns
+                ? column_to_chunk_ids(column_position)
+                : column_to_surface_ids(column_position)
+              const missing = chunks_positions.some(position =>
+                voxelmap_viewer.doesChunkRequireVoxelsData(position),
+              )
+              if (missing) return column_position
+              return null
+            })
+            .filter(Boolean)
+
+          // no update needed
+          if (!columns_positions_to_remove.length && !missing_columns.length)
+            return current_columns_positions
+
+          columns_positions_to_remove.forEach(position => {
+            voxelmap_viewer.invalidateChunk(position)
           })
 
-          supposed_visible_chunks = spiral_array(chunk_position, 0, 4).flatMap(
-            column_to_chunk_ids,
+          const [
+            // Positions which should be seen but are unknown to the cache
+            columns_to_generate,
+            // Positions which should be seen and are known to the cache
+            columns_to_add,
+          ] = await Promise.all(
+            missing_columns.reduce(
+              ([to_generate, to_add], { x, z }) => {
+                const id = `${x}:${z}`
+                const column = COMPRESSED_CHUNK_CACHE.get(id)
+
+                if (column) to_add.push(column)
+                else to_generate.push(id)
+
+                // since we renders those chunks, they also need to be invalidated in case they previously existed
+                column_to_chunk_ids({ x, z }).forEach(key =>
+                  voxelmap_viewer.invalidateChunk(key),
+                )
+
+                return [to_generate, to_add]
+              },
+              [[], []],
+            ),
           )
 
-          return current_columns_ids
-        },
-        [],
-      )
+          await Promise.all(
+            columns_to_add.map(decompress_and_show_column),
+          ).catch(error => {
+            console.error('Error in columns_to_add', error)
+          })
 
-      // ? Handling of client chunks, the only difference is that when server chunks are enabled, the client view.near starts after the server view.far
-      aiter(abortable(setInterval(1000, null))).forEach(async () => {
-        const state = get_state()
-
-        if (state.settings.terrain.chunk_streaming) return
-
-        const current_pos = current_three_character(state)
-          ?.position?.clone()
-          .floor()
-        const { view_distance } = state.settings.terrain
-
-        if (current_pos) {
-          // Query chunks around player position
-          const view = get_view_settings(current_pos, view_distance)
-          const view_changed = chunks_provider.viewChanged(
-            view.center,
-            view.near,
-            view.far,
+          if (
+            state.settings.terrain.use_local_generation ||
+            character.id === 'default'
           )
+            schedule_chunks_generation({
+              columns_to_generate,
+              all_visible_columns: current_columns_positions,
+            })
+
           if (view_changed) {
-            chunks_provider.rescheduleTasks(view.center, view.near, view.far)
-            voxelmap_viewer.setVisibility(chunks_provider.chunkIds)
-
-            if (FLAGS.LOD_MODE === LOD_MODE.STATIC)
-              terrain_viewer.setLod(camera.position, 50, camera.far)
+            voxelmap_viewer.setVisibility(
+              current_columns_positions.flatMap(column_to_chunk_ids),
+            )
+            terrain_viewer.setLod(camera.position, 50, camera.far)
           }
-        }
-        if (FLAGS.LOD_MODE === LOD_MODE.DYNAMIC)
-          terrain_viewer.setLod(camera.position, 50, camera.far)
-      })
+
+          return current_columns_positions
+        }, [])
+        .catch(error => {
+          console.error('Error in terrain visibility update', error)
+        })
 
       aiter(
         abortable(typed_on(events, 'FORCE_RENDER_CHUNKS', { signal })),
@@ -231,10 +254,19 @@ export default function () {
         ),
       )
 
-      state_iterator().forEach(({ settings: { terrain } }) => {
-        const { use_lod } = terrain
-        terrain_viewer.parameters.lod.enabled = use_lod
-      })
+      state_iterator().reduce(
+        ({ last_lod, last_use_caverns }, { settings: { terrain } }) => {
+          const { use_lod, use_caverns } = terrain
+
+          if (use_lod !== last_lod)
+            terrain_viewer.parameters.lod.enabled = use_lod
+
+          // going from not using caverns to using them, will break the cache as half of the chunks are missing
+          if (use_caverns !== last_use_caverns) COMPRESSED_CHUNK_CACHE.clear()
+
+          return { last_lod: use_lod, last_use_caverns: use_caverns }
+        },
+      )
 
       aiter(abortable(setInterval(200, null))).reduce(async () => {
         voxelmap_viewer.setAdaptativeQuality({

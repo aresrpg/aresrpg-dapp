@@ -3,13 +3,11 @@ import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector3 } from 'three'
+import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
 import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
-import {
-  get_nearest_floor_pos,
-  get_sea_level,
-} from '../utils/terrain/world_utils.js'
+import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
 
 import { play_step_sound } from './game_audio.js'
 
@@ -79,11 +77,10 @@ export default function () {
       if (!player) return
       const { inputs } = state
       const origin = player.position.clone()
-      const is_underwater = player.position.y < get_sea_level()
+      const is_underwater = player.position.y < world_settings.getSeaLevel()
 
       if (player.target_position) {
-        const surface_block = get_nearest_floor_pos(player.target_position)
-        player.move(surface_block)
+        player.move(player.target_position)
         player.target_position = null
         return
       }

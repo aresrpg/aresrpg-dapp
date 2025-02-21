@@ -18,7 +18,11 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['events-polyfill', 'buffer'],
+    include: ['events-polyfill', 'buffer', 'poisson-disk-sampling'],
+    exclude: [
+      '@aresrpg/aresrpg-sdk/world',
+      '@aresrpg/aresrpg-world/workerpool',
+    ],
   },
   build: {
     target: 'esnext',

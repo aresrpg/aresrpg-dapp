@@ -5,16 +5,16 @@ import {
   TerrainViewer,
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
-import { BlocksProcessing, WorkerPool } from '@aresrpg/aresrpg-world'
+import { BlocksProcessing } from '@aresrpg/aresrpg-world'
 import { Color, Vector3 } from 'three'
-import { BLOCKS_COLOR_MAPPING } from '@aresrpg/aresrpg-sdk/world'
-
 import {
-  FLAGS,
-  LOD_MODE,
+  BLOCKS_COLOR_MAPPING,
   world_settings,
-  WORLD_WORKER_URL,
-} from './voxel_world.js'
+} from '@aresrpg/aresrpg-sdk/world'
+import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
+
+const size = { xz: 64, y: 64 }
+const altitude = { min: -1, max: 400 }
 
 const blocks_color_mapping = Object.values(BLOCKS_COLOR_MAPPING)
 const voxel_materials_list = blocks_color_mapping.map(material =>
@@ -24,23 +24,24 @@ const voxel_materials_list = blocks_color_mapping.map(material =>
 )
 
 // use dedicated workerpool for LOD
-const lod_dedicated_worker_pool = new WorkerPool(WORLD_WORKER_URL, 1)
+const lod_dedicated_worker_pool = new WorkerPool()
 
-export function create_voxel_engine(chunks_range) {
+lod_dedicated_worker_pool.init(1)
+
+await lod_dedicated_worker_pool.loadWorldEnv(world_settings.rawSettings)
+
+export function create_voxel_engine() {
   const map = {
-    altitude: world_settings.chunks.altitude,
+    altitude,
     voxelMaterialsList: voxel_materials_list,
     async sampleHeightmap(/** @type Float32Array */ coords) {
       const samples_count = coords.length / 2
-      if (FLAGS.LOD_MODE === LOD_MODE.DYNAMIC) {
-        console.log(`block batch compute size: ${samples_count}`)
-      }
-
       const pos_batch = []
       for (let i = 0; i < samples_count; i++) {
         pos_batch.push(new Vector3(coords[2 * i + 0], 0, coords[2 * i + 1]))
       }
 
+      console.log('peak positions', pos_batch)
       const blocks_request = BlocksProcessing.getPeakPositions(pos_batch)
       const blocks_batch = await blocks_request.delegate(
         lod_dedicated_worker_pool,
@@ -67,11 +68,11 @@ export function create_voxel_engine(chunks_range) {
   })
 
   const voxelmap_viewer = new VoxelmapViewer(
-    chunks_range.bottomId + 1,
-    chunks_range.topId,
+    world_settings.rawSettings.chunks.range.bottomId + 1,
+    world_settings.rawSettings.chunks.range.topId,
     voxels_materials_store,
     {
-      chunkSize: world_settings.chunks.size,
+      chunkSize: size,
       computationOptions: {
         method: EComputationMethod.CPU_MULTITHREADED,
         threadsCount: 4,
@@ -93,6 +94,6 @@ export function create_voxel_engine(chunks_range) {
   })
 
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = FLAGS.LOD_MODE > 0
+  terrain_viewer.parameters.lod.enabled = true
   return { voxelmap_viewer, terrain_viewer }
 }

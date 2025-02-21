@@ -250,6 +250,7 @@ APP_GAME_CHAT_NO_CHARACTER: まずキャラクターを選択する必要があ�
 APP_GAME_CHAT_NO_ONLINE: メッセージを送信するにはオンラインである必要があります
 
 APP_ZONE_PLAYERS: プレイヤー
+APP_ZONE_CHUNKS_LOADING: チャンクをロード中
 
 APP_PLEASE_CONNECT: AresRPGへようこそ。始めるにはサーバーに接続してください。
 
