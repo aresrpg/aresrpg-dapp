@@ -22,6 +22,7 @@ import texture_url from '../../assets/water/texture.png?url'
 import { current_three_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { abortable } from '../utils/iterator.js'
+import { chunk_size } from '../game/voxel_engine.js'
 
 const noise = `//	Simplex 3D Noise
 //	by Ian McEwan, Ashima Arts
@@ -101,7 +102,7 @@ float noise(vec3 v){
 /** @type {Type.Module} */
 export default function () {
   const water_view_distance = 3000
-  const patch_size = world_settings.chunks.size.xz
+  const patch_size = chunk_size.xz
   const patches_count = Math.ceil((2 * water_view_distance) / patch_size)
 
   const patches_colors_texture_buffer = new Uint8Array(
