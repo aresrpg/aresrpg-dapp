@@ -13,7 +13,7 @@ import {
 } from '@aresrpg/aresrpg-sdk/world'
 import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
 
-const size = { xz: 64, y: 64 }
+export const chunk_size = { xz: 64, y: 64 }
 const altitude = { min: -1, max: 400 }
 
 const blocks_color_mapping = Object.values(BLOCKS_COLOR_MAPPING)
@@ -72,7 +72,7 @@ export function create_voxel_engine() {
     world_settings.rawSettings.chunks.range.topId,
     voxels_materials_store,
     {
-      chunkSize: size,
+      chunkSize: chunk_size,
       computationOptions: {
         method: EComputationMethod.CPU_MULTITHREADED,
         threadsCount: 4,
