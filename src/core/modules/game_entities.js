@@ -166,9 +166,12 @@ export default function () {
         })
       })
 
+      const entities_to_spawn = new Map()
+
       events.on('packet/entityGroupsDespawn', ({ ids }) => {
         const { visible_mobs_group } = get_state()
         ids.forEach(id => {
+          if (entities_to_spawn.has(id)) entities_to_spawn.delete(id)
           if (visible_mobs_group.has(id)) {
             const pos = visible_mobs_group.get(id).position
             visible_mobs_group.get(id).entities.forEach(mob => mob.remove())
@@ -177,54 +180,62 @@ export default function () {
         })
       })
 
-      events.on(
-        'packet/entityGroupSpawn',
-        async ({ id: group_id, position: spawn_position, entities }) => {
-          const { visible_mobs_group } = get_state()
+      events.on('packet/entityGroupSpawn', async payload => {
+        entities_to_spawn.set(payload.id, payload)
+      })
 
-          try {
-            visible_mobs_group.set(group_id, {
-              id: group_id,
-              position: spawn_position,
-              entities: await Promise.all(
-                entities.map(async ({ name, id, level, skin, size }) => {
-                  const spawned_mob = {
-                    ...(await ENTITIES[skin]({
-                      id,
-                      // name: `${name} (${level})`,
-                      name: `${id} (${spawn_position.x}, ${spawn_position.y}, ${spawn_position.z})`,
-                      scale_factor: size,
-                    })),
-                    name,
-                    level,
-                    mob_group_id: group_id,
-                    spawn_position,
-                  }
+      // less stress on the main thread by deferring the entity spawning
+      aiter(abortable(setInterval(200, null, { signal }))).forEach(async () => {
+        const { visible_mobs_group } = get_state()
+        // process first entitiy to spawn
+        const next_group = entities_to_spawn.values().next().value
+        if (!next_group) return
 
-                  const position = new Vector3(
-                    spawn_position.x + Math.random() * 4 - 2,
-                    spawn_position.y,
-                    spawn_position.z + Math.random() * 4 - 2,
-                  )
+        const { id: group_id, position: spawn_position, entities } = next_group
+        try {
+          visible_mobs_group.set(group_id, {
+            id: group_id,
+            position: spawn_position,
+            entities: await Promise.all(
+              entities.map(async ({ name, id, level, skin, size }) => {
+                const spawned_mob = {
+                  ...(await ENTITIES[skin]({
+                    id,
+                    // name: `${name} (${level})`,
+                    name: `${id} (${spawn_position.x}, ${spawn_position.y}, ${spawn_position.z})`,
+                    scale_factor: size,
+                  })),
+                  name,
+                  level,
+                  mob_group_id: group_id,
+                  spawn_position,
+                }
 
-                  const surface_block = get_nearest_floor_pos(position)
+                const position = new Vector3(
+                  spawn_position.x + Math.random() * 4 - 2,
+                  spawn_position.y,
+                  spawn_position.z + Math.random() * 4 - 2,
+                )
 
-                  spawned_mob.move(
-                    new Vector3(
-                      surface_block.x,
-                      surface_block.y + spawned_mob.height * 0.5,
-                      surface_block.z,
-                    ),
-                  )
-                  return spawned_mob
-                }),
-              ),
-            })
-          } catch (error) {
-            console.error('Error spawning mob group:', error)
-          }
-        },
-      )
+                const surface_block = get_nearest_floor_pos(position)
+
+                spawned_mob.move(
+                  new Vector3(
+                    surface_block.x,
+                    surface_block.y + spawned_mob.height * 0.5,
+                    surface_block.z,
+                  ),
+                )
+                return spawned_mob
+              }),
+            ),
+          })
+
+          entities_to_spawn.delete(group_id)
+        } catch (error) {
+          console.error('Error spawning mob group:', error)
+        }
+      })
 
       // manage LOD when other entities moves
       events.on('packet/characterPosition', ({ id, position }) => {
