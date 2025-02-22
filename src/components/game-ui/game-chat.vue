@@ -139,7 +139,7 @@ async function send_message() {
   current_message.value = '';
 
   if (msg.startsWith('/')) {
-    if (msg.startsWith('/teleport')) {
+    if (msg.startsWith('/teleport') || msg.startsWith('/tp')) {
       const [x, y, z] = msg.split(' ').slice(1);
       if (!x || !y || !z) toast.error('Invalid teleport command');
       else
@@ -213,13 +213,31 @@ async function handle_message({ id, message, address }) {
   }
 }
 
+function handle_system_message(message) {
+  // @ts-ignore
+  history.value.push({
+    name: 'System',
+    message,
+    alias: 'System',
+    me: false,
+  });
+  if (history.value.length > 100) {
+    history.value.shift();
+  }
+  nextTick(() => {
+    if (auto_scroll.value) scroll_to_bottom();
+  });
+}
+
 onMounted(() => {
   context.events.on('packet/chatMessage', handle_message);
+  context.events.on('SYSTEM_MESSAGE', handle_system_message);
   scroll_to_bottom();
 });
 
 onUnmounted(() => {
   context.events.off('packet/chatMessage', handle_message);
+  context.events.off('SYSTEM_MESSAGE', handle_system_message);
 });
 </script>
 

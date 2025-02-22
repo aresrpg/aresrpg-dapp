@@ -334,3 +334,13 @@ WS_NOT_CONNECTED: Vous n'êtes pas connecté au serveur
 PLAYER_UNHANDLED_ERROR: Mauvais développeurs ! Ils ont oublié de gérer cette erreur
 
 BROWSER_NO_PERF: Votre appareil ne prend pas en charge WebGL ou fonctionne dans des conditions qui causeraient des problèmes de performance majeurs. Veuillez essayer sur un autre appareil ou vous assurer que votre navigateur et vos pilotes sont à jour.
+
+BIOME_TAIGA: Forêt Shirayuki
+BIOME_ARCTIC: Vallée Hyōketsu
+BIOME_GLACIER: Pics Kongōhyō
+BIOME_GRASSLAND: Champs de Kusahara
+BIOME_TEMPERATE: Havre de Shinrin
+BIOME_SWAMP: Marais Yokai
+BIOME_SCORCHED: Terres Désolées de Moeru
+BIOME_DESERT: Dunes de Sabaku
+BIOME_TROPICAL: Jardin Nettai

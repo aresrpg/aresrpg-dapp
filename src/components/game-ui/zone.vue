@@ -4,7 +4,7 @@
   .position 🗺️ {{ position?.x }}, {{ position?.y }}, {{ position?.z }} ( {{ chunk_position.x }}, {{ chunk_position.z }} )
   .players {{ t('APP_ZONE_PLAYERS') }} {{ server_info.online_players }} / {{ server_info.max_players }}
   .version Version {{ pkg.version }}
-  .biome Biome #[b {{ biome }}]
+  .biome Biome #[b(:style="{ backgroundColor: biome_colors[biome] }") {{ t(`BIOME_${biome?.toUpperCase()}`) }}]
   .chunks-loading(v-if="chunks_generating > 0")
     .status-text(:style="{ color: progress_color }") {{ t('APP_ZONE_CHUNKS_LOADING') }} ({{ chunks_generating }})
 </template>
@@ -33,6 +33,18 @@ const progress_color = computed(() => {
 });
 
 let last_biome_update = Date.now();
+
+const biome_colors = {
+  taiga: '#9eb4cb', // Cool blue-white for snowy forest
+  arctic: '#e8f0ff', // Bright white-blue for freezing ice
+  glacier: '#a5d6d9', // Cyan-tinted white for diamond ice
+  grassland: '#90b77d', // Soft green for fields
+  temperate: '#2d5a27', // Deep green for forest
+  swamp: '#445552', // Dark murky green-gray
+  scorched: '#d35400', // Burnt orange for burning wastes
+  desert: '#e4c07e', // Warm sand color
+  tropical: '#38b764', // Vibrant green for tropical garden
+};
 
 function update_position(state) {
   const pos = current_three_character(state)?.position;
@@ -97,7 +109,6 @@ onUnmounted(() => {
       opacity 0.9
       padding 0.2em 0.4em
       border-radius 0.2em
-      background-color #333
       color white
       font-size 0.75em
       font-weight bold
