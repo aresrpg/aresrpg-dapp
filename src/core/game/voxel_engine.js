@@ -41,7 +41,6 @@ export function create_voxel_engine() {
         pos_batch.push(new Vector3(coords[2 * i + 0], 0, coords[2 * i + 1]))
       }
 
-      console.log('peak positions', pos_batch)
       const blocks_request = BlocksProcessing.getPeakPositions(pos_batch)
       const blocks_batch = await blocks_request.delegate(
         lod_dedicated_worker_pool,

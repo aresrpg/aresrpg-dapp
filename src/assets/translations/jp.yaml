@@ -330,3 +330,13 @@ WS_NOT_CONNECTED: サーバーに接続していません
 PLAYER_UNHANDLED_ERROR: ダメな開発者だ！このエラー処理を忘れてしまった
 
 BROWSER_NO_PERF: お使いのデバイスはWebGLをサポートしていないか、パフォーマンス上の大きな問題が発生する状態で実行されています。別のデバイスを試すか、ブラウザとドライバが最新であることを確認してください。
+
+BIOME_TAIGA: 白雪の森
+BIOME_ARCTIC: 氷結の谷
+BIOME_GLACIER: 金剛氷の峰
+BIOME_GRASSLAND: 草原の野
+BIOME_TEMPERATE: 森林の安息地
+BIOME_SWAMP: 妖怪の沼
+BIOME_SCORCHED: 燃えるの荒地
+BIOME_DESERT: 砂漠の砂丘
+BIOME_TROPICAL: 熱帯の庭園

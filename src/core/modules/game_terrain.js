@@ -13,7 +13,7 @@ import {
 import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 import { LRUCache } from 'lru-cache'
 
-import { current_three_character } from '../game/game.js'
+import { chunk_rendering_mode, current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
 import { create_voxel_engine } from '../game/voxel_engine.js'
@@ -28,6 +28,7 @@ const COMPRESSED_CHUNK_CACHE = new LRUCache({
 
 // From 0 to top, there are 6 chunks stacked in a column
 const CHUNKS_PER_COLUMN = 6
+const SERVER_MAX_CHUNK_DISTANCE = 2
 
 function exclude_positions(positions) {
   return ({ x, y, z }) =>
@@ -49,6 +50,11 @@ function column_to_surface_ids({ x, z }) {
   }))
 }
 
+function column_to_underground_ids({ x, z }) {
+  const underground = CHUNKS_PER_COLUMN / 2
+  return Array.from({ length: underground }).map((_, y) => ({ x, y, z }))
+}
+
 const chunks_processing_worker_pool = new WorkerPool()
 
 chunks_processing_worker_pool.init(navigator.hardwareConcurrency)
@@ -61,6 +67,9 @@ export default function () {
   const { terrain_viewer, voxelmap_viewer } = create_voxel_engine()
 
   return {
+    tick(_, { renderer }) {
+      terrain_viewer.update(renderer)
+    },
     observe({ camera, events, signal, scene, get_state, physics }) {
       function render_world_chunk(
         world_chunk,
@@ -82,9 +91,18 @@ export default function () {
 
       scene.add(terrain_viewer.container)
 
-      events.on('packet/chunk', async ({ key, column }) =>
-        COMPRESSED_CHUNK_CACHE.set(key, column),
-      )
+      events.on('packet/chunk', async ({ key, column }) => {
+        const state = get_state()
+        if (
+          is_chunk_mode(chunk_rendering_mode.HYBRID, state) ||
+          is_chunk_mode(chunk_rendering_mode.REMOTE, state)
+        )
+          COMPRESSED_CHUNK_CACHE.set(key, column)
+      })
+
+      function is_chunk_mode(mode, state = get_state()) {
+        return state.settings.terrain.chunk_generation === mode
+      }
 
       function chunk_processor() {
         const queue = new Map()
@@ -102,16 +120,33 @@ export default function () {
               }
             })
 
-            const { use_caverns } = get_state().settings.terrain
+            const {
+              settings: {
+                terrain: { chunk_generation },
+              },
+            } = get_state()
+            const get_processing_task = key => {
+              switch (chunk_generation) {
+                case chunk_rendering_mode.HYBRID:
+                  return ChunksProcessing.upperChunks(key)
+                case chunk_rendering_mode.LOCAL:
+                  return ChunksProcessing.fullChunks(key)
+                case chunk_rendering_mode.LOCAL_SURFACE:
+                  return ChunksProcessing.upperChunks(key)
+                case chunk_rendering_mode.LOCAL_UNDERGROUND:
+                  return ChunksProcessing.lowerChunks(key)
+                case chunk_rendering_mode.REMOTE:
+                  throw new Error(
+                    'Remote chunks should not be generated locally',
+                  )
+              }
+            }
 
             // queue new columns to generate if they are not already in the queue
             columns_to_generate
               .filter(key => !queue.has(key))
               .forEach(key => {
-                const processing_task = use_caverns
-                  ? ChunksProcessing.fullChunks(key)
-                  : // this isn't used for the gameplay, it's mostly for map editors as it ignores the caverns
-                    ChunksProcessing.upperChunks(key)
+                const processing_task = get_processing_task(key)
 
                 queue.set(key, processing_task)
 
@@ -123,7 +158,9 @@ export default function () {
                     // after processing, we can save the compressed column
                     const compressed_column =
                       await compress_chunk_column(chunks)
-                    COMPRESSED_CHUNK_CACHE.set(key, compressed_column)
+                    // during this time we might have received a server packet, so let's check
+                    if (!COMPRESSED_CHUNK_CACHE.has(key))
+                      COMPRESSED_CHUNK_CACHE.set(key, compressed_column)
                   })
                   .finally(() => {
                     queue.delete(key)
@@ -157,6 +194,17 @@ export default function () {
             0,
             state.settings.terrain.view_distance,
           )
+          // Positions of chunk columns which are tracked by the server (nearby)
+          const current_nearby_columns_positions = spiral_array(
+            chunk_position,
+            0,
+            SERVER_MAX_CHUNK_DISTANCE,
+          )
+          // Positions of chunk columns which are distant from the player
+          const current_distant_columns_positions =
+            current_columns_positions.filter(
+              exclude_positions(current_nearby_columns_positions),
+            )
 
           // Positions which the player saw in the last update but not anymore
           const columns_positions_to_remove = last_columns_ids.filter(
@@ -172,18 +220,59 @@ export default function () {
             columns_positions_to_add.length ||
             columns_positions_to_remove.length
 
-          const missing_columns = current_columns_positions
-            .map(column_position => {
-              const chunks_positions = state.settings.terrain.use_caverns
-                ? column_to_chunk_ids(column_position)
-                : column_to_surface_ids(column_position)
-              const missing = chunks_positions.some(position =>
-                voxelmap_viewer.doesChunkRequireVoxelsData(position),
+          function does_column_require_voxels_data(to_chunks_positions) {
+            return column_position => {
+              const missing = to_chunks_positions(column_position).some(
+                position =>
+                  voxelmap_viewer.doesChunkRequireVoxelsData(position),
               )
               if (missing) return column_position
               return null
-            })
-            .filter(Boolean)
+            }
+          }
+
+          function find_missing_columns() {
+            switch (state.settings.terrain.chunk_generation) {
+              // In remote mode, we check full columns between 0 and SERVER_MAX_CHUNK_DISTANCE chunks away
+              case chunk_rendering_mode.REMOTE: {
+                return current_nearby_columns_positions.map(
+                  does_column_require_voxels_data(column_to_chunk_ids),
+                )
+              }
+              // In hybrid mode, we check full columns between 0 and SERVER_MAX_CHUNK_DISTANCE chunks away and surface columns for the rest
+              case chunk_rendering_mode.HYBRID: {
+                const nearby = current_nearby_columns_positions.map(
+                  does_column_require_voxels_data(column_to_chunk_ids),
+                )
+                const distant = current_distant_columns_positions.map(
+                  does_column_require_voxels_data(column_to_surface_ids),
+                )
+                return [...nearby, ...distant]
+              }
+              // In local mode, we check full columns for all
+              case chunk_rendering_mode.LOCAL: {
+                return current_columns_positions.map(
+                  does_column_require_voxels_data(column_to_chunk_ids),
+                )
+              }
+              // In local surface mode, we check surface columns for all
+              case chunk_rendering_mode.LOCAL_SURFACE: {
+                return current_columns_positions.map(
+                  does_column_require_voxels_data(column_to_surface_ids),
+                )
+              }
+              // In local underground mode, we check underground columns for all
+              case chunk_rendering_mode.LOCAL_UNDERGROUND: {
+                return current_columns_positions.map(
+                  does_column_require_voxels_data(column_to_underground_ids),
+                )
+              }
+              default:
+                return []
+            }
+          }
+
+          const missing_columns = find_missing_columns().filter(Boolean)
 
           // no update needed
           if (!columns_positions_to_remove.length && !missing_columns.length)
@@ -203,8 +292,23 @@ export default function () {
               ([to_generate, to_add], { x, z }) => {
                 const id = `${x}:${z}`
                 const column = COMPRESSED_CHUNK_CACHE.get(id)
+                const is_hybrid_mode =
+                  state.settings.terrain.chunk_generation ===
+                  chunk_rendering_mode.HYBRID
 
+                // if the column is already in the cache, we can add it to the list of columns to re-use
                 if (column) to_add.push(column)
+                // if we use hybrid mode, we only generate the column if it was not received from the server
+                // basically if it's more than SERVER_MAX_CHUNK_DISTANCE chunks away from the player
+                else if (is_hybrid_mode) {
+                  if (
+                    !current_nearby_columns_positions.find(
+                      column => column.x === x && column.z === z,
+                    )
+                  )
+                    to_generate.push(id)
+                }
+                // otherwise we generate the column
                 else to_generate.push(id)
 
                 // since we renders those chunks, they also need to be invalidated in case they previously existed
@@ -224,10 +328,7 @@ export default function () {
             console.error('Error in columns_to_add', error)
           })
 
-          if (
-            state.settings.terrain.use_local_generation ||
-            character.id === 'default'
-          )
+          if (!is_chunk_mode(chunk_rendering_mode.REMOTE, state))
             schedule_chunks_generation({
               columns_to_generate,
               all_visible_columns: current_columns_positions,
@@ -254,17 +355,28 @@ export default function () {
         ),
       )
 
+      events.once('STATE_UPDATED', () =>
+        terrain_viewer.setLod(camera.position, 50, camera.far),
+      )
+
       state_iterator().reduce(
-        ({ last_lod, last_use_caverns }, { settings: { terrain } }) => {
-          const { use_lod, use_caverns } = terrain
+        ({ last_lod, last_chunk_generation }, { settings: { terrain } }) => {
+          const { use_lod, chunk_generation } = terrain
 
           if (use_lod !== last_lod)
             terrain_viewer.parameters.lod.enabled = use_lod
 
           // going from not using caverns to using them, will break the cache as half of the chunks are missing
-          if (use_caverns !== last_use_caverns) COMPRESSED_CHUNK_CACHE.clear()
+          if (chunk_generation !== last_chunk_generation) {
+            COMPRESSED_CHUNK_CACHE.clear()
 
-          return { last_lod: use_lod, last_use_caverns: use_caverns }
+            events.emit(
+              'SYSTEM_MESSAGE',
+              `Switching to ${chunk_generation} chunks rendering mode`,
+            )
+          }
+
+          return { last_lod: use_lod, last_chunk_generation: chunk_generation }
         },
       )
 

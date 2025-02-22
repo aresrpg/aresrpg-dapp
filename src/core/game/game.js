@@ -112,6 +112,13 @@ LOADING_MANAGER.onLoad = () => {
 
 export const VIEW_DISTANCE_MIN = 1
 export const VIEW_DISTANCE_MAX = 16
+export const chunk_rendering_mode = {
+  REMOTE: 'remote', // chunks only loaded from the server
+  LOCAL: 'local', // full chunks column are generated locally
+  LOCAL_SURFACE: 'local_surface', // only the surface of the chunks are generated locally
+  LOCAL_UNDERGROUND: 'local_underground', // only the underground of the chunks are generated locally
+  HYBRID: 'hybrid', // chunks are received from server, surface beyond 2 chunks is generated locally
+}
 
 export const INITIAL_STATE = {
   settings: {
@@ -169,8 +176,7 @@ export const INITIAL_STATE = {
 
     terrain: {
       use_lod: true,
-      use_local_generation: false,
-      use_caverns: true,
+      chunk_generation: chunk_rendering_mode.HYBRID,
       view_distance: 4,
     },
 

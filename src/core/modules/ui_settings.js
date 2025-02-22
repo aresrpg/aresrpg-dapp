@@ -5,6 +5,7 @@ import {
   INITIAL_STATE,
   VIEW_DISTANCE_MAX,
   VIEW_DISTANCE_MIN,
+  chunk_rendering_mode,
   context,
   current_three_character,
 } from '../game/game.js'
@@ -138,18 +139,25 @@ export default function () {
           dispatch('action/terrain_settings', { use_lod: value })
         })
 
-      terrain_folder
-        .add(settings.terrain, 'use_local_generation')
-        .name('Generate chunks locally')
-        .onFinishChange(value => {
-          dispatch('action/terrain_settings', { use_local_generation: value })
-        })
+      // terrain_folder
+      //   .add(settings.terrain, 'use_local_generation')
+      //   .name('Generate chunks locally')
+      //   .onFinishChange(value => {
+      //     dispatch('action/terrain_settings', { use_local_generation: value })
+      //   })
+
+      // terrain_folder
+      //   .add(settings.terrain, 'use_caverns')
+      //   .name('Generate caverns (local generation only)')
+      //   .onFinishChange(value => {
+      //     dispatch('action/terrain_settings', { use_caverns: value })
+      //   })
 
       terrain_folder
-        .add(settings.terrain, 'use_caverns')
-        .name('Generate caverns (local generation only)')
+        .add(settings.terrain, 'chunk_generation', { ...chunk_rendering_mode })
+        .name('Chunk processing mode')
         .onFinishChange(value => {
-          dispatch('action/terrain_settings', { use_caverns: value })
+          dispatch('action/terrain_settings', { chunk_generation: value })
         })
 
       terrain_folder
