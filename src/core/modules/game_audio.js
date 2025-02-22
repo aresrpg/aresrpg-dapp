@@ -1,3 +1,5 @@
+import { setInterval as set_interval } from 'timers/promises'
+
 import {
   Audio,
   AudioListener,
@@ -5,6 +7,8 @@ import {
   PositionalAudio,
   Vector3,
 } from 'three'
+import { aiter } from 'iterator-helper'
+import { Biome } from '@aresrpg/aresrpg-world'
 
 import step1 from '../../assets/sound/step1.ogg'
 import step2 from '../../assets/sound/step2.ogg'
@@ -13,9 +17,9 @@ import step4 from '../../assets/sound/step4.ogg'
 import step5 from '../../assets/sound/step5.ogg'
 import step6 from '../../assets/sound/step6.ogg'
 import { current_three_character } from '../game/game.js'
+import { abortable } from '../utils/iterator.js'
 
 const listener = new AudioListener()
-
 const main_audio = new Audio(listener)
 const step_audio = new Audio(listener)
 
@@ -44,14 +48,90 @@ export function play_step_sound() {
   }
 }
 
-const audio_buffer = import('../../assets/sound/plaine_caffres.mp3')
-  .then(module => module.default)
-  .then(main_theme => audio_loader.loadAsync(main_theme))
-  .then(buffer => {
-    main_audio.setBuffer(buffer)
+const biomes_soundtracks = {
+  arctic: {
+    calm: () => import('../../assets/sound/arctic.mp3'),
+    battle: () => import('../../assets/sound/arctic_battle.mp3'),
+  },
+  glacier: {
+    calm: () => import('../../assets/sound/glacier.mp3'),
+    battle: () => import('../../assets/sound/glacier_battle.mp3'),
+  },
+  taiga: {
+    calm: () => import('../../assets/sound/taiga.mp3'),
+    battle: () => import('../../assets/sound/taiga_battle.mp3'),
+  },
+  temperate: {
+    calm: () => import('../../assets/sound/taiga.mp3'),
+    battle: () => import('../../assets/sound/temperate_battle.mp3'),
+  },
+  grassland: {
+    calm: () => import('../../assets/sound/grassland.mp3'),
+    battle: () => import('../../assets/sound/grassland_battle.mp3'),
+  },
+  swamp: {
+    calm: () => import('../../assets/sound/arctic.mp3'),
+    battle: () => import('../../assets/sound/arctic_battle.mp3'),
+  },
+  scorched: {
+    calm: () => import('../../assets/sound/arctic.mp3'),
+    battle: () => import('../../assets/sound/arctic_battle.mp3'),
+  },
+  desert: {
+    calm: () => import('../../assets/sound/desert.mp3'),
+    battle: () => import('../../assets/sound/desert_battle.mp3'),
+  },
+  tropical: {
+    calm: () => import('../../assets/sound/arctic.mp3'),
+    battle: () => import('../../assets/sound/arctic_battle.mp3'),
+  },
+}
+
+let current_buffer = null
+
+async function load_biome_theme(biome) {
+  if (!biome || !biomes_soundtracks[biome]?.calm) return null
+
+  try {
+    const module = await biomes_soundtracks[biome].calm()
+    return await audio_loader.loadAsync(module.default)
+  } catch (error) {
+    console.error(`Failed to load theme for biome ${biome}:`, error)
+    return null
+  }
+}
+
+async function transition_to_biome_theme(biome) {
+  const new_buffer = await load_biome_theme(biome)
+  if (!new_buffer || new_buffer === current_buffer) return
+
+  // Store the new buffer
+  current_buffer = new_buffer
+
+  // If audio context is suspended, we'll wait for the resume
+  if (main_audio.context.state === 'suspended') {
+    main_audio.setBuffer(new_buffer)
     main_audio.setLoop(true)
     main_audio.setVolume(1)
-  })
+    return
+  }
+
+  // Fade out current theme if playing
+  if (main_audio.isPlaying) {
+    const original_volume = main_audio.getVolume()
+    for (let i = 10; i >= 0; i--) {
+      main_audio.setVolume((i / 10) * original_volume)
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+    main_audio.stop()
+  }
+
+  // Set up and play new theme
+  main_audio.setBuffer(new_buffer)
+  main_audio.setLoop(true)
+  main_audio.setVolume(1)
+  main_audio.play()
+}
 
 /** @type {Type.Module} */
 export default function () {
@@ -60,9 +140,6 @@ export default function () {
       camera.add(listener)
 
       events.once('STATE_UPDATED', () => {
-        audio_buffer.then(() => {
-          if (!signal.aborted) main_audio.play()
-        })
         const audio_interval = setInterval(() => {
           main_audio.context.resume()
           if (main_audio.context.state === 'running') {
@@ -70,6 +147,25 @@ export default function () {
           }
         }, 500)
       })
+
+      aiter(abortable(set_interval(5000, null, { signal }))).reduce(
+        async last_biome => {
+          const position = current_three_character()?.position
+
+          if (position) {
+            const biome = Biome.instance.getBiomeType(position)
+            if (
+              biome !== last_biome &&
+              main_audio.context.state === 'running'
+            ) {
+              await transition_to_biome_theme(biome)
+              return biome
+            }
+          }
+
+          return last_biome
+        },
+      )
 
       events.on('packet/characterPosition', ({ id, position }) => {
         const state = get_state()
