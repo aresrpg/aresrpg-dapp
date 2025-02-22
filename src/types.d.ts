@@ -219,6 +219,7 @@ declare namespace Type {
       USER_LOGOUT: void // triggered when the user logs out
       FORCE_RENDER_CHUNKS: any[] // render the chunks
       CHUNKS_GENERATING: number // the number of chunks being generated
+      SYSTEM_MESSAGE: string // display a system message
     } & Packets &
       Actions
   >
