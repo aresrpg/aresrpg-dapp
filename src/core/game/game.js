@@ -135,6 +135,7 @@ export const INITIAL_STATE = {
       ['ShiftLeft', 'walk'],
     ]),
     show_entities_collider: false,
+    run_speed: 13,
 
     sky: {
       paused: false,
