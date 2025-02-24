@@ -40,12 +40,8 @@ export default function () {
       id: character.pet.id,
     })
 
-    if (
-      character.pet.item_type === 'vaporeon' &&
-      // @ts-ignore
-      character.pet.shiny
-    )
-      spawned_pet.set_variant('shiny')
+    // @ts-ignore
+    if (character.pet.shiny) spawned_pet.set_variant('shiny')
 
     spawned_pet.floating_title.text = `${character.pet.name} (${character.name})`
 
@@ -197,12 +193,11 @@ export default function () {
             id: group_id,
             position: spawn_position,
             entities: await Promise.all(
-              entities.map(async ({ name, id, level, skin, size }) => {
+              entities.map(async ({ name, id, level, skin, size, variant }) => {
                 const spawned_mob = {
                   ...(await ENTITIES[skin]({
                     id,
-                    // name: `${name} (${level})`,
-                    name: `${id} (${spawn_position.x}, ${spawn_position.y}, ${spawn_position.z})`,
+                    name: `${name} (${level})`,
                     scale_factor: size,
                   })),
                   name,
@@ -216,6 +211,8 @@ export default function () {
                   spawn_position.y,
                   spawn_position.z + Math.random() * 4 - 2,
                 )
+
+                if (variant) spawned_mob.set_variant(variant)
 
                 const surface_block = get_nearest_floor_pos(position)
 

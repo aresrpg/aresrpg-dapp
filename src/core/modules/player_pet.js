@@ -134,14 +134,10 @@ export default function () {
               name: character.pet.name,
             })
 
-            if (
-              character.pet.item_type === 'vaporeon' &&
-              // @ts-ignore
-              character.pet.shiny
-            )
+            // @ts-ignore
+            if (character.pet.shiny) {
               spawned_pet.set_variant('shiny')
-
-            spawned_pet.set_variant('shiny')
+            }
 
             spawned_pet.floating_title.text = `${character.pet.name} (${character.pet.level})`
             pets.set(character.id, spawned_pet)
