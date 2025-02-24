@@ -1,3 +1,5 @@
+import path from 'path'
+
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
@@ -15,6 +17,9 @@ export default defineConfig({
       usePolling: false,
       useFsEvents: true,
       ignored: ['**/node_modules/**', '**/dist/**'], // Ignore unnecessary files
+    },
+    fs: {
+      strict: false,
     },
   },
   optimizeDeps: {

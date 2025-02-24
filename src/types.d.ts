@@ -138,6 +138,7 @@ declare namespace Type {
     'action/show_fps': boolean
     'action/target_fps': number
     'action/postprocessing_changed': State['settings']['postprocessing']
+    'action/run_speed': number
     'action/keydown': string
     'action/keyup': string
     'action/mousedown': number
