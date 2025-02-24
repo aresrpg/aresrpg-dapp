@@ -60,6 +60,14 @@ export default function () {
               },
             },
           }
+        case 'action/run_speed':
+          return {
+            ...state,
+            settings: {
+              ...state.settings,
+              run_speed: payload,
+            },
+          }
       }
 
       return state

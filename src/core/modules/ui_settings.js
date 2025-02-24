@@ -100,6 +100,11 @@ export default function () {
         )
         .name('Set day')
 
+      game_folder
+        .add(settings, 'run_speed', 13, 130, 10)
+        .name('Run speed')
+        .onFinishChange(handle_change('action/run_speed'))
+
       daytime_folder
         .add(settings.sky, 'paused')
         .name('Pause cycle')
