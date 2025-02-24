@@ -21,7 +21,7 @@ import suicunio from '../../assets/models/equipment/suicunio.glb?url'
 import fight_sword from '../../assets/models/misc/fight_sword.glb?url'
 import aragne from '../../assets/models/mobs/aragne.glb?url'
 import araknomath from '../../assets/models/mobs/araknomath.glb?url'
-import bouftou from '../../assets/models/mobs/bouftou.glb?url'
+import fuwa from '../../assets/models/mobs/fuwa.glb?url'
 import hophop from '../../assets/models/mobs/hophop.glb?url'
 import moka from '../../assets/models/mobs/moka.glb?url'
 import moyumi from '../../assets/models/mobs/moyumi.glb?url'
@@ -65,7 +65,7 @@ const AVAILABLE_MODELS = {
 
   aragne,
   araknomath,
-  bouftou,
+  fuwa,
   hophop,
   moka,
   moyumi,

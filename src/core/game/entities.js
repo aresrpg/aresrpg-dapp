@@ -37,7 +37,7 @@ function entity_spawner(
   { skin, height, radius, scale = 1, hair = null },
 ) {
   return async ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
-    const { model, compute_animations, set_variant, custom_colors } =
+    const { model, compute_animations, set_variant, variants, custom_colors } =
       await load_model()
     const { mixer, actions } = compute_animations()
 
@@ -124,6 +124,8 @@ function entity_spawner(
       })
       return equip_cape_promise
     }
+
+    if (variants.length) set_variant(variants[0])
 
     return {
       id,
@@ -280,10 +282,10 @@ export const ENTITIES = {
     radius: 0.8,
     skin: 'araknomath',
   }),
-  bouftou: entity_spawner(() => MODELS.bouftou, {
+  fuwa: entity_spawner(() => MODELS.fuwa, {
     height: 1.5,
     radius: 0.8,
-    skin: 'bouftou',
+    skin: 'fuwa',
     scale: 1.7,
   }),
   hophop: entity_spawner(() => MODELS.hophop, {
