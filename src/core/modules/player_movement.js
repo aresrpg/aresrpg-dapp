@@ -11,7 +11,6 @@ import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
 
 import { play_step_sound } from './game_audio.js'
 
-const RUN_SPEED = 13
 const WALK_SPEED = 6
 const SWIM_SPEED = 10
 const GRAVITY = 50
@@ -156,7 +155,7 @@ export default function () {
       } else {
         const ground_movement = inputs_horizontal_movement
           .clone()
-          .multiplyScalar(inputs.walk ? WALK_SPEED : RUN_SPEED)
+          .multiplyScalar(inputs.walk ? WALK_SPEED : state.settings.run_speed)
         velocity.x = ground_movement.x
         velocity.z = ground_movement.z
 
