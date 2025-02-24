@@ -202,7 +202,14 @@ export async function load(
   // @ts-ignore
   const textures = await Promise.all(Object.values(loaded.parser.textureCache))
   // @ts-ignore
-  const { scene, animations, functions } = loaded
+  const { scene, animations, functions, parser } = loaded
+
+  const variants =
+    parser.json.extensions?.KHR_materials_variants?.variants || []
+  // console.log(
+  //   `Variants for ${path}:`,
+  //   variants.map(v => v.name),
+  // )
 
   scene.traverse(child => {
     // @ts-ignore
@@ -230,6 +237,7 @@ export async function load(
       async set_variant(variant) {
         await functions.selectVariant(cloned, variant)
       },
+      variants,
       compute_animations() {
         const mixer = new AnimationMixer(cloned)
         return {
