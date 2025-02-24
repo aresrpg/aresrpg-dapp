@@ -41,25 +41,37 @@ function column_to_chunk_ids({ x, z }) {
   return Array.from({ length: CHUNKS_PER_COLUMN }).map((_, y) => ({ x, y, z }))
 }
 
-function column_to_surface_ids({ x, z }) {
-  const surface = CHUNKS_PER_COLUMN / 2
-  return Array.from({ length: surface }).map((_, y) => ({
-    x,
-    y: y + surface,
-    z,
-  }))
-}
-
-function column_to_underground_ids({ x, z }) {
-  const underground = CHUNKS_PER_COLUMN / 2
-  return Array.from({ length: underground }).map((_, y) => ({ x, y, z }))
-}
-
 const chunks_processing_worker_pool = new WorkerPool()
 
 chunks_processing_worker_pool.init(navigator.hardwareConcurrency)
 
 await chunks_processing_worker_pool.loadWorldEnv(world_settings.rawSettings)
+
+function create_empty_chunk_from_array({ ref_metadata, chunk_index, x, z }) {
+  const y_base = chunk_index * 64 // Y spans from 0 to 320 (0, 64, 128, 192, 256, 320)
+
+  return {
+    metadata: {
+      chunkKey: `chunk_${x}_${chunk_index}_${z}`,
+      bounds: {
+        isBox3: true,
+        min: {
+          x: ref_metadata.bounds.min.x,
+          y: y_base,
+          z: ref_metadata.bounds.min.z,
+        },
+        max: {
+          x: ref_metadata.bounds.max.x,
+          y: y_base + 64,
+          z: ref_metadata.bounds.max.z,
+        },
+      },
+      margin: ref_metadata.margin,
+      isEmpty: true,
+    },
+    rawdata: new Uint16Array(),
+  }
+}
 
 /** @type {Type.Module} */
 export default function () {
@@ -92,12 +104,7 @@ export default function () {
       scene.add(terrain_viewer.container)
 
       events.on('packet/chunk', async ({ key, column }) => {
-        const state = get_state()
-        if (
-          is_chunk_mode(chunk_rendering_mode.HYBRID, state) ||
-          is_chunk_mode(chunk_rendering_mode.REMOTE, state)
-        )
-          COMPRESSED_CHUNK_CACHE.set(key, column)
+        COMPRESSED_CHUNK_CACHE.set(key, column)
       })
 
       function is_chunk_mode(mode, state = get_state()) {
@@ -142,7 +149,7 @@ export default function () {
               }
             }
 
-            // queue new columns to generate if they are not already in the queue
+            // Queue new columns to generate if they are not already in the queue
             columns_to_generate
               .filter(key => !queue.has(key))
               .forEach(key => {
@@ -154,13 +161,35 @@ export default function () {
                 processing_task
                   .delegate(chunks_processing_worker_pool)
                   .then(async chunks => {
-                    chunks.forEach(chunk => render_world_chunk(chunk))
-                    // after processing, we can save the compressed column
+                    // Ensure we have 6 chunks (y from 0 to 320 in 64-unit increments) by filling with empty chunks if needed
+                    const final_chunks = Array.from({ length: 6 }, (_, i) => {
+                      // Parse key to get x and z (format: "x:z")
+                      const [x, z] = key.split(':').map(Number)
+                      const existing_chunk = chunks.find(
+                        ({ metadata: { chunkKey } }) =>
+                          chunkKey === `chunk_${x}_${i}_${z}`,
+                      )
+                      return (
+                        existing_chunk ||
+                        create_empty_chunk_from_array({
+                          ref_metadata: chunks[0].metadata,
+                          chunk_index: i,
+                          x,
+                          z,
+                        })
+                      )
+                    })
+
+                    final_chunks.forEach(chunk => render_world_chunk(chunk))
+                    // After processing, we can save the compressed column
                     const compressed_column =
-                      await compress_chunk_column(chunks)
-                    // during this time we might have received a server packet, so let's check
+                      await compress_chunk_column(final_chunks)
+                    // During this time we might have received a server packet, so let's check
                     if (!COMPRESSED_CHUNK_CACHE.has(key))
                       COMPRESSED_CHUNK_CACHE.set(key, compressed_column)
+                  })
+                  .catch(error => {
+                    console.error('Error in chunk generation', error)
                   })
                   .finally(() => {
                     queue.delete(key)
@@ -194,17 +223,13 @@ export default function () {
             0,
             state.settings.terrain.view_distance,
           )
+
           // Positions of chunk columns which are tracked by the server (nearby)
           const current_nearby_columns_positions = spiral_array(
             chunk_position,
             0,
-            SERVER_MAX_CHUNK_DISTANCE,
+            SERVER_MAX_CHUNK_DISTANCE + 1,
           )
-          // Positions of chunk columns which are distant from the player
-          const current_distant_columns_positions =
-            current_columns_positions.filter(
-              exclude_positions(current_nearby_columns_positions),
-            )
 
           // Positions which the player saw in the last update but not anymore
           const columns_positions_to_remove = last_columns_ids.filter(
@@ -220,67 +245,18 @@ export default function () {
             columns_positions_to_add.length ||
             columns_positions_to_remove.length
 
-          function does_column_require_voxels_data(to_chunks_positions) {
-            return column_position => {
-              const missing = to_chunks_positions(column_position).some(
-                position =>
-                  voxelmap_viewer.doesChunkRequireVoxelsData(position),
-              )
-              if (missing) return column_position
-              return null
-            }
-          }
-
-          function find_missing_columns() {
-            switch (state.settings.terrain.chunk_generation) {
-              // In remote mode, we check full columns between 0 and SERVER_MAX_CHUNK_DISTANCE chunks away
-              case chunk_rendering_mode.REMOTE: {
-                return current_nearby_columns_positions.map(
-                  does_column_require_voxels_data(column_to_chunk_ids),
-                )
-              }
-              // In hybrid mode, we check full columns between 0 and SERVER_MAX_CHUNK_DISTANCE chunks away and surface columns for the rest
-              case chunk_rendering_mode.HYBRID: {
-                const nearby = current_nearby_columns_positions.map(
-                  does_column_require_voxels_data(column_to_chunk_ids),
-                )
-                const distant = current_distant_columns_positions.map(
-                  does_column_require_voxels_data(column_to_surface_ids),
-                )
-                return [...nearby, ...distant]
-              }
-              // In local mode, we check full columns for all
-              case chunk_rendering_mode.LOCAL: {
-                return current_columns_positions.map(
-                  does_column_require_voxels_data(column_to_chunk_ids),
-                )
-              }
-              // In local surface mode, we check surface columns for all
-              case chunk_rendering_mode.LOCAL_SURFACE: {
-                return current_columns_positions.map(
-                  does_column_require_voxels_data(column_to_surface_ids),
-                )
-              }
-              // In local underground mode, we check underground columns for all
-              case chunk_rendering_mode.LOCAL_UNDERGROUND: {
-                return current_columns_positions.map(
-                  does_column_require_voxels_data(column_to_underground_ids),
-                )
-              }
-              default:
-                return []
-            }
-          }
-
-          const missing_columns = find_missing_columns().filter(Boolean)
-
           // no update needed
-          if (!columns_positions_to_remove.length && !missing_columns.length)
+          if (
+            !columns_positions_to_remove.length &&
+            !columns_positions_to_add.length
+          )
             return current_columns_positions
 
           columns_positions_to_remove.forEach(position => {
             voxelmap_viewer.invalidateChunk(position)
           })
+
+          let missing_chunks_from_server = false
 
           const [
             // Positions which should be seen but are unknown to the cache
@@ -288,28 +264,30 @@ export default function () {
             // Positions which should be seen and are known to the cache
             columns_to_add,
           ] = await Promise.all(
-            missing_columns.reduce(
+            columns_positions_to_add.reduce(
               ([to_generate, to_add], { x, z }) => {
                 const id = `${x}:${z}`
                 const column = COMPRESSED_CHUNK_CACHE.get(id)
                 const is_hybrid_mode =
                   state.settings.terrain.chunk_generation ===
                   chunk_rendering_mode.HYBRID
+                const is_remote_mode =
+                  state.settings.terrain.chunk_generation ===
+                  chunk_rendering_mode.REMOTE
+                const column_is_nearby = current_nearby_columns_positions.find(
+                  column => column.x === x && column.z === z,
+                )
 
                 // if the column is already in the cache, we can add it to the list of columns to re-use
                 if (column) to_add.push(column)
                 // if we use hybrid mode, we only generate the column if it was not received from the server
                 // basically if it's more than SERVER_MAX_CHUNK_DISTANCE chunks away from the player
-                else if (is_hybrid_mode) {
-                  if (
-                    !current_nearby_columns_positions.find(
-                      column => column.x === x && column.z === z,
-                    )
-                  )
-                    to_generate.push(id)
-                }
-                // otherwise we generate the column
-                else to_generate.push(id)
+                else if (
+                  column_is_nearby &&
+                  (is_hybrid_mode || is_remote_mode)
+                ) {
+                  missing_chunks_from_server = true
+                } else to_generate.push(id)
 
                 // since we renders those chunks, they also need to be invalidated in case they previously existed
                 column_to_chunk_ids({ x, z }).forEach(key =>
@@ -341,6 +319,7 @@ export default function () {
             terrain_viewer.setLod(camera.position, 50, camera.far)
           }
 
+          if (missing_chunks_from_server) return last_columns_ids
           return current_columns_positions
         }, [])
         .catch(error => {
@@ -368,12 +347,23 @@ export default function () {
 
           // going from not using caverns to using them, will break the cache as half of the chunks are missing
           if (chunk_generation !== last_chunk_generation) {
+            COMPRESSED_CHUNK_CACHE.forEach((_, key) => {
+              // @ts-ignore
+              const [x, z] = key.split(':').map(Number)
+              column_to_chunk_ids({ x, z }).forEach(position =>
+                voxelmap_viewer.invalidateChunk(position),
+              )
+            })
             COMPRESSED_CHUNK_CACHE.clear()
 
-            events.emit(
-              'SYSTEM_MESSAGE',
-              `Switching to ${chunk_generation} chunks rendering mode`,
+            if (
+              chunk_generation === chunk_rendering_mode.REMOTE ||
+              chunk_generation === chunk_rendering_mode.HYBRID
             )
+              events.emit(
+                'SYSTEM_MESSAGE',
+                `The serveur won't resend chunks, please refresh the page to use the Remote/Hybrid only mode`,
+              )
           }
 
           return { last_lod: use_lod, last_chunk_generation: chunk_generation }
