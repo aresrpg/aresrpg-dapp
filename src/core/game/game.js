@@ -63,7 +63,6 @@ import game_connect from '../modules/game_connect.js'
 import player_action from '../modules/player_action.js'
 import player_health from '../modules/player_health.js'
 import player_pet from '../modules/player_pet.js'
-import player_skin from '../modules/player_skin.js'
 import player_equipment from '../modules/player_equipment.js'
 import toast from '../../toast.js'
 import { i18n } from '../../i18n.js'
@@ -89,6 +88,7 @@ const FILTER_ACTION_IN_LOGS = [
   'action/sky_lights_change',
   'action/mousedown',
   'action/mouseup',
+  'action/water_changed',
 ]
 export const FILTER_PACKET_IN_LOGS = ['packet/characterPosition']
 
@@ -328,7 +328,6 @@ const MODULES = [
   player_action,
   player_health,
   player_pet,
-  player_skin,
   player_equipment,
   player_entities_interract,
   player_experience,

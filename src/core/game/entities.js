@@ -1,6 +1,15 @@
-import { BoxGeometry, Group, LoopOnce, Mesh, Quaternion, Vector3 } from 'three'
+import {
+  BoxGeometry,
+  Color,
+  Group,
+  LoopOnce,
+  Mesh,
+  Quaternion,
+  Vector3,
+} from 'three'
 
 import dispose from '../utils/three/dispose.js'
+import { get_player_skin } from '../utils/three/skin.js'
 
 import { MODELS, find_bone } from './models.js'
 import { CartoonRenderpass } from './rendering/cartoon_renderpass.js'
@@ -34,7 +43,7 @@ function fade_to_animation(from, to, duration = 0.3) {
 function entity_spawner(
   /** @type {() => Promise<ReturnType<Awaited<ReturnType<typeof import("../utils/three/load_model.js")["load"]>>>>} */
   load_model,
-  { skin, height, radius, scale = 1, hair = null },
+  { height, radius, scale = 1, hair = null },
 ) {
   return async ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
     const { model, compute_animations, set_variant, variants, custom_colors } =
@@ -86,43 +95,54 @@ function entity_spawner(
     current_animation?.play()
 
     // this function must be atomic, to avoid having both hair and helmet equipped at the same time
-    let equip_hat_promise = Promise.resolve()
-    let equip_cape_promise = Promise.resolve()
+    let equip_items_promise = Promise.resolve()
     let custom_hat_colors = null
 
     async function equip_hat(hat) {
-      equip_hat_promise = equip_hat_promise.then(async () => {
-        // @ts-ignore
-        const head = find_bone(model, 'Head')
-        head.clear()
+      // @ts-ignore
+      const head = find_bone(model, 'Head')
+      head.clear()
 
-        if (!hat) return
-        // const { item_type } = hat
-        // if(!LOADED_HATS.has(item_type))
+      if (!hat) return
 
-        const { model: hat_model, custom_colors: new_custom_hat_colors } =
-          await MODELS[hat.item_type]
-        head.add(hat_model)
-        custom_hat_colors = new_custom_hat_colors
-      })
-      return equip_hat_promise
+      const { model: hat_model, custom_colors: new_custom_hat_colors } =
+        await MODELS[hat.item_type]
+      head.add(hat_model)
+      custom_hat_colors = new_custom_hat_colors
     }
 
     async function equip_cape(cape) {
-      equip_cape_promise = equip_cape_promise.then(async () => {
-        // @ts-ignore
-        const back = find_bone(model, 'cape')
-        back.clear()
+      // @ts-ignore
+      const back = find_bone(model, 'cape')
+      back.clear()
 
-        if (!cape) return
+      if (!cape) return
 
-        const { model: cape_model } = await MODELS[cape.item_type]
+      const { model: cape_model } = await MODELS[cape.item_type]
 
-        cape_model.rotation.set(0, Math.PI, Math.PI)
-        cape_model.position.y += 1.8
-        back.add(cape_model)
-      })
-      return equip_cape_promise
+      cape_model.rotation.set(0, Math.PI, Math.PI)
+      cape_model.position.y += 1.8
+      back.add(cape_model)
+    }
+
+    function set_colors(
+      { color_1, color_2, color_3 },
+      renderer = context.renderer,
+    ) {
+      if (!custom_colors)
+        throw new Error('This entity does not support custom colors')
+
+      custom_colors.set_color1(color_1)
+      custom_hat_colors?.set_color1(color_1)
+
+      custom_colors.set_color2(color_2)
+      custom_hat_colors?.set_color2(color_2)
+
+      custom_colors.set_color3(color_3)
+      custom_hat_colors?.set_color3(color_3)
+
+      if (custom_colors.needsUpdate()) custom_colors.update(renderer)
+      if (custom_hat_colors?.needsUpdate()) custom_hat_colors.update(renderer)
     }
 
     if (variants.length) set_variant(variants[0])
@@ -136,7 +156,6 @@ function entity_spawner(
       object3d: origin,
       jump_time: 0,
       audio: null,
-      skin,
       action: 'IDLE',
       move(position) {
         // @ts-ignore
@@ -183,42 +202,35 @@ function entity_spawner(
       target_position: null,
       set_variant,
       custom_colors,
-      equip_hat,
-      equip_cape,
-      async set_hair() {
-        if (id === 'default') return
-        await equip_hat({ item_type: hair })
+      /** @param {Type.SuiCharacter} sui_character */
+      async set_equipment(sui_character) {
+        equip_items_promise = equip_items_promise.then(async () => {
+          const skin = get_player_skin(sui_character)
+
+          if (id === 'default' || skin) return
+
+          await equip_hat(sui_character.hat || { item_type: hair })
+          await equip_cape(sui_character.cloak)
+
+          set_colors({
+            color_1: new Color(sui_character.color_1),
+            color_2: new Color(sui_character.color_2),
+            color_3: new Color(sui_character.color_3),
+          })
+        })
+        return equip_items_promise
       },
-      set_colors({ color_1, color_2, color_3 }, renderer = context.renderer) {
-        if (!custom_colors)
-          throw new Error('This entity does not support custom colors')
-
-        if (!custom_colors.get_color1().equals(color_1)) {
-          custom_colors.set_color1(color_1)
-          custom_hat_colors?.set_color1(color_1)
-        }
-
-        if (!custom_colors.get_color2().equals(color_2)) {
-          custom_colors.set_color2(color_2)
-          custom_hat_colors?.set_color2(color_2)
-        }
-
-        if (!custom_colors.get_color3().equals(color_3)) {
-          custom_colors.set_color3(color_3)
-          custom_hat_colors?.set_color3(color_3)
-        }
-
-        if (custom_colors.needsUpdate()) custom_colors.update(renderer)
-        if (custom_hat_colors?.needsUpdate()) custom_hat_colors.update(renderer)
-      },
+      set_colors,
     }
   }
 }
 
 export const ENTITIES = {
   /** @return {Promise<Type.ThreeEntity>} */
-  async from_character({ name, id, classe, sex, skin = null }) {
-    const type = ENTITIES[skin || `${classe}_${sex}`]
+  async from_character(sui_character) {
+    const { name, id, classe, sex } = sui_character
+    const skin = get_player_skin(sui_character)
+    const type = ENTITIES[skin ?? `${classe}_${sex}`]
 
     if (type) return await type({ name, id })
     return await ENTITIES.ghost({ name: 'Void', id })
@@ -231,43 +243,34 @@ export const ENTITIES = {
   senshi_male: entity_spawner(() => MODELS.senshi_male, {
     height: 1.5,
     radius: 0.8,
-    skin: 'senshi_male',
     hair: 'senshi_male_hair',
   }),
   senshi_female: entity_spawner(() => MODELS.senshi_female, {
     height: 1.5,
     radius: 0.8,
-    skin: 'senshi_female',
     hair: 'senshi_female_hair',
   }),
   yajin_male: entity_spawner(() => MODELS.yajin_male, {
     height: 1.5,
     radius: 0.8,
-    skin: 'yajin_male',
     hair: 'yajin_male_hair',
   }),
   yajin_female: entity_spawner(() => MODELS.yajin_female, {
     height: 1.5,
     radius: 0.8,
-    skin: 'yajin_female',
     hair: 'yajin_female_hair',
   }),
   primemachin: entity_spawner(() => MODELS.primemachin, {
     height: 1.5,
     radius: 0.8,
-    skin: 'primemachin',
-    hair: 'primemachin_hair',
   }),
   anima: entity_spawner(() => MODELS.anima, {
     height: 1.5,
     radius: 0.8,
-    skin: 'anima',
-    hair: 'anima_hair',
   }),
   ghost: entity_spawner(() => MODELS.ghost, {
     height: 1.5,
     radius: 0.8,
-    skin: 'ghost',
   }),
 
   // ====== MOBS ======
@@ -275,33 +278,27 @@ export const ENTITIES = {
   aragne: entity_spawner(() => MODELS.aragne, {
     height: 1.5,
     radius: 0.8,
-    skin: 'aragne',
   }),
   araknomath: entity_spawner(() => MODELS.araknomath, {
     height: 1.5,
     radius: 0.8,
-    skin: 'araknomath',
   }),
   fuwa: entity_spawner(() => MODELS.fuwa, {
     height: 1.5,
     radius: 0.8,
-    skin: 'fuwa',
     scale: 1.7,
   }),
   hophop: entity_spawner(() => MODELS.hophop, {
     height: 1.5,
     radius: 0.8,
-    skin: 'hophop',
   }),
   moka: entity_spawner(() => MODELS.moka, {
     height: 1.5,
     radius: 0.8,
-    skin: 'moka',
   }),
   moyumi: entity_spawner(() => MODELS.moyumi, {
     height: 1.5,
     radius: 0.8,
-    skin: 'moyumi',
   }),
 
   // ====== PETS ======
@@ -309,59 +306,48 @@ export const ENTITIES = {
   suifren_capy: entity_spawner(() => MODELS.suifren_capy, {
     height: 0.75,
     radius: 0.75,
-    skin: 'suifren_capy',
   }),
   suifren_bullshark: entity_spawner(() => MODELS.suifren_bullshark, {
     height: 0.75,
     radius: 0.75,
-    skin: 'suifren_bullshark',
   }),
   vaporeon: entity_spawner(() => MODELS.vaporeon, {
     height: 0.85,
     radius: 0.75,
-    skin: 'vaporeon',
     scale: 0.9,
   }),
   suicune: entity_spawner(() => MODELS.suicune, {
     height: 0.85,
     radius: 0.75,
-    skin: 'suicune',
     scale: 0.9,
   }),
   corbac: entity_spawner(() => MODELS.corbac, {
     height: 0.75,
     radius: 0.75,
-    skin: 'corbac',
   }),
   krinan: entity_spawner(() => MODELS.krinan, {
     height: 0.75,
     radius: 0.75,
-    skin: 'krinan',
   }),
   mosho: entity_spawner(() => MODELS.mosho, {
     height: 0.75,
     radius: 0.75,
-    skin: 'mosho',
   }),
   oeuftermath: entity_spawner(() => MODELS.oeuftermath, {
     height: 0.75,
     radius: 0.75,
-    skin: 'oeuftermath',
     scale: 0.5,
   }),
   siluri: entity_spawner(() => MODELS.siluri, {
     height: 0.75,
     radius: 0.75,
-    skin: 'siluri',
   }),
   talokan: entity_spawner(() => MODELS.talokan, {
     height: 0.75,
     radius: 0.75,
-    skin: 'talokan',
   }),
   yago: entity_spawner(() => MODELS.yago, {
     height: 0.75,
     radius: 0.75,
-    skin: 'yago',
   }),
 }

@@ -74,10 +74,14 @@ export default function () {
               if (player?.position) {
                 // @ts-ignore
                 const { x, z } = player.position
-
-                const surface_block = get_nearest_floor_pos(
-                  new Vector3(Math.floor(x), 300, Math.floor(z)),
+                const target_position = new Vector3(
+                  Math.floor(x),
+                  300,
+                  Math.floor(z),
                 )
+
+                const surface_block =
+                  get_nearest_floor_pos(target_position) || target_position
 
                 dispatch('packet/characterPosition', {
                   id: player.id,
@@ -179,6 +183,7 @@ export default function () {
                       player.position.z,
                     ),
                   )
+                console.log('emit ', board_chunks)
                 context.events.emit('FORCE_RENDER_CHUNKS', board_chunks)
                 setTimeout(() => {
                   show_edges()

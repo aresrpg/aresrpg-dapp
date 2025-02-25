@@ -69,13 +69,11 @@ export default function () {
             }
           }
 
-          // characters that were unlocked
           const removed = last_characters.filter(
             last_character =>
               !characters.some(character => character.id === last_character.id),
           )
 
-          // new characters that were locked
           const added = characters.filter(
             character =>
               !last_characters.some(
@@ -94,15 +92,6 @@ export default function () {
                   sui_character,
                   three_character,
                 })
-                await three_character.set_hair()
-
-                if (three_character.id !== 'default') {
-                  three_character.set_colors({
-                    color_1: new Color(sui_character.color_1),
-                    color_2: new Color(sui_character.color_2),
-                    color_3: new Color(sui_character.color_3),
-                  })
-                }
               })
               .catch(error => {
                 console.error('Error adding character', sui_character, error)
