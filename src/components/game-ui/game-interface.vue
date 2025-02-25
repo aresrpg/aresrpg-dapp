@@ -9,6 +9,7 @@
     gameCharacteristic(v-if="stats_opened")
     gameSpell(v-if="spells_opened")
     gamePopupLevelup(v-if="levelup_dialog" v-model:isOpen="levelup_dialog" :details="levelup_details")
+    gameFightTimeline
   .bottom_panel
     gameChat
     gameHealth(
@@ -16,23 +17,28 @@
       @open_stats="open_stats"
       @open_spells="open_spells"
     )
-    gameSpellbar
+    gameFightCharacterOverview(v-if="fight_character_overview && in_fight") 
+    gameSpellbar(v-else)
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
 
 import characterSelectVue from './character-select.vue';
 import zoneVue from './zone.vue';
 import gameChat from './game-chat.vue';
 import gameHealth from './game-health.vue';
 import gameSpellbar from './game-spellbar.vue';
+import gameFightCharacterOverview from './game-fight-character-overview.vue';
 import gameInventory from './game-inventory.vue';
 import gameCharacteristic from './game-characteristic.vue';
 import gameSpell from './game-spells.vue';
 import gamePopupLevelup from './game-popup-levelup.vue';
+import gameFightTimeline from './game-fight-timeline.vue'
 import { context } from '../../core/game/game';
 
+const in_fight = inject('in_fight')
+const fight_character_overview = inject('fight_character_overview')
 const stats_opened = ref(false);
 const spells_opened = ref(false);
 const inventory_opened = ref(false);

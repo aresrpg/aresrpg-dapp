@@ -26,6 +26,7 @@ export default function () {
 
       on_game_show(() => {
         gui.show()
+        // gui.close()
       })
 
       on_game_hide(() => {

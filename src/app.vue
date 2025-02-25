@@ -37,6 +37,8 @@ const selected_character = ref(null);
 const owned_items = ref([]);
 
 const in_fight = ref(false);
+const fight_state = ref(null);
+const fight_character_overview = ref(null);
 
 const selected_category = ref('equipment');
 const selected_item = ref(null);
@@ -95,6 +97,8 @@ provide('owned_items', owned_items);
 provide('inventory_counter', inventory_counter);
 
 provide('in_fight', in_fight);
+provide('fight_state', fight_state);
+provide('fight_character_overview', fight_character_overview);
 
 provide('selected_item', selected_item);
 provide('selected_category', selected_category);
@@ -129,6 +133,7 @@ function update_all(
     sui,
     selected_character_id,
     online: state_online,
+    fight, fights
   } = state;
 
   const selected_wallet = wallets[selected_wallet_name];
@@ -344,6 +349,20 @@ function update_all(
           health,
           get_max_health(character),
         );
+
+      if (fights && current_three_character(state)) {
+        const fight = fights.find(f => f.id === current_three_character(state).current_fight_id);
+        if (fight) {
+          if (fight_state.value != fight) {
+            in_fight.value = true;
+            fight_state.value = fight;
+          } else {
+          }
+        }
+      } else if (in_fight.value) {
+        in_fight.value = false;
+        fight_state.value = null;
+      }
     }
   }
 }

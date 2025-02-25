@@ -156,7 +156,7 @@ export default function () {
         if (character) character.current_fight_id = payload.fight_id
       }
 
-      return state
+      return { ...state, fights: Array.from(state.visible_fights.values()) }
     },
     observe() {
       // observe state to see if a character of the user was involved in a fight or spectating

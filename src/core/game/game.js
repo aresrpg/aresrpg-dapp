@@ -275,6 +275,12 @@ export const INITIAL_STATE = {
   visible_mobs_group: new Map(),
   /** @type {Map<string, Type.Fight>} */
   visible_fights: new Map(),
+
+  fight: {
+    in_fight: true,
+    fight: null,
+  },
+  fights: [],
 }
 
 /** @return {Type.ThreeEntity} */
