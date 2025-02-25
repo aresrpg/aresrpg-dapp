@@ -14,16 +14,20 @@ import { world_settings } from '@aresrpg/aresrpg-sdk/world'
  * performs individual block processing call synchroneously in main thread (without cache)
  * prefer using batch async version to improve performances
  */
-export function get_nearest_floor_pos(pos) {
+export function get_nearest_floor_pos({ x, y, z }) {
   // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
-  const requested_pos = new Vector3(pos.x, pos.y + 1, pos.z).floor()
-  const [floor_block] = BlocksProcessing.getFloorPositions([
+  const requested_pos = new Vector3(x, y + 1, z).floor()
+  const [{ pos }] = BlocksProcessing.getFloorPositions([
     requested_pos,
   ]).process()
-  return floor_block.pos
+
+  // it is important to return null here as if the query fails, we want to know it failed instead of returning a wrong value
+  if (pos.y < 10) return null
+  return pos
 }
 
-const default_worker_pool = new WorkerPool()
+export const default_worker_pool = new WorkerPool()
+
 default_worker_pool.init(1)
 await default_worker_pool.loadWorldEnv(world_settings.rawSettings)
 

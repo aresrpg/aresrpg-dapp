@@ -62,7 +62,7 @@ const biomes_soundtracks = {
     battle: () => import('../../assets/sound/taiga_battle.mp3'),
   },
   temperate: {
-    calm: () => import('../../assets/sound/taiga.mp3'),
+    calm: () => import('../../assets/sound/temperate.mp3'),
     battle: () => import('../../assets/sound/temperate_battle.mp3'),
   },
   grassland: {
@@ -71,7 +71,7 @@ const biomes_soundtracks = {
   },
   swamp: {
     calm: () => import('../../assets/sound/arctic.mp3'),
-    battle: () => import('../../assets/sound/arctic_battle.mp3'),
+    battle: () => import('../../assets/sound/swamp_battle.mp3'),
   },
   scorched: {
     calm: () => import('../../assets/sound/arctic.mp3'),

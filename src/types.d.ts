@@ -48,11 +48,7 @@ declare namespace Type {
     jump_time: number
     action: string
     audio: import('three').PositionalAudio
-    skin: string
     set_variant: (variant: string) => Promise<void>
-    equip_hat(hat: SuiItem): Promise<void>
-    equip_cape(cape: SuiItem): Promise<void>
-    set_hair(): Promise<void>
     mob_group_id?: string
     current_fight_id?: string
     custom_colors: null | {
@@ -66,6 +62,7 @@ declare namespace Type {
       set_color2(color: import('three').Color): void
       set_color3(color: import('three').Color): void
     }
+    set_equipment(sui_character: SuiCharacter): Promise<void>
     set_colors: (
       {
         color_1,
@@ -152,7 +149,7 @@ declare namespace Type {
     'action/sky_lights_change': State['settings']['sky_lights']
     'action/water_changed': State['settings']['water']
     'action/add_character': {
-      sui_character: SuiCharacter & { skin?: string }
+      sui_character: SuiCharacter
       three_character: ThreeEntity
     }
     'action/add_visible_character': FullCharacter

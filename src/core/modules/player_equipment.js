@@ -1,47 +1,72 @@
+import { Color } from 'three'
+
 import {
   context,
   current_sui_character,
   current_three_character,
 } from '../game/game.js'
 import { state_iterator } from '../utils/iterator.js'
+import { ENTITIES } from '../game/entities.js'
+import { get_player_skin } from '../utils/three/skin.js'
 
 /** @type {Type.Module} */
 export default function () {
-  /** @type {Map<string, object>} */
-  const current_equipments = new Map() // <character, { hat, ... }>
-
+  const skins = new Map()
+  const visible_equipment = new Map()
   return {
     observe() {
-      // when a character is removed, remove its equipment
-      context.events.on('action/remove_character', character_id => {
-        current_equipments.delete(character_id)
-      })
-
       state_iterator().forEach(async state => {
         const character = current_sui_character(state)
         const three_character = current_three_character(state)
 
         if (!character || !three_character) return
-        if (!current_equipments.has(character.id))
-          current_equipments.set(character.id, {})
 
-        const { hat, cloak } = character
-        const current_equipment = current_equipments.get(character.id)
+        const current_skin = get_player_skin(character)
+        const previous_skin = skins.get(character.id)
+        const last_equipment = visible_equipment.get(character.id) ?? {}
 
-        if (hat?.id !== current_equipment.hat?.id) {
-          // remove current hat
-          // if new hat, equip it
-          if (hat) await three_character.equip_hat(hat)
-          else await three_character.set_hair()
+        skins.set(character.id, current_skin)
 
-          current_equipments.set(character.id, { ...current_equipment, hat })
+        // handling skin update
+        if (previous_skin !== current_skin) {
+          context.dispatch('action/remove_character', character.id)
+          const sui_character = {
+            ...character,
+            position:
+              three_character.target_position ?? three_character.position,
+          }
+          const new_three_character = current_skin
+            ? await ENTITIES[current_skin](sui_character)
+            : await ENTITIES.from_character(sui_character)
+
+          new_three_character.move(three_character.position)
+
+          context.dispatch('action/add_character', {
+            sui_character,
+            three_character: new_three_character,
+          })
+
+          if (!current_skin) new_three_character.set_equipment(sui_character)
+          if (!last_equipment)
+            await new_three_character.set_equipment(character)
+          else if (
+            last_equipment.hat !== character.hat ||
+            last_equipment.cloak !== character.cloak
+          )
+            await new_three_character.set_equipment(character)
+        } else {
+          if (!last_equipment) await three_character.set_equipment(character)
+          else if (
+            last_equipment.hat !== character.hat ||
+            last_equipment.cloak !== character.cloak
+          )
+            await three_character.set_equipment(character)
         }
 
-        if (cloak?.id !== current_equipment.cloak?.id) {
-          // if null, it will remove the cloak
-          await three_character.equip_cape(cloak)
-          current_equipments.set(character.id, { ...current_equipment, cloak })
-        }
+        visible_equipment.set(character.id, {
+          hat: character.hat,
+          cloak: character.cloak,
+        })
       })
     },
   }

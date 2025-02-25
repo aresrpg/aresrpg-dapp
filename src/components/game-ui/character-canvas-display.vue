@@ -79,7 +79,8 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        await senshi.set_hair();
+        // @ts-ignore
+        await senshi.set_equipment({});
         setup_classe(senshi, props.colors ?? create_character_colors.senshi);
       }
       break;
@@ -89,7 +90,8 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        await yajin.set_hair();
+        // @ts-ignore
+        await yajin.set_equipment({});
         setup_classe(yajin, props.colors ?? create_character_colors.yajin);
       }
       break;
@@ -99,7 +101,8 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        await senshi_female.set_hair();
+        // @ts-ignore
+        await senshi_female.set_equipment({});
         setup_classe(
           senshi_female,
           props.colors ?? create_character_colors.senshi_female,
@@ -112,7 +115,8 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        await yajin_female.set_hair();
+        // @ts-ignore
+        await yajin_female.set_equipment({});
         setup_classe(
           yajin_female,
           props.colors ?? create_character_colors.yajin_female,

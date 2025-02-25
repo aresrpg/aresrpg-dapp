@@ -115,11 +115,12 @@ export default function () {
               const offset_x = get_random_offset(MAX_MOVE_DISTANCE)
               const offset_z = get_random_offset(MAX_MOVE_DISTANCE)
 
-              const surface_block = get_nearest_floor_pos({
-                x: spawn_position.x + offset_x,
-                y: spawn_position.y,
-                z: spawn_position.z + offset_z,
-              })
+              const surface_block =
+                get_nearest_floor_pos({
+                  x: spawn_position.x + offset_x,
+                  y: spawn_position.y,
+                  z: spawn_position.z + offset_z,
+                }) || spawn_position
 
               mob.target_position = {
                 ...surface_block,

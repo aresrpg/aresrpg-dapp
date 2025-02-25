@@ -4,16 +4,16 @@ import { Color, Vector3 } from 'three'
 import { aiter } from 'iterator-helper'
 import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
-import { abortable } from '../utils/iterator.js'
+import { abortable, typed_on } from '../utils/iterator.js'
 import { sui_get_character } from '../sui/client.js'
 import { experience_to_level } from '../utils/game/experience.js'
 import { current_three_character } from '../game/game.js'
 import { ENTITIES } from '../game/entities.js'
 import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
+import { get_player_skin } from '../utils/three/skin.js'
 
 import { DEFAULT_SUI_CHARACTER, SUI_EMITTER } from './sui_data.js'
 import { tick_pet } from './player_pet.js'
-import { get_item_skin } from './player_skin.js'
 
 const MOVE_UPDATE_INTERVAL = 0.1
 const MAX_TITLE_VIEW_DISTANCE = 40
@@ -113,7 +113,7 @@ export default function () {
             const sui_data = await sui_get_character(id)
             default_three_character.remove()
 
-            const skin = get_item_skin(sui_data)
+            const skin = get_player_skin(sui_data)
             const level = experience_to_level(sui_data.experience)
             const content = {
               ...sui_data,
@@ -125,16 +125,8 @@ export default function () {
               : await ENTITIES.from_character(content)
 
             if (sui_data.pet) await spawn_pet(sui_data)
-            if (sui_data.hat) await three_character.equip_hat(sui_data.hat)
-            if (sui_data.cloak) await three_character.equip_cape(sui_data.cloak)
-            else await three_character.set_hair()
 
-            three_character.set_colors({
-              color_1: new Color(sui_data.color_1),
-              color_2: new Color(sui_data.color_2),
-              color_3: new Color(sui_data.color_3),
-            })
-
+            three_character.set_equipment(sui_data)
             three_character.move(default_three_character.object3d.position)
 
             visible_characters.set(id, {
@@ -143,7 +135,7 @@ export default function () {
               ...three_character,
             })
           } catch (error) {
-            console.error('Error updatintg character through Sui data:', error)
+            console.error('Error updating character through Sui data:', error)
           }
         }
       })
@@ -177,8 +169,19 @@ export default function () {
       })
 
       events.on('packet/entityGroupSpawn', async payload => {
+        if (payload.position.y < 20) alert('Mob spawned underground')
         entities_to_spawn.set(payload.id, payload)
       })
+
+      function get_random_surface_position(near_position) {
+        return get_nearest_floor_pos(
+          new Vector3(
+            near_position.x + Math.random() * 6 - 2,
+            near_position.y,
+            near_position.z + Math.random() * 6 - 2,
+          ),
+        )
+      }
 
       // less stress on the main thread by deferring the entity spawning
       aiter(abortable(setInterval(200, null, { signal }))).forEach(async () => {
@@ -193,9 +196,9 @@ export default function () {
             id: group_id,
             position: spawn_position,
             entities: await Promise.all(
-              entities.map(async ({ name, id, level, skin, size, variant }) => {
+              entities.map(async ({ name, id, level, type, size, variant }) => {
                 const spawned_mob = {
-                  ...(await ENTITIES[skin]({
+                  ...(await ENTITIES[type]({
                     id,
                     name: `${name} (${level})`,
                     scale_factor: size,
@@ -206,15 +209,10 @@ export default function () {
                   spawn_position,
                 }
 
-                const position = new Vector3(
-                  spawn_position.x + Math.random() * 4 - 2,
-                  spawn_position.y,
-                  spawn_position.z + Math.random() * 4 - 2,
-                )
-
                 if (variant) spawned_mob.set_variant(variant)
 
-                const surface_block = get_nearest_floor_pos(position)
+                const surface_block =
+                  get_random_surface_position(spawn_position) || spawn_position
 
                 spawned_mob.move(
                   new Vector3(
@@ -314,66 +312,44 @@ export default function () {
         }
       })
 
-      async function update_skin({ visible_characters, character, skin }) {
-        character.remove()
+      aiter(
+        abortable(typed_on(SUI_EMITTER, 'ItemEquipEvent', { signal })),
+      ).forEach(async ({ item, character_id, slot }) => {
+        try {
+          const { visible_characters } = get_state()
+          const character = visible_characters.get(character_id)
 
-        const level = experience_to_level(character.experience)
-        const content = {
-          ...character,
-          name: `${character.name} (${level})`,
-        }
-        const three_character = skin
-          ? await ENTITIES[skin](content)
-          : await ENTITIES.from_character(content)
+          if (!character) return
 
-        three_character.move(character.position)
-        three_character.animate(character.action)
-        visible_characters.set(character.id, {
-          ...character,
-          ...three_character,
-          skin,
-        })
-      }
+          const previous_skin = get_player_skin(character)
+          character[slot] = item
+          const skin = get_player_skin(character)
 
-      SUI_EMITTER.on('ItemEquipEvent', async ({ item, character_id, slot }) => {
-        const { visible_characters } = get_state()
-        const character = visible_characters.get(character_id)
+          if (previous_skin !== skin) {
+            character.remove()
 
-        if (!character) return
+            const three_character = skin
+              ? await ENTITIES[skin](character)
+              : await ENTITIES.from_character(character)
 
-        const current_item = character[slot]
-        character[slot] = item
-
-        if (current_item && current_item !== item) {
-          if (current_item.item_category === ITEM_CATEGORY.PET)
-            despawn_pet(character)
-          if (current_item.item_category === ITEM_CATEGORY.HAT)
-            await character.equip_hat(null)
-        }
-
-        if (item) {
-          if (item.item_category === ITEM_CATEGORY.PET)
-            await spawn_pet(character).catch(error => {
-              console.error('Error spawning pet:', error)
+            three_character.move(character.position)
+            three_character.animate(character.action)
+            visible_characters.set(character_id, {
+              ...character,
+              ...three_character,
             })
-          if (item.item_category === ITEM_CATEGORY.HAT)
-            await character.equip_hat(item).catch(error => {
-              console.error('Error equipping hat:', error)
-            })
-          if (item.item_category === ITEM_CATEGORY.CLOAK)
-            await character.equip_cape(item).catch(error => {
-              console.error('Error equipping cloak:', error)
-            })
-        }
+            three_character.set_equipment(character)
+          } else character.set_equipment(character)
 
-        const skin = get_item_skin(character)
-
-        if (skin !== character.skin)
-          await update_skin({ visible_characters, character, skin }).catch(
-            error => {
-              console.error('Error updating skin:', error)
-            },
+          if (slot === ITEM_CATEGORY.PET)
+            if (character.pet) await spawn_pet(character)
+            else despawn_pet(character)
+        } catch (error) {
+          console.error(
+            'Error handling ItemEquipEvent (for other players):',
+            error,
           )
+        }
       })
     },
   }
