@@ -23,7 +23,7 @@ export default function () {
 
         const current_skin = get_player_skin(character)
         const previous_skin = skins.get(character.id)
-        const last_equipment = visible_equipment.get(character.id) ?? {}
+        const last_equipment = visible_equipment.get(character.id)
 
         skins.set(character.id, current_skin)
 

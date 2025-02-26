@@ -9,13 +9,19 @@ import yajin_female from '../../assets/models/characters/yajin_female.glb?url'
 import yajin_male_hair from '../../assets/models/characters/yajin_male_hair.glb?url'
 import yajin_male from '../../assets/models/characters/yajin_male.glb?url'
 import anima from '../../assets/models/equipment/anima.glb?url'
-import cape_bouffante from '../../assets/models/equipment/cape_bouffante.glb?url'
+import cape_fuwa from '../../assets/models/equipment/cape_fuwa.glb?url'
 import cape_lorito from '../../assets/models/equipment/cape_lorito.glb?url'
+import capuche_bara from '../../assets/models/equipment/capuche_bara.glb?url'
 import capuche_mo from '../../assets/models/equipment/capuche_mo.glb?url'
-import coiffe_bouftou from '../../assets/models/equipment/coiffe_bouftou.glb?url'
+import casque_hayate from '../../assets/models/equipment/casque_hayate.glb?url'
+import coiffe_fuwa from '../../assets/models/equipment/coiffe_fuwa.glb?url'
+import corbac_head from '../../assets/models/equipment/corbac_head.glb?url'
 import fud from '../../assets/models/equipment/fud.glb?url'
+import hop_hat from '../../assets/models/equipment/hop_hat.glb?url'
 import mokan from '../../assets/models/equipment/mokan.glb?url'
 import momaku from '../../assets/models/equipment/momaku.glb?url'
+import oeufterhead from '../../assets/models/equipment/oeufterhead.glb?url'
+import parrot_hat from '../../assets/models/equipment/parrot_hat.glb?url'
 import primemachin from '../../assets/models/equipment/primemachin.glb?url'
 import suicunio from '../../assets/models/equipment/suicunio.glb?url'
 import fight_sword from '../../assets/models/misc/fight_sword.glb?url'
@@ -51,13 +57,19 @@ const AVAILABLE_MODELS = {
   ghost,
 
   anima,
-  cape_bouffante,
+  cape_fuwa,
   cape_lorito,
+  capuche_bara,
   capuche_mo,
-  coiffe_bouftou,
+  casque_hayate,
+  coiffe_fuwa,
+  corbac_head,
   fud,
+  hop_hat,
   mokan,
   momaku,
+  oeufterhead,
+  parrot_hat,
   primemachin,
   suicunio,
 
