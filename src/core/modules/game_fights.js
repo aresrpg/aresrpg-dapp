@@ -53,6 +53,8 @@ function is_in_fight(fight, character_id) {
   )
 }
 
+/** @typedef {ReturnType<import("@aresrpg/aresrpg-world").ChunkContainer['fromStub']>} ChunkContainer */
+
 export async function create_board(position = new Vector3()) {
   // seems the boardprocessor is made to have a single instance so we have to call that each time
   // and it will erase the previous instance
@@ -118,7 +120,9 @@ export async function create_board(position = new Vector3()) {
   const team_2_positions = team_2.map(block => to_local_pos(block.pos))
 
   return {
+    /** @type {ReturnType<ChunkContainer['toStub']>[]} */
     board_chunks,
+    /** @type {ReturnType<ChunkContainer['toStub']>[]} */
     original_chunks,
     team_1_positions,
     team_2_positions,
