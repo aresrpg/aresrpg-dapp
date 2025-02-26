@@ -64,10 +64,14 @@ export async function create_board(position = new Vector3()) {
   )
 
   const board = await board_processor.genBoardContent()
-  const board_chunks = board_processor.overrideOriginalChunksContent(
-    board.chunk,
-  )
-  const original_chunks = board_processor.restoreOriginalChunksContent()
+  const board_chunks = board_processor
+    .overrideOriginalChunksContent(board.chunk)
+    .toArray()
+    .map(chunk => chunk.toStub())
+  const original_chunks = board_processor
+    .restoreOriginalChunksContent()
+    .toArray()
+    .map(chunk => chunk.toStub())
   const board_data = board.patch.toStub()
 
   board_data.elevation = board_processor.boardElevation
@@ -148,7 +152,6 @@ export async function create_board(position = new Vector3()) {
       context.scene.remove(edge_overlay.container)
     },
     dispose(scene) {
-      BoardProvider.deleteInstance()
       board_handler.dispose()
       scene.remove(board_handler.container)
     },
