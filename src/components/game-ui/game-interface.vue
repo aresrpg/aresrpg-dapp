@@ -5,6 +5,7 @@
     zoneVue
     characterSelectVue
   .middle
+    //- gameGuild
     gameInventory(v-if="inventory_opened")
     gameCharacteristic(v-if="stats_opened")
     gameSpell(v-if="spells_opened")
@@ -22,6 +23,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
 
+import gameGuild from './game-guild.vue';
 import characterSelectVue from './character-select.vue';
 import zoneVue from './zone.vue';
 import gameChat from './game-chat.vue';
