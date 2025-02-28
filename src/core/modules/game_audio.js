@@ -70,20 +70,20 @@ const biomes_soundtracks = {
     battle: () => import('../../assets/sound/grassland_battle.mp3'),
   },
   swamp: {
-    calm: () => import('../../assets/sound/arctic.mp3'),
+    calm: () => import('../../assets/sound/swamp.mp3'),
     battle: () => import('../../assets/sound/swamp_battle.mp3'),
   },
   scorched: {
-    calm: () => import('../../assets/sound/arctic.mp3'),
-    battle: () => import('../../assets/sound/arctic_battle.mp3'),
+    calm: () => import('../../assets/sound/scorched.mp3'),
+    battle: () => import('../../assets/sound/scorched_battle.mp3'),
   },
   desert: {
     calm: () => import('../../assets/sound/desert.mp3'),
     battle: () => import('../../assets/sound/desert_battle.mp3'),
   },
   tropical: {
-    calm: () => import('../../assets/sound/arctic.mp3'),
-    battle: () => import('../../assets/sound/arctic_battle.mp3'),
+    calm: () => import('../../assets/sound/tropical.mp3'),
+    battle: () => import('../../assets/sound/tropical_battle.mp3'),
   },
 }
 
