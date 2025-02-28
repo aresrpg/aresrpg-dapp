@@ -105,8 +105,12 @@ function entity_spawner(
 
       if (!hat) return
 
+      const [type, variant] = hat.item_type.split('-')
+
       const { model: hat_model, custom_colors: new_custom_hat_colors } =
-        await MODELS[hat.item_type]
+        await MODELS[type]
+
+      if (variant) hat_model.set_variant(variant)
       head.add(hat_model)
       custom_hat_colors = new_custom_hat_colors
     }
@@ -118,7 +122,10 @@ function entity_spawner(
 
       if (!cape) return
 
-      const { model: cape_model } = await MODELS[cape.item_type]
+      const [type, variant] = cape.item_type.split('-')
+      const { model: cape_model } = await MODELS[type]
+
+      if (variant) cape_model.set_variant(variant)
 
       cape_model.rotation.set(0, Math.PI, Math.PI)
       cape_model.position.y += 1.8
