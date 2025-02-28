@@ -206,10 +206,10 @@ export async function load(
 
   const variants =
     parser.json.extensions?.KHR_materials_variants?.variants || []
-  // console.log(
-  //   `Variants for ${path}:`,
-  //   variants.map(v => v.name),
-  // )
+  console.log(
+    `Variants for ${path}:`,
+    variants.map(v => v.name),
+  )
 
   scene.traverse(child => {
     // @ts-ignore
