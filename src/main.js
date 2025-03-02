@@ -10,6 +10,7 @@ import { registerStashedWallet } from '@mysten/zksend'
 import { registerSW } from 'virtual:pwa-register'
 
 import app from './app.vue'
+import './index.css'
 import router from './router.js'
 import { i18n } from './i18n.js'
 import toast from './toast.js'
