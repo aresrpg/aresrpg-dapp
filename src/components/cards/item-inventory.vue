@@ -404,7 +404,7 @@ const items = computed(() => {
   overflow hidden
   overflow-y auto
   padding .5em
-  background #beb998cc
+  background var(--secondary)
   border-radius 0 0 9px 9px
   .item
     position relative

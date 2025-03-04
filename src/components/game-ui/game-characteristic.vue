@@ -228,14 +228,14 @@ async function commit_stats() {
   max-height 545px
   overflow-y auto
   padding-right 10px
-  color #514a3c
+  color var(--primary)
   pointer-events none !important
   user-select none !important
   overflow-y auto
   .stats
     pointer-events: all;
     width 350px
-    border 3px solid #ffffff
+    border var(--ui-border)
     border-radius 12px
     display flex
     flex-flow column nowrap
@@ -249,7 +249,8 @@ async function commit_stats() {
       justify-content center
       padding-top .5em
       padding-bottom 10px
-      background #514a3ccc
+      background var(--primary)
+      // background var(--primary)
       .name
         font-size 1.2em
         font-weight bold
@@ -266,10 +267,10 @@ async function commit_stats() {
         height @width
         cursor pointer
         &.selected
-          background-color #514a3ccc
+          background-color var(--primary)
           border solid 2px #cccccc
     .container
-      background #beb998cc
+      background var(--secondary)
       height 100%
       > div
         display flex
@@ -305,7 +306,7 @@ async function commit_stats() {
       .experience
         font-weight bold
       .darkline
-        background #929977;
+        background var(--tertiary);
       .line
         font-weight bold
         .label

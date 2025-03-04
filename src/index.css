@@ -1,4 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-/* @import "tailwindcss"; */
+:root {
+  --primary: #00000080;
+  --secondary: #ababab80;
+  --tertiary: #4c585c8f;
+  --border-color: #e2e8f0;
+  --ui-border: 3px solid #ffffff00;
+  --ui-inventory-border-slot: 0px;
+}
+
+[data-theme='dark'] {
+  --primary: #514a3c;
+  --secondary: #beb998;
+  --tertiary: #929977;
+  --border-color: #374151;
+  --ui-border: 3px solid #fff;
+  --ui-inventory-border-slot: 2px solid #ddd8c9;
+}

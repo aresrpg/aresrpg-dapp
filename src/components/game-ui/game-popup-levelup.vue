@@ -34,26 +34,26 @@ function closeModal() {
   max-width 900px
   overflow-y auto
   padding-right 10px
-  color #514a3c
+  color var(--primary)
   pointer-events none !important
   user-select none !important
   overflow-y auto
   .popup
     pointer-events all
     width 500px
-    border 3px solid #514a3c
+    border 3px solid var(--primary)
     border-radius 12px
     overflow hidden
     .header
       position relative
       padding .2em .3em
-      background #514a3c
+      background var(--primary)
       .name
         font-size 1.2em
         font-weight bold
         color #ffffff
     .container
-      background #beb998
+      background var(--secondary)
       height 100%
       .text
         display flex
@@ -75,7 +75,7 @@ function closeModal() {
           background-color #ff6100
           color #fff
           border-radius 16px
-          border solid 2px #514a3c
+          border solid 2px var(--primary)
           min-width 120px
           padding 2px 24px
           cursor pointer

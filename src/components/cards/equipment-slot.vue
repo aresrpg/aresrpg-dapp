@@ -202,7 +202,7 @@ img.equipped-img
   top 0
   left 0
   box-shadow: inset 0 0 5px 0 #212121db
-  border 2px solid #ddd8c9
+  border var(--ui-inventory-border-slot)
   background #8d8980
   &.highlighted
     box-shadow: inset 0 0 15px 0 #F9A825

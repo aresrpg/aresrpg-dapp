@@ -59,14 +59,14 @@ watch(owned_items, items => {
 
   .item
     grid-area item
-    border 3px solid #ffffff
-    background #beb998cc
+    border var(--ui-border)
+    background var(--secondary)
     border-radius 12px
     padding .5em
     font-size .9rem
   .inventory
     grid-area inventory
-    border 3px solid #ffffff
+    border var(--ui-border)
     border-radius 12px
     display flex
     flex-flow column nowrap
@@ -76,7 +76,7 @@ watch(owned_items, items => {
       justify-content center
       padding-top .5em
       padding-bottom 10px
-      background #514a3ccc
+      background var(--primary)
       border-radius 9px 9px 0px 0px
       img
         width 34px
@@ -87,7 +87,7 @@ watch(owned_items, items => {
         cursor pointer
         background-color #ff6100cc
         &.selected
-          background-color #514a3ccc
+          background-color var(--primary)
           border solid 2px #cccccc
     .content
       border-radius 12px

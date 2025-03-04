@@ -372,6 +372,9 @@ function update_all_(state) {
 }
 
 onMounted(async () => {
+
+  document.documentElement.setAttribute("data-theme", "dark");
+
   increase_loading();
 
   const interval = setInterval(() => {

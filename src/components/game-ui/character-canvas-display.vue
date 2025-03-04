@@ -20,7 +20,7 @@ const scene_div = ref(null);
 const canvas = ref(null);
 const running = ref(false);
 
-const props = defineProps(['type', 'colors']);
+const props = defineProps(['type', 'colors', 'character']);
 
 const create_character_colors = inject('create_character_colors', null);
 
@@ -79,9 +79,9 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        // @ts-ignore
-        await senshi.set_equipment({});
         setup_classe(senshi, props.colors ?? create_character_colors.senshi);
+        // @ts-ignore
+        await senshi.set_equipment(props.character || {});
       }
       break;
     case 'YAJIN_MALE':
@@ -90,9 +90,9 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        // @ts-ignore
-        await yajin.set_equipment({});
         setup_classe(yajin, props.colors ?? create_character_colors.yajin);
+        // @ts-ignore
+        await yajin.set_equipment(props.character || {});
       }
       break;
     case 'SENSHI_FEMALE':
@@ -101,12 +101,12 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        // @ts-ignore
-        await senshi_female.set_equipment({});
         setup_classe(
           senshi_female,
           props.colors ?? create_character_colors.senshi_female,
         );
+        // @ts-ignore
+        await senshi_female.set_equipment(props.character || {});
       }
       break;
     case 'YAJIN_FEMALE':
@@ -115,12 +115,12 @@ async function display_classe(type) {
           id: nanoid(),
           scene_override: scene,
         });
-        // @ts-ignore
-        await yajin_female.set_equipment({});
         setup_classe(
           yajin_female,
           props.colors ?? create_character_colors.yajin_female,
         );
+        // @ts-ignore
+        await yajin_female.set_equipment(props.character || {});
       }
       break;
     default:

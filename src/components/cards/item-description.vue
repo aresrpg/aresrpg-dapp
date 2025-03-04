@@ -125,7 +125,7 @@ const stats = computed(() => {
   overflow hidden
   position relative
   height 250px
-  color #514a3c
+  color var(--primary)
   .header
     display flex
     flex-flow row nowrap

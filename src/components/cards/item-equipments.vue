@@ -261,8 +261,8 @@ const is_dragging_pet = computed(() => {
 .item-equipments
   position relative
   grid-area perso
-  border 3px solid #ffffff
-  background #514a3ccc
+  border var(--ui-border)
+  background var(--primary)
   border-radius 12px
   display flex
   flex-flow row nowrap

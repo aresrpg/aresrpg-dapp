@@ -157,23 +157,23 @@ async function commit_spells() {
   max-height 545px
   overflow-y auto
   padding-right 10px
-  color #514a3c
+  color var(--primary)
   pointer-events none !important
   user-select none !important
   overflow-y auto
   .spellDetails
     pointer-events all
     // background #edebdc
-    background #514a3ccc
+    background var(--primary)
     color white
     width 400px
-    border 3px solid #ffffff
+    border var(--ui-border)
     border-radius 12px
     padding .5rem
   .spells
     pointer-events all
     width 400px
-    border 3px solid #ffffff
+    border var(--ui-border)
     border-radius 12px
     display flex
     flex-flow column nowrap
@@ -187,7 +187,7 @@ async function commit_spells() {
       display flex
       justify-content center
       padding .5rem
-      background #514a3ccc
+      background var(--primary)
       .name
         font-size 1.2em
         font-weight bold
@@ -195,7 +195,7 @@ async function commit_spells() {
         text-shadow 1px 2px 3px black
         width 100%
     .container
-      background #beb998cc
+      background var(--secondary)
       height 100%
       > div
         display flex
@@ -204,7 +204,7 @@ async function commit_spells() {
         align-items center
         padding 2px 0.5rem 2px 0.5rem
       .darkline
-        background #929977;
+        background var(--tertiary);
       .spellCounter
         margin 0.2rem 0
         .count
@@ -239,7 +239,7 @@ async function commit_spells() {
                 font-size 0.9rem
                 line-height 22px
                 font-weight bold
-                color #514a3c
+                color var(--primary)
               .level
                 justify-content right
                 align-items right
