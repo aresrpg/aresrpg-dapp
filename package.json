@@ -16,8 +16,8 @@
   "dependencies": {
     "@aresrpg/aresrpg-engine": "^2.7.5",
     "@aresrpg/aresrpg-protocol": "5.4.0",
-    "@aresrpg/aresrpg-sdk": "5.2.16",
-    "@aresrpg/aresrpg-world": "1.9.21",
+    "@aresrpg/aresrpg-sdk": "5.2.17",
+    "@aresrpg/aresrpg-world": "1.9.23",
     "@bufbuild/buf": "1.50.0",
     "@bufbuild/protobuf": "2.2.3",
     "@bufbuild/protoc-gen-es": "2.2.3",
@@ -59,7 +59,7 @@
     "@iconify-json/eos-icons": "^1.2.2",
     "@iconify-json/ep": "^1.2.2",
     "@iconify-json/flat-color-icons": "^1.2.1",
-    "@iconify-json/fluent": "^1.2.14",
+    "@iconify-json/fluent": "^1.2.15",
     "@iconify-json/fluent-emoji": "^1.2.3",
     "@iconify-json/fluent-emoji-high-contrast": "^1.2.3",
     "@iconify-json/fxemoji": "^1.2.1",
@@ -70,7 +70,7 @@
     "@iconify-json/material-symbols-light": "^1.2.14",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/noto": "^1.2.2",
-    "@iconify-json/openmoji": "^1.2.6",
+    "@iconify-json/openmoji": "^1.2.7",
     "@iconify-json/oui": "^1.2.4",
     "@iconify-json/ph": "^1.2.2",
     "@iconify-json/radix-icons": "^1.2.2",
@@ -80,9 +80,9 @@
     "@iconify-json/twemoji": "^1.2.2",
     "@tailwindcss/postcss": "^4.0.9",
     "@types/dat.gui": "^0.7.13",
-    "@types/node": "^22.13.5",
+    "@types/node": "^22.13.9",
     "@types/three": "^0.174.0",
-    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
@@ -104,7 +104,7 @@
     "vite-plugin-pwa": "^0.21.1",
     "vite-plugin-wasm": "^3.4.1",
     "vue-eslint-parser": "^9.4.3",
-    "vue-tsc": "^2.2.4"
+    "vue-tsc": "^2.2.8"
   },
   "husky": {
     "hooks": {
