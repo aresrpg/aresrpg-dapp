@@ -16,7 +16,6 @@ import { LRUCache } from 'lru-cache'
 import { chunk_rendering_mode, current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
-import { create_voxel_engine } from '../game/voxel_engine.js'
 
 // The server won't send twice the same chunk for a session, unless time has passed
 // If the cache was too full, then local generation would be used to retrieve missing ones
@@ -76,13 +75,22 @@ function create_empty_chunk_from_array({ ref_metadata, chunk_index, x, z }) {
 /** @type {Type.Module} */
 export default function () {
   // engine setup
-  const { terrain_viewer, voxelmap_viewer } = create_voxel_engine()
 
   return {
-    tick(_, { renderer }) {
-      terrain_viewer.update(renderer)
+    tick(_, { renderer, voxel_engine }) {
+      voxel_engine.terrain_viewer.update(renderer)
     },
-    observe({ camera, events, signal, scene, get_state, physics }) {
+    observe({
+      camera,
+      events,
+      signal,
+      scene,
+      get_state,
+      physics,
+      voxel_engine,
+    }) {
+      const { voxelmap_viewer, terrain_viewer } = voxel_engine
+
       function render_world_chunk(
         world_chunk,
         { ignore_collision = false } = {},

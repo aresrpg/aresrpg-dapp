@@ -76,6 +76,7 @@ import player_error from '../modules/player_error.js'
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 // @ts-ignore
 import { CustomCameraControls } from './custom_camera_control.js'
+import { create_voxel_engine } from './voxel_engine.js'
 
 // @ts-ignore
 import MdiClippy from '~icons/mdi/clippy'
@@ -436,6 +437,8 @@ const voxelmap_collisions = new VoxelmapCollisions({
   voxelmapCollider: voxelmap_collider,
 })
 
+const voxel_engine = create_voxel_engine()
+
 let currently_connecting = false
 let reconnect_toast = null
 let connecting_toast = null
@@ -613,6 +616,7 @@ const context = {
     voxelmap_collider,
     voxelmap_collisions,
   },
+  voxel_engine,
 }
 
 listen_for_requests()
