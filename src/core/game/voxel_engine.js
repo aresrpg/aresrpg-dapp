@@ -3,16 +3,17 @@ import {
   HeightmapAtlas,
   HeightmapViewerGpu,
   MaterialsStore,
+  Minimap,
   TerrainViewer,
   VoxelmapViewer,
 } from '@aresrpg/aresrpg-engine'
-import { BlocksProcessing } from '@aresrpg/aresrpg-world'
-import { Color, Vector3 } from 'three'
 import {
   BLOCKS_COLOR_MAPPING,
   world_settings,
 } from '@aresrpg/aresrpg-sdk/world'
+import { BlocksProcessing } from '@aresrpg/aresrpg-world'
 import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
+import { Color, Vector3 } from 'three'
 
 export const chunk_size = { xz: 64, y: 64 }
 const altitude = { min: -1, max: 400 }
@@ -96,5 +97,14 @@ export function create_voxel_engine() {
 
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = true
-  return { voxelmap_viewer, terrain_viewer }
+
+  const minimap = new Minimap({
+    heightmapAtlas: heightmap_atlas,
+    meshPrecision: 64,
+    minViewDistance: 100,
+    maxViewDistance: 750,
+    markersSize: 0.025,
+  })
+
+  return { voxelmap_viewer, terrain_viewer, minimap, heightmap_atlas }
 }

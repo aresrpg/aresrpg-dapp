@@ -79,6 +79,7 @@ export default function () {
   return {
     tick(_, { renderer, voxel_engine }) {
       voxel_engine.terrain_viewer.update(renderer)
+      voxel_engine.heightmap_atlas.update(renderer)
     },
     observe({
       camera,

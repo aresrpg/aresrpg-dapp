@@ -52,6 +52,7 @@ import game_lights from '../modules/game_lights.js'
 import game_audio from '../modules/game_audio.js'
 import game_entities from '../modules/game_entities.js'
 import game_terrain from '../modules/game_terrain.js'
+import game_minimap from '../modules/game_minimap.js'
 import game_water from '../modules/game_water.js'
 import game_damage_ui from '../modules/game_damage_ui.js'
 import logger from '../../logger.js'
@@ -108,7 +109,8 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {(state: State, action: Type.Action) => State} Reducer */
 /** @typedef {(context: Context) => void} Observer */
 /** @typedef {(state: State, context: Context, delta: number) => void} Ticker */
-/** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker }} Module */
+/** @typedef {(context: Context) => void} PostRenderCallback */
+/** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker, post_render?: PostRenderCallback }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
 
 export const VIEW_DISTANCE_MIN = 1
@@ -341,6 +343,7 @@ const MODULES = [
   game_audio,
   game_entities,
   game_terrain,
+  game_minimap,
   game_water,
   game_connect,
   game_entites_stroll,
@@ -698,6 +701,11 @@ function animate() {
     } else {
       renderer.render(scene, context.camera)
     }
+
+    modules
+      .map(({ post_render }) => post_render)
+      .filter(Boolean)
+      .forEach(post_render => post_render(context))
 
     const next_frame_duration = 1000 / state.settings.target_fps
 
