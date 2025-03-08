@@ -1,5 +1,6 @@
 import {
   EComputationMethod,
+  HeightmapAtlas,
   HeightmapViewerGpu,
   MaterialsStore,
   TerrainViewer,
@@ -81,14 +82,15 @@ export function create_voxel_engine() {
     },
   )
 
-  const heightmap_viewer = new HeightmapViewerGpu({
-    materialsStore: voxels_materials_store,
-    basePatch: {
-      worldSize: voxelmap_viewer.chunkSize.xz,
-      segmentsCount: voxelmap_viewer.chunkSize.xz / 2,
-    },
-    maxNesting: 5,
+  const heightmap_atlas = new HeightmapAtlas({
     heightmap: map,
+    materialsStore: voxels_materials_store,
+    texelSizeInWorld: 2,
+    leafTileSizeInWorld: voxelmap_viewer.chunkSize.xz,
+  })
+
+  const heightmap_viewer = new HeightmapViewerGpu({
+    heightmapAtlas: heightmap_atlas,
     flatShading: true,
   })
 
