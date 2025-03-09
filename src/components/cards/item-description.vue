@@ -243,7 +243,7 @@ const stats = computed(() => {
           .progress
             width 180px
             height 14px
-            background #50493c
+            background var(--quaternary)
             border-radius 6px
             .progress-bar
               max-width 98%

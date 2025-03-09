@@ -213,7 +213,7 @@ async function commit_spells() {
         display flex
         justify-content space-between
         padding 0.2rem
-        background #50493c
+        background var(--quaternary)
         color #fff
         font-weight bold
         .div

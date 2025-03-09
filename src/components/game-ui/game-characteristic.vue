@@ -1,6 +1,7 @@
 <template lang="pug">
 .game-stats
   .stats
+    .stats-bg
     .header
       // @todo use image_url
       img(:src="`https://assets.aresrpg.world/classe/${selected_character.classe}_${selected_character.sex}.jpg`")
@@ -243,6 +244,16 @@ async function commit_stats() {
     overflow hidden
     min-height 545px
     // max-height 545px
+    position relative
+    z-index 1
+    .stats-bg
+      position absolute
+      z-index -1
+      right 0
+      left 0
+      top 0
+      bottom 0
+      background #969696
     .header
       position relative
       display flex
@@ -281,7 +292,7 @@ async function commit_stats() {
         .progress
           width 180px
           height 14px
-          background #50493c
+          background var(--quaternary)
           border-radius 6px
           .progress-bar
             max-width 98%
@@ -322,7 +333,7 @@ async function commit_stats() {
         justify-content right
       .section
         font-weight bold
-        background #50493c
+        background var(--quaternary)
         color #fff
         display flex
         justify-content space-between
@@ -340,7 +351,7 @@ async function commit_stats() {
               padding-right 5px
               align-items center
       .section.light
-        background #93866c
+        background var(--quaternary)
         color #fff
       .characteristic
         font-weight bold

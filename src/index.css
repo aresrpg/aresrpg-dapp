@@ -1,7 +1,8 @@
 :root {
   --primary: #00000080;
-  --secondary: #ababab80;
+  --secondary: #abababb3;
   --tertiary: #4c585c8f;
+  --quaternary: #373737;
   --border-color: #e2e8f0;
   --ui-border: 3px solid #ffffff00;
   --ui-inventory-border-slot: 0px;
@@ -11,6 +12,7 @@
   --primary: #514a3c;
   --secondary: #beb998;
   --tertiary: #929977;
+  --quaternary: #50493c;
   --border-color: #374151;
   --ui-border: 3px solid #fff;
   --ui-inventory-border-slot: 2px solid #ddd8c9;
