@@ -41,8 +41,6 @@
     "lru-cache": "11.0.2",
     "meshoptimizer": "0.22.0",
     "ndarray": "1.0.19",
-    "postcss-import": "^16.1.0",
-    "postcss-nesting": "^13.0.1",
     "stats.js": "0.17.0",
     "three": "0.173.0",
     "troika-three-text": "0.52.3",

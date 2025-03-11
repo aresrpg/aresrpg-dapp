@@ -138,28 +138,25 @@
     </script>
     
     <style lang="stylus" scoped>
-    
-    
-    
-    /* Transition pendant l'entrée et la sortie */
+    /* Transition during entry and exit */
     .slide-fade-enter-active,
     .slide-fade-leave-active
       transition transform 0.5s ease-in-out, opacity 0.5s ease
     
-    /* Initialisation au moment de l'entrée : Déplacement à gauche et opacité 0 */
+    /* Initialization at the time of entry: Move left and opacity 0 */
     .slide-fade-enter-from
-      // left -150px
-      transform translateX(-100%) /* L'élément commence en dehors de l'écran à gauche */
+      /* left -150px */
+      transform translateX(-100%) /* Element starts off screen to the left */
       opacity 0
     
-    /* Applique la position finale après l'entrée : Déplacement à 0 (position finale) et opacité à 1 */
+    /* Apply the final position after entry: Move to 0 (final position) and opacity to 1 */
     .slide-fade-enter-to
-      transform translateX(0) /* Se déplace à la position finale */
-      opacity 1 /* L'élément devient visible */
+      transform translateX(0)
+      opacity 1
     
-    /* Transition de sortie : Déplacement à gauche et opacité à 0 */
+    /* Transition during exit: Move left and opacity 0 */
     .slide-fade-leave-to
-      transform translateX(-100%) /* Déplace l'élément hors de l'écran à gauche */
+      transform translateX(-100%)
       opacity 0
     
     .action

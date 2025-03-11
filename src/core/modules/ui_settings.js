@@ -109,7 +109,6 @@ export default function () {
         .name('Run speed')
         .onFinishChange(handle_change('action/run_speed'))
 
-      /** add in game_folder a select with two valus (light & dark), and function to add change data-theme on document for tailwindcss */
       game_folder
         .add(
           {

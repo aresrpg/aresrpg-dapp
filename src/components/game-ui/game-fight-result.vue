@@ -164,12 +164,7 @@
                 background-color var(--secondary)
                 padding 2px 8px
                 text-align center
-    
-              // Retirer la bordure gauche pour la première cellule de chaque ligne
-              // th:first-child, td:first-child, th
-                // border-left none
-    
-              // Retirer la bordure droite pour la dernière cellule de chaque ligne
+
               th:last-child, td:last-child, th
                 border-right none
               th
