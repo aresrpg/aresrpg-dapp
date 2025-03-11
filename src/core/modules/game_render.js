@@ -57,8 +57,8 @@ export default function () {
 
       composer.addPass(renderpass)
       composer.addPass(cartoon_renderpass)
-      composer.addPass(godrays_pass)
       composer.addPass(volumetric_fog_pass)
+      composer.addPass(godrays_pass)
       composer.addPass(underwater_pass)
       composer.addPass(bloompass)
       composer.addPass(gamma_correction)
