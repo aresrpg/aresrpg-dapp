@@ -293,6 +293,7 @@ class CartoonRenderpass extends Pass {
     renderer.autoClear = previous_state.autoclear
     renderer.autoClearColor = previous_state.autoclear_color
     renderer.autoClearDepth = previous_state.autoclear_depth
+    renderer.setRenderTarget(previous_state.rendertarget)
   }
 
   dispose() {
