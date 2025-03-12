@@ -23,17 +23,23 @@ export default function () {
 
       minimap.update(renderer)
     },
-    observe({ voxel_engine }) {
+    observe({ voxel_engine, signal }) {
       const { minimap } = voxel_engine
 
-      minimap.altitudeScaling = 0.25
+      minimap.altitudeScaling = 1
       minimap.verticalAngle = 1.2
       minimap.crustThickness = 0.04
       minimap.viewDistance = 500
       minimap.lockNorth = false
       minimap.maxHeight = 1
-      minimap.screenPosition.set(0, 0)
       minimap.screenSize = 400
+
+      const update_screen_position = () => {
+        minimap.screenPosition.set(window.innerWidth - 650, window.innerHeight - 300);
+      };
+
+      window.addEventListener("resize", update_screen_position, { signal });
+      update_screen_position();
     },
     post_render({ renderer, voxel_engine }) {
       voxel_engine.minimap.render(renderer)

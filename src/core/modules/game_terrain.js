@@ -74,8 +74,6 @@ function create_empty_chunk_from_array({ ref_metadata, chunk_index, x, z }) {
 
 /** @type {Type.Module} */
 export default function () {
-  // engine setup
-
   return {
     tick(_, { renderer, voxel_engine }) {
       voxel_engine.terrain_viewer.update(renderer)

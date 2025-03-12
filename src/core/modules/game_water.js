@@ -3,9 +3,7 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import {
   BufferGeometry,
-  ClampToEdgeWrapping,
   Color,
-  DataTexture,
   DoubleSide,
   Float32BufferAttribute,
   LinearFilter,
@@ -13,7 +11,6 @@ import {
   Mesh,
   MeshStandardMaterial,
   RepeatWrapping,
-  RGBAFormat,
   TextureLoader,
 } from 'three'
 import { world_settings } from '@aresrpg/aresrpg-sdk/world'
@@ -101,24 +98,6 @@ float noise(vec3 v){
 
 /** @type {Type.Module} */
 export default function () {
-  const water_view_distance = 3000
-  const patch_size = chunk_size.xz
-  const patches_count = Math.ceil((2 * water_view_distance) / patch_size)
-
-  const patches_colors_texture_buffer = new Uint8Array(
-    4 * patches_count * patches_count,
-  )
-  const patches_colors_texture = new DataTexture(
-    patches_colors_texture_buffer,
-    patches_count,
-    patches_count,
-    RGBAFormat,
-  )
-  patches_colors_texture.magFilter = LinearFilter
-  patches_colors_texture.minFilter = LinearFilter
-  patches_colors_texture.wrapS = ClampToEdgeWrapping
-  patches_colors_texture.wrapT = ClampToEdgeWrapping
-
   const texture = new TextureLoader().load(texture_url)
   texture.minFilter = LinearMipMapLinearFilter
   texture.magFilter = LinearFilter
@@ -126,7 +105,7 @@ export default function () {
   texture.wrapT = RepeatWrapping
 
   const material_uniforms = {
-    uColorTexture: { value: patches_colors_texture },
+    uColorTexture: { value: null },
     uF0: { value: 0 },
     uEta: { value: 0 },
     uEnvMap: { value: null },
@@ -139,139 +118,6 @@ export default function () {
     transparent: true,
     side: DoubleSide,
   })
-  material.onBeforeCompile = parameters => {
-    parameters.uniforms = {
-      ...parameters.uniforms,
-      ...material_uniforms,
-    }
-
-    parameters.vertexShader = parameters.vertexShader.replace(
-      'void main() {',
-      `
-      varying vec2 vUv;
-      varying vec3 vWorldPosition;
-
-      void main() {
-        vUv = uv;
-    `,
-    )
-    parameters.vertexShader = parameters.vertexShader.replace(
-      '#include <worldpos_vertex>',
-      `
-      #include <worldpos_vertex>
-      vWorldPosition = worldPosition.xyz;
-    `,
-    )
-
-    parameters.fragmentShader = parameters.fragmentShader.replace(
-      'void main() {',
-      `
-      uniform sampler2D uColorTexture;
-      uniform float uF0;
-      uniform float uEta;
-      uniform samplerCube uEnvMap;
-      uniform float uTime;
-      uniform float uNormalSide;
-      uniform sampler2D uTexture;
-
-      varying vec2 vUv;
-      varying vec3 vWorldPosition;
-
-      float getFresnelFactor(const vec3 normal, const vec3 fromEye) {
-        float rawValue = mix(pow(1.0 - dot(normal, -fromEye), 5.0), 1.0, uF0);
-        rawValue = pow(rawValue, 0.5);
-        return rawValue;
-      }
-
-      ${noise}
-
-      vec3 getNormal() {
-        const float normalVerticality = 0.1;
-        const float normalScale = 1.0;
-
-        vec3 worldNormal = vec3(
-          normalVerticality * noise(vec3(normalScale * vWorldPosition.xz, uTime)),
-          1,
-          normalVerticality * noise(vec3(normalScale * vWorldPosition.zx, uTime))
-        );
-        return uNormalSide * normalize(worldNormal);
-      }
-
-      float computeFoam(float cameraDistance) {
-        vec2 textureCoords = 4.0 * vUv * ${patches_count.toFixed(1)};
-        textureCoords += 0.2 * vec2(
-          noise(vec3(0.1 * vWorldPosition.xz, 0.2 * uTime)),
-          noise(vec3(0.1 * vWorldPosition.zx, 0.2 * uTime))
-        );
-        vec4 textureSample = texture2D(uTexture, textureCoords);
-
-        const float maxFoamDistance = 800.0;
-        float distance = smoothstep(0.0, maxFoamDistance, cameraDistance);
-        float foam = textureSample.r;
-        foam *= 1.0 - distance;
-        return foam;
-      }
-
-      void main() {
-    `,
-    )
-    parameters.fragmentShader = parameters.fragmentShader.replace(
-      '#include <normal_fragment_begin>',
-      `
-      vec3 normal = worldNormal;
-      vec3 nonPerturbedNormal = normal;
-    `,
-    )
-    parameters.fragmentShader = parameters.fragmentShader.replace(
-      '#include <map_fragment>',
-      `
-      vec3 cameraToFragRaw = vWorldPosition - cameraPosition;
-      float cameraDistance = length(cameraToFragRaw);
-      vec3 cameraToFrag = cameraToFragRaw / cameraDistance;
-      float isOverwater = step(0.0, uNormalSide);
-
-      vec3 worldNormal = getNormal();
-      float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
-      fresnelFactor = mix(fresnelFactor, 0.5, smoothstep(300.0, 700.0, cameraDistance));
-      vec3 reflectVec = reflect(cameraToFrag, worldNormal);
-      vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
-
-      vec3 envmapVec = mix(refractVec, reflectVec, isOverwater);
-      vec3 envColor = textureCube(uEnvMap, envmapVec).rgb;
-      float env = max(envColor.r, max(envColor.g, envColor.b));
-      env *= smoothstep(0.9, 1.0, env);
-
-      float foam = computeFoam(cameraDistance);
-      vec3 waterColor = texture(uColorTexture, vUv).rgb;
-      vec3 surfaceColor = clamp(waterColor + foam, vec3(0), vec3(1));
-      surfaceColor += env;
-
-      float alpha = mix(0.2, 0.98, pow(fresnelFactor, 0.4));
-      alpha = mix(1.0, alpha, isOverwater);
-      alpha = clamp(alpha, 0.0, 1.0);
-
-      diffuseColor = vec4(surfaceColor, alpha);
-    `,
-    )
-  }
-
-  function build_geometry() {
-    const mesh_size = patch_size * patches_count
-    const geometry = new BufferGeometry()
-    geometry.setAttribute(
-      'position',
-      new Float32BufferAttribute(
-        [0, 0, 0, mesh_size, 0, 0, 0, 0, mesh_size, mesh_size, 0, mesh_size],
-        3,
-      ),
-    )
-    geometry.setAttribute(
-      'uv',
-      new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 1, 1], 2),
-    )
-    geometry.setIndex([0, 1, 3, 0, 3, 2])
-    return geometry
-  }
 
   return {
     tick(state, { scene }) {
@@ -289,7 +135,148 @@ export default function () {
       material_uniforms.uF0.value = Math.pow((1 - eta) / (1 + eta), 2)
       material_uniforms.uEta.value = eta
     },
-    observe({ scene, get_state, dispatch }) {
+    observe({ scene, get_state, dispatch, voxel_engine }) {
+      const { water_data, set_water_level } = voxel_engine;
+
+      const patch_size = chunk_size.xz;
+      const patches_count = water_data.patchesCount;
+
+      function build_geometry() {
+        const mesh_size = patch_size * patches_count
+        const geometry = new BufferGeometry()
+        geometry.setAttribute(
+          'position',
+          new Float32BufferAttribute(
+            [0, 0, 0, mesh_size, 0, 0, 0, 0, mesh_size, mesh_size, 0, mesh_size],
+            3,
+          ),
+        )
+        geometry.setAttribute(
+          'uv',
+          new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 1, 1], 2),
+        )
+        geometry.setIndex([0, 1, 3, 0, 3, 2])
+        return geometry
+      }
+
+      material.onBeforeCompile = parameters => {
+        parameters.uniforms = {
+          ...parameters.uniforms,
+          ...material_uniforms,
+        }
+
+        parameters.vertexShader = parameters.vertexShader.replace(
+          'void main() {',
+          `
+          varying vec2 vUv;
+          varying vec3 vWorldPosition;
+    
+          void main() {
+            vUv = uv;
+        `,
+        )
+        parameters.vertexShader = parameters.vertexShader.replace(
+          '#include <worldpos_vertex>',
+          `
+          #include <worldpos_vertex>
+          vWorldPosition = worldPosition.xyz;
+        `,
+        )
+
+        parameters.fragmentShader = parameters.fragmentShader.replace(
+          'void main() {',
+          `
+          uniform sampler2D uColorTexture;
+          uniform float uF0;
+          uniform float uEta;
+          uniform samplerCube uEnvMap;
+          uniform float uTime;
+          uniform float uNormalSide;
+          uniform sampler2D uTexture;
+    
+          varying vec2 vUv;
+          varying vec3 vWorldPosition;
+    
+          float getFresnelFactor(const vec3 normal, const vec3 fromEye) {
+            float rawValue = mix(pow(1.0 - dot(normal, -fromEye), 5.0), 1.0, uF0);
+            rawValue = pow(rawValue, 0.5);
+            return rawValue;
+          }
+    
+          ${noise}
+    
+          vec3 getNormal() {
+            const float normalVerticality = 0.1;
+            const float normalScale = 1.0;
+    
+            vec3 worldNormal = vec3(
+              normalVerticality * noise(vec3(normalScale * vWorldPosition.xz, uTime)),
+              1,
+              normalVerticality * noise(vec3(normalScale * vWorldPosition.zx, uTime))
+            );
+            return uNormalSide * normalize(worldNormal);
+          }
+    
+          float computeFoam(float cameraDistance) {
+            vec2 textureCoords = 4.0 * vUv * ${patches_count.toFixed(1)};
+            textureCoords += 0.2 * vec2(
+              noise(vec3(0.1 * vWorldPosition.xz, 0.2 * uTime)),
+              noise(vec3(0.1 * vWorldPosition.zx, 0.2 * uTime))
+            );
+            vec4 textureSample = texture2D(uTexture, textureCoords);
+    
+            const float maxFoamDistance = 800.0;
+            float distance = smoothstep(0.0, maxFoamDistance, cameraDistance);
+            float foam = textureSample.r;
+            foam *= 1.0 - distance;
+            return foam;
+          }
+    
+          void main() {
+        `,
+        )
+        parameters.fragmentShader = parameters.fragmentShader.replace(
+          '#include <normal_fragment_begin>',
+          `
+          vec3 normal = worldNormal;
+          vec3 nonPerturbedNormal = normal;
+        `,
+        )
+        parameters.fragmentShader = parameters.fragmentShader.replace(
+          '#include <map_fragment>',
+          `
+          vec3 cameraToFragRaw = vWorldPosition - cameraPosition;
+          float cameraDistance = length(cameraToFragRaw);
+          vec3 cameraToFrag = cameraToFragRaw / cameraDistance;
+          float isOverwater = step(0.0, uNormalSide);
+    
+          vec3 worldNormal = getNormal();
+          float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
+          fresnelFactor = mix(fresnelFactor, 0.5, smoothstep(300.0, 700.0, cameraDistance));
+          vec3 reflectVec = reflect(cameraToFrag, worldNormal);
+          vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
+    
+          vec3 envmapVec = mix(refractVec, reflectVec, isOverwater);
+          vec3 envColor = textureCube(uEnvMap, envmapVec).rgb;
+          float env = max(envColor.r, max(envColor.g, envColor.b));
+          env *= smoothstep(0.9, 1.0, env);
+    
+          float foam = computeFoam(cameraDistance);
+          vec3 waterColor = texture(uColorTexture, vUv).rgb;
+          vec3 surfaceColor = clamp(waterColor + foam, vec3(0), vec3(1));
+          surfaceColor += env;
+    
+          float alpha = mix(0.2, 0.98, pow(fresnelFactor, 0.4));
+          alpha = mix(1.0, alpha, isOverwater);
+          alpha = clamp(alpha, 0.0, 1.0);
+    
+          diffuseColor = vec4(surfaceColor, alpha);
+        `,
+        )
+      }
+
+      material_uniforms.uColorTexture.value = water_data.texture;
+
       const mesh = new Mesh(build_geometry(), material)
       mesh.name = 'water'
       mesh.receiveShadow = true
@@ -305,7 +292,8 @@ export default function () {
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
 
-        const water_level = world_settings.getSeaLevel() + 0.1
+        set_water_level(world_settings.getSeaLevel() + 0.5)
+        
         let player_position_x = 0
         let player_position_z = 0
 
@@ -323,9 +311,13 @@ export default function () {
           x: player_patch_id.x - Math.floor(patches_count / 2),
           z: player_patch_id.z - Math.floor(patches_count / 2),
         }
+        water_data.setWaterOriginPatch({
+          x: water_origin_patch_id.x,
+          y: water_origin_patch_id.z,
+        })
         mesh.position.set(
           water_origin_patch_id.x * patch_size,
-          water_level,
+          water_data.map.waterLevel,
           water_origin_patch_id.z * patch_size,
         )
 
@@ -340,19 +332,6 @@ export default function () {
             water_color[2] / 255,
           ),
         })
-
-        for (let d_patch_y = 0; d_patch_y < patches_count; d_patch_y++) {
-          for (let d_patch_x = 0; d_patch_x < patches_count; d_patch_x++) {
-            const color = get_patch_water_color(
-              water_origin_patch_id.x + d_patch_x,
-              water_origin_patch_id.y + d_patch_y,
-            )
-
-            const index = d_patch_x + d_patch_y * patches_count
-            patches_colors_texture_buffer.set(color, 4 * index)
-          }
-        }
-        patches_colors_texture.needsUpdate = true
 
         material_uniforms.uEnvMap.value = scene.environment
 
