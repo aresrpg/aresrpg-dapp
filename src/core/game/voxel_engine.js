@@ -42,8 +42,8 @@ export function create_voxel_engine() {
       /** @type number */ patch_x,
       /** @type number */ patch_z,
     ) {
-        const /** @type [number, number, number] */ color = [41, 182, 246]
-        return color
+      const /** @type [number, number, number] */ color = [41, 182, 246]
+      return color
     },
     async sampleHeightmap(/** @type Float32Array */ coords) {
       const samples_count = coords.length / 2
@@ -107,14 +107,13 @@ export function create_voxel_engine() {
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
   terrain_viewer.parameters.lod.enabled = true
 
-
   const water_view_distance = 3000
   const patch_size = chunk_size.xz
   const water_data = new WaterData({
     map,
     patchesCount: Math.ceil((2 * water_view_distance) / patch_size),
     patchSize: chunk_size.xz,
-  });
+  })
 
   const minimap = new Minimap({
     heightmapAtlas: heightmap_atlas,
@@ -126,8 +125,15 @@ export function create_voxel_engine() {
   })
 
   function set_water_level(level) {
-    map.waterLevel = level;
+    map.waterLevel = level
   }
 
-  return { voxelmap_viewer, terrain_viewer, minimap, heightmap_atlas, water_data, set_water_level }
+  return {
+    voxelmap_viewer,
+    terrain_viewer,
+    minimap,
+    heightmap_atlas,
+    water_data,
+    set_water_level,
+  }
 }

@@ -11,14 +11,15 @@ export default function () {
       )
       if (player) {
         minimap.centerPosition.copy(player.position)
-        minimap.setMarker("player_position", player.position.clone())
+        minimap.setMarker('player_position', player.position.clone())
 
         const camera_forward = new Vector3(0, 0, -1)
           .applyQuaternion(camera.quaternion)
           .setY(0)
           .normalize()
 
-        minimap.orientation = Math.atan2(camera_forward.z, camera_forward.x) + Math.PI / 2
+        minimap.orientation =
+          Math.atan2(camera_forward.z, camera_forward.x) + Math.PI / 2
       }
 
       minimap.update(renderer)
@@ -35,11 +36,14 @@ export default function () {
       minimap.screenSize = 400
 
       const update_screen_position = () => {
-        minimap.screenPosition.set(window.innerWidth - 650, window.innerHeight - 300);
-      };
+        minimap.screenPosition.set(
+          window.innerWidth - 650,
+          window.innerHeight - 300,
+        )
+      }
 
-      window.addEventListener("resize", update_screen_position, { signal });
-      update_screen_position();
+      window.addEventListener('resize', update_screen_position, { signal })
+      update_screen_position()
     },
     post_render({ renderer, voxel_engine }) {
       voxel_engine.minimap.render(renderer)

@@ -136,10 +136,10 @@ export default function () {
       material_uniforms.uEta.value = eta
     },
     observe({ scene, get_state, dispatch, voxel_engine }) {
-      const { water_data, set_water_level } = voxel_engine;
+      const { water_data, set_water_level } = voxel_engine
 
-      const patch_size = chunk_size.xz;
-      const patches_count = water_data.patchesCount;
+      const patch_size = chunk_size.xz
+      const patches_count = water_data.patchesCount
 
       function build_geometry() {
         const mesh_size = patch_size * patches_count
@@ -147,7 +147,20 @@ export default function () {
         geometry.setAttribute(
           'position',
           new Float32BufferAttribute(
-            [0, 0, 0, mesh_size, 0, 0, 0, 0, mesh_size, mesh_size, 0, mesh_size],
+            [
+              0,
+              0,
+              0,
+              mesh_size,
+              0,
+              0,
+              0,
+              0,
+              mesh_size,
+              mesh_size,
+              0,
+              mesh_size,
+            ],
             3,
           ),
         )
@@ -275,7 +288,7 @@ export default function () {
         )
       }
 
-      material_uniforms.uColorTexture.value = water_data.texture;
+      material_uniforms.uColorTexture.value = water_data.texture
 
       const mesh = new Mesh(build_geometry(), material)
       mesh.name = 'water'
@@ -293,7 +306,7 @@ export default function () {
         const state = get_state()
 
         set_water_level(world_settings.getSeaLevel() + 0.5)
-        
+
         let player_position_x = 0
         let player_position_z = 0
 
