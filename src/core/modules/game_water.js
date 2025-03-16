@@ -183,7 +183,7 @@ export default function () {
           `
           varying vec2 vUv;
           varying vec3 vWorldPosition;
-    
+
           void main() {
             vUv = uv;
         `,
@@ -206,22 +206,22 @@ export default function () {
           uniform float uTime;
           uniform float uNormalSide;
           uniform sampler2D uTexture;
-    
+
           varying vec2 vUv;
           varying vec3 vWorldPosition;
-    
+
           float getFresnelFactor(const vec3 normal, const vec3 fromEye) {
             float rawValue = mix(pow(1.0 - dot(normal, -fromEye), 5.0), 1.0, uF0);
             rawValue = pow(rawValue, 0.5);
             return rawValue;
           }
-    
+
           ${noise}
-    
+
           vec3 getNormal() {
             const float normalVerticality = 0.1;
             const float normalScale = 1.0;
-    
+
             vec3 worldNormal = vec3(
               normalVerticality * noise(vec3(normalScale * vWorldPosition.xz, uTime)),
               1,
@@ -229,7 +229,7 @@ export default function () {
             );
             return uNormalSide * normalize(worldNormal);
           }
-    
+
           float computeFoam(float cameraDistance) {
             vec2 textureCoords = 4.0 * vUv * ${patches_count.toFixed(1)};
             textureCoords += 0.2 * vec2(
@@ -237,14 +237,14 @@ export default function () {
               noise(vec3(0.1 * vWorldPosition.zx, 0.2 * uTime))
             );
             vec4 textureSample = texture2D(uTexture, textureCoords);
-    
+
             const float maxFoamDistance = 800.0;
             float distance = smoothstep(0.0, maxFoamDistance, cameraDistance);
             float foam = textureSample.r;
             foam *= 1.0 - distance;
             return foam;
           }
-    
+
           void main() {
         `,
         )
@@ -262,27 +262,27 @@ export default function () {
           float cameraDistance = length(cameraToFragRaw);
           vec3 cameraToFrag = cameraToFragRaw / cameraDistance;
           float isOverwater = step(0.0, uNormalSide);
-    
+
           vec3 worldNormal = getNormal();
           float fresnelFactor = getFresnelFactor(worldNormal, cameraToFrag);
           fresnelFactor = mix(fresnelFactor, 0.5, smoothstep(300.0, 700.0, cameraDistance));
           vec3 reflectVec = reflect(cameraToFrag, worldNormal);
           vec3 refractVec = refract(cameraToFrag, worldNormal, uEta);
-    
+
           vec3 envmapVec = mix(refractVec, reflectVec, isOverwater);
           vec3 envColor = textureCube(uEnvMap, envmapVec).rgb;
           float env = max(envColor.r, max(envColor.g, envColor.b));
           env *= smoothstep(0.9, 1.0, env);
-    
+
           float foam = computeFoam(cameraDistance);
           vec3 waterColor = texture(uColorTexture, vUv).rgb;
           vec3 surfaceColor = clamp(waterColor + foam, vec3(0), vec3(1));
           surfaceColor += env;
-    
+
           float alpha = mix(0.2, 0.98, pow(fresnelFactor, 0.4));
           alpha = mix(1.0, alpha, isOverwater);
           alpha = clamp(alpha, 0.0, 1.0);
-    
+
           diffuseColor = vec4(surfaceColor, alpha);
         `,
         )

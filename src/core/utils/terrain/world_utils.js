@@ -7,8 +7,8 @@ import {
 } from '@aresrpg/aresrpg-world'
 import { Vector3 } from 'three'
 import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
-import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+
+import logger from '../../../logger.js'
 
 /**
  * performs individual block processing call synchroneously in main thread (without cache)
@@ -25,11 +25,6 @@ export function get_nearest_floor_pos({ x, y, z }) {
   if (pos.y < 10) return null
   return pos
 }
-
-export const default_worker_pool = new WorkerPool()
-
-default_worker_pool.init(1)
-await default_worker_pool.loadWorldEnv(world_settings.rawSettings)
 
 /**
  * deferring task execution to allow grouping multiple block requests in same batch
