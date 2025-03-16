@@ -3,7 +3,6 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
 import { ChunksProcessing } from '@aresrpg/aresrpg-world'
-import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
 import {
   decompress_chunk_column,
   compress_chunk_column,
@@ -16,6 +15,7 @@ import { LRUCache } from 'lru-cache'
 import { chunk_rendering_mode, current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { to_engine_chunk_format } from '../utils/terrain/world_utils.js'
+import { TERRAIN_WORKER_POOL } from '../worker/workers.js'
 
 // The server won't send twice the same chunk for a session, unless time has passed
 // If the cache was too full, then local generation would be used to retrieve missing ones
@@ -39,12 +39,6 @@ function exclude_positions(positions) {
 function column_to_chunk_ids({ x, z }) {
   return Array.from({ length: CHUNKS_PER_COLUMN }).map((_, y) => ({ x, y, z }))
 }
-
-const chunks_processing_worker_pool = new WorkerPool()
-
-chunks_processing_worker_pool.init(navigator.hardwareConcurrency)
-
-await chunks_processing_worker_pool.loadWorldEnv(world_settings.rawSettings)
 
 /** @type {Type.Module} */
 export default function () {
@@ -142,7 +136,7 @@ export default function () {
               }
             }
 
-            chunks_processing_worker_pool.processQueue()
+            TERRAIN_WORKER_POOL.processQueue()
 
             return Promise.all(
               columns_to_generate
@@ -154,7 +148,7 @@ export default function () {
 
                   processing_task.processingParams.skipBlobCompression = true
                   return processing_task
-                    .delegate(chunks_processing_worker_pool)
+                    .delegate(TERRAIN_WORKER_POOL)
                     .then(async chunks => {
                       if (!chunks) return
                       chunks.forEach(chunk => render_world_chunk(chunk))
@@ -289,13 +283,9 @@ export default function () {
             all_visible_columns: current_columns_positions.map(
               ({ x, z }) => `${x}:${z}`,
             ),
+          }).catch(error => {
+            console.error('Error in schedule_chunks_generation', error)
           })
-            .catch(error => {
-              console.error('Error in schedule_chunks_generation', error)
-            })
-            .finally(() => {
-              console.log('schedule_chunks_generation done')
-            })
 
           if (view_changed) {
             voxelmap_viewer.setVisibility(

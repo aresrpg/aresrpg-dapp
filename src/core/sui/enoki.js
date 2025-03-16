@@ -1,5 +1,4 @@
 import { EnokiFlow } from '@mysten/enoki'
-import { Transaction } from '@mysten/sui/transactions'
 
 import { VITE_ENOKI_KEY, NETWORK } from '../../env.js'
 import enoki_logo from '../../assets/sui/google.png?url'

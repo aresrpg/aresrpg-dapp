@@ -1,4 +1,4 @@
-import path from 'path'
+import { resolve } from 'path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -24,10 +24,10 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['events-polyfill', 'buffer', 'poisson-disk-sampling'],
-    exclude: [
-      '@aresrpg/aresrpg-sdk/world',
-      '@aresrpg/aresrpg-world/workerpool',
-    ],
+    exclude: ['@aresrpg/aresrpg-sdk/world'],
+  },
+  worker: {
+    format: 'es',
   },
   build: {
     target: 'esnext',
@@ -38,6 +38,10 @@ export default defineConfig({
       },
     },
     rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        worker: resolve(__dirname, 'src/core/worker/world_worker.js'),
+      },
       onwarn(warning, warn) {
         if (warning.code === 'EVAL') return
         warn(warning)
@@ -54,7 +58,7 @@ export default defineConfig({
     cssCodeSplit: true,
   },
   esbuild: {
-    drop: ['console', 'debugger'],
+    drop: ['debugger'],
     legalComments: 'none',
   },
   plugins: [

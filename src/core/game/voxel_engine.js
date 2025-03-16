@@ -13,8 +13,9 @@ import {
   world_settings,
 } from '@aresrpg/aresrpg-sdk/world'
 import { BlocksProcessing } from '@aresrpg/aresrpg-world'
-import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
 import { Color, Vector3 } from 'three'
+
+import { LOD_WORKER_POOL } from '../worker/workers.js'
 
 export const chunk_size = { xz: 64, y: 64 }
 const altitude = { min: -1, max: 400 }
@@ -27,11 +28,6 @@ const voxel_materials_list = blocks_color_mapping.map(material =>
 )
 
 // use dedicated workerpool for LOD
-const lod_dedicated_worker_pool = new WorkerPool()
-
-lod_dedicated_worker_pool.init(1)
-
-await lod_dedicated_worker_pool.loadWorldEnv(world_settings.rawSettings)
 
 export function create_voxel_engine() {
   const map = {
@@ -53,9 +49,7 @@ export function create_voxel_engine() {
       }
 
       const blocks_request = BlocksProcessing.getPeakPositions(pos_batch)
-      const blocks_batch = await blocks_request.delegate(
-        lod_dedicated_worker_pool,
-      )
+      const blocks_batch = await blocks_request.delegate(LOD_WORKER_POOL)
 
       const result = {
         altitudes: new Float32Array(samples_count),

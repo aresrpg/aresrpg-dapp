@@ -14,10 +14,8 @@ import {
 } from '../game/game.js'
 import { spawn_crescent_sword } from '../utils/game/objects.js'
 import { state_iterator } from '../utils/iterator.js'
-import {
-  chunk_data_encoder,
-  default_worker_pool,
-} from '../utils/terrain/world_utils.js'
+import { chunk_data_encoder } from '../utils/terrain/world_utils.js'
+import { DEFAULT_WORKER_POOL } from '../worker/workers.js'
 
 const MAX_TEAM_SIZE = 6
 
@@ -58,7 +56,7 @@ function is_in_fight(fight, character_id) {
 export async function create_board(position = new Vector3()) {
   // seems the boardprocessor is made to have a single instance so we have to call that each time
   // and it will erase the previous instance
-  const board_cache_provider = new BoardCacheProvider(default_worker_pool)
+  const board_cache_provider = new BoardCacheProvider(DEFAULT_WORKER_POOL)
   const board_processor = new BoardProvider(
     position,
     board_cache_provider,

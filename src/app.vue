@@ -372,8 +372,7 @@ function update_all_(state) {
 }
 
 onMounted(async () => {
-
-  document.documentElement.setAttribute("data-theme", "dark");
+  document.documentElement.setAttribute('data-theme', 'dark');
 
   increase_loading();
 
@@ -388,35 +387,45 @@ onMounted(async () => {
     el.style.transform = 'scale(1)';
   }, 100);
 
-  const { context, current_sui_character, current_three_character } =
-    await import('./core/game/game.js');
+  try {
+    const timeout_promise = new Promise((resolve, reject) =>
+      setTimeout(() => {
+        reject(new Error('Game import timeout'));
+      }, 4000),
+    );
+    const { context, current_sui_character, current_three_character } =
+      await Promise.race([import('./core/game/game.js'), timeout_promise]);
+    const { enoki_address, enoki_wallet } = await import('./core/sui/enoki.js');
+    const { sui_get_policies_profit } = await import('./core/sui/client.js');
 
-  const { enoki_address, enoki_wallet } = await import('./core/sui/enoki.js');
-  const { sui_get_policies_profit } = await import('./core/sui/client.js');
+    game_module = {
+      context,
+      current_three_character,
+      current_sui_character,
+      sui_get_policies_profit,
+    };
+    decrease_loading();
 
-  game_module = {
-    context,
-    current_three_character,
-    current_sui_character,
-    sui_get_policies_profit,
-  };
+    clearInterval(interval);
 
-  decrease_loading();
+    context.events.on('STATE_UPDATED', update_all_);
+    update_all_(context.get_state());
 
-  clearInterval(interval);
+    context.events.on('packet/serverInfo', on_server_info);
 
-  context.events.on('STATE_UPDATED', update_all_);
-  update_all_(context.get_state());
+    const address = enoki_address();
 
-  context.events.on('packet/serverInfo', on_server_info);
-
-  const address = enoki_address();
-
-  if (address) {
-    // @ts-ignore
-    context.dispatch('action/register_wallet', enoki_wallet());
-    context.dispatch('action/select_wallet', 'Enoki');
-    context.dispatch('action/select_address', address);
+    if (address) {
+      // @ts-ignore
+      context.dispatch('action/register_wallet', enoki_wallet());
+      context.dispatch('action/select_wallet', 'Enoki');
+      context.dispatch('action/select_address', address);
+    }
+  } catch (error) {
+    console.error('Error loading game module', error);
+    alert(
+      'AresRPG was unable to load on this browser, please contact the support.',
+    );
   }
 });
 
