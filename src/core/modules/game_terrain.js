@@ -99,6 +99,10 @@ export default function () {
 
       function chunk_processor() {
         const queue = new Map()
+        const processing_options = {
+          skipBlobCompression: true,
+          fakeEmpty: true,
+        }
 
         return {
           async schedule_chunks_generation({
@@ -122,13 +126,13 @@ export default function () {
             const get_processing_task = key => {
               switch (chunk_generation) {
                 case chunk_rendering_mode.HYBRID:
-                  return ChunksProcessing.upperChunks(key)
+                  return ChunksProcessing.upperChunks(key, processing_options)
                 case chunk_rendering_mode.LOCAL:
-                  return ChunksProcessing.fullChunks(key)
+                  return ChunksProcessing.fullChunks(key, processing_options)
                 case chunk_rendering_mode.LOCAL_SURFACE:
-                  return ChunksProcessing.upperChunks(key)
+                  return ChunksProcessing.upperChunks(key, processing_options)
                 case chunk_rendering_mode.LOCAL_UNDERGROUND:
-                  return ChunksProcessing.lowerChunks(key)
+                  return ChunksProcessing.lowerChunks(key, processing_options)
                 case chunk_rendering_mode.REMOTE:
                   throw new Error(
                     'Remote chunks should not be generated locally',
@@ -146,7 +150,6 @@ export default function () {
 
                   queue.set(key, processing_task)
 
-                  processing_task.processingParams.skipBlobCompression = true
                   return processing_task
                     .delegate(TERRAIN_WORKER_POOL)
                     .then(async chunks => {
