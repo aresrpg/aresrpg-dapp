@@ -16,7 +16,7 @@ import step3 from '../../assets/sound/step3.ogg'
 import step4 from '../../assets/sound/step4.ogg'
 import step5 from '../../assets/sound/step5.ogg'
 import step6 from '../../assets/sound/step6.ogg'
-import { current_three_character } from '../game/game.js'
+import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 
 const listener = new AudioListener()
@@ -153,7 +153,7 @@ export default function () {
           const position = current_three_character()?.position
 
           if (position) {
-            const biome = Biome.instance.getBiomeType(position)
+            const biome = context.world.biome.getBiomeType(position)
             if (
               biome !== last_biome &&
               main_audio.context.state === 'running'

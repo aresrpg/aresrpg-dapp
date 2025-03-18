@@ -72,8 +72,8 @@ export function create_voxel_engine() {
   })
 
   const voxelmap_viewer = new VoxelmapViewer(
-    world_settings.rawSettings.chunks.range.bottomId + 1,
-    world_settings.rawSettings.chunks.range.topId,
+    world_settings.rawSettings.chunks.verticalRange.bottomId + 1,
+    world_settings.rawSettings.chunks.verticalRange.topId,
     voxels_materials_store,
     {
       chunkSize: chunk_size,

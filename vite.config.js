@@ -38,10 +38,6 @@ export default defineConfig({
       },
     },
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
-        worker: resolve(__dirname, 'src/core/worker/world_worker.js'),
-      },
       onwarn(warning, warn) {
         if (warning.code === 'EVAL') return
         warn(warning)

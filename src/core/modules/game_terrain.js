@@ -2,7 +2,6 @@ import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
-import { ChunksProcessing } from '@aresrpg/aresrpg-world'
 import {
   decompress_chunk_column,
   compress_chunk_column,
@@ -11,6 +10,7 @@ import {
 } from '@aresrpg/aresrpg-sdk/chunk'
 import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 import { LRUCache } from 'lru-cache'
+import { ChunksProcessing } from '@aresrpg/aresrpg-world'
 
 import { chunk_rendering_mode, current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'

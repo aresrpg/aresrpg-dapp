@@ -391,7 +391,7 @@ onMounted(async () => {
     const timeout_promise = new Promise((resolve, reject) =>
       setTimeout(() => {
         reject(new Error('Game import timeout'));
-      }, 4000),
+      }, 5000),
     );
     const { context, current_sui_character, current_three_character } =
       await Promise.race([import('./core/game/game.js'), timeout_promise]);

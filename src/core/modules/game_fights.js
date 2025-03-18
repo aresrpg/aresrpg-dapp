@@ -6,6 +6,7 @@ import {
 import { Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
+import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
 import {
   context,
@@ -56,11 +57,15 @@ function is_in_fight(fight, character_id) {
 export async function create_board(position = new Vector3()) {
   // seems the boardprocessor is made to have a single instance so we have to call that each time
   // and it will erase the previous instance
-  const board_cache_provider = new BoardCacheProvider(DEFAULT_WORKER_POOL)
+  const board_cache_provider = new BoardCacheProvider(
+    DEFAULT_WORKER_POOL,
+    world_settings,
+  )
   const board_processor = new BoardProvider(
     position,
     board_cache_provider,
     chunk_data_encoder,
+    world_settings,
   )
 
   const board = await board_processor.genBoardContent()
