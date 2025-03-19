@@ -1,16 +1,15 @@
 import { setInterval } from 'timers/promises'
 
-import { aiter } from 'iterator-helper'
-import { Vector3 } from 'three'
 import {
-  decompress_chunk_column,
   compress_chunk_column,
+  decompress_chunk_column,
   spiral_array,
   to_chunk_position,
 } from '@aresrpg/aresrpg-sdk/chunk'
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
-import { LRUCache } from 'lru-cache'
 import { ChunksProcessing } from '@aresrpg/aresrpg-world'
+import { aiter } from 'iterator-helper'
+import { LRUCache } from 'lru-cache'
+import { Vector3 } from 'three'
 
 import { chunk_rendering_mode, current_three_character } from '../game/game.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
@@ -43,9 +42,20 @@ function column_to_chunk_ids({ x, z }) {
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick(_, { renderer, voxel_engine }) {
-      voxel_engine.terrain_viewer.update(renderer)
-      voxel_engine.heightmap_atlas.update(renderer)
+    tick(state, { renderer, voxel_engine, camera }) {
+      const { clutter_viewer, heightmap_atlas, terrain_viewer } = voxel_engine
+
+      terrain_viewer.update(renderer)
+      heightmap_atlas.update(renderer)
+
+      const player = state.characters.find(
+        character => character.id === state.selected_character_id,
+      )
+      if (player) {
+        clutter_viewer.update(camera, player.position)
+      } else {
+        clutter_viewer.update(camera)
+      }
     },
     observe({
       camera,
@@ -56,7 +66,10 @@ export default function () {
       physics,
       voxel_engine,
     }) {
-      const { voxelmap_viewer, terrain_viewer } = voxel_engine
+      const { voxelmap_viewer, terrain_viewer, clutter_viewer } = voxel_engine
+
+      clutter_viewer.parameters.viewDistance = 150
+      clutter_viewer.parameters.viewDistanceMargin = 25
 
       function render_world_chunk(
         world_chunk,

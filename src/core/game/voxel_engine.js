@@ -1,4 +1,5 @@
 import {
+  ClutterViewer,
   EComputationMethod,
   HeightmapAtlas,
   HeightmapViewerGpu,
@@ -32,7 +33,10 @@ const voxel_materials_list = blocks_color_mapping.map(material =>
 export function create_voxel_engine() {
   const map = {
     altitude,
-    voxelMaterialsList: voxel_materials_list,
+    voxelTypesDefininitions: {
+      solidMaterials: voxel_materials_list,
+      clutterVoxels: [],
+    },
     waterLevel: 0,
     getWaterColorForPatch(
       /** @type number */ patch_x,
@@ -71,20 +75,35 @@ export function create_voxel_engine() {
     maxShininess: 400,
   })
 
-  const voxelmap_viewer = new VoxelmapViewer(
-    world_settings.rawSettings.chunks.verticalRange.bottomId + 1,
-    world_settings.rawSettings.chunks.verticalRange.topId,
-    voxels_materials_store,
-    {
-      chunkSize: chunk_size,
+  const voxels_chunk_data_ordering = 'zxy'
+
+  const clutter_viewer = new ClutterViewer({
+    clutterVoxelsDefinitions: map.voxelTypesDefininitions.clutterVoxels,
+    chunkSize: chunk_size,
+    computationOptions: {
+      method: 'worker',
+      threadsCount: 1,
+    },
+    voxelsChunkOrdering: voxels_chunk_data_ordering,
+  })
+
+  const voxelmap_viewer = new VoxelmapViewer({
+    chunkSize: chunk_size,
+    chunkIdY: {
+      min: world_settings.rawSettings.chunks.verticalRange.bottomId + 1,
+      max: world_settings.rawSettings.chunks.verticalRange.topId,
+    },
+    voxelMaterialsStore: voxels_materials_store,
+    clutterViewer: clutter_viewer,
+    options: {
       computationOptions: {
         method: EComputationMethod.CPU_MULTITHREADED,
         threadsCount: 4,
         greedyMeshing: false,
       },
-      voxelsChunkOrdering: 'zxy',
+      voxelsChunkOrdering: voxels_chunk_data_ordering,
     },
-  )
+  })
 
   const heightmap_atlas = new HeightmapAtlas({
     heightmap: map,
@@ -123,6 +142,7 @@ export function create_voxel_engine() {
   }
 
   return {
+    clutter_viewer,
     voxelmap_viewer,
     terrain_viewer,
     minimap,

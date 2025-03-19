@@ -6,7 +6,7 @@ import {
   parseThreeStub,
 } from '@aresrpg/aresrpg-world'
 import { Vector3 } from 'three'
-import { voxelmapDataPacking } from '@aresrpg/aresrpg-engine'
+import { voxelEncoder } from '@aresrpg/aresrpg-engine'
 
 import logger from '../../../logger.js'
 import { context } from '../../game/game.js'
@@ -79,8 +79,11 @@ export function get_nearest_floor_pos({ x, y, z }) {
 
 export function chunk_data_encoder(value, mode = BlockMode.REGULAR) {
   if (value)
-    return voxelmapDataPacking.encode(mode === BlockMode.CHECKERBOARD, value)
-  return voxelmapDataPacking.encodeEmpty()
+    return voxelEncoder.solidVoxel.encode(
+      mode === BlockMode.CHECKERBOARD,
+      value,
+    )
+  return voxelEncoder.encodeEmpty()
 }
 
 export function to_engine_chunk_format({ metadata, rawdata }) {
