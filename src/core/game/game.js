@@ -224,7 +224,7 @@ export const INITIAL_STATE = {
       },
 
       bloom_pass: {
-        enabled: false,
+        enabled: true,
         strength: 0.2,
       },
 
