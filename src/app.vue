@@ -423,9 +423,6 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Error loading game module', error);
-    alert(
-      'AresRPG was unable to load on this browser, please contact the support.',
-    );
   }
 });
 
