@@ -1,9 +1,9 @@
 import { Rain, Snow } from '@aresrpg/aresrpg-engine'
 import { Object3D } from 'three'
-import { Biome, BiomeType } from '@aresrpg/aresrpg-world'
+import { BiomeType } from '@aresrpg/aresrpg-world'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
-import { current_three_character } from '../game/game.js'
+import { context, current_three_character } from '../game/game.js'
 
 const COLD_BIOME = [BiomeType.Arctic, BiomeType.Glacier, BiomeType.Taiga]
 const HOT_BIOME = [BiomeType.Desert, BiomeType.Scorched]
@@ -27,7 +27,9 @@ function is_raining(current_time) {
  */
 function get_biome() {
   const position = current_three_character()?.position
-  return position ? Biome.instance.getBiomeType(position) : BiomeType.Grassland
+  return position
+    ? context.world.biome.getBiomeType(position)
+    : BiomeType.Grassland
 }
 
 /** @type {Type.Module} */
@@ -41,7 +43,6 @@ export default function () {
       const IS_RAINING = is_raining(Date.now())
       const CURRENT_BIOME = get_biome()
       const IS_HOT_BIOME = HOT_BIOME.includes(CURRENT_BIOME)
-
       if (
         (!IS_RAINING || IS_HOT_BIOME) &&
         (rain.container.visible || snow.container.visible)
