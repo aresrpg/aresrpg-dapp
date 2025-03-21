@@ -104,6 +104,10 @@ export const MODELS = new Proxy(/** @type {any} */ ({}), {
   get(_, prop) {
     if (!loaded_models.has(prop)) {
       const model_url = AVAILABLE_MODELS[prop]
+      if (!model_url) {
+        console.warn(`Model ${prop.toString()} not found`)
+        return null
+      }
       loaded_models.set(
         prop,
         load(model_url).catch(error =>
@@ -121,7 +125,8 @@ export function find_bone(origin, name) {
   let bone = null
   origin.traverse(child => {
     // @ts-ignore
-    if (child.isBone && child.name.includes(name)) bone = child
+    if (child.isBone && child.name.toLowerCase().includes(name.toLowerCase()))
+      bone = child
   })
 
   assert(bone, `${name} bone not found`)

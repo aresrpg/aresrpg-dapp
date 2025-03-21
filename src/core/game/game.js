@@ -36,7 +36,7 @@ import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
 import { world_settings } from '@aresrpg/aresrpg-sdk/world'
-import { WorldModules } from '@aresrpg/aresrpg-world'
+import { createWorldModules } from '@aresrpg/aresrpg-world'
 
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
@@ -621,7 +621,7 @@ const context = {
     voxelmap_collisions,
   },
   voxel_engine,
-  world: new WorldModules(world_settings.rawSettings),
+  world: createWorldModules(world_settings.rawSettings),
 }
 
 listen_for_requests()

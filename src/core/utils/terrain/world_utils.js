@@ -1,6 +1,5 @@
 import {
   BlocksProcessing,
-  ProcessingState,
   BlockMode,
   parseChunkKey,
   parseThreeStub,
@@ -18,9 +17,13 @@ import { context } from '../../game/game.js'
 export function get_nearest_floor_pos({ x, y, z }) {
   // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
   const requested_pos = new Vector3(x, y + 1, z).floor()
-  const [{ pos }] = BlocksProcessing.getFloorPositions([requested_pos]).process(
-    context.world,
+  const result = BlocksProcessing.getFloorPositions([requested_pos]).process(
+    context.world.taskHandlers.ChunksProcessing,
   )
+
+  if (result instanceof Promise) return null
+
+  const [{ pos }] = result
 
   // it is important to return null here as if the query fails, we want to know it failed instead of returning a wrong value
   if (pos.y < 10) return null

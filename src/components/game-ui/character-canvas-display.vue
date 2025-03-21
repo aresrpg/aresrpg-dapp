@@ -1,5 +1,5 @@
 <script setup>
-import { inject, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
 import {
   Scene,
   PerspectiveCamera,
@@ -82,6 +82,7 @@ async function display_classe(type) {
         setup_classe(senshi, props.colors ?? create_character_colors.senshi);
         // @ts-ignore
         await senshi.set_equipment(props.character || {});
+        set_color(senshi, props.colors ?? create_character_colors.senshi); // force with current renderer
       }
       break;
     case 'YAJIN_MALE':
@@ -93,6 +94,7 @@ async function display_classe(type) {
         setup_classe(yajin, props.colors ?? create_character_colors.yajin);
         // @ts-ignore
         await yajin.set_equipment(props.character || {});
+        set_color(yajin, props.colors ?? create_character_colors.yajin); // force with current renderer
       }
       break;
     case 'SENSHI_FEMALE':
@@ -107,6 +109,7 @@ async function display_classe(type) {
         );
         // @ts-ignore
         await senshi_female.set_equipment(props.character || {});
+        set_color(senshi_female, props.colors ?? create_character_colors);
       }
       break;
     case 'YAJIN_FEMALE':
@@ -121,6 +124,10 @@ async function display_classe(type) {
         );
         // @ts-ignore
         await yajin_female.set_equipment(props.character || {});
+        set_color(
+          yajin_female,
+          props.colors ?? create_character_colors.yajin_female,
+        ); // force with current renderer
       }
       break;
     default:
