@@ -36,7 +36,7 @@ import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
 import { world_settings } from '@aresrpg/aresrpg-sdk/world'
-import { createWorldModules } from '@aresrpg/aresrpg-world'
+import * as TWEEN from '@tweenjs/tween.js'
 
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
@@ -80,6 +80,7 @@ import { handle_server_error, notify_reconnected } from './error_handler.js'
 // @ts-ignore
 import { CustomCameraControls } from './custom_camera_control.js'
 import { create_voxel_engine } from './voxel_engine.js'
+
 
 // @ts-ignore
 import MdiClippy from '~icons/mdi/clippy'
@@ -682,6 +683,7 @@ window.addEventListener('mousemove', event => {
 
 function animate() {
   requestAnimationFrame(animate)
+  TWEEN.update()
 
   if (running && performance.now() >= time_target) {
     const state = get_state()
