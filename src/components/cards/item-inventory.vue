@@ -143,6 +143,7 @@ async function delete_item() {
   const tx = toast.tx(t('APP_ITEM_DELETING'), selected_item.value.name);
   try {
     deletion_dialog.value = false;
+    console.log('deleting', selected_item.value);
     await sui_delete_item(selected_item.value);
     tx.update('success', t('APP_ITEM_DELETED'));
   } catch (error) {
