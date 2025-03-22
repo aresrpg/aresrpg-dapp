@@ -58,7 +58,7 @@ function despawn_pet() {
 async function spawn_pet(character) {
   despawn_pet();
 
-  if (!character.pet) return;
+  if (!character?.pet) return;
 
   spawned_pet = await ENTITIES[character.pet.item_type]({
     name: character.pet.name,
