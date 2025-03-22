@@ -96,11 +96,13 @@ function final_item_price(item) {
     item.item_category !== 'character' &&
     item.item_type !== 'vaporeon'
   )
-    return new BN(item.list_price);
+    return new BN(item.list_price).dividedBy(MIST_PER_SUI.toString());
 
   // Determine the royalty rate
   const royalty_rate = 1.1;
-  return BN.max(0.1, new BN(item.list_price).times(royalty_rate));
+  return BN.max(0.1, new BN(item.list_price).times(royalty_rate)).dividedBy(
+    MIST_PER_SUI.toString(),
+  );
 }
 
 async function buy_item() {
