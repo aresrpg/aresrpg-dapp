@@ -5,7 +5,10 @@
   img.open_inventory(src="../../assets/ui/inventory.png" @click="emits('open_inventory')")
   .health(:class="{ in_fight }" @click="show_health_percent = !show_health_percent")
     .health-bar(:style="{ maxHeight: `${percent_health}%`}")
-      img.sit(src="../../assets/ui/sit.png" @click.stop="sit_action")
+      div
+        img.sit(src="../../assets/ui/sit.png" @click.stop="() => start_action('SIT')")
+      div 
+        img.sit(src="../../assets/ui/danse.png" @click.stop="() => start_action('DANCE')")
     .health-value-percent(v-if="show_health_percent") {{ percent_health }}%
     .health-value(v-else)
       .health-top {{ health }}
@@ -49,16 +52,16 @@ const percent_health = computed(() => {
   return Math.round((100 * health.value) / max_health.value);
 });
 
-function sit_action() {
+function start_action(action) {
   const character = current_three_character();
-  if (character.action === 'SIT') {
+  if (character.action === action) {
     context.dispatch('action/character_action', {
       action: 'IDLE',
       id: character.id,
     });
   } else {
     context.dispatch('action/character_action', {
-      action: 'SIT',
+      action,
       id: character.id,
     });
   }
@@ -112,7 +115,8 @@ function sit_action() {
       left 0
       transition all .3s
       img.sit
-        position absolute
+      display flex
+        margin 6px
         bottom 5px
         left 5px
         width 20px
