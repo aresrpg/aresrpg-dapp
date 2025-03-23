@@ -41,6 +41,7 @@ import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { sui_buy_item, mists_to_sui } from '../../core/sui/client.js';
 import { SUI_EMITTER } from '../../core/modules/sui_data.js';
+import { is_character } from '../../core/utils/item.js';
 import toast from '../../toast.js';
 import tabs from '../../components/game-ui/tabs.vue';
 import { context } from '../../core/game/game.js';
@@ -86,6 +87,12 @@ function start_buy_item(item) {
     toast.warn(t('APP_MARKET_INSUFFICIENT_FUNDS'), '', GameIconsPayMoney);
     return;
   }
+
+  if (is_character(item) && context.get_state().sui.characters.length > 4) {
+    toast.warn(t('APP_MARKET_CHARACTERS_LIMIT'), '');
+    return;
+  }
+
   buy_dialog.value = true;
   bought_item.value = item;
 }

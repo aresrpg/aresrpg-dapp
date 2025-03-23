@@ -155,6 +155,7 @@ APP_MARKET_WITHDRAW: 引き出す
 APP_MARKET_DELISTING: アイテムをリスティングから削除中
 APP_MARKET_DELISTED: アイテムがリスティングから削除されました
 APP_MARKET_FAILED_TO_DELIST: アイテムのリスティングからの削除に失敗しました
+APP_MARKET_CHARACTERS_LIMIT: 5キャラクターの制限に達しました。このアイテムを購入することはできません。
 
 APP_MINT_CARD_MINT: ミント
 APP_MINT_CARD_MINTING: アイテムをミント中
