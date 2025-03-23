@@ -86,6 +86,7 @@ APP_ITEM_EFFECTS: 効果
 APP_ITEM_CONSUMABLE_EFFECT: このアイテムには何らかの効果がありそうだが、いったい何をするのだろう？勇気を出して使ってみよう！
 APP_ITEM_STOMACH: 胃の中
 APP_ITEM_LAST_FEED: 最後の餌やり
+APP_ITEM_SKIN_CHANGE: キャラクターの外見を変更する
 APP_ITEM_FEED_PERCENT: 餌やり進捗
 APP_ITEM_RELIC: レリック
 APP_ITEM_RUNE: ルーン

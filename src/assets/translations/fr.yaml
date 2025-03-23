@@ -87,6 +87,7 @@ APP_ITEM_EFFECTS: Effets
 APP_ITEM_CONSUMABLE_EFFECT: Cet item semble avoir des effets mais qui sait ce qu'il fait ? Soit courageux et essaye-le !
 APP_ITEM_STOMACH: dans l'estomac
 APP_ITEM_LAST_FEED: Dernier nourrissage
+APP_ITEM_SKIN_CHANGE: Change l'apparence de votre personnage
 APP_ITEM_FEED_PERCENT: Progression
 APP_ITEM_RELIC: Relique
 APP_ITEM_RUNE: Rune
