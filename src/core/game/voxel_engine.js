@@ -107,6 +107,10 @@ export function create_voxel_engine() {
 
   const heightmap_atlas = new HeightmapAtlas({
     heightmap: map,
+    heightmapQueries: {
+      interval: 200,
+      batching: 2,
+    },
     materialsStore: voxels_materials_store,
     texelSizeInWorld: 2,
     leafTileSizeInWorld: voxelmap_viewer.chunkSize.xz,
@@ -131,6 +135,7 @@ export function create_voxel_engine() {
   const minimap = new Minimap({
     heightmapAtlas: heightmap_atlas,
     waterData: water_data,
+    heightmapAtlasDownscalingFactor: 3,
     meshPrecision: 64,
     minViewDistance: 100,
     maxViewDistance: 750,
