@@ -158,7 +158,7 @@ APP_MARKET_WITHDRAW: Retirer
 APP_MARKET_DELISTING: Retrait de l'item
 APP_MARKET_DELISTED: Item retiré
 APP_MARKET_FAILED_TO_DELIST: Échec du retrait de l'item
-APP_MARKET_CHARACTERS_LIMIT: Vous avez atteint la limite de 5 personnages, vous ne pouvez pas acheter cet item
+APP_MARKET_CHARACTERS_LIMIT: ⚠️ Attention, vous ne pouvez pas jouer avec plus de 3 personnages.
 
 APP_MINT_CARD_MINT: Creer
 APP_MINT_CARD_MINTING: Creer l'item

@@ -157,7 +157,7 @@ APP_MARKET_WITHDRAW: Withdraw
 APP_MARKET_DELISTING: Delisting item
 APP_MARKET_DELISTED: Item delisted
 APP_MARKET_FAILED_TO_DELIST: Failed to delist item
-APP_MARKET_CHARACTERS_LIMIT: You have reached the limit of 5 characters, you can't buy this item
+APP_MARKET_CHARACTERS_LIMIT: ⚠️ Warning, you can't play with more than 3 characters.
 
 APP_MINT_CARD_MINT: Mint
 APP_MINT_CARD_MINTING: Minting item
