@@ -643,11 +643,15 @@ export async function get_alias(address) {
 
   const {
     data: [name],
-  } = await suins_client.resolveNameServiceNames({
-    format: 'at',
-    address,
-    limit: 1,
-  })
+  } = await suins_client
+    .resolveNameServiceNames({
+      format: 'at',
+      address,
+      limit: 1,
+    })
+    .catch(() => {
+      return { data: [] }
+    })
 
   if (name) SUINS_CACHE.set(address, name)
   else SUINS_CACHE.set(address, address)
