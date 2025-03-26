@@ -79,10 +79,7 @@ export default function () {
       const is_underwater = player.position.y < world_settings.getSeaLevel()
 
       if (player.target_position) {
-        const surface_block =
-          get_nearest_floor_pos(player.target_position) ||
-          player.target_position
-        player.move(surface_block)
+        player.move(player.target_position)
         player.target_position = null
         return
       }

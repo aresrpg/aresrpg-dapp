@@ -173,7 +173,7 @@ export default function () {
         entities_to_spawn.set(payload.id, payload)
       })
 
-      function get_random_surface_position(near_position) {
+      async function get_random_surface_position(near_position) {
         return get_nearest_floor_pos(
           new Vector3(
             near_position.x + Math.random() * 6 - 2,
@@ -212,7 +212,8 @@ export default function () {
                 if (variant) spawned_mob.set_variant(variant)
 
                 const surface_block =
-                  get_random_surface_position(spawn_position) || spawn_position
+                  (await get_random_surface_position(spawn_position)) ||
+                  spawn_position
 
                 spawned_mob.move(
                   new Vector3(

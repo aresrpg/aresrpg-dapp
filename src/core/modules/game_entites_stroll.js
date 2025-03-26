@@ -3,7 +3,7 @@ import { setInterval } from 'timers/promises'
 import { aiter } from 'iterator-helper'
 import { Vector3 } from 'three'
 
-import { abortable } from '../utils/iterator.js'
+import { abortable, async_iterable } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
 import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
 import logger from '../../logger.js'
@@ -100,11 +100,11 @@ export default function () {
 
       aiter(
         abortable(setInterval(MOVE_INTERVAL, null, { signal: context.signal })),
-      ).forEach(async () => {
-        visible_mobs_group.forEach(({ entities }) => {
-          // this kinda is background task, we do not need to wait for it (it has a catch block)
-          // ? Could it become a problem if the get_ground_height takes more time than MOVE_INTERVAL?
-          entities.forEach(mob => {
+      ).forEach(async () =>
+        async_iterable
+          .from(visible_mobs_group.values())
+          .flat_map(({ entities }) => entities)
+          .for_each(async mob => {
             // 10% chance to move the mob
             const should_move = Math.random() < MOVE_PROBABILITY
             if (should_move) {
@@ -116,20 +116,19 @@ export default function () {
               const offset_z = get_random_offset(MAX_MOVE_DISTANCE)
 
               const surface_block =
-                get_nearest_floor_pos({
+                (await get_nearest_floor_pos({
                   x: spawn_position.x + offset_x,
                   y: spawn_position.y,
                   z: spawn_position.z + offset_z,
-                }) || spawn_position
+                })) || spawn_position
 
               mob.target_position = {
                 ...surface_block,
                 y: surface_block.y + mob.height * 0.5,
               }
             }
-          })
-        })
-      })
+          }),
+      )
     },
   }
 }

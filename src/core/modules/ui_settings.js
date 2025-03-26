@@ -69,7 +69,7 @@ export default function () {
       game_folder
         .add(
           {
-            teleport: () => {
+            teleport: async () => {
               const player = current_three_character()
               if (player?.position) {
                 // @ts-ignore
@@ -81,7 +81,8 @@ export default function () {
                 )
 
                 const surface_block =
-                  get_nearest_floor_pos(target_position) || target_position
+                  (await get_nearest_floor_pos(target_position)) ||
+                  target_position
 
                 dispatch('packet/characterPosition', {
                   id: player.id,

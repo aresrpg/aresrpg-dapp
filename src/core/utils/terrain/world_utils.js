@@ -14,14 +14,12 @@ import { context } from '../../game/game.js'
  * performs individual block processing call synchroneously in main thread (without cache)
  * prefer using batch async version to improve performances
  */
-export function get_nearest_floor_pos({ x, y, z }) {
+export async function get_nearest_floor_pos({ x, y, z }) {
   // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
   const requested_pos = new Vector3(x, y + 1, z).floor()
-  const result = BlocksProcessing.getFloorPositions([requested_pos]).process(
-    context.world.taskHandlers.ChunksProcessing,
-  )
-
-  if (result instanceof Promise) return null
+  const result = await BlocksProcessing.getFloorPositions([
+    requested_pos,
+  ]).asyncProcess(context.world.taskHandlers.BlocksProcessing)
 
   const [{ pos }] = result
 
