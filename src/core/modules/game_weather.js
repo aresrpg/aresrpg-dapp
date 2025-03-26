@@ -1,125 +1,40 @@
+import { setInterval } from 'timers/promises'
+
+import { to_chunk_position } from '@aresrpg/aresrpg-sdk/chunk'
 import { Rain, Snow } from '@aresrpg/aresrpg-engine'
 import { Color, Object3D } from 'three'
+import { aiter } from 'iterator-helper'
 import { BiomeType } from '@aresrpg/aresrpg-world'
-import * as TWEEN from '@tweenjs/tween.js'
 
+import { abortable } from '../utils/iterator.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { context, current_three_character } from '../game/game.js'
 
+const BIOMES_WITH_SNOW = [BiomeType.Arctic, BiomeType.Glacier, BiomeType.Taiga]
+const BIOMES_WITHOUT_RAIN = [BiomeType.Desert, BiomeType.Scorched]
 
-const COLD_BIOME = [BiomeType.Arctic, BiomeType.Glacier, BiomeType.Taiga]
-const HOT_BIOME = [BiomeType.Desert, BiomeType.Scorched]
+let rain_stop_timestamp = Date.now()
 
-const CYCLE_DURATION = 10 * 60 * 1000 // 10 minutes in milliseconds
-const RAIN_DURATION = 3 * 60 * 1000 // 3 minutes in milliseconds
+function update_weather(current_biome, snow, rain) {
+  const can_rain = BIOMES_WITHOUT_RAIN.includes(current_biome)
+  const can_snow = BIOMES_WITH_SNOW.includes(current_biome)
+  const is_raining = rain_stop_timestamp > Date.now()
 
-let current_biome = null
-let current_fog_tween = null
-
-/**
- * Check if it's raining at the current time
- * @param {number} current_time - Current time in milliseconds
- * @returns {boolean} - True if it's raining, false otherwise
- */
-function is_raining(current_time) {
-  const cycle_position = current_time % CYCLE_DURATION
-  return cycle_position < RAIN_DURATION
-}
-
-/**
- * Get the current biome type
- * @returns {BiomeType} - The current biome type
- */
-function get_biome() {
-  const position = current_three_character()?.position
-  return position
-    ? context.world.biome.getBiomeType(position)
-    : BiomeType.Grassland
-}
-
-const dispatch_postprocessing_change = settings => {
-  settings.postprocessing.version++
-  context.dispatch('action/postprocessing_changed', settings.postprocessing)
-}
-
-function tween_fog_to(target_biome_settings, state, duration = 1000) {
-  const fog_pass = state.settings.postprocessing.volumetric_fog_pass
-
-  // Stop previous tween if exists
-  if (current_fog_tween) {
-    current_fog_tween.stop()
+  if (
+    (!is_raining || can_rain) &&
+    (rain.container.visible || snow.container.visible)
+  ) {
+    rain.container.visible = false
+    snow.container.visible = false
+  } else if (is_raining && !can_rain) {
+    if (can_snow && !snow.container.visible) {
+      rain.container.visible = false
+      snow.container.visible = true
+    } else if (rain.container.visible) {
+      rain.container.visible = true
+      snow.container.visible = false
+    }
   }
-
-  // Setup initial values for tweening
-  const from = {
-    uniformity: fog_pass.uniformity,
-    smoothness: fog_pass.smoothness,
-    fog_density: fog_pass.fog_density,
-
-    ambient_light_intensity: fog_pass.ambient_light_intensity,
-    direct_light_intensity: fog_pass.direct_light_intensity,
-
-    raymarching_step: fog_pass.raymarching_step,
-    downscaling: fog_pass.downscaling,
-
-    fog_color_r: fog_pass.fog_color.r,
-    fog_color_g: fog_pass.fog_color.g,
-    fog_color_b: fog_pass.fog_color.b,
-
-    light_color_r: fog_pass.light_color.r,
-    light_color_g: fog_pass.light_color.g,
-    light_color_b: fog_pass.light_color.b,
-  }
-
-  const to = {
-    uniformity: target_biome_settings.uniformity,
-    smoothness: target_biome_settings.smoothness,
-    fog_density: target_biome_settings.fog_density,
-
-    ambient_light_intensity: target_biome_settings.ambient_light_intensity,
-    direct_light_intensity: target_biome_settings.direct_light_intensity,
-
-    raymarching_step: target_biome_settings.raymarching_step,
-    downscaling: target_biome_settings.downscaling,
-
-    fog_color_r: target_biome_settings.fog_color.r,
-    fog_color_g: target_biome_settings.fog_color.g,
-    fog_color_b: target_biome_settings.fog_color.b,
-
-    light_color_r: target_biome_settings.light_color.r,
-    light_color_g: target_biome_settings.light_color.g,
-    light_color_b: target_biome_settings.light_color.b,
-  }
-
-  // Create new tween
-  current_fog_tween = new TWEEN.Tween(from)
-    .to(to, duration)
-    .easing(TWEEN.Easing.Quadratic.Out)
-    .onUpdate(() => {
-      fog_pass.uniformity = from.uniformity
-      fog_pass.smoothness = from.smoothness
-      fog_pass.fog_density = from.fog_density
-
-      fog_pass.ambient_light_intensity = from.ambient_light_intensity
-      fog_pass.direct_light_intensity = from.direct_light_intensity
-
-      fog_pass.raymarching_step = from.raymarching_step
-      fog_pass.downscaling = from.downscaling
-
-      fog_pass.fog_color = new Color(
-        from.fog_color_r,
-        from.fog_color_g,
-        from.fog_color_b,
-      )
-      fog_pass.light_color = new Color(
-        from.light_color_r,
-        from.light_color_g,
-        from.light_color_b,
-      )
-
-      dispatch_postprocessing_change(state.settings)
-    })
-    .start()
 }
 
 const FOG_BIOMES = {
@@ -206,37 +121,6 @@ export default function () {
   let /** @type Rain */ rain
 
   return {
-    reduce(state) {
-      const CURRENT_BIOME = get_biome()
-      if (current_biome !== CURRENT_BIOME) {
-        current_biome = CURRENT_BIOME
-
-        // console.log('current_biome change', current_biome)
-
-        if (FOG_BIOMES[current_biome])
-          tween_fog_to(FOG_BIOMES[current_biome], state)
-        else tween_fog_to(FOG_BIOMES.default, state)
-      }
-
-      const IS_RAINING = is_raining(Date.now())
-      const IS_HOT_BIOME = HOT_BIOME.includes(CURRENT_BIOME)
-      if (
-        (!IS_RAINING || IS_HOT_BIOME) &&
-        (rain.container.visible || snow.container.visible)
-      ) {
-        rain.container.visible = false
-        snow.container.visible = false
-      } else if (IS_RAINING && !IS_HOT_BIOME) {
-        if (COLD_BIOME.includes(CURRENT_BIOME)) {
-          rain.container.visible = false
-          snow.container.visible = true
-        } else {
-          rain.container.visible = true
-          snow.container.visible = false
-        }
-      }
-      return state
-    },
     tick(_state, { renderer, camera }) {
       if (snow.container.parent && snow.container.visible) {
         snow.update(renderer, camera)
@@ -245,7 +129,7 @@ export default function () {
         rain.update(renderer, camera)
       }
     },
-    observe({ scene, renderer }) {
+    observe({ scene, renderer, signal, events }) {
       weather_container = new Object3D()
       weather_container.name = 'weather-container'
       scene.add(weather_container)
@@ -265,6 +149,60 @@ export default function () {
 
       snow.container.visible = false
       rain.container.visible = false
+
+      aiter(abortable(setInterval(500, null, { signal }))).reduce(
+        ({ last_chunk_position, current_biome }) => {
+          const state = get_state()
+          const character = current_three_character(state)
+          if (!character) return { last_chunk_position, current_biome }
+
+          const chunk_position = to_chunk_position(character.position)
+          if (
+            last_chunk_position?.x === chunk_position?.x &&
+            last_chunk_position?.z === chunk_position?.z
+          )
+            return { last_chunk_position, current_biome }
+
+          const biome = context.world.biome.getBiomeType(character.position)
+          if (current_biome === biome)
+            return { last_chunk_position, current_biome }
+
+          context.events.emit(
+            'UPDATE_FOG',
+            FOG_BIOMES[biome] || FOG_BIOMES.default,
+          )
+          update_weather(biome, snow, rain)
+
+          return { last_chunk_position: chunk_position, current_biome: biome }
+        },
+        {
+          last_chunk_position: { x: 0, z: 0 },
+          current_biome: BiomeType.Grassland,
+        },
+      )
+
+      aiter(abortable(setInterval(10000, null, { signal }))).forEach(() => {
+        const state = get_state()
+        const character = current_three_character(state)
+        const is_raining = rain.container.visible || snow.container.visible
+
+        if (!is_raining && Math.random() < 0.55) {
+          rain_stop_timestamp = Date.now() + 3 * 60 * 1000
+          update_weather(
+            context.world.biome.getBiomeType(character.position),
+            snow,
+            rain,
+          )
+        }
+
+        if (is_raining && Date.now() > rain_stop_timestamp) {
+          update_weather(
+            context.world.biome.getBiomeType(character.position),
+            snow,
+            rain,
+          )
+        }
+      })
     },
   }
 }
