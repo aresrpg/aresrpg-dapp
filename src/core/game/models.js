@@ -23,6 +23,8 @@ import momaku from '../../assets/models/equipment/momaku.glb?url'
 import oeufterhead from '../../assets/models/equipment/oeufterhead.glb?url'
 import parrot_hat from '../../assets/models/equipment/parrot_hat.glb?url'
 import primemachin from '../../assets/models/equipment/primemachin.glb?url'
+import sam from '../../assets/models/equipment/sam.glb?url'
+import solomonk from '../../assets/models/equipment/solomonk.glb?url'
 import suicunio from '../../assets/models/equipment/suicunio.glb?url'
 import fight_sword from '../../assets/models/misc/fight_sword.glb?url'
 import aragne from '../../assets/models/mobs/aragne.glb?url'
@@ -71,6 +73,8 @@ const AVAILABLE_MODELS = {
   oeufterhead,
   parrot_hat,
   primemachin,
+  sam,
+  solomonk,
   suicunio,
 
   fight_sword,

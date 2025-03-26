@@ -79,7 +79,7 @@ function entity_spawner(
     origin.add(model)
     origin.add(hitbox)
 
-    title.position.y += height * scale_factor + 0.7
+    title.position.y += height * scale_factor + 0.9
     model.position.y -= height * 0.5
 
     const scene = scene_override || context.scene
@@ -107,11 +107,14 @@ function entity_spawner(
 
       const [type, variant] = hat.item_type.split('-')
 
-      const { model: hat_model, custom_colors: new_custom_hat_colors } =
-        (await MODELS[type]) ?? {}
+      const {
+        model: hat_model,
+        custom_colors: new_custom_hat_colors,
+        set_variant,
+      } = (await MODELS[type]) ?? {}
 
       if (!hat_model) return
-      if (variant) hat_model.set_variant(variant)
+      if (variant) set_variant(variant)
 
       head.add(hat_model)
       custom_hat_colors = new_custom_hat_colors
@@ -126,13 +129,13 @@ function entity_spawner(
 
       const [type, variant] = cape.item_type.split('-')
 
-      const { model: cape_model } = (await MODELS[type]) ?? {}
+      const { model: cape_model, set_variant } = (await MODELS[type]) ?? {}
 
       if (!cape_model) return
-      if (variant) cape_model.set_variant(variant)
+      if (variant) set_variant(variant)
 
-      cape_model.rotation.set(0, Math.PI, Math.PI)
-      cape_model.position.y += 1.8
+      cape_model.rotation.set(Math.PI, 0, Math.PI)
+      cape_model.position.y -= 0.1
       cape_model.position.z -= 0.1
       back.add(cape_model)
     }

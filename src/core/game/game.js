@@ -93,7 +93,10 @@ const FILTER_ACTION_IN_LOGS = [
   'action/mouseup',
   'action/water_changed',
 ]
-export const FILTER_PACKET_IN_LOGS = ['packet/characterPosition']
+export const FILTER_PACKET_IN_LOGS = [
+  'packet/characterPosition',
+  'packet/serverInfo',
+]
 
 LOADING_MANAGER.onStart = (url, items_loaded, items_total) => {
   window.dispatchEvent(new Event('assets_loading'))
