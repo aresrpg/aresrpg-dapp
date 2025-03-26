@@ -8,7 +8,7 @@
       div
         img.sit(src="../../assets/ui/sit.png" @click.stop="() => start_action('SIT')")
       div 
-        img.sit(src="../../assets/ui/danse.png" @click.stop="() => start_action('DANCE')")
+        img.sit(src="../../assets/ui/dance.png" @click.stop="() => start_action('DANCE')")
     .health-value-percent(v-if="show_health_percent") {{ percent_health }}%
     .health-value(v-else)
       .health-top {{ health }}
