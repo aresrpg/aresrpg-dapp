@@ -1,15 +1,39 @@
-import { Vector2 } from 'three'
+import { Color, Vector2 } from 'three'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
+import * as TWEEN from '@tweenjs/tween.js'
 
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { GodraysPass } from '../game/rendering/godrays_pass.js'
 import { UnderwaterPass } from '../game/rendering/underwater_pass.js'
 import { VolumetricFogRenderpass } from '../game/rendering/volumetric_fog_renderpass.js'
 import { state_iterator } from '../utils/iterator.js'
+import { context } from '../game/game.js'
+
+let current_fog_tween
+
+const build_fog_settings = biome_settings => ({
+  uniformity: biome_settings.uniformity,
+  smoothness: biome_settings.smoothness,
+  fog_density: biome_settings.fog_density,
+
+  ambient_light_intensity: biome_settings.ambient_light_intensity,
+  direct_light_intensity: biome_settings.direct_light_intensity,
+
+  raymarching_step: biome_settings.raymarching_step,
+  downscaling: biome_settings.downscaling,
+
+  fog_color_r: biome_settings.fog_color.r,
+  fog_color_g: biome_settings.fog_color.g,
+  fog_color_b: biome_settings.fog_color.b,
+
+  light_color_r: biome_settings.light_color.r,
+  light_color_g: biome_settings.light_color.g,
+  light_color_b: biome_settings.light_color.b,
+})
 
 /** @type {Type.Module} */
 export default function () {
@@ -29,7 +53,7 @@ export default function () {
       }
     },
 
-    observe({ scene, signal, composer, camera, directional_light }) {
+    observe({ scene, signal, events, composer, camera, directional_light }) {
       const smaapass = new SMAAPass(window.innerWidth, window.innerHeight)
 
       const renderpass = new RenderPass(scene, camera)
@@ -63,6 +87,53 @@ export default function () {
       composer.addPass(bloompass)
       composer.addPass(gamma_correction)
       composer.addPass(smaapass)
+
+      context.events.on('UPDATE_FOG', to_biome_settings => {
+        if (current_fog_tween) {
+          current_fog_tween.stop()
+        }
+
+        const from = build_fog_settings(volumetric_fog_pass)
+        const to = build_fog_settings(to_biome_settings)
+
+        current_fog_tween = new TWEEN.Tween(from)
+          .to(to, 2000)
+          .easing(TWEEN.Easing.Quadratic.Out)
+          .onUpdate(() => {
+            volumetric_fog_pass.uniformity = from.uniformity
+            volumetric_fog_pass.smoothness = from.smoothness
+            volumetric_fog_pass.fog_density = from.fog_density
+
+            volumetric_fog_pass.ambient_light_intensity =
+              from.ambient_light_intensity
+            volumetric_fog_pass.direct_light_intensity =
+              from.direct_light_intensity
+
+            volumetric_fog_pass.raymarching_step = from.raymarching_step
+            volumetric_fog_pass.downscaling = from.downscaling
+
+            volumetric_fog_pass.fog_color = new Color(
+              from.fog_color_r,
+              from.fog_color_g,
+              from.fog_color_b,
+            )
+            volumetric_fog_pass.light_color = new Color(
+              from.light_color_r,
+              from.light_color_g,
+              from.light_color_b,
+            )
+          })
+          .onComplete(() => {
+            const settings = { ...get_state().settings }
+            settings.postprocessing.version++
+            settings.postprocessing.volumetric_fog_pass = to_biome_settings
+            context.dispatch(
+              'action/postprocessing_changed',
+              settings.postprocessing,
+            )
+          })
+          .start()
+      })
 
       state_iterator().reduce(
         (

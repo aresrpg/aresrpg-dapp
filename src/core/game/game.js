@@ -36,6 +36,7 @@ import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
 import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+import * as TWEEN from '@tweenjs/tween.js'
 import { createWorldModules } from '@aresrpg/aresrpg-world'
 
 import { combine } from '../utils/iterator.js'
@@ -74,6 +75,7 @@ import player_entities_interract from '../modules/player_entities_interract.js'
 import { listen_for_requests } from '../sui/client.js'
 import player_experience from '../modules/player_experience.js'
 import player_error from '../modules/player_error.js'
+import game_weather from '../modules/game_weather.js'
 
 import { handle_server_error, notify_reconnected } from './error_handler.js'
 // @ts-ignore
@@ -352,6 +354,7 @@ const MODULES = [
   game_connect,
   game_entites_stroll,
   game_damage_ui,
+  game_weather,
 
   game_fights,
 ]
@@ -683,6 +686,7 @@ window.addEventListener('mousemove', event => {
 
 function animate() {
   requestAnimationFrame(animate)
+  TWEEN.update()
 
   if (running && performance.now() >= time_target) {
     const state = get_state()

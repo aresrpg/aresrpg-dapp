@@ -10,7 +10,7 @@
     .name {{ listing.name }}
     .amount (x{{ listing.amount }})
     .price
-      .sui {{ listing.list_price }}
+      .sui {{ final_item_price(listing) }}
       TokenBrandedSui.icon
       vs-button.btn(type="gradient" color="#0277BD" size="small" @click="() => delist_item(listing)" :disabled="delisting_items.includes(listing.id)") {{ t('APP_MARKET_WITHDRAW') }}
 </template>
@@ -18,6 +18,8 @@
 <script setup>
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { BigNumber as BN } from 'bignumber.js';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 
 import { mists_to_sui, sui_delist_item } from '../../core/sui/client.js';
 import toast from '../../toast.js';
@@ -46,6 +48,10 @@ async function delist_item(item) {
     tx.update('error', t('APP_MARKET_FAILED_TO_DELIST'));
   }
   delisting_items.value = delisting_items.value.filter(id => id !== item.id);
+}
+
+function final_item_price(item) {
+  return new BN(item.list_price).dividedBy(MIST_PER_SUI.toString());
 }
 </script>
 

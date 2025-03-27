@@ -9,6 +9,7 @@ sectionContainer
           marketCategories
         .right
           itemDescription
+          .buy-warn(v-if="selected_item?.item_category === 'character'") {{ t('APP_MARKET_CHARACTERS_LIMIT') }}
           marketListings
       .faucet-page(v-else-if="tab === 'faucet'")
         faucetCard(v-for="token in faucet_tokens" :token="token")
@@ -234,6 +235,11 @@ async function sell(quantity) {
     background linear-gradient(to bottom, rgba(#212121, .6), transparent 50%)
     display flex
     flex-flow column nowrap
+    .buy-warn
+      padding 5px
+      background #ffc1074f
+      margin 20px 0px
+      font-size 13px
 .faucet-page
   display flex
   padding 1em
