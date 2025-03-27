@@ -13,6 +13,10 @@ import { context, current_three_character } from '../game/game.js'
 const BIOMES_WITH_SNOW = [BiomeType.Arctic, BiomeType.Glacier, BiomeType.Taiga]
 const BIOMES_WITHOUT_RAIN = [BiomeType.Desert, BiomeType.Scorched]
 
+const weather_container = new Object3D()
+const snow = new Snow(context.renderer)
+const rain = new Rain(context.renderer)
+
 let rain_stop_timestamp = Date.now()
 
 function update_weather(current_biome, snow, rain) {
@@ -130,15 +134,12 @@ export default function () {
       }
     },
     observe({ scene, renderer, signal, events }) {
-      weather_container = new Object3D()
       weather_container.name = 'weather-container'
       scene.add(weather_container)
 
-      snow = new Snow(renderer)
       weather_container.add(snow.container)
       snow.setParticlesCount(5000)
 
-      rain = new Rain(renderer)
       weather_container.add(rain.container)
       rain.setParticlesCount(5000)
 
