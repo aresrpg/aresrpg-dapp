@@ -13,33 +13,7 @@ import { context, current_three_character } from '../game/game.js'
 const BIOMES_WITH_SNOW = [BiomeType.Arctic, BiomeType.Glacier, BiomeType.Taiga]
 const BIOMES_WITHOUT_RAIN = [BiomeType.Desert, BiomeType.Scorched]
 
-const weather_container = new Object3D()
-const snow = new Snow(context.renderer)
-const rain = new Rain(context.renderer)
-
 let rain_stop_timestamp = Date.now()
-
-function update_weather(current_biome, snow, rain) {
-  const can_rain = BIOMES_WITHOUT_RAIN.includes(current_biome)
-  const can_snow = BIOMES_WITH_SNOW.includes(current_biome)
-  const is_raining = rain_stop_timestamp > Date.now()
-
-  if (
-    (!is_raining || can_rain) &&
-    (rain.container.visible || snow.container.visible)
-  ) {
-    rain.container.visible = false
-    snow.container.visible = false
-  } else if (is_raining && !can_rain) {
-    if (can_snow && !snow.container.visible) {
-      rain.container.visible = false
-      snow.container.visible = true
-    } else if (rain.container.visible) {
-      rain.container.visible = true
-      snow.container.visible = false
-    }
-  }
-}
 
 const FOG_BIOMES = {
   default: {
@@ -120,9 +94,31 @@ const FOG_BIOMES = {
 
 /** @type {Type.Module} */
 export default function () {
-  let /** @type Object3D */ weather_container
-  let /** @type Snow */ snow
-  let /** @type Rain */ rain
+  const weather_container = new Object3D()
+  const snow = new Snow(context.renderer)
+  const rain = new Rain(context.renderer)
+
+  function update_weather(current_biome, snow, rain) {
+    const can_rain = BIOMES_WITHOUT_RAIN.includes(current_biome)
+    const can_snow = BIOMES_WITH_SNOW.includes(current_biome)
+    const is_raining = rain_stop_timestamp > Date.now()
+
+    if (
+      (!is_raining || can_rain) &&
+      (rain.container.visible || snow.container.visible)
+    ) {
+      rain.container.visible = false
+      snow.container.visible = false
+    } else if (is_raining && !can_rain) {
+      if (can_snow && !snow.container.visible) {
+        rain.container.visible = false
+        snow.container.visible = true
+      } else if (rain.container.visible) {
+        rain.container.visible = true
+        snow.container.visible = false
+      }
+    }
+  }
 
   return {
     tick(_state, { renderer, camera }) {
