@@ -1,7 +1,7 @@
 import {
   ClutterViewer,
   EComputationMethod,
-  HeightmapAtlas,
+  HeightmapAtlasAutonomous,
   HeightmapViewerGpu,
   MaterialsStore,
   Minimap,
@@ -87,12 +87,18 @@ export function create_voxel_engine() {
     voxelsChunkOrdering: voxels_chunk_data_ordering,
   })
 
+  const /** @type Set<number> */ requiredChunksYForColumnCompleteness =
+      new Set()
+  for (
+    let i = world_settings.rawSettings.chunks.verticalRange.bottomId + 1;
+    i < world_settings.rawSettings.chunks.verticalRange.topId;
+    i++
+  ) {
+    requiredChunksYForColumnCompleteness.add(i)
+  }
   const voxelmap_viewer = new VoxelmapViewer({
     chunkSize: chunk_size,
-    chunkIdY: {
-      min: world_settings.rawSettings.chunks.verticalRange.bottomId + 1,
-      max: world_settings.rawSettings.chunks.verticalRange.topId,
-    },
+    requiredChunksYForColumnCompleteness,
     voxelMaterialsStore: voxels_materials_store,
     clutterViewer: clutter_viewer,
     options: {
@@ -105,11 +111,12 @@ export function create_voxel_engine() {
     },
   })
 
-  const heightmap_atlas = new HeightmapAtlas({
+  const heightmap_atlas = new HeightmapAtlasAutonomous({
     heightmap: map,
     heightmapQueries: {
       interval: 200,
-      batching: 2,
+      batchSize: 2,
+      maxParallelQueries: 20,
     },
     materialsStore: voxels_materials_store,
     texelSizeInWorld: 2,
