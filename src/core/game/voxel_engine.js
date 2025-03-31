@@ -31,6 +31,16 @@ const voxel_materials_list = blocks_color_mapping.map(material =>
 // use dedicated workerpool for LOD
 
 export function create_voxel_engine() {
+  const /** @type Set<import("@aresrpg/aresrpg-world").ProcessingTask> */ pending_sampleheightmap_tasks =
+      new Set()
+
+  const cancel_sampleheightmap_tasks = () => {
+    for (const task of pending_sampleheightmap_tasks.values()) {
+      task.cancel()
+    }
+    pending_sampleheightmap_tasks.clear()
+  }
+
   const map = {
     altitude,
     voxelTypesDefininitions: {
@@ -46,27 +56,47 @@ export function create_voxel_engine() {
       return color
     },
     async sampleHeightmap(/** @type Float32Array */ coords) {
-      const samples_count = coords.length / 2
-      const pos_batch = []
-      for (let i = 0; i < samples_count; i++) {
-        pos_batch.push(new Vector3(coords[2 * i + 0], 0, coords[2 * i + 1]))
-      }
+      return new Promise((resolve, reject) => {
+        const samples_count = coords.length / 2
+        const pos_batch = []
+        for (let i = 0; i < samples_count; i++) {
+          pos_batch.push(new Vector3(coords[2 * i + 0], 0, coords[2 * i + 1]))
+        }
 
-      const blocks_request = BlocksProcessing.getPeakPositions(pos_batch)
-      const blocks_batch = await blocks_request.delegate(LOD_WORKER_POOL)
+        const blocks_request = BlocksProcessing.getPeakPositions(pos_batch)
+        try {
+          pending_sampleheightmap_tasks.add(blocks_request)
+          blocks_request
+            .delegate(LOD_WORKER_POOL)
+            .then(blocks_batch => {
+              if (!blocks_batch) {
+                reject(
+                  new Error(
+                    'Request was in success but returned an invalid result',
+                  ),
+                )
+              }
 
-      const result = {
-        altitudes: new Float32Array(samples_count),
-        materialIds: new Uint32Array(samples_count),
-      }
+              const result = {
+                altitudes: new Float32Array(samples_count),
+                materialIds: new Uint32Array(samples_count),
+              }
 
-      for (let i = 0; i < samples_count; i++) {
-        const block_processing_output = blocks_batch[i]
-        result.altitudes[i] = block_processing_output.data.level
-        result.materialIds[i] = block_processing_output.data.type
-      }
+              for (let i = 0; i < samples_count; i++) {
+                const block_processing_output = blocks_batch[i]
+                result.altitudes[i] = block_processing_output.data.level
+                result.materialIds[i] = block_processing_output.data.type
+              }
 
-      return result
+              resolve(result)
+            })
+            .catch(reason => {
+              reject(new Error(`Request was in error: ${reason}`))
+            })
+        } finally {
+          pending_sampleheightmap_tasks.delete(blocks_request)
+        }
+      })
     },
   }
 
@@ -153,6 +183,7 @@ export function create_voxel_engine() {
   }
 
   return {
+    cancel_sampleheightmap_tasks,
     clutter_viewer,
     voxelmap_viewer,
     terrain_viewer,
