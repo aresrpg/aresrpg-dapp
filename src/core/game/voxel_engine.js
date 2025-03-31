@@ -158,7 +158,6 @@ export function create_voxel_engine() {
   })
 
   const terrain_viewer = new TerrainViewer(heightmap_viewer, voxelmap_viewer)
-  terrain_viewer.parameters.lod.enabled = true
 
   const water_view_distance = 3000
   const patch_size = chunk_size.xz
@@ -185,6 +184,7 @@ export function create_voxel_engine() {
   return {
     cancel_sampleheightmap_tasks,
     clutter_viewer,
+    heightmap_viewer,
     voxelmap_viewer,
     terrain_viewer,
     minimap,

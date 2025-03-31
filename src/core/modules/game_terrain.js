@@ -66,7 +66,7 @@ export default function () {
       physics,
       voxel_engine,
     }) {
-      const { voxelmap_viewer, terrain_viewer, clutter_viewer } = voxel_engine
+      const { voxelmap_viewer, heightmap_viewer, terrain_viewer, clutter_viewer } = voxel_engine
 
       clutter_viewer.parameters.viewDistance = 150
       clutter_viewer.parameters.viewDistanceMargin = 25
@@ -333,7 +333,7 @@ export default function () {
           const { use_lod, chunk_generation } = terrain
 
           if (use_lod !== last_lod)
-            terrain_viewer.parameters.lod.enabled = use_lod
+            heightmap_viewer.enabled = use_lod
 
           // going from not using caverns to using them, will break the cache as half of the chunks are missing
           if (chunk_generation !== last_chunk_generation) {
