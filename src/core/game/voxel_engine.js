@@ -87,18 +87,17 @@ export function create_voxel_engine() {
     voxelsChunkOrdering: voxels_chunk_data_ordering,
   })
 
-  const /** @type Set<number> */ requiredChunksYForColumnCompleteness =
-      new Set()
+  const /** @type Set<number> */ required_chunksy = new Set()
   for (
     let i = world_settings.rawSettings.chunks.verticalRange.bottomId + 1;
     i < world_settings.rawSettings.chunks.verticalRange.topId;
     i++
   ) {
-    requiredChunksYForColumnCompleteness.add(i)
+    required_chunksy.add(i)
   }
   const voxelmap_viewer = new VoxelmapViewer({
     chunkSize: chunk_size,
-    requiredChunksYForColumnCompleteness,
+    requiredChunksYForColumnCompleteness: required_chunksy,
     voxelMaterialsStore: voxels_materials_store,
     clutterViewer: clutter_viewer,
     options: {
