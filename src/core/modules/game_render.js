@@ -126,7 +126,7 @@ export default function () {
           .onComplete(() => {
             const settings = { ...get_state().settings }
             settings.postprocessing.version++
-            settings.postprocessing.volumetric_fog_pass = to_biome_settings
+            Object.assign(settings.postprocessing.volumetric_fog_pass, to_biome_settings)
             context.dispatch(
               'action/postprocessing_changed',
               settings.postprocessing,
