@@ -99,21 +99,21 @@ export default function () {
   const rain = new Rain(context.renderer)
 
   function update_weather(current_biome, snow, rain) {
-    const can_rain = BIOMES_WITHOUT_RAIN.includes(current_biome)
+    const cant_rain = BIOMES_WITHOUT_RAIN.includes(current_biome)
     const can_snow = BIOMES_WITH_SNOW.includes(current_biome)
     const is_raining = rain_stop_timestamp > Date.now()
 
     if (
-      (!is_raining || can_rain) &&
+      (!is_raining || cant_rain) &&
       (rain.container.visible || snow.container.visible)
     ) {
       rain.container.visible = false
       snow.container.visible = false
-    } else if (is_raining && !can_rain) {
+    } else if (is_raining && !cant_rain) {
       if (can_snow && !snow.container.visible) {
         rain.container.visible = false
         snow.container.visible = true
-      } else if (rain.container.visible) {
+      } else if (!can_snow && !rain.container.visible) {
         rain.container.visible = true
         snow.container.visible = false
       }
@@ -183,7 +183,7 @@ export default function () {
         const character = current_three_character(state)
         const is_raining = rain.container.visible || snow.container.visible
 
-        if (!is_raining && Math.random() < 0.55) {
+        if (!is_raining && Math.random() < 0.05) {
           rain_stop_timestamp = Date.now() + 3 * 60 * 1000
           update_weather(
             context.world.biome.getBiomeType(character.position),
