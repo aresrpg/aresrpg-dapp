@@ -87,6 +87,7 @@ APP_ITEM_EFFECTS: Effets
 APP_ITEM_CONSUMABLE_EFFECT: Cet item semble avoir des effets mais qui sait ce qu'il fait ? Soit courageux et essaye-le !
 APP_ITEM_STOMACH: dans l'estomac
 APP_ITEM_LAST_FEED: Dernier nourrissage
+APP_ITEM_SKIN_CHANGE: Change l'apparence de votre personnage
 APP_ITEM_FEED_PERCENT: Progression
 APP_ITEM_RELIC: Relique
 APP_ITEM_RUNE: Rune
@@ -157,6 +158,7 @@ APP_MARKET_WITHDRAW: Retirer
 APP_MARKET_DELISTING: Retrait de l'item
 APP_MARKET_DELISTED: Item retiré
 APP_MARKET_FAILED_TO_DELIST: Échec du retrait de l'item
+APP_MARKET_CHARACTERS_LIMIT: ⚠️ Attention, vous ne pouvez pas jouer avec plus de 3 personnages.
 
 APP_MINT_CARD_MINT: Creer
 APP_MINT_CARD_MINTING: Creer l'item

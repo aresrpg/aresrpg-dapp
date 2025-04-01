@@ -37,5 +37,5 @@ export function is_resource(item) {
 }
 
 export function is_character(item) {
-  return item.is_aresrpg_character
+  return item.is_aresrpg_character || item.item_category === 'character'
 }

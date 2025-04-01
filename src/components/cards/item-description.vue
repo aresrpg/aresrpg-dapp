@@ -36,6 +36,7 @@
           .progress
             .progress-bar(:style="{ width: item.feed_percent + '%' }")
         .last-feed(v-if="item.last_feed") {{ t('APP_ITEM_LAST_FEED') }}: {{ item.last_feed }}
+        .change_skin(v-if="change_skin") {{ t('APP_ITEM_SKIN_CHANGE') }}
 </template>
 
 <!-- export type SuiToken = {
@@ -66,6 +67,7 @@ import agility_icon from '../../assets/statistics/agility.png';
 import critical_icon from '../../assets/statistics/crit.png';
 import raw_damage_icon from '../../assets/statistics/raw_damage.png';
 import { experience_to_level } from '../../core/utils/game/experience.js';
+import { get_player_skin } from '../../core/utils/three/skin.js';
 
 const { t } = useI18n();
 
@@ -76,6 +78,10 @@ const open_explorer = id => {
 };
 
 const item = inject('selected_item');
+
+const change_skin = computed(() => {
+  return get_player_skin({ [item.value.item_category]: item.value }) !== undefined;
+});
 
 const stats = computed(() => {
   return [
@@ -233,7 +239,12 @@ const stats = computed(() => {
         .feed-percent
           display flex
           gap .5em
-        .stomach, .last-feed, .feed-percent
+        .change_skin
+          font-style italic
+          opacity .7
+          font-size .8em
+          margin-top .5em
+        .stomach, .last-feed, .feed-percent, .change_skin
           font-size .8em
           opacity .7
           font-style italic
