@@ -13,7 +13,28 @@ import { VolumetricFogRenderpass } from '../game/rendering/volumetric_fog_render
 import { state_iterator } from '../utils/iterator.js'
 import { context } from '../game/game.js'
 
-let current_fog_tween
+let current_fog_tween_fade_in, current_fog_tween_fade_out
+
+function apply_fog_settings(target, settings) {
+  target.uniformity = settings.uniformity
+  target.smoothness = settings.smoothness
+  target.fog_density = settings.fog_density
+  target.ambient_light_intensity = settings.ambient_light_intensity
+  target.direct_light_intensity = settings.direct_light_intensity
+  target.raymarching_step = settings.raymarching_step
+  target.downscaling = Math.floor(settings.downscaling)
+
+  target.fog_color = new Color(
+    settings.fog_color_r,
+    settings.fog_color_g,
+    settings.fog_color_b,
+  )
+  target.light_color = new Color(
+    settings.light_color_r,
+    settings.light_color_g,
+    settings.light_color_b,
+  )
+}
 
 const build_fog_settings = biome_settings => ({
   uniformity: biome_settings.uniformity,
@@ -89,50 +110,56 @@ export default function () {
       composer.addPass(smaapass)
 
       context.events.on('UPDATE_FOG', to_biome_settings => {
-        if (current_fog_tween) {
-          current_fog_tween.stop()
+        if (current_fog_tween_fade_in || current_fog_tween_fade_out) {
+          current_fog_tween_fade_in?.stop()
+          current_fog_tween_fade_out?.stop()
         }
 
         const from = build_fog_settings(volumetric_fog_pass)
         const to = build_fog_settings(to_biome_settings)
+        const no_fog = build_fog_settings({
+          uniformity: 0,
+          smoothness: 0,
+          fog_density: 0,
 
-        current_fog_tween = new TWEEN.Tween(from)
-          .to(to, 2000)
+          fog_color: new Color(0xffffff),
+          light_color: new Color(0xffffff),
+
+          ambient_light_intensity: 0,
+          direct_light_intensity: 0,
+
+          raymarching_step: 0.1,
+          downscaling: 0,
+        })
+
+        current_fog_tween_fade_in = new TWEEN.Tween(from)
+          .to(no_fog, 1000)
           .easing(TWEEN.Easing.Quadratic.Out)
           .onUpdate(() => {
-            volumetric_fog_pass.uniformity = from.uniformity
-            volumetric_fog_pass.smoothness = from.smoothness
-            volumetric_fog_pass.fog_density = from.fog_density
+            apply_fog_settings(volumetric_fog_pass, from)
+          })
 
-            volumetric_fog_pass.ambient_light_intensity =
-              from.ambient_light_intensity
-            volumetric_fog_pass.direct_light_intensity =
-              from.direct_light_intensity
-
-            volumetric_fog_pass.raymarching_step = from.raymarching_step
-            volumetric_fog_pass.downscaling = from.downscaling
-
-            volumetric_fog_pass.fog_color = new Color(
-              from.fog_color_r,
-              from.fog_color_g,
-              from.fog_color_b,
-            )
-            volumetric_fog_pass.light_color = new Color(
-              from.light_color_r,
-              from.light_color_g,
-              from.light_color_b,
-            )
+        current_fog_tween_fade_out = new TWEEN.Tween(no_fog)
+          .to(to, 1000)
+          .easing(TWEEN.Easing.Quadratic.Out)
+          .onUpdate(() => {
+            apply_fog_settings(volumetric_fog_pass, no_fog)
           })
           .onComplete(() => {
             const settings = { ...get_state().settings }
             settings.postprocessing.version++
-            Object.assign(settings.postprocessing.volumetric_fog_pass, to_biome_settings)
+            Object.assign(
+              settings.postprocessing.volumetric_fog_pass,
+              to_biome_settings,
+            )
             context.dispatch(
               'action/postprocessing_changed',
               settings.postprocessing,
             )
           })
-          .start()
+
+        current_fog_tween_fade_in.chain(current_fog_tween_fade_out)
+        current_fog_tween_fade_in.start()
       })
 
       state_iterator().reduce(
