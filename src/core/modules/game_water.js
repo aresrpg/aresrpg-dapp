@@ -295,13 +295,6 @@ export default function () {
       mesh.receiveShadow = true
       mesh.layers.set(CartoonRenderpass.non_outlined_layer)
 
-      const get_patch_water_color = (
-        /** @type number */ patch_x,
-        /** @type number */ patch_z,
-      ) => {
-        return [41, 182, 246]
-      }
-
       aiter(abortable(setInterval(1000, null))).reduce(async () => {
         const state = get_state()
 
@@ -334,7 +327,7 @@ export default function () {
           water_origin_patch_id.z * patch_size,
         )
 
-        const water_color = get_patch_water_color(
+        const water_color = water_data.map.getWaterColorForPatch(
           player_patch_id.x,
           player_patch_id.z,
         )
