@@ -183,7 +183,7 @@ export default function () {
         const character = current_three_character(state)
         const is_raining = rain.container.visible || snow.container.visible
 
-        if (!is_raining && Math.random() < 0.05) {
+        if (!is_raining && Math.random() < 0.01) {
           rain_stop_timestamp = Date.now() + 3 * 60 * 1000
           update_weather(
             context.world.biome.getBiomeType(character.position),
