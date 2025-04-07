@@ -124,8 +124,8 @@ export async function sui_get_character_name(id) {
   return CHARACTER_NAMES.get(id)
 }
 
-export async function sui_console_command(command) {
-  return create_server_transaction('sui_console_command', command.slice(1))
+export async function sui_console_command(command, args) {
+  return create_server_transaction('sui_console_command', { command, args })
 }
 
 export function sui_use_item({ item_id, character_id }) {
