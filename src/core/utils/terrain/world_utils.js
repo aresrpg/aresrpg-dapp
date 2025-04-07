@@ -87,8 +87,8 @@ export function chunk_data_encoder(value, mode = BlockMode.REGULAR) {
   return voxelEncoder.encodeEmpty()
 }
 
-export function to_engine_chunk_format({ metadata, rawdata }) {
-  const data = rawdata.map(chunk_data_encoder)
+export function to_engine_chunk_format({ metadata, rawdata }, encode) {
+  const data = encode ? rawdata.map(chunk_data_encoder) : rawdata
 
   return {
     id: parseChunkKey(metadata.chunkKey),
