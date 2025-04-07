@@ -34,15 +34,18 @@ export function tick_pet(
   }
 
   if (voxelmap_collisions) {
-    const direction = new Vector3()
+    const velocity = new Vector3()
 
-    if (pet.target_position) {
-      direction
+    if (pet.target_position && delta > 0) {
+      const to_target_position = new Vector3()
         .subVectors(pet.target_position, pet.position)
         .setY(0)
-        .normalize()
+      const distance_to_target = to_target_position.length()
+      velocity.addScaledVector(
+        to_target_position.normalize(),
+        Math.min(distance_to_target / delta, PET_SPEED),
+      )
     }
-    const velocity = direction.clone().multiplyScalar(PET_SPEED)
 
     const pet_center = new Vector3(0, 0.5 * pet.height, 0)
 
@@ -78,7 +81,7 @@ export function tick_pet(
     pet.move(new_position)
 
     if (horizontal_movement.lengthSq() > 0.00001) {
-      pet.rotate(direction)
+      pet.rotate(horizontal_movement.normalize())
       pet.animate('RUN')
     } else {
       pet.animate('IDLE')
