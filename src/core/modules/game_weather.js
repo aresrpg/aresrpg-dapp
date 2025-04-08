@@ -62,15 +62,15 @@ const FOG_BIOMES = {
   },
 
   desert: {
-    uniformity: 0.31,
-    smoothness: 0.95,
-    fog_density: 0.01,
+    uniformity: 0.42,
+    smoothness: 0.65,
+    fog_density: 0.009,
 
-    fog_color: new Color(0xffffff),
+    fog_color: new Color(0xf7f6cd),
     light_color: new Color(0xad9b51),
 
-    ambient_light_intensity: 0.2,
-    direct_light_intensity: 1.19,
+    ambient_light_intensity: 0.41,
+    direct_light_intensity: 0.31,
 
     raymarching_step: 0.9,
     downscaling: 2,
@@ -78,8 +78,8 @@ const FOG_BIOMES = {
 
   swamp: {
     uniformity: 0.53,
-    smoothness: 0.37,
-    fog_density: 0.021,
+    smoothness: 0.55,
+    fog_density: 0.015,
 
     fog_color: new Color(0x80aa93),
     light_color: new Color(0xffffff),

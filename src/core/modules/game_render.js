@@ -148,14 +148,20 @@ export default function () {
           .onComplete(() => {
             const settings = { ...get_state().settings }
             settings.postprocessing.version++
-            Object.assign(
-              settings.postprocessing.volumetric_fog_pass,
-              to_biome_settings,
-            )
+            Object.assign(settings.postprocessing.volumetric_fog_pass, {
+              ...to_biome_settings,
+              fog_color: Number(
+                '0x' + to_biome_settings.fog_color.getHexString(),
+              ),
+              light_color: Number(
+                '0x' + to_biome_settings.light_color.getHexString(),
+              ),
+            })
             context.dispatch(
               'action/postprocessing_changed',
               settings.postprocessing,
             )
+            context.events.emit('UPDATE_DAT_GUI', null)
           })
 
         current_fog_tween_fade_in.chain(current_fog_tween_fade_out)

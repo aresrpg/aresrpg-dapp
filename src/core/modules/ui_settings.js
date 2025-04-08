@@ -358,6 +358,10 @@ export default function () {
       camera_folder.open()
       postprocessing_folder.open()
       gui.hide()
+
+      context.events.on('UPDATE_DAT_GUI', () => {
+        gui.updateDisplay()
+      })
     },
   }
 }
