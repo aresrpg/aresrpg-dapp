@@ -44,12 +44,20 @@ export function tick_pet(
   }
 
   if (voxelmap_collisions) {
+    const is_underwater = pet.position.y < world_settings.getSeaLevel() + 0.5
+
     const velocity = new Vector3()
 
     if (pet.target_position && delta > 0) {
-      const to_target_position = new Vector3()
-        .subVectors(pet.target_position, pet.position)
-        .setY(0)
+      const to_target_position = new Vector3().subVectors(
+        pet.target_position,
+        pet.position,
+      )
+
+      if (!is_underwater) {
+        to_target_position.setY(0)
+      }
+
       const distance_to_target = to_target_position.length()
       velocity.addScaledVector(
         to_target_position.normalize(),
@@ -69,7 +77,7 @@ export function tick_pet(
       {
         deltaTime: delta,
         ascendSpeed: 20,
-        gravity: 50000,
+        gravity: is_underwater ? 0 : 50000,
         missingVoxels: {
           considerAsBlocking: true,
           exportAsList: false,
