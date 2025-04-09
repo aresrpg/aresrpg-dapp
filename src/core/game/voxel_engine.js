@@ -13,7 +13,7 @@ import {
   BLOCKS_COLOR_MAPPING,
   world_settings,
 } from '@aresrpg/aresrpg-sdk/world'
-import { BlocksProcessing } from '@aresrpg/aresrpg-world'
+import { BlocksTask } from '@aresrpg/aresrpg-world'
 import { Color, Vector3 } from 'three'
 
 import { LOD_WORKER_POOL } from '../worker/workers.js'
@@ -63,7 +63,7 @@ export function create_voxel_engine() {
           pos_batch.push(new Vector3(coords[2 * i + 0], 0, coords[2 * i + 1]))
         }
 
-        const blocks_request = BlocksProcessing.peakPositions(pos_batch)
+        const blocks_request = new BlocksTask().peakPositions(pos_batch)
         try {
           pending_sampleheightmap_tasks.add(blocks_request)
           blocks_request
