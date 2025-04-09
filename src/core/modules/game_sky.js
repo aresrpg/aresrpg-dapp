@@ -249,7 +249,8 @@ export default function () {
 
       function update_day_time() {
         if (!day_autoupdate_paused) {
-          set_day_time(day_time + day_autoupdate_step)
+          const is_night = day_time > 0.3 && day_time < 0.7
+          set_day_time(day_time + day_autoupdate_step * (is_night ? 3 : 1))
           events.emit('SKY_CYCLE_CHANGED', { value: day_time, fromUi: false })
         }
       }

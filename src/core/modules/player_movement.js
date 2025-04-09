@@ -198,7 +198,8 @@ export default function () {
         }
 
         if (velocity.y > 0) {
-          current_action = 'JUMP_RUN'
+          const is_moving = velocity.x + velocity.z > 0
+          current_action = is_moving ? 'JUMP_RUN' : 'JUMP'
         } else if (
           velocity.y < 0 &&
           max_altitude_since_left_ground - player.position.y >
