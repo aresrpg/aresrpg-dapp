@@ -63,7 +63,7 @@ export function create_voxel_engine() {
           pos_batch.push(new Vector3(coords[2 * i + 0], 0, coords[2 * i + 1]))
         }
 
-        const blocks_request = BlocksProcessing.getPeakPositions(pos_batch)
+        const blocks_request = BlocksProcessing.peakPositions(pos_batch)
         try {
           pending_sampleheightmap_tasks.add(blocks_request)
           blocks_request

@@ -15,9 +15,8 @@ import { context } from '../../game/game.js'
  * prefer using batch async version to improve performances
  */
 export async function get_nearest_floor_pos({ x, y, z }) {
-  // console.log(`get_nearest_floor_pos: potentially costly, prefer using async version`)
   const requested_pos = new Vector3(x, y + 1, z).floor()
-  const result = await BlocksProcessing.getFloorPositions([
+  const result = await BlocksProcessing.floorPositions([
     requested_pos,
   ]).asyncProcess(context.world.taskHandlers.BlocksProcessing)
 
