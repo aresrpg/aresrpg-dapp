@@ -56,7 +56,7 @@ export function tick_pet(
       {
         deltaTime: delta,
         ascendSpeed: 20,
-        gravity: 5000,
+        gravity: 50000,
         missingVoxels: {
           considerAsBlocking: true,
           exportAsList: false,
