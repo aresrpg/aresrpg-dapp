@@ -69,14 +69,15 @@ export default function () {
   const player_collider_height = 1.1
 
   return {
-    tick(state, { camera, physics }, delta) {
+    tick(state, { camera, physics, voxel_engine }, delta) {
       const player = state.characters.find(
         character => character.id === state.selected_character_id,
       )
       if (!player) return
       const { inputs } = state
       const origin = player.position.clone()
-      const is_underwater = player.position.y < world_settings.getSeaLevel()
+      const is_underwater =
+        player.position.y < voxel_engine.water_data.map.waterLevel
 
       if (player.target_position) {
         player.move(player.target_position)

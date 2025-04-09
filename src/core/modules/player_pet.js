@@ -25,24 +25,45 @@ export function tick_pet(
     }
 
     if (distance_to_player > 7) {
-      pet.target_position = character.position
-        .clone()
-        .add(new Vector3(Math.random() * 7 - 3, 0, Math.random() * 7 - 3))
+      let need_to_recompute_target_position = true
+      if (pet.target_position) {
+        const distance_target_to_player = pet.target_position.distanceTo(
+          character.position,
+        )
+        need_to_recompute_target_position = distance_target_to_player > 7
+      }
+
+      if (need_to_recompute_target_position) {
+        pet.target_position = character.position
+          .clone()
+          .add(new Vector3(Math.random() * 7 - 3, 0, Math.random() * 7 - 3))
+      }
     }
 
     if (distance_to_player < 1) pet.target_position = null
   }
 
   if (voxelmap_collisions) {
-    const direction = new Vector3()
+    const is_underwater = pet.position.y < world_settings.getSeaLevel() + 0.5
 
-    if (pet.target_position) {
-      direction
-        .subVectors(pet.target_position, pet.position)
-        .setY(0)
-        .normalize()
+    const velocity = new Vector3()
+
+    if (pet.target_position && delta > 0) {
+      const to_target_position = new Vector3().subVectors(
+        pet.target_position,
+        pet.position,
+      )
+
+      if (!is_underwater) {
+        to_target_position.setY(0)
+      }
+
+      const distance_to_target = to_target_position.length()
+      velocity.addScaledVector(
+        to_target_position.normalize(),
+        Math.min(distance_to_target / delta, PET_SPEED),
+      )
     }
-    const velocity = direction.clone().multiplyScalar(PET_SPEED)
 
     const pet_center = new Vector3(0, 0.5 * pet.height, 0)
 
@@ -56,7 +77,7 @@ export function tick_pet(
       {
         deltaTime: delta,
         ascendSpeed: 20,
-        gravity: 5000,
+        gravity: is_underwater ? 0 : 50000,
         missingVoxels: {
           considerAsBlocking: true,
           exportAsList: false,
@@ -78,7 +99,7 @@ export function tick_pet(
     pet.move(new_position)
 
     if (horizontal_movement.lengthSq() > 0.00001) {
-      pet.rotate(direction)
+      pet.rotate(horizontal_movement.normalize())
       pet.animate('RUN')
     } else {
       pet.animate('IDLE')

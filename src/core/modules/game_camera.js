@@ -15,7 +15,11 @@ const CAMERA_MAX_DISTANCE = 50
 /** @type {Type.Module} */
 export default function () {
   return {
-    tick(state, { camera_controls, dispatch, camera, physics }, delta) {
+    tick(
+      state,
+      { camera_controls, dispatch, camera, physics, voxel_engine },
+      delta,
+    ) {
       const player = current_three_character(state)
       if (!player?.position) return
 
@@ -40,7 +44,8 @@ export default function () {
       }
       camera_controls.update(delta)
 
-      const is_underwater = camera.position.y <= world_settings.getSeaLevel()
+      const is_underwater =
+        camera.position.y <= voxel_engine.water_data.map.waterLevel
       if (camera_state.is_underwater !== is_underwater) {
         dispatch('action/camera_went_underwater', is_underwater)
       }
