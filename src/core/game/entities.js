@@ -136,7 +136,7 @@ function entity_spawner(
 
       cape_model.rotation.set(Math.PI, 0, Math.PI)
       cape_model.position.y -= 0.1
-      cape_model.position.z -= 0.1
+      cape_model.position.z += 0.1
       back.add(cape_model)
     }
 

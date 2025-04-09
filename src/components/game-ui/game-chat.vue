@@ -152,7 +152,8 @@ async function send_message() {
 
     increase_loading();
     try {
-      await sui_console_command(msg);
+      const [command, ...args] = msg.slice(1).split(' ');
+      await sui_console_command(command, args);
     } catch (error) {
       console.error('Unable to send console command', error);
     } finally {

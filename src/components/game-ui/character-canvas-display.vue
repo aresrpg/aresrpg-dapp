@@ -29,6 +29,8 @@ let yajin = null;
 let senshi_female = null;
 let yajin_female = null;
 
+let spawned_pet = null;
+
 let scene = null;
 let renderer = null;
 const light = new DirectionalLight(0xffffff, 2);
@@ -44,6 +46,32 @@ function reset_classes() {
   yajin = null;
   senshi_female = null;
   yajin_female = null;
+}
+
+function despawn_pet() {
+  if (spawned_pet) {
+    spawned_pet.remove();
+    spawned_pet = null;
+  }
+}
+
+async function spawn_pet(character) {
+  despawn_pet();
+
+  if (!character?.pet) return;
+
+  spawned_pet = await ENTITIES[character.pet.item_type]({
+    name: character.pet.name,
+    id: character.pet.id,
+    scene_override: scene,
+  });
+
+  // @ts-ignore
+  if (character.pet.shiny) spawned_pet.set_variant('shiny');
+
+  spawned_pet.move(new Vector3(0.8, 0, -0.3));
+
+  spawned_pet.animate('IDLE');
 }
 
 function set_color(classe, colors) {
@@ -133,6 +161,7 @@ async function display_classe(type) {
     default:
       break;
   }
+  await spawn_pet(props.character);
 }
 
 if (create_character_colors)
@@ -205,6 +234,8 @@ onMounted(async () => {
     yajin?.mixer.update(delta);
     senshi_female?.mixer.update(delta);
     yajin_female?.mixer.update(delta);
+
+    spawned_pet?.mixer.update(delta);
 
     renderer.render(scene, camera);
   }

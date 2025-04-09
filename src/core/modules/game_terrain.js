@@ -78,9 +78,12 @@ export default function () {
 
       function render_world_chunk(
         world_chunk,
-        { ignore_collision = false } = {},
+        { ignore_collision = false, encode = true } = {},
       ) {
-        const { id, voxels_chunk_data } = to_engine_chunk_format(world_chunk)
+        const { id, voxels_chunk_data } = to_engine_chunk_format(
+          world_chunk,
+          encode,
+        )
 
         voxelmap_viewer.invalidateChunk(id)
         // @ts-ignore
@@ -325,7 +328,7 @@ export default function () {
         abortable(typed_on(events, 'FORCE_RENDER_CHUNKS', { signal })),
       ).forEach(chunks =>
         chunks.forEach(chunk =>
-          render_world_chunk(chunk, { ignore_collision: true }),
+          render_world_chunk(chunk, { ignore_collision: true, encode: false }),
         ),
       )
 
