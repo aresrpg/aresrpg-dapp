@@ -25,9 +25,19 @@ export function tick_pet(
     }
 
     if (distance_to_player > 7) {
-      pet.target_position = character.position
-        .clone()
-        .add(new Vector3(Math.random() * 7 - 3, 0, Math.random() * 7 - 3))
+      let need_to_recompute_target_position = true
+      if (pet.target_position) {
+        const distance_target_to_player = pet.target_position.distanceTo(
+          character.position,
+        )
+        need_to_recompute_target_position = distance_target_to_player > 7
+      }
+
+      if (need_to_recompute_target_position) {
+        pet.target_position = character.position
+          .clone()
+          .add(new Vector3(Math.random() * 7 - 3, 0, Math.random() * 7 - 3))
+      }
     }
 
     if (distance_to_player < 1) pet.target_position = null
