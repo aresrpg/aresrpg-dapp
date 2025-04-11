@@ -13,8 +13,8 @@ import {
   BLOCKS_COLOR_MAPPING,
   world_settings,
 } from '@aresrpg/aresrpg-sdk/world'
-import { BlocksTask } from '@aresrpg/aresrpg-world'
-import { Color, Vector3 } from 'three'
+import { BlocksDataFormat, BlocksTask } from '@aresrpg/aresrpg-world'
+import { Color } from 'three'
 
 import { LOD_WORKER_POOL } from '../worker/workers.js'
 
@@ -55,21 +55,17 @@ export function create_voxel_engine() {
       const /** @type [number, number, number] */ color = [41, 182, 246]
       return color
     },
-    async sampleHeightmap(/** @type Float32Array */ coords) {
+    async sampleHeightmap(/** @type Float32Array */ samples) {
       return new Promise((resolve, reject) => {
-        const samples_count = coords.length / 2
-        const pos_batch = []
-        for (let i = 0; i < samples_count; i++) {
-          pos_batch.push(new Vector3(coords[2 * i + 0], 0, coords[2 * i + 1]))
-        }
-
-        const blocks_request = new BlocksTask().peakPositions(pos_batch)
+        const blocks_request = new BlocksTask().peakPositions(samples)
+        blocks_request.processingParams.dataFormat =
+          BlocksDataFormat.FloatArrayXZ
         try {
           pending_sampleheightmap_tasks.add(blocks_request)
           blocks_request
             .delegate(LOD_WORKER_POOL)
-            .then(blocks_batch => {
-              if (!blocks_batch) {
+            .then(lod_data => {
+              if (!lod_data) {
                 reject(
                   new Error(
                     'Request was in success but returned an invalid result',
@@ -78,14 +74,8 @@ export function create_voxel_engine() {
               }
 
               const result = {
-                altitudes: new Float32Array(samples_count),
-                materialIds: new Uint32Array(samples_count),
-              }
-
-              for (let i = 0; i < samples_count; i++) {
-                const block_processing_output = blocks_batch[i]
-                result.altitudes[i] = block_processing_output.data.level
-                result.materialIds[i] = block_processing_output.data.type
+                altitudes: lod_data.elevation,
+                materialIds: lod_data.type,
               }
 
               resolve(result)
