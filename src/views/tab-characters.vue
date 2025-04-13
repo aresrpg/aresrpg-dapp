@@ -34,7 +34,7 @@ sectionContainer(v-if="NETWORK === 'testnet'")
     .character-container
       div.nothing(v-if="characters[0]?.id === 'default'")
       UserCharacter(v-else v-for="character in characters" :key="character.id" :locked="true" :character="character")
-      .new(v-if="characters.length < 3" @click="new_character_dialog = true") {{ t('APP_CHARACTER_NEW') }}
+      .new(v-if="characters.length < 3 && !VITE_DEMO_MODE" @click="new_character_dialog = true") {{ t('APP_CHARACTER_NEW') }}
 
   // Create a new character
   CharacterCreateVue(@cancel="new_character_dialog = false")

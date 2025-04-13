@@ -17,7 +17,7 @@
     vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('APP_SIDEBAR_SHOP') }}
       template(#icon)
         i.bx.bxs-store
-    vs-sidebar-item(id="workshop" @click="router.push('/workshop')") {{ t('APP_SIDEBAR_WORKSHOP') }}
+    vs-sidebar-item(v-if="!VITE_DEMO_MODE" id="workshop" @click="router.push('/workshop')") {{ t('APP_SIDEBAR_WORKSHOP') }}
       template(#icon)
         i.bx.bx-cut
     vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('APP_SIDEBAR_SETTINGS') }}
