@@ -4,7 +4,7 @@ import { ref, provide, inject, defineAsyncComponent } from 'vue';
 
 import sectionHeader from '../components/misc/section-header.vue';
 import sectionContainer from '../components/misc/section-container.vue';
-import { NETWORK } from '../env.js';
+import { NETWORK, VITE_DEMO_MODE } from '../env.js';
 
 const UserCharacter = defineAsyncComponent(
   () => import('../components/cards/user-character.vue'),
@@ -23,13 +23,13 @@ provide('new_character_dialog', new_character_dialog);
 
 <template lang="pug">
 sectionContainer(v-if="NETWORK === 'testnet'")
-  vs-alert(type="relief" color="#0D47A1")
+  vs-alert(v-if="!VITE_DEMO_MODE" type="relief" color="#0D47A1")
     template(#title) {{ t('APP_WELCOME') }}
     .alert-content
       i18n-t(keypath="APP_TAB_CHARACTERS_EXPLANATION" tag="p")
         b.sui Sui
       .explanation2 {{ t('APP_TAB_CHARACTERS_EXPLANATION_ALT') }}
-  .space
+  .space(v-if="!VITE_DEMO_MODE")
   sectionHeader(:title="t('APP_CHARACTERS')" color="#00C853")
     .character-container
       div.nothing(v-if="characters[0]?.id === 'default'")
