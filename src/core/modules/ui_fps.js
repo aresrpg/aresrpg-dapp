@@ -5,6 +5,7 @@ import { aiter } from 'iterator-helper'
 
 import { abortable, typed_on } from '../utils/iterator.js'
 import { get_spawned_entities_count } from '../utils/game/entities.js'
+import { VITE_DEMO_MODE } from '../../env.js'
 
 /** @type {Type.Module} */
 export default function () {
@@ -105,6 +106,7 @@ export default function () {
         })
 
       on_game_show(() => {
+        if (VITE_DEMO_MODE) return
         show_stats(show_fps)
       })
 
