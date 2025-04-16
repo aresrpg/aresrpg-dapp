@@ -7,7 +7,7 @@ import logger from '../../logger.js'
 async function create_worker_pool(name, size = 1) {
   logger.INTERNAL(`create worker_pool of size: ${size}`)
   const pool = new WorkerPool()
-  await pool.initPoolEnv(size, world_settings, () => new Worker({ name }))
+  await pool.initPoolEnv(size, world_settings)
   return pool
 }
 
