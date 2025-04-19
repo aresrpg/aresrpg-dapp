@@ -501,6 +501,8 @@ function connect_ws() {
               })
             }, 1000)
           else if (context.get_state().sui.selected_address) {
+            connecting_toast.remove()
+            connecting_toast = null
             reconnect_toast = toast.tx(
               i18n.global.t('SERVER_CLICK_TO_CONNECT'),
               i18n.global.t('SERVER_NOT_CONNECTED'),

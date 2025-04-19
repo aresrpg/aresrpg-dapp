@@ -19,6 +19,10 @@ export function notify_reconnected() {
 
 export async function handle_server_error(reason) {
   if (!reason) {
+    if (navigator.onLine) {
+      // Show reconnect toast
+      return false
+    }
     if (!server_down_toast)
       server_down_toast = toast.tx(t('WS_CONNECTING_TO_SERVER'))
     server_down_toast.update('loading', t('WS_CONNECTING_TO_SERVER'))
