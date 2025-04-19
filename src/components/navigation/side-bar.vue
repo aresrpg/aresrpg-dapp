@@ -11,13 +11,13 @@
     vs-sidebar-item(id="characters" @click="router.push('/characters')") {{ t('APP_SIDEBAR_CHARACTERS') }}
       template(#icon)
         i.bx.bxs-user-account
-    vs-sidebar-item(v-if="is_world_visible" id="world" @click="router.push('/world')" ) {{ t('APP_SIDEBAR_WORLD') }}
+    vs-sidebar-item(v-if="is_world_visible && !VITE_DEMO_MODE" id="world" @click="router.push('/world')" ) {{ t('APP_SIDEBAR_WORLD') }}
       template(#icon)
         i.bx.bx-world
     vs-sidebar-item(id="shop" @click="router.push('/shop')") {{ t('APP_SIDEBAR_SHOP') }}
       template(#icon)
         i.bx.bxs-store
-    vs-sidebar-item(id="workshop" @click="router.push('/workshop')") {{ t('APP_SIDEBAR_WORKSHOP') }}
+    vs-sidebar-item(v-if="!VITE_DEMO_MODE" id="workshop" @click="router.push('/workshop')") {{ t('APP_SIDEBAR_WORKSHOP') }}
       template(#icon)
         i.bx.bx-cut
     vs-sidebar-item(id="settings" @click="router.push('/settings')") {{ t('APP_SIDEBAR_SETTINGS') }}
@@ -47,6 +47,7 @@ import { useI18n } from 'vue-i18n';
 import pkg from '../../../package.json';
 import serverInfo from '../cards/server-info.vue';
 import { context } from '../../core/game/game';
+import { VITE_DEMO_MODE } from '../../env.js';
 
 const lang_dialog = inject('lang_dialog');
 const { t } = useI18n();

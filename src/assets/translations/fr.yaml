@@ -14,6 +14,7 @@ SERVER_FEATURE_NOT_AVAILABLE: Cette fonctionnalité n'est pas encore disponible
 
 APP_MAINTENANCE: AresRPG est actuellement en maintenance, veuillez revenir plus tard
 APP_LOGIN_AGAIN: Veuillez vous reconnecter
+APP_WORLD_JOIN: Rejoindre le monde
 APP_WALLET_NOT_FOUND: Portefeuille non trouvé
 APP_OUTDATED: L'application est obsolète et ne peut pas utiliser cette fonctionnalité. Veuillez mettre à jour AresRPG.
 APP_WAIT_A_MINUTE: Veuillez attendre avant de réessayer

@@ -14,6 +14,7 @@ SERVER_FEATURE_NOT_AVAILABLE: この機能はまだ利用できません
 
 APP_MAINTENANCE: AresRPGは現在メンテナンス中です。後で戻ってきてください。
 APP_LOGIN_AGAIN: もう一度ログインしてください。
+APP_WORLD_JOIN: 世界に参加
 APP_WALLET_NOT_FOUND: ウォレットが見つかりません。
 APP_OUTDATED: アプリが古くなっており、この機能を使用できません。アプ"リを更新してください。
 APP_WAIT_A_MINUTE: もう一度試す前に少しお待ちください。
