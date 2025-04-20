@@ -173,8 +173,14 @@ export default function () {
 
                   return processing_task
                     .delegate(TERRAIN_WORKER_POOL)
-                    .then(async chunks => {
+                    .then(chunks => {
                       if (!chunks) return
+                      return chunks.map(chunk => ({
+                        ...chunk,
+                        rawdata: chunk.rawdata || [],
+                      }))
+                    })
+                    .then(async chunks => {
                       chunks.forEach(chunk => render_world_chunk(chunk))
                       // After processing, we can save the compressed column
                       const compressed_column =

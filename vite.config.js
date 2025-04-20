@@ -24,7 +24,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['events-polyfill', 'buffer', 'poisson-disk-sampling'],
-    exclude: ['@aresrpg/aresrpg-sdk/world'],
+    exclude: ['@aresrpg/aresrpg-sdk/world', '@aresrpg/aresrpg-world'],
   },
   worker: {
     format: 'es',

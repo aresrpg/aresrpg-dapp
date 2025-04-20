@@ -58,7 +58,7 @@ function update_position(state) {
 
     if (Date.now() - last_biome_update > 1000) {
       last_biome_update = Date.now();
-      biome.value = context.world.biome.getBiomeType(new Vector3(x, y, z));
+      biome.value = context.world.biomes.getBiomeType(new Vector3(x, y, z));
     }
   }
 }
