@@ -18,7 +18,7 @@ export async function get_nearest_floor_pos({ x, y, z }) {
   const requested_pos = new Vector3(x, y + 1, z).floor()
   const result = await BlocksProcessing.floorPositions([
     requested_pos,
-  ]).asyncProcess(context.world.taskHandlers.BlocksProcessing)
+  ]).asyncProcess(context.world.taskHandlers)
 
   const [{ pos }] = result
 

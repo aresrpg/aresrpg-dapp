@@ -629,7 +629,7 @@ const context = {
     voxelmap_collisions,
   },
   voxel_engine,
-  world: createWorldModules(world_settings.rawSettings),
+  world: await createWorldModules(world_settings.rawSettings),
 }
 
 listen_for_requests()

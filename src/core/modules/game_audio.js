@@ -153,7 +153,7 @@ export default function () {
           const position = current_three_character()?.position
 
           if (position) {
-            const biome = context.world.biome.getBiomeType(position)
+            const biome = context.world.biomes.getBiomeType(position)
             if (
               biome !== last_biome &&
               main_audio.context.state === 'running'
