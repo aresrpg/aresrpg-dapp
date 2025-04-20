@@ -134,9 +134,7 @@ function entity_spawner(
       if (!cape_model) return
       if (variant) set_variant(variant)
 
-      cape_model.rotation.set(Math.PI, 0, Math.PI)
-      cape_model.position.y -= 0.1
-      cape_model.position.z += 0.1
+      cape_model.rotation.set(Math.PI, 0, 0)
       back.add(cape_model)
     }
 

@@ -235,7 +235,14 @@ export async function load(
       custom_colors: create_custom_colors_api(cloned, textures),
       skinned_mesh: cloned.getObjectByName(mesh_name),
       async set_variant(variant) {
-        await functions.selectVariant(cloned, variant)
+        try {
+          await functions.selectVariant(cloned, variant)
+        } catch (error) {
+          console.error(
+            `Failed to set variant "${variant}" for model "${path}":`,
+            error,
+          )
+        }
       },
       variants,
       compute_animations() {

@@ -40,6 +40,7 @@ function go_to_characters() {
 
 function select_character(character) {
   context.dispatch('action/select_character', character.id);
+  context.send_packet('packet/selectCharacter', { id: character.id });
   // @ts-ignore
   dropdown.value.close();
 }

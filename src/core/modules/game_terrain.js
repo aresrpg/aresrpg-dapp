@@ -181,6 +181,7 @@ export default function () {
                       }))
                     })
                     .then(async chunks => {
+                      if (!chunks) return
                       chunks.forEach(chunk => render_world_chunk(chunk))
                       // After processing, we can save the compressed column
                       const compressed_column =
