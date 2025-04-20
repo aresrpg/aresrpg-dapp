@@ -17,6 +17,7 @@ import { BlocksDataFormat, BlocksTask } from '@aresrpg/aresrpg-world'
 import { Color } from 'three'
 
 import { LOD_WORKER_POOL } from '../worker/workers.js'
+import { fake_lod_data } from '../utils/terrain/local/world_local.js'
 
 export const chunk_size = { xz: 64, y: 64 }
 const altitude = { min: -1, max: 400 }
@@ -73,9 +74,11 @@ export function create_voxel_engine() {
                 )
               }
 
+              const faked_lod_data = fake_lod_data(samples)
+
               const result = {
-                altitudes: lod_data.elevation,
-                materialIds: lod_data.type,
+                altitudes: faked_lod_data.elevations, // lod_data.elevation,
+                materialIds: faked_lod_data.types, // lod_data.type,
               }
 
               resolve(result)

@@ -13,8 +13,9 @@ import {
   RepeatWrapping,
   TextureLoader,
 } from 'three'
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
+// import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+import { world_settings } from '../utils/terrain/local/world_local.js'
 import texture_url from '../../assets/water/texture.png?url'
 import { current_three_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'

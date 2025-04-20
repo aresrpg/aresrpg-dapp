@@ -8,7 +8,6 @@ import {
 import { Vector3 } from 'three'
 import { voxelEncoder } from '@aresrpg/aresrpg-engine'
 
-import logger from '../../../logger.js'
 import { context } from '../../game/game.js'
 
 /**
