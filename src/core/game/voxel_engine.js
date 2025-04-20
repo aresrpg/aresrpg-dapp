@@ -77,8 +77,8 @@ export function create_voxel_engine() {
               const faked_lod_data = fake_lod_data(samples)
 
               const result = {
-                altitudes: faked_lod_data.elevations, // lod_data.elevation,
-                materialIds: faked_lod_data.types, // lod_data.type,
+                altitudes: lod_data.elevation, // lod_data.elevation,
+                materialIds: lod_data.type, // lod_data.type,
               }
 
               resolve(result)

@@ -88,11 +88,7 @@ export function chunk_data_encoder(value, mode = BlockMode.REGULAR) {
 
 export function to_engine_chunk_format({ metadata, rawdata }, encode) {
   const is_empty = !rawdata
-  const data = is_empty
-    ? []
-    : encode
-      ? rawdata.map(chunk_data_encoder)
-      : rawdata
+  const data = is_empty ? [] : rawdata
 
   return {
     id: parseChunkKey(metadata.chunkKey),

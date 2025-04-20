@@ -1,4 +1,6 @@
-import { BlockType, typesNumbering } from '@aresrpg/aresrpg-world'
+import { BlockType } from '@aresrpg/aresrpg-world'
+export const typesNumbering = (types: Record<string, number>, offset = 0) =>
+  Object.keys(types).forEach((key, i) => (types[key] = offset + i))
 
 /**
  * Extending world reserved blocks
