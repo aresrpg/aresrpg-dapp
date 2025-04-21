@@ -27,6 +27,7 @@ import {
   Frustum,
   PCFSoftShadowMap,
   DirectionalLight,
+  NoToneMapping,
 } from 'three'
 import { aiter } from 'iterator-helper'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
@@ -382,6 +383,15 @@ const renderer = new WebGLRenderer({
 })
 
 renderer.setPixelRatio(window.devicePixelRatio)
+renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setClearColor(0x263238 / 2, 1)
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = PCFSoftShadowMap
+renderer.shadowMap.autoUpdate = true
+renderer.outputColorSpace = SRGBColorSpace
+renderer.toneMappingExposure = Math.pow(0.6, 4.0)
+renderer.info.autoReset = false
+
 const renderer_size = renderer.getSize(new Vector2())
 const composer = new EffectComposer(
   renderer,
@@ -418,18 +428,6 @@ const directional_light = new DirectionalLight(0xffffff, 1)
 directional_light.castShadow = true
 directional_light.shadow.mapSize.width = 4096 // Adjust as needed for performance/quality
 directional_light.shadow.mapSize.height = 4096
-
-renderer.setPixelRatio(window.devicePixelRatio)
-renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.setClearColor(0x263238 / 2, 1)
-renderer.shadowMap.enabled = true
-renderer.shadowMap.type = PCFSoftShadowMap
-renderer.shadowMap.autoUpdate = true
-renderer.outputColorSpace = SRGBColorSpace
-renderer.toneMapping = ACESFilmicToneMapping
-renderer.toneMappingExposure = Math.pow(0.6, 4.0)
-renderer.info.autoReset = false
-// renderer.debug.checkShaderErrors = false
 
 composer.setSize(window.innerWidth, window.innerHeight)
 
@@ -702,8 +700,10 @@ function animate() {
     renderer.info.reset()
 
     if (state.settings.postprocessing.enabled) {
+      renderer.toneMapping = ACESFilmicToneMapping
       composer.render()
     } else {
+      renderer.toneMapping = NoToneMapping
       renderer.render(scene, context.camera)
     }
 
