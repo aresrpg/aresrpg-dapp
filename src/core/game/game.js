@@ -381,12 +381,6 @@ const renderer = new WebGLRenderer({
   failIfMajorPerformanceCaveat: true,
 })
 
-if (!renderer) {
-  toast.error(i18n.global.t('BROWSER_NO_PERF'), 'Rekt!', MdiClippy, 15000)
-  decrease_loading()
-  throw new Error('Failed to create WebGLRenderer')
-}
-
 renderer.setPixelRatio(window.devicePixelRatio)
 const renderer_size = renderer.getSize(new Vector2())
 const composer = new EffectComposer(
