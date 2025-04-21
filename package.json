@@ -15,7 +15,7 @@
     "publish:mainnet": "git tag mainnet-$(node -p -e \"require('./package.json').version\") && git push origin mainnet-$(node -p -e \"require('./package.json').version\")"
   },
   "dependencies": {
-    "@aresrpg/aresrpg-engine": "^2.7.14",
+    "@aresrpg/aresrpg-engine": "^2.7.15",
     "@aresrpg/aresrpg-protocol": "5.4.2",
     "@aresrpg/aresrpg-sdk": "5.2.27",
     "@aresrpg/aresrpg-world": "2.0.8",
