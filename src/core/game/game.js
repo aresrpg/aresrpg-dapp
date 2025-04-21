@@ -132,6 +132,7 @@ export const chunk_rendering_mode = {
 
 export const INITIAL_STATE = {
   settings: {
+    use_real_dpi: true,
     target_fps: 120,
     mouse_sensitivity: 0.005,
     show_fps: true,
@@ -382,8 +383,6 @@ const renderer = new WebGLRenderer({
   failIfMajorPerformanceCaveat: true,
 })
 
-renderer.setPixelRatio(window.devicePixelRatio)
-renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setClearColor(0x263238 / 2, 1)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = PCFSoftShadowMap

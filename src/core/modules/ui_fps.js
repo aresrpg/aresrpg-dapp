@@ -1,10 +1,8 @@
-import { on } from 'events'
-
-import Stats from 'stats.js'
 import { aiter } from 'iterator-helper'
+import Stats from 'stats.js'
 
-import { abortable, typed_on } from '../utils/iterator.js'
 import { get_spawned_entities_count } from '../utils/game/entities.js'
+import { abortable, typed_on } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
 export default function () {

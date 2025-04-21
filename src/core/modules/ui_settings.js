@@ -56,6 +56,13 @@ export default function () {
         dispatch('action/postprocessing_changed', settings.postprocessing)
       }
 
+      if (window.devicePixelRatio > 1) {
+        game_folder
+          .add(settings, 'use_real_dpi')
+          .name('High DPI')
+          .onFinishChange(handle_change('action/use_real_dpi'))
+      }
+
       game_folder
         .add(settings, 'show_fps')
         .name('Show FPS')

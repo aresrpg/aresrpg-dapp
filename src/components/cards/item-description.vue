@@ -80,7 +80,9 @@ const open_explorer = id => {
 const item = inject('selected_item');
 
 const change_skin = computed(() => {
-  return get_player_skin({ [item.value.item_category]: item.value }) !== undefined;
+  return (
+    get_player_skin({ [item.value.item_category]: item.value }) !== undefined
+  );
 });
 
 const stats = computed(() => {

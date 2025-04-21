@@ -132,6 +132,7 @@ declare namespace Type {
 
   // Distributed actions which can be dispatched and then reduced
   type Actions = {
+    'action/use_real_dpi': boolean
     'action/show_fps': boolean
     'action/target_fps': number
     'action/postprocessing_changed': State['settings']['postprocessing']
