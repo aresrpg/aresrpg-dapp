@@ -1,6 +1,6 @@
 import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 import Worker from '@aresrpg/aresrpg-world/worker?worker'
-import { WorkerPool } from '@aresrpg/aresrpg-world/workerpool'
+import { WorkerPool } from '@aresrpg/aresrpg-world'
 
 import logger from '../../logger.js'
 

@@ -540,7 +540,7 @@ function connect_ws() {
     })
   }).catch(error => {
     console.error('Failed to connect:', error)
-    connecting_toast.update('error', i18n.global.t('WS_FAILED_TO_CONNECT'))
+    connecting_toast?.update('error', i18n.global.t('WS_FAILED_TO_CONNECT'))
   })
 }
 
