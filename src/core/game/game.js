@@ -449,6 +449,8 @@ const voxelmap_collisions = new VoxelmapCollisions({
 
 const voxel_engine = create_voxel_engine()
 
+const world = await createWorldModules(world_settings.rawSettings)
+
 let currently_connecting = false
 let reconnect_toast = null
 let connecting_toast = null
@@ -627,7 +629,7 @@ const context = {
     voxelmap_collisions,
   },
   voxel_engine,
-  world: createWorldModules(world_settings.rawSettings),
+  world,
 }
 
 listen_for_requests()

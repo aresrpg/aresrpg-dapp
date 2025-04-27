@@ -1,11 +1,9 @@
 import {
-  BlocksProcessing,
-  BlockMode,
   parseChunkKey,
   parseThreeStub,
+  BlocksTask,
 } from '@aresrpg/aresrpg-world'
 import { Vector3 } from 'three'
-import { voxelEncoder } from '@aresrpg/aresrpg-engine'
 
 import logger from '../../../logger.js'
 import { context } from '../../game/game.js'
@@ -16,9 +14,9 @@ import { context } from '../../game/game.js'
  */
 export async function get_nearest_floor_pos({ x, y, z }) {
   const requested_pos = new Vector3(x, y + 1, z).floor()
-  const result = await BlocksProcessing.floorPositions([
-    requested_pos,
-  ]).asyncProcess(context.world.taskHandlers.BlocksProcessing)
+  const result = await new BlocksTask()
+    .floorPositions([requested_pos])
+    .asyncProcess(context.world.taskHandlers)
 
   const [{ pos }] = result
 
@@ -77,17 +75,9 @@ export async function get_nearest_floor_pos({ x, y, z }) {
 //   }
 // }
 
-export function chunk_data_encoder(value, mode = BlockMode.REGULAR) {
-  if (value)
-    return voxelEncoder.solidVoxel.encode(
-      mode === BlockMode.CHECKERBOARD,
-      value,
-    )
-  return voxelEncoder.encodeEmpty()
-}
-
-export function to_engine_chunk_format({ metadata, rawdata }, encode) {
-  const data = encode ? rawdata.map(chunk_data_encoder) : rawdata
+export function to_engine_chunk_format({ metadata, rawdata }) {
+  const is_empty = !rawdata
+  const data = is_empty ? [] : rawdata
 
   return {
     id: parseChunkKey(metadata.chunkKey),
@@ -98,7 +88,7 @@ export function to_engine_chunk_format({ metadata, rawdata }, encode) {
         .expandByScalar(metadata.margin)
         .getSize(new Vector3()),
       dataOrdering: 'zxy',
-      isEmpty: !rawdata.length,
+      isEmpty: is_empty,
     },
   }
 }

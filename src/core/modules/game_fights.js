@@ -15,7 +15,6 @@ import {
 } from '../game/game.js'
 import { spawn_crescent_sword } from '../utils/game/objects.js'
 import { state_iterator } from '../utils/iterator.js'
-import { chunk_data_encoder } from '../utils/terrain/world_utils.js'
 import { DEFAULT_WORKER_POOL } from '../worker/workers.js'
 
 const MAX_TEAM_SIZE = 6
@@ -64,7 +63,6 @@ export async function create_board(position = new Vector3()) {
   const board_processor = new BoardProvider(
     position,
     board_cache_provider,
-    chunk_data_encoder,
     world_settings,
   )
 

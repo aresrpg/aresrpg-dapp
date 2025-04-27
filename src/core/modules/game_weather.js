@@ -160,7 +160,7 @@ export default function () {
           )
             return { last_chunk_position, current_biome }
 
-          const biome = context.world.biome.getBiomeType(character.position)
+          const biome = context.world.biomes.getBiomeType(character.position)
           if (current_biome === biome)
             return { last_chunk_position, current_biome }
 
@@ -186,7 +186,7 @@ export default function () {
         if (!is_raining && Math.random() < 0.01) {
           rain_stop_timestamp = Date.now() + 3 * 60 * 1000
           update_weather(
-            context.world.biome.getBiomeType(character.position),
+            context.world.biomes.getBiomeType(character.position),
             snow,
             rain,
           )
@@ -194,7 +194,7 @@ export default function () {
 
         if (is_raining && Date.now() > rain_stop_timestamp) {
           update_weather(
-            context.world.biome.getBiomeType(character.position),
+            context.world.biomes.getBiomeType(character.position),
             snow,
             rain,
           )
