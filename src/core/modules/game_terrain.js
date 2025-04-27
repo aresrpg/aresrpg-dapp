@@ -78,7 +78,7 @@ export default function () {
 
       function render_world_chunk(
         world_chunk,
-        { ignore_collision = false, encode = true } = {},
+        { ignore_collision = false } = {},
       ) {
         const { id, voxels_chunk_data } = to_engine_chunk_format(world_chunk)
 
@@ -172,18 +172,18 @@ export default function () {
                     .delegate(TERRAIN_WORKER_POOL)
                     .then(chunks => {
                       if (!chunks) return
-                      return chunks.map(chunk => ({
-                        ...chunk,
-                        rawdata: chunk.rawdata || [],
-                      }))
+                      chunks.forEach(chunk => render_world_chunk(chunk))
+                      return chunks
                     })
                     .then(async chunks => {
                       if (!chunks) return
-                      chunks.forEach(chunk => render_world_chunk(chunk))
+                      const remapped_chunks = chunks.map(chunk => ({
+                        ...chunk,
+                        rawdata: chunk.rawdata || [],
+                      }))
                       // After processing, we can save the compressed column
-                      const compressed_column = await compress_chunk_column(
-                        chunks.filter(chunk => chunk.rawdata),
-                      )
+                      const compressed_column =
+                        await compress_chunk_column(remapped_chunks)
                       // During this time we might have received a server packet, so let's check
                       if (!COMPRESSED_CHUNK_CACHE.has(key))
                         COMPRESSED_CHUNK_CACHE.set(key, compressed_column)
@@ -333,7 +333,7 @@ export default function () {
         abortable(typed_on(events, 'FORCE_RENDER_CHUNKS', { signal })),
       ).forEach(chunks =>
         chunks.forEach(chunk =>
-          render_world_chunk(chunk, { ignore_collision: true, encode: false }),
+          render_world_chunk(chunk, { ignore_collision: true }),
         ),
       )
 
