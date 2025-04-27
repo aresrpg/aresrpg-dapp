@@ -80,10 +80,7 @@ export default function () {
         world_chunk,
         { ignore_collision = false, encode = true } = {},
       ) {
-        const { id, voxels_chunk_data } = to_engine_chunk_format(
-          world_chunk,
-          encode,
-        )
+        const { id, voxels_chunk_data } = to_engine_chunk_format(world_chunk)
 
         voxelmap_viewer.invalidateChunk(id)
         // @ts-ignore
@@ -115,7 +112,7 @@ export default function () {
       })
 
       function is_chunk_mode(mode, state = get_state()) {
-        return state.settings.terrain.chunk_generation === mode
+        return mode === chunk_rendering_mode.LOCAL // state.settings.terrain.chunk_generation === mode
       }
 
       function chunk_processor() {
@@ -184,8 +181,9 @@ export default function () {
                       if (!chunks) return
                       chunks.forEach(chunk => render_world_chunk(chunk))
                       // After processing, we can save the compressed column
-                      const compressed_column =
-                        await compress_chunk_column(chunks)
+                      const compressed_column = await compress_chunk_column(
+                        chunks.filter(chunk => chunk.rawdata),
+                      )
                       // During this time we might have received a server packet, so let's check
                       if (!COMPRESSED_CHUNK_CACHE.has(key))
                         COMPRESSED_CHUNK_CACHE.set(key, compressed_column)

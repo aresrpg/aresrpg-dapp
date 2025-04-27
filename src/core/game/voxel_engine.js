@@ -13,12 +13,8 @@ import {
   BLOCKS_COLOR_MAPPING,
   world_settings,
 } from '@aresrpg/aresrpg-sdk/world'
-import {
-  BlocksProcessing,
-  BlocksTask,
-  BlocksDataFormat,
-} from '@aresrpg/aresrpg-world'
-import { Color, Vector3 } from 'three'
+import { BlocksDataFormat, BlocksTask } from '@aresrpg/aresrpg-world'
+import { Color } from 'three'
 
 import { LOD_WORKER_POOL } from '../worker/workers.js'
 
