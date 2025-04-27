@@ -112,7 +112,7 @@ export default function () {
       })
 
       function is_chunk_mode(mode, state = get_state()) {
-        return mode === chunk_rendering_mode.LOCAL // state.settings.terrain.chunk_generation === mode
+        return state.settings.terrain.chunk_generation === mode
       }
 
       function chunk_processor() {
