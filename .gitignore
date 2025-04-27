@@ -9,3 +9,5 @@ types
 .vercel
 .env*.local
 dev-dist
+src/assets/terrain/trees/
+src/assets/terrain/trees_eu/

@@ -1,7 +1,8 @@
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+// import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 import Worker from '@aresrpg/aresrpg-world/worker?worker'
 import { WorkerPool } from '@aresrpg/aresrpg-world'
 
+import { world_settings } from '../utils/terrain/local/world_local.js'
 import logger from '../../logger.js'
 
 async function create_worker_pool(name, size = 1) {
@@ -14,7 +15,7 @@ async function create_worker_pool(name, size = 1) {
 const [LOD_WORKER_POOL, TERRAIN_WORKER_POOL, DEFAULT_WORKER_POOL] =
   await Promise.all([
     create_worker_pool('lod-worker'),
-    create_worker_pool('chunks-worker', navigator.hardwareConcurrency),
+    create_worker_pool('chunks-worker', 4),
     create_worker_pool('default-worker'),
   ])
 

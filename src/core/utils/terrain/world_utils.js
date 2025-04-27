@@ -5,7 +5,6 @@ import {
 } from '@aresrpg/aresrpg-world'
 import { Vector3 } from 'three'
 
-import logger from '../../../logger.js'
 import { context } from '../../game/game.js'
 
 /**

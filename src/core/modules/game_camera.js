@@ -1,8 +1,9 @@
 import { aiter } from 'iterator-helper'
 import CameraControls from 'camera-controls'
 import { clamp } from 'three/src/math/MathUtils.js'
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
+// import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+import { world_settings } from '../utils/terrain/local/world_local.js'
 import { abortable, state_iterator, typed_on } from '../utils/iterator.js'
 import { context, current_three_character } from '../game/game.js'
 

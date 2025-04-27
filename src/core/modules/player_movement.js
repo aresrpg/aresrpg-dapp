@@ -3,8 +3,9 @@ import { setInterval } from 'timers/promises'
 
 import { aiter } from 'iterator-helper'
 import { Object3D, Vector3 } from 'three'
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
+// import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+import { world_settings } from '../utils/terrain/local/world_local.js'
 import { context, current_three_character } from '../game/game.js'
 import { abortable } from '../utils/iterator.js'
 import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'

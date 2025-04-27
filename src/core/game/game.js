@@ -35,10 +35,10 @@ import { create_client } from '@aresrpg/aresrpg-protocol'
 import { useWebSocket } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { VoxelmapCollider, VoxelmapCollisions } from '@aresrpg/aresrpg-engine'
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 import * as TWEEN from '@tweenjs/tween.js'
 import { createWorldModules } from '@aresrpg/aresrpg-world'
 
+import { world_settings } from '../utils/terrain/local/world_local.js' // import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 import { combine } from '../utils/iterator.js'
 import ui_fps from '../modules/ui_fps.js'
 import game_camera from '../modules/game_camera.js'
@@ -186,7 +186,7 @@ export const INITIAL_STATE = {
 
     terrain: {
       use_lod: true,
-      chunk_generation: chunk_rendering_mode.HYBRID,
+      chunk_generation: chunk_rendering_mode.LOCAL,
       view_distance: 4,
     },
 
@@ -200,12 +200,12 @@ export const INITIAL_STATE = {
       enabled: true,
 
       cartoon_pass: {
-        enabled: true,
+        enabled: false,
         thick_lines: window.devicePixelRatio >= 1.3,
       },
 
       godrays_pass: {
-        enabled: true,
+        enabled: false,
         light_size: 0.0025,
         max_intensity: 1,
         exposure: 0.3,
@@ -214,7 +214,7 @@ export const INITIAL_STATE = {
       },
 
       volumetric_fog_pass: {
-        enabled: true,
+        enabled: false,
 
         uniformity: 0.53,
         smoothness: 0.31,

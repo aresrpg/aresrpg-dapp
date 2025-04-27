@@ -6,8 +6,9 @@ import {
 import { Color, Vector2, Vector3 } from 'three'
 import { BoardOverlaysHandler } from '@aresrpg/aresrpg-engine'
 import * as FightBoards from '@aresrpg/aresrpg-sdk/fight'
-import { world_settings } from '@aresrpg/aresrpg-sdk/world'
 
+// import { world_settings } from '@aresrpg/aresrpg-sdk/world'
+import { world_settings } from '../utils/terrain/local/world_local.js'
 import {
   context,
   current_sui_character,
