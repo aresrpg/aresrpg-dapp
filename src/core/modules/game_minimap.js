@@ -45,7 +45,7 @@ export default function () {
       window.addEventListener('resize', update_screen_position, { signal })
       update_screen_position()
     },
-    post_render({ renderer, voxel_engine }) {
+    post_render(_, { renderer, voxel_engine }) {
       voxel_engine.minimap.render(renderer)
     },
   }

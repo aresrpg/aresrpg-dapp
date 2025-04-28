@@ -116,7 +116,7 @@ LOADING_MANAGER.onLoad = () => {
 /** @typedef {(state: State, action: Type.Action) => State} Reducer */
 /** @typedef {(context: Context) => void} Observer */
 /** @typedef {(state: State, context: Context, delta: number) => void} Ticker */
-/** @typedef {(context: Context) => void} PostRenderCallback */
+/** @typedef {(state: State, context: Context) => void} PostRenderCallback */
 /** @typedef {() => { reduce?: Reducer, observe?: Observer, tick?: Ticker, post_render?: PostRenderCallback }} Module */
 /** @typedef {import("three").AnimationAction} AnimAction */
 
@@ -351,8 +351,8 @@ const MODULES = [
   game_audio,
   game_entities,
   game_terrain,
-  game_minimap,
   game_water,
+  game_minimap,
   game_connect,
   game_entites_stroll,
   game_damage_ui,
@@ -711,7 +711,7 @@ function animate() {
     modules
       .map(({ post_render }) => post_render)
       .filter(Boolean)
-      .forEach(post_render => post_render(context))
+      .forEach(post_render => post_render(state, context))
 
     const next_frame_duration = 1000 / state.settings.target_fps
 

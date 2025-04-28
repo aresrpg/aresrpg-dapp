@@ -233,12 +233,6 @@ export default function () {
               postprocessing.underwater_pass.enabled && camera_is_underwater
           }
 
-          const water_color = state.settings.water.color
-          if (!last_water_color || !last_water_color.equals(water_color)) {
-            last_water_color = water_color
-            underwater_pass.color = last_water_color
-          }
-
           const lights_changed =
             state.settings.sky.lights.version !== last_sky_lights_version
           if (lights_changed) {
