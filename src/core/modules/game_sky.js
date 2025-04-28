@@ -16,7 +16,7 @@ import {
 import { lerp, smoothstep } from 'three/src/math/MathUtils.js'
 import { aiter } from 'iterator-helper'
 
-import { abortable } from '../utils/iterator.js'
+import { abortable, typed_on } from '../utils/iterator.js'
 import night_nx from '../../assets/skybox/night_nx.png'
 import night_ny from '../../assets/skybox/night_ny.png'
 import night_nz from '../../assets/skybox/night_nz.png'
@@ -27,7 +27,7 @@ import night_pz from '../../assets/skybox/night_pz.png'
 /** @type {Type.Module} */
 export default function () {
   return {
-    observe({ scene, events, signal, dispatch, renderer }) {
+    observe({ scene, events, signal, dispatch, renderer, get_state }) {
       const day_duration_in_seconds = 2000 // duration of a complete day/night cycle
       const day_autoupdate_delay_in_milliseconds = 500 // delay between updates
       const day_autoupdate_step =
@@ -47,7 +47,18 @@ export default function () {
 
       const fog_color_uniform = { value: new Color() }
 
-      const material = new ShaderMaterial({
+      const skybox_material_vertex = `
+        varying vec3 vRayDirection;
+
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          gl_Position.z = gl_Position.w; // set z to camera.far
+
+          vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+          vRayDirection = worldPosition.xyz;
+        }`
+
+      const skybox_material = new ShaderMaterial({
         name: 'skybox_shader',
         uniforms: {
           uSunDirection: { value: new Vector3() },
@@ -58,16 +69,7 @@ export default function () {
           uNightRotation: { value: new Matrix4() },
           uFogColor: fog_color_uniform,
         },
-        vertexShader: `
-        varying vec3 vRayDirection;
-
-        void main() {
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-          gl_Position.z = gl_Position.w; // set z to camera.far
-
-          vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-          vRayDirection = worldPosition.xyz;
-        }`,
+        vertexShader: skybox_material_vertex,
         fragmentShader: `
         uniform vec3 uSunDirection; // normalized
         uniform float uSunSize;
@@ -119,13 +121,33 @@ export default function () {
         depthWrite: false,
       })
 
-      const skybox_mesh = new Mesh(new BoxGeometry(1, 1, 1), material)
+      const skybox_underwater_material = new ShaderMaterial({
+        name: 'skybox_shader_flat',
+        uniforms: {
+          uColor: { value: new Color(0xff0000) },
+        },
+        vertexShader: skybox_material_vertex,
+        fragmentShader: `
+        uniform vec3 uColor;
+
+        varying vec3 vRayDirection;
+
+        void main() {
+          vec3 rayDirection = normalize(vRayDirection);
+          vec3 color = mix(vec3(0), uColor, smoothstep(-1.2, -.2, rayDirection.y));
+          gl_FragColor = vec4(color, 1);
+        }`,
+        side: BackSide,
+        depthWrite: false,
+      })
+
+      const skybox_mesh = new Mesh(new BoxGeometry(1, 1, 1), skybox_material)
       skybox_mesh.scale.setScalar(450000)
       scene.add(skybox_mesh)
 
       const update_sun_size = (/** @type {number} */ value) => {
-        material.uniforms.uSunSize.value = value
-        material.uniforms.uSunGlowSize.value = 10 * value
+        skybox_material.uniforms.uSunSize.value = value
+        skybox_material.uniforms.uSunGlowSize.value = 10 * value
       }
 
       const sun_colors = [
@@ -168,17 +190,18 @@ export default function () {
           0.00001 + 1.99999 * Math.PI * day_time,
           0.1,
         )
-        material.uniforms.uSunDirection.value = sun_position
+        skybox_material.uniforms.uSunDirection.value = sun_position
 
         const sun_color = compute_sun_color(sun_position)
         const is_day = smoothstep(sun_position.y, -0.3, 0.0)
         // const sun_color = sun_color_raw.lerp(sun_color_raw, is_day)
-        material.uniforms.uSunColor.value = sun_color
+        skybox_material.uniforms.uSunColor.value = sun_color
 
-        material.uniforms.uNightRotation.value = new Matrix4().makeRotationAxis(
-          night_rotation_axis,
-          Math.PI * day_time,
-        )
+        skybox_material.uniforms.uNightRotation.value =
+          new Matrix4().makeRotationAxis(
+            night_rotation_axis,
+            Math.PI * day_time,
+          )
 
         sky_lights_version = (sky_lights_version + 1) % 1000
 
@@ -260,6 +283,16 @@ export default function () {
       scene.environment = cube_rendertarget.texture
       const cube_camera = new CubeCamera(1, 100000, cube_rendertarget)
 
+      const update_skybox = () => {
+        if (get_state().settings.camera.is_underwater) {
+          skybox_underwater_material.uniforms.uColor.value.copy(scene.fog.color)
+          skybox_mesh.material = skybox_underwater_material
+        } else {
+          skybox_mesh.material = skybox_material
+        }
+        cube_camera.update(renderer, skybox_mesh)
+      }
+
       events.on('SKY_CYCLE_PAUSED', (/** @type {boolean} */ paused) => {
         day_autoupdate_paused = paused
       })
@@ -269,7 +302,7 @@ export default function () {
           set_day_time(value)
         }
 
-        cube_camera.update(renderer, skybox_mesh)
+        update_skybox()
       })
 
       events.once('STATE_UPDATED', state => {
@@ -283,6 +316,24 @@ export default function () {
           setInterval(day_autoupdate_delay_in_milliseconds, null, { signal }),
         ),
       ).forEach(update_day_time)
+
+      aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
+        ({ last_camera_is_underwater }, state) => {
+          if (
+            state.settings.camera.is_underwater !== last_camera_is_underwater
+          ) {
+            update_skybox()
+            last_camera_is_underwater = state.settings.camera.is_underwater
+          }
+
+          return {
+            last_camera_is_underwater,
+          }
+        },
+        {
+          last_camera_is_underwater: false,
+        },
+      )
     },
     reduce(state, { type, payload }) {
       if (type === 'action/sky_lights_change') {
