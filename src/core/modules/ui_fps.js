@@ -69,14 +69,23 @@ export default function () {
     return count
   }
 
+  let last_ui_update = -1
+
   return {
     tick(state, { scene, renderer }) {
-      stats_entities.update()
       stats_fps.update()
-      stats_memory.update()
-      mesh_panel.update(count_meshes(scene), 1000) // 1000 is an arbitrary max value
-      draw_calls_panel.update(renderer.info.render.calls, 5000) // 5000 is an arbitrary max value for draw calls
-      entity_panel.update(get_spawned_entities_count(state), 1000) // 1000 is an arbitrary max value for entities
+
+      const now = performance.now()
+      if (now - last_ui_update > 100) {
+        // don't update these too often to avoid taking too much CPU
+        last_ui_update = now
+
+        mesh_panel.update(count_meshes(scene), 1000) // 1000 is an arbitrary max value
+        draw_calls_panel.update(renderer.info.render.calls, 5000) // 5000 is an arbitrary max value for draw calls
+        entity_panel.update(get_spawned_entities_count(state), 1000) // 1000 is an arbitrary max value for entities
+        stats_entities.update()
+        stats_memory.update()
+      }
     },
     reduce(state, { type, payload }) {
       if (type === 'action/show_fps') {
