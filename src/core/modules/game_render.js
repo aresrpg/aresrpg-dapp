@@ -205,8 +205,9 @@ export default function () {
 
             volumetric_fog_pass.enabled =
               postprocessing.volumetric_fog_pass.enabled
-            volumetric_fog_pass.uniformity =
-              postprocessing.volumetric_fog_pass.uniformity
+            volumetric_fog_pass.uniformity = camera_is_underwater
+              ? 0.75
+              : postprocessing.volumetric_fog_pass.uniformity
             volumetric_fog_pass.smoothness =
               postprocessing.volumetric_fog_pass.smoothness
             volumetric_fog_pass.fog_density =
