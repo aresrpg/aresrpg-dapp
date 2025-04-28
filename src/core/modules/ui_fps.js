@@ -2,6 +2,7 @@ import { aiter } from 'iterator-helper'
 import Stats from 'stats.js'
 
 import { get_spawned_entities_count } from '../utils/game/entities.js'
+import { VITE_DEMO_MODE } from '../../env.js'
 import { abortable, typed_on } from '../utils/iterator.js'
 
 /** @type {Type.Module} */
@@ -41,8 +42,9 @@ export default function () {
 
   function show_stats(show) {
     if (show) {
-      document.body.appendChild(stats_entities.dom)
       document.body.appendChild(stats_fps.dom)
+      if (VITE_DEMO_MODE) return
+      document.body.appendChild(stats_entities.dom)
       document.body.appendChild(stats_memory.dom)
       document.body.appendChild(stats_mesh.dom)
       document.body.appendChild(stats_draw_calls.dom)
@@ -71,8 +73,8 @@ export default function () {
 
   return {
     tick(state, { scene, renderer }) {
-      stats_entities.update()
       stats_fps.update()
+      stats_entities.update()
       stats_memory.update()
       mesh_panel.update(count_meshes(scene), 1000) // 1000 is an arbitrary max value
       draw_calls_panel.update(renderer.info.render.calls, 5000) // 5000 is an arbitrary max value for draw calls

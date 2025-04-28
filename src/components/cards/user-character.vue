@@ -7,11 +7,17 @@
     .title classe:
     .value {{ props.character.classe.toUpperCase() }}
     i.bx(:class="genrer_icon")
-  .field
+  .field(v-if="!VITE_DEMO_MODE")
     .title id:
     a.value.id(:href="character_explorer_link" target="_blank") {{ props.character.id.slice(0, 24) }}...
+  .play_btn(v-if="VITE_DEMO_MODE")
+    vs-button(
+        @click="play"
+        color="#E74C3C"
+      ) {{ t('APP_WORLD_JOIN') }}
   .actions
     vs-button(
+      v-if="!VITE_DEMO_MODE"
       type="transparent"
       size="small"
       color="#EF5350"
@@ -37,7 +43,10 @@ import characterCanvasDisplay from '../game-ui/character-canvas-display.vue';
 import { experience_to_level } from '../../core/utils/game/experience.js';
 import { sui_delete_character } from '../../core/sui/client.js';
 import toast from '../../toast.js';
-import { NETWORK } from '../../env.js';
+import { NETWORK, VITE_DEMO_MODE } from '../../env.js';
+import { useRouter } from 'vue-router';
+
+import { context } from '../../core/game/game.js';
 
 const { t } = useI18n();
 const props = defineProps(['character', 'locked']);
@@ -62,6 +71,13 @@ const edit_dialog = ref(false);
 const send_dialog = ref(false);
 const send_to = ref('');
 const send_loading = ref(false);
+
+const router = useRouter();
+
+function play() {
+  // context.dispatch('action/select_character', character.id);
+  router.push('/world')
+}
 
 async function delete_character() {
   const { update, remove } = toast.tx(
@@ -159,6 +175,13 @@ function has_equipment(character) {
     display flex
     justify-content flex-end
     font-size .8em
+  
+  .play_btn
+    display flex
+    justify-content center
+    font-size .8em
+    padding 8px 0
+
 
   span.name
     text-transform capitalize

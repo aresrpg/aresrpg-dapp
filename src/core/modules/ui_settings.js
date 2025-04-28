@@ -10,6 +10,7 @@ import {
   current_three_character,
 } from '../game/game.js'
 import { get_nearest_floor_pos } from '../utils/terrain/world_utils.js'
+import { VITE_DEMO_MODE } from '../../env.js'
 
 import { create_board } from './game_fights.js'
 
@@ -20,6 +21,8 @@ export default function () {
   return {
     observe({ events, dispatch, signal, on_game_hide, on_game_show }) {
       const gui = new GUI()
+
+      if (VITE_DEMO_MODE) gui.destroy()
 
       gui.useLocalStorage = true
 
