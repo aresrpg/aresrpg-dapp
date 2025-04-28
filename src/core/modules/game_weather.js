@@ -121,15 +121,22 @@ export default function () {
   }
 
   return {
-    tick(_state, { renderer, camera }) {
-      if (snow.container.parent && snow.container.visible) {
-        snow.update(renderer, camera)
-      }
-      if (rain.container.parent && rain.container.visible) {
-        rain.update(renderer, camera)
+    tick(state, { renderer, camera, voxel_engine }) {
+      weather_container.visible = !state.settings.camera.is_underwater
+
+      if (weather_container.visible) {
+        snow.clippingPlaneLevel = voxel_engine.water_data.map.waterLevel
+        rain.clippingPlaneLevel = voxel_engine.water_data.map.waterLevel
+
+        if (snow.container.visible) {
+          snow.update(renderer, camera)
+        }
+        if (rain.container.visible) {
+          rain.update(renderer, camera)
+        }
       }
     },
-    observe({ scene, renderer, signal, events }) {
+    observe({ scene, signal }) {
       weather_container.name = 'weather-container'
       scene.add(weather_container)
 
@@ -139,9 +146,8 @@ export default function () {
       weather_container.add(rain.container)
       rain.setParticlesCount(5000)
 
-      weather_container.layers.set(CartoonRenderpass.non_outlined_layer)
-      weather_container.traverse(child => {
-        child.layers.set(CartoonRenderpass.non_outlined_layer)
+      weather_container.traverse(object => {
+        object.layers.set(CartoonRenderpass.non_outlined_layer)
       })
 
       snow.container.visible = false

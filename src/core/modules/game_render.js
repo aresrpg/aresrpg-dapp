@@ -205,8 +205,9 @@ export default function () {
 
             volumetric_fog_pass.enabled =
               postprocessing.volumetric_fog_pass.enabled
-            volumetric_fog_pass.uniformity =
-              postprocessing.volumetric_fog_pass.uniformity
+            volumetric_fog_pass.uniformity = camera_is_underwater
+              ? 0.75
+              : postprocessing.volumetric_fog_pass.uniformity
             volumetric_fog_pass.smoothness =
               postprocessing.volumetric_fog_pass.smoothness
             volumetric_fog_pass.fog_density =
@@ -231,12 +232,6 @@ export default function () {
 
             underwater_pass.enabled =
               postprocessing.underwater_pass.enabled && camera_is_underwater
-          }
-
-          const water_color = state.settings.water.color
-          if (!last_water_color || !last_water_color.equals(water_color)) {
-            last_water_color = water_color
-            underwater_pass.color = last_water_color
           }
 
           const lights_changed =

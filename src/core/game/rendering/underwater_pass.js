@@ -1,5 +1,4 @@
 import {
-  Color,
   NoBlending,
   PerspectiveCamera,
   RawShaderMaterial,
@@ -20,8 +19,6 @@ class UnderwaterPass extends Pass {
 
     this.#camera = new PerspectiveCamera()
     this.needsSwap = true
-
-    this.color = new Color(0x3f7be2)
 
     const noise = `//	Simplex 3D Noise 
     //	by Ian McEwan, Ashima Arts
@@ -104,7 +101,6 @@ class UnderwaterPass extends Pass {
       depthWrite: false,
       uniforms: {
         uTexture: { value: null },
-        uColor: { value: this.color },
         uTime: { value: 0 },
         uAspectRatio: { value: 1 },
       },
@@ -119,7 +115,6 @@ class UnderwaterPass extends Pass {
       fragmentShader: `precision mediump float;
 
             uniform sampler2D uTexture;
-            uniform vec3 uColor;
             uniform float uTime;
             uniform float uAspectRatio;
 
@@ -143,7 +138,7 @@ class UnderwaterPass extends Pass {
                 uv = fract(vUv + dUv);
                 uv = clamp(uv, vec2(0), vec2(1));
 
-                gl_FragColor = vec4(uColor, 1) * texture2D(uTexture, uv);
+                gl_FragColor = texture2D(uTexture, uv);
             }`,
     })
 
@@ -162,11 +157,6 @@ class UnderwaterPass extends Pass {
 
     renderer.setRenderTarget(this.renderToScreen ? null : write_buffer)
     this.#material.uniforms.uTexture.value = read_buffer.texture
-    this.#material.uniforms.uColor.value = new Color().lerpColors(
-      this.color,
-      new Color(0xffffff),
-      0.15,
-    )
     this.#material.uniforms.uTime.value = performance.now() / 3000
     this.#material.uniforms.uAspectRatio.value =
       read_buffer.width / read_buffer.height

@@ -10,6 +10,8 @@ import {
   LinearMipMapLinearFilter,
   Mesh,
   MeshStandardMaterial,
+  MultiplyBlending,
+  RawShaderMaterial,
   RepeatWrapping,
   TextureLoader,
 } from 'three'
@@ -20,6 +22,7 @@ import { current_three_character } from '../game/game.js'
 import { CartoonRenderpass } from '../game/rendering/cartoon_renderpass.js'
 import { abortable } from '../utils/iterator.js'
 import { chunk_size } from '../game/voxel_engine.js'
+import { create_fullscreen_quad } from '../game/rendering/utils.js'
 
 const noise = `//	Simplex 3D Noise
 //	by Ian McEwan, Ashima Arts
@@ -118,6 +121,27 @@ export default function () {
     transparent: true,
     side: DoubleSide,
   })
+
+  const fullscreen_quad = create_fullscreen_quad()
+  const water_color_uniform = { value: new Color(0xffffff) }
+  const fullscreen_quad_material = new RawShaderMaterial({
+    blending: MultiplyBlending,
+    depthTest: false,
+    depthWrite: false,
+    uniforms: {
+      uWaterColor: water_color_uniform,
+    },
+    vertexShader: `attribute vec2 aCorner;
+      void main(void) {
+          gl_Position = vec4(aCorner, 0.0, 1.0);
+      }`,
+    fragmentShader: `precision mediump float;
+        uniform vec3 uWaterColor;
+        void main(void) {
+            gl_FragColor = vec4(uWaterColor, 1);
+        }`,
+  })
+  fullscreen_quad.material = fullscreen_quad_material
 
   return {
     tick(state, { scene }) {
@@ -364,6 +388,25 @@ export default function () {
         }
       }
       return state
+    },
+    post_render(state, { renderer, camera }) {
+      if (!state.settings.camera.is_underwater) {
+        return
+      }
+
+      const previous_state = {
+        autoClear: renderer.autoClear,
+      }
+
+      water_color_uniform.value.lerpColors(
+        state.settings.water.color,
+        new Color(0xffffff),
+        0.15,
+      )
+
+      renderer.autoClear = false
+      renderer.render(fullscreen_quad, camera)
+      renderer.autoClear = previous_state.autoClear
     },
   }
 }

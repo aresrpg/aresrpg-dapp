@@ -68,18 +68,17 @@ export default function () {
       }
 
       function update_fog(camera_is_underwater, color) {
-        scene.fog.color = color.clone()
+        camera.far = camera_is_underwater ? 250 : 3000
+        // @ts-ignore
+        const /** @type import('three').Fog */ scene_fog = scene.fog
+
+        scene_fog.color = color.clone()
         if (camera_is_underwater) {
-          // @ts-ignore
-          scene.fog.near = 0
-          // @ts-ignore
-          scene.fog.far = 0.2 * camera.far
+          scene_fog.near = 0
         } else {
-          // @ts-ignore
-          scene.fog.near = 0.25 * camera.far
-          // @ts-ignore
-          scene.fog.far = 0.98 * camera.far
+          scene_fog.near = 0.25 * camera.far
         }
+        scene_fog.far = 0.98 * camera.far
       }
 
       aiter(abortable(typed_on(events, 'STATE_UPDATED', { signal }))).reduce(
