@@ -38,7 +38,7 @@
     "fast-merge-async-iterators": "1.1.1",
     "gsap": "3.12.7",
     "iterator-helper": "1.3.4",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "lru-cache": "11.1.0",
     "meshoptimizer": "0.23.0",
     "ndarray": "1.0.19",
