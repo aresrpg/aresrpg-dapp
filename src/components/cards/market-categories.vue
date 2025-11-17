@@ -48,83 +48,83 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
 import {
   EQUIPMENTS,
   WEAPONS,
   CONSUMABLES,
   MISC,
-} from '@aresrpg/aresrpg-sdk/items';
-import { watch, ref, inject, onMounted, onUnmounted } from 'vue';
+} from '@aresrpg/aresrpg-sdk/items'
+import { watch, ref, inject, onMounted, onUnmounted } from 'vue'
 
-import { pretty_print_mists } from '../../core/sui/client.js';
+import { pretty_print_mists } from '../../core/sui/client.js'
 // @ts-ignore
-import { context } from '../../core/game/game.js';
+import { context } from '../../core/game/game.js'
 
 // @ts-ignore
-import TokenSui from '~icons/token/sui';
+import TokenSui from '~icons/token/sui'
 
-const { t } = useI18n();
-const filtered_category = inject('filtered_category');
-const filtered_name = ref();
-const selected_item_type = inject('selected_item_type');
-const selected_item = inject('selected_item');
-const currently_listed_items_names = inject('currently_listed_items_names');
+const { t } = useI18n()
+const filtered_category = inject('filtered_category')
+const filtered_name = ref()
+const selected_item_type = inject('selected_item_type')
+const selected_item = inject('selected_item')
+const currently_listed_items_names = inject('currently_listed_items_names')
 
-const available_types = ref([]);
+const available_types = ref([])
 
 function select_item(item) {
-  if (selected_item_type.value !== item.item_type) selected_item.value = null;
-  selected_item_type.value = item.item_type;
+  if (selected_item_type.value !== item.item_type) selected_item.value = null
+  selected_item_type.value = item.item_type
 }
 
-watch(filtered_name, name => {
-  if (!name) return;
-  const category = currently_listed_items_names.value[name];
-  if (category) filtered_category.value = category;
-});
+watch(filtered_name, (name) => {
+  if (!name) return
+  const category = currently_listed_items_names.value[name]
+  if (category) filtered_category.value = category
+})
 
 watch(
   filtered_category,
   (category, last_category) => {
-    if (category === last_category) return;
-    selected_item.value = null;
-    available_types.value = [];
+    if (category === last_category) return
+    selected_item.value = null
+    available_types.value = []
     context.send_packet('packet/marketCategoryItemsRequest', {
       category,
-    });
+    })
   },
-  { immediate: true },
-);
+  { immediate: true }
+)
 
 function handle_market_category_items_response({ items }) {
-  const received_types = items.map(item => item.item_type);
+  const received_types = items.map((item) => item.item_type)
   // update available types with new items and keep non updated ones
   available_types.value = [
     ...available_types.value.filter(
-      available_type => !received_types.includes(available_type.item_type),
+      (available_type) => !received_types.includes(available_type.item_type)
     ),
     // filtering out items without image_url because the server will send `null` if there are no more items (to remove them)
     ...items.filter(({ image_url }) => !!image_url),
-  ];
+  ]
 }
 
 onMounted(() => {
   context.events.on(
     'packet/marketCategoryItems',
-    handle_market_category_items_response,
-  );
-});
+    handle_market_category_items_response
+  )
+})
 
 onUnmounted(() => {
   context.events.off(
     'packet/marketCategoryItems',
-    handle_market_category_items_response,
-  );
+    handle_market_category_items_response
+  )
   context.send_packet('packet/marketCategoryItemsRequest', {
     category: null,
-  });
-});
+  })
+})
 </script>
 
 <style lang="stylus" scoped>

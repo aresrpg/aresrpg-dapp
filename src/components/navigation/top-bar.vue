@@ -1,120 +1,117 @@
 <script setup>
-import { ref, inject, onMounted, onUnmounted, watch } from 'vue';
-import useBreakpoints from 'vue-next-breakpoints';
-import { useI18n } from 'vue-i18n';
-import Dropdown from 'v-dropdown';
+import { ref, inject, onMounted, onUnmounted, watch } from 'vue'
+import useBreakpoints from 'vue-next-breakpoints'
+import { useI18n } from 'vue-i18n'
+import Dropdown from 'v-dropdown'
 import {
   isValidSuiAddress,
   isValidSuiNSName,
   MIST_PER_SUI,
-} from '@mysten/sui/utils';
-import { BigNumber as BN } from 'bignumber.js';
+} from '@mysten/sui/utils'
+import { BigNumber as BN } from 'bignumber.js'
 
-import suiWalletSelector from '../sui-login/sui-wallet-selector.vue';
-import { context, disconnect_ws } from '../../core/game/game.js';
+import suiWalletSelector from '../sui-login/sui-wallet-selector.vue'
+import { context, disconnect_ws } from '../../core/game/game.js'
 import {
   mists_to_sui,
   sui_get_kiosks_profits,
   sui_claim_kiosks_profits,
   sui_send,
   sui_to_mists,
-} from '../../core/sui/client.js';
-import logger from '../../logger.js';
-import { enoki_login_url } from '../../core/sui/enoki.js';
-import { NETWORK } from '../../env.js';
-import {
-  decrease_loading,
-  increase_loading,
-} from '../../core/utils/loading.js';
-import toast from '../../toast.js';
-import { SUI_EMITTER } from '../../core/modules/sui_data.js';
+} from '../../core/sui/client.js'
+import logger from '../../logger.js'
+import { enoki_login_url } from '../../core/sui/enoki.js'
+import { NETWORK } from '../../env.js'
+import { decrease_loading, increase_loading } from '../../core/utils/loading.js'
+import toast from '../../toast.js'
+import { SUI_EMITTER } from '../../core/modules/sui_data.js'
 
 // @ts-ignore
-import PhCopy from '~icons/ph/copy';
+import PhCopy from '~icons/ph/copy'
 // @ts-ignore
-import StreamlineEmojisMoneyWithWings from '~icons/streamline-emojis/money-with-wings';
+import StreamlineEmojisMoneyWithWings from '~icons/streamline-emojis/money-with-wings'
 // @ts-ignore
-import StreamlineEmojisWaterWave from '~icons/streamline-emojis/water-wave';
+import StreamlineEmojisWaterWave from '~icons/streamline-emojis/water-wave'
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const update_selected_account = account => {
-  context.dispatch('action/select_address', account.address);
-  localStorage.setItem('last_selected_address', account.address);
-};
+const update_selected_account = (account) => {
+  context.dispatch('action/select_address', account.address)
+  localStorage.setItem('last_selected_address', account.address)
+}
 
 const breakpoints = useBreakpoints({
   mobile: 1000,
-});
+})
 // dialog to choose between google and Sui Wallet
-const login_dialog = ref(false);
+const login_dialog = ref(false)
 // dialog to choose the Sui Wallet
-const sui_wallet_dialog = ref(false);
-const withdraw_sui_dialog = ref(false);
-const withdraw_amount = ref('0');
-const withdraw_recipient = ref('');
-const withdraw_invalid_address = ref(false);
-const withdraw_invalid_amount = ref(false);
-const dropdown = ref(null);
+const sui_wallet_dialog = ref(false)
+const withdraw_sui_dialog = ref(false)
+const withdraw_amount = ref('0')
+const withdraw_recipient = ref('')
+const withdraw_invalid_address = ref(false)
+const withdraw_invalid_amount = ref(false)
+const dropdown = ref(null)
 
-const available_accounts = inject('available_accounts');
-const current_wallet = inject('current_wallet');
-const current_address = inject('current_address');
-const current_account = inject('current_account');
-const sui_balance = inject('sui_balance');
+const available_accounts = inject('available_accounts')
+const current_wallet = inject('current_wallet')
+const current_address = inject('current_address')
+const current_account = inject('current_account')
+const sui_balance = inject('sui_balance')
 
-const kiosk_profits = ref('');
+const kiosk_profits = ref('')
 
 function address_display(account) {
-  if (!account) return 'not found';
-  if (account.alias?.includes('@')) return account.alias;
-  return `${account.address.slice(0, 6)}...${account.address.slice(-4)}`;
+  if (!account) return 'not found'
+  if (account.alias?.includes('@')) return account.alias
+  return `${account.address.slice(0, 6)}...${account.address.slice(-4)}`
 }
 
 function disconnect_wallet() {
-  current_wallet.value.disconnect();
-  disconnect_ws();
+  current_wallet.value.disconnect()
+  disconnect_ws()
 }
 
 function copy_address() {
-  navigator.clipboard.writeText(current_account.value.address);
-  toast.success(t('APP_TOP_BAR_COPIED'), 'Woooosh', StreamlineEmojisWaterWave);
-  dropdown.value.close();
+  navigator.clipboard.writeText(current_account.value.address)
+  toast.success(t('APP_TOP_BAR_COPIED'), 'Woooosh', StreamlineEmojisWaterWave)
+  dropdown.value.close()
 }
 
 async function enoki_login() {
-  login_dialog.value = false;
-  logger.INTERNAL(`Enoki login`);
-  increase_loading();
-  window.location.href = await enoki_login_url();
+  login_dialog.value = false
+  logger.INTERNAL(`Enoki login`)
+  increase_loading()
+  window.location.href = await enoki_login_url()
 }
 
 async function refresh_kiosk_profits() {
-  const profits = await sui_get_kiosks_profits();
-  kiosk_profits.value = (+mists_to_sui(profits)).toFixed(2);
-  kiosk_profits.value = kiosk_profits.value.replace(/\.?0+$/, '');
+  const profits = await sui_get_kiosks_profits()
+  kiosk_profits.value = (+mists_to_sui(profits)).toFixed(2)
+  kiosk_profits.value = kiosk_profits.value.replace(/\.?0+$/, '')
 }
 
 async function claim_kiosk_profits() {
   const tx = toast.tx(
     t('APP_TOP_BAR_CLAIMING_PROFIT'),
-    `${kiosk_profits.value} Sui`,
-  );
+    `${kiosk_profits.value} Sui`
+  )
   try {
-    await sui_claim_kiosks_profits();
-    tx.update('success', t('APP_TOP_BAR_PROFIT_CLAIMED'));
-    kiosk_profits.value = '';
+    await sui_claim_kiosks_profits()
+    tx.update('success', t('APP_TOP_BAR_PROFIT_CLAIMED'))
+    kiosk_profits.value = ''
   } catch (error) {
-    tx.update('error', t('APP_TOP_BAR_CLAIM_FAILED'));
-    console.error(error);
+    tx.update('error', t('APP_TOP_BAR_CLAIM_FAILED'))
+    console.error(error)
   }
 }
 
-const claiming_faucet = ref(false);
+const claiming_faucet = ref(false)
 
 async function claim_faucet() {
-  const tx = toast.tx(t('APP_TOP_BAR_FAUCET_CLAIM'), 'Brrrrrr');
-  claiming_faucet.value = true;
+  const tx = toast.tx(t('APP_TOP_BAR_FAUCET_CLAIM'), 'Brrrrrr')
+  claiming_faucet.value = true
 
   try {
     await fetch('https://faucet.testnet.sui.io/gas', {
@@ -127,83 +124,83 @@ async function claim_faucet() {
           recipient: current_account.value.address,
         },
       }),
-    });
+    })
 
-    tx.update('success', t('APP_TOP_BAR_FAUCET_CLAIMED'));
+    tx.update('success', t('APP_TOP_BAR_FAUCET_CLAIMED'))
   } catch (error) {
-    tx.update('error', t('APP_TOP_BAR_FAUCET_FAILED'));
-    console.error(error);
+    tx.update('error', t('APP_TOP_BAR_FAUCET_FAILED'))
+    console.error(error)
   }
 
   setTimeout(() => {
-    claiming_faucet.value = false;
-  }, 1000);
+    claiming_faucet.value = false
+  }, 1000)
 }
 
 watch(withdraw_recipient, () => {
-  if (withdraw_invalid_address.value) withdraw_invalid_address.value = false;
-});
+  if (withdraw_invalid_address.value) withdraw_invalid_address.value = false
+})
 
 watch(withdraw_amount, () => {
-  if (withdraw_invalid_amount.value) withdraw_invalid_amount.value = false;
-});
+  if (withdraw_invalid_amount.value) withdraw_invalid_amount.value = false
+})
 
 async function withdraw_sui() {
   if (
     !isValidSuiAddress(withdraw_recipient.value) &&
     !isValidSuiNSName(withdraw_recipient.value)
   ) {
-    withdraw_invalid_address.value = true;
-    return;
+    withdraw_invalid_address.value = true
+    return
   }
 
   if (withdraw_amount.value > get_maximum_sendable_amount()) {
-    withdraw_invalid_amount.value = true;
-    return;
+    withdraw_invalid_amount.value = true
+    return
   }
 
-  withdraw_sui_dialog.value = false;
+  withdraw_sui_dialog.value = false
 
   const tx = toast.tx(
     t('APP_TOP_BAR_WITHDRAWING', [withdraw_recipient.value]),
-    `${withdraw_amount.value} Sui`,
-  );
+    `${withdraw_amount.value} Sui`
+  )
 
   try {
     const digest = await sui_send({
       recipient: withdraw_recipient.value,
       amount: sui_to_mists(withdraw_amount.value),
-    });
+    })
     tx.update(
       'success',
       `${t('APP_TOP_BAR_WITHDRAW_SUCCESS', [withdraw_amount.value, withdraw_recipient.value])}`,
-      { digest },
-    );
+      { digest }
+    )
   } catch (error) {
-    tx.update('error', t('APP_TOP_BAR_WITHDRAW_FAILED'));
-    console.error(error);
+    tx.update('error', t('APP_TOP_BAR_WITHDRAW_FAILED'))
+    console.error(error)
   } finally {
-    withdraw_amount.value = '';
+    withdraw_amount.value = ''
   }
 }
 
-watch(current_address, refresh_kiosk_profits);
+watch(current_address, refresh_kiosk_profits)
 
 function get_maximum_sendable_amount() {
-  const balance = BN(sui_balance.value).dividedBy(MIST_PER_SUI.toString());
-  const minus_gas = balance.minus(0.01);
-  if (minus_gas.isLessThanOrEqualTo(0)) return '0';
-  return minus_gas.toFixed(3).toString();
+  const balance = BN(sui_balance.value).dividedBy(MIST_PER_SUI.toString())
+  const minus_gas = balance.minus(0.01)
+  if (minus_gas.isLessThanOrEqualTo(0)) return '0'
+  return minus_gas.toFixed(3).toString()
 }
 
 onMounted(() => {
-  refresh_kiosk_profits();
-  SUI_EMITTER.on('ItemSoldEvent', refresh_kiosk_profits);
-});
+  refresh_kiosk_profits()
+  SUI_EMITTER.on('ItemSoldEvent', refresh_kiosk_profits)
+})
 
 onUnmounted(() => {
-  SUI_EMITTER.off('ItemSoldEvent', refresh_kiosk_profits);
-});
+  SUI_EMITTER.off('ItemSoldEvent', refresh_kiosk_profits)
+})
 </script>
 
 <template lang="pug">

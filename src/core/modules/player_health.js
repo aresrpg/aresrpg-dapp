@@ -4,7 +4,7 @@ export default function () {
     reduce(state, { type, payload }) {
       if (type === 'packet/characterHealth') {
         const target_character = state.sui.characters.find(
-          character => character.id === payload.id,
+          (character) => character.id === payload.id
         )
 
         if (target_character) target_character.health = payload.health

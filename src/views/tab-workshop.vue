@@ -18,30 +18,30 @@ sectionContainer
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import sectionContainer from '../components/misc/section-container.vue';
-import sectionHeader from '../components/misc/section-header.vue';
-import recipeVue from '../components/cards/recipe.vue';
-import itemInventory from '../components/cards/item-inventory.vue';
-import itemDescription from '../components/cards/item-description.vue';
-import { NETWORK } from '../env.js';
+import sectionContainer from '../components/misc/section-container.vue'
+import sectionHeader from '../components/misc/section-header.vue'
+import recipeVue from '../components/cards/recipe.vue'
+import itemInventory from '../components/cards/item-inventory.vue'
+import itemDescription from '../components/cards/item-description.vue'
+import { NETWORK } from '../env.js'
 // @ts-ignore
-import tailor_icon from '../assets/jobs/tailor.png';
+import tailor_icon from '../assets/jobs/tailor.png'
 // @ts-ignore
-import woodcutter_icon from '../assets/jobs/woodcutter.png';
-import { SUI_EMITTER } from '../core/modules/sui_data.js';
-import { sui_get_recipes } from '../core/sui/client.js';
+import woodcutter_icon from '../assets/jobs/woodcutter.png'
+import { SUI_EMITTER } from '../core/modules/sui_data.js'
+import { sui_get_recipes } from '../core/sui/client.js'
 
-const { t } = useI18n();
-const indexed_recipes = inject('recipes');
-const online = inject('online');
+const { t } = useI18n()
+const indexed_recipes = inject('recipes')
+const online = inject('online')
 
 const jobs = [
   { name: t('APP_TAB_WORKSHOP_TAILOR'), level: 1, icon: tailor_icon },
   { name: t('APP_TAB_WORKSHOP_WOODCUTTER'), level: 1, icon: woodcutter_icon },
-];
+]
 </script>
 
 <style lang="stylus" scoped>

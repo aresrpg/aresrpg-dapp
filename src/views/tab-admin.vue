@@ -18,52 +18,52 @@ sectionContainer
 </template>
 
 <script setup>
-import { inject, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { inject, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-import sectionHeader from '../components/misc/section-header.vue';
-import sectionContainer from '../components/misc/section-container.vue';
+import sectionHeader from '../components/misc/section-header.vue'
+import sectionContainer from '../components/misc/section-container.vue'
 import {
   mists_to_sui,
   sui_withdraw_policies_profit,
   sui_delete_admin_cap,
   sui_get_policies_profit,
-} from '../core/sui/client.js';
-import { decrease_loading, increase_loading } from '../core/utils/loading.js';
-import toast from '../toast.js';
-import { NETWORK } from '../env.js';
+} from '../core/sui/client.js'
+import { decrease_loading, increase_loading } from '../core/utils/loading.js'
+import toast from '../toast.js'
+import { NETWORK } from '../env.js'
 
 // @ts-ignore
-import TokenBrandedSui from '~icons/token-branded/sui';
+import TokenBrandedSui from '~icons/token-branded/sui'
 
-const router = useRouter();
-const admin = inject('admin');
+const router = useRouter()
+const admin = inject('admin')
 
-const short_id = id => `${id.slice(0, 5)}..${id.slice(-5)}`;
+const short_id = (id) => `${id.slice(0, 5)}..${id.slice(-5)}`
 
-const open_explorer = id => {
-  window.open(`https://suiscan.xyz/${NETWORK}/object/${id}`, '_blank');
-};
+const open_explorer = (id) => {
+  window.open(`https://suiscan.xyz/${NETWORK}/object/${id}`, '_blank')
+}
 
 async function withdraw() {
   try {
-    increase_loading();
-    await sui_withdraw_policies_profit();
-    const { character_profits, item_profits } = await sui_get_policies_profit();
+    increase_loading()
+    await sui_withdraw_policies_profit()
+    const { character_profits, item_profits } = await sui_get_policies_profit()
 
-    admin.character_profits = character_profits;
-    admin.item_profits = item_profits;
+    admin.character_profits = character_profits
+    admin.item_profits = item_profits
 
-    toast.dark('Profits withdrawn, soon bali ?', 'GG wp!');
+    toast.dark('Profits withdrawn, soon bali ?', 'GG wp!')
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-  decrease_loading();
+  decrease_loading()
 }
 
 onMounted(() => {
-  if (!admin.admin_caps.length) router.push('/');
-});
+  if (!admin.admin_caps.length) router.push('/')
+})
 </script>
 
 <style lang="stylus" scoped>

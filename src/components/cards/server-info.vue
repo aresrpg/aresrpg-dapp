@@ -12,12 +12,12 @@ vs-card
 </template>
 
 <script setup>
-import { inject } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n();
-const online = inject('online');
-const server_info = inject('server_info');
+const { t } = useI18n()
+const online = inject('online')
+const server_info = inject('server_info')
 </script>
 
 <style lang="stylus" scoped>

@@ -23,22 +23,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, inject } from 'vue';
-import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
+import { ref, onMounted, computed, inject } from 'vue'
+import { get_max_health } from '@aresrpg/aresrpg-sdk/stats'
 
-import { context, current_three_character } from '../../core/game/game.js';
+import { context, current_three_character } from '../../core/game/game.js'
 
-const selected_character = inject('selected_character');
-const inventory_counter = inject('inventory_counter');
-const show_health_percent = ref(false);
+const selected_character = inject('selected_character')
+const inventory_counter = inject('inventory_counter')
+const show_health_percent = ref(false)
 
-const pa = computed(() => selected_character.value?.action || -1);
-const pm = computed(() => selected_character.value?.movement || -1);
+const pa = computed(() => selected_character.value?.action || -1)
+const pm = computed(() => selected_character.value?.movement || -1)
 
-const in_fight = inject('in_fight');
+const in_fight = inject('in_fight')
 
-const emits = defineEmits(['open_stats', 'open_spells', 'open_inventory']);
-const health = computed(() => selected_character.value?.health || 0);
+const emits = defineEmits(['open_stats', 'open_spells', 'open_inventory'])
+const health = computed(() => selected_character.value?.health || 0)
 const max_health = computed(() => {
   // a update to this variables means the equipment changed
   // so the max health might have been affected
@@ -46,24 +46,24 @@ const max_health = computed(() => {
     // nothing to do here, we just need to trigger the computed
   }
 
-  return health.value ? get_max_health(selected_character.value) : 0;
-});
+  return health.value ? get_max_health(selected_character.value) : 0
+})
 const percent_health = computed(() => {
-  return Math.round((100 * health.value) / max_health.value);
-});
+  return Math.round((100 * health.value) / max_health.value)
+})
 
 function start_action(action) {
-  const character = current_three_character();
+  const character = current_three_character()
   if (character.action === action) {
     context.dispatch('action/character_action', {
       action: 'IDLE',
       id: character.id,
-    });
+    })
   } else {
     context.dispatch('action/character_action', {
       action,
       id: character.id,
-    });
+    })
   }
 }
 </script>

@@ -1,6 +1,6 @@
 /* eslint-disable prefer-destructuring */
 // @ts-nocheck
-/* eslint-disable @typescript-eslint/naming-convention */
+
 /**
  * Materials variants extension
  *
@@ -17,7 +17,7 @@
  * @param variantNames {Array<string>}
  * @return {Array<string>}
  */
-const ensureUniqueNames = variantNames => {
+const ensureUniqueNames = (variantNames) => {
   const uniqueNames = []
   const knownNames = new Set()
 
@@ -61,7 +61,7 @@ const mappingsArrayToTable = (extensionDef, variantNames) => {
  * @param object {THREE.Object3D}
  * @return {boolean}
  */
-const compatibleObject = object => {
+const compatibleObject = (object) => {
   return (
     object.material !== undefined && // easier than (!object.isMesh && !object.isLine && !object.isPoints)
     object.userData && // just in case
@@ -119,11 +119,11 @@ export default class GLTFMaterialsVariantsExtension {
 
     const extensionDef = json.extensions[this.name]
     const variantsDef = extensionDef.variants || []
-    const variants = ensureUniqueNames(variantsDef.map(v => v.name))
+    const variants = ensureUniqueNames(variantsDef.map((v) => v.name))
 
     for (const scene of gltf.scenes) {
       // Save the variants data under associated mesh.userData
-      scene.traverse(object => {
+      scene.traverse((object) => {
         const association = parser.associations.get(object)
 
         if (
@@ -145,7 +145,7 @@ export default class GLTFMaterialsVariantsExtension {
         // object should be Mesh
         object.userData.variantMaterials = mappingsArrayToTable(
           extensionsDef[this.name],
-          variants,
+          variants
         )
       })
     }
@@ -191,7 +191,7 @@ export default class GLTFMaterialsVariantsExtension {
           gltfMaterialIndex = variantMaterialParam.gltfMaterialIndex
           object.material = await parser.getDependency(
             'material',
-            gltfMaterialIndex,
+            gltfMaterialIndex
           )
           parser.assignFinalMaterial(object)
           variantMaterialParam.material = object.material
@@ -207,7 +207,7 @@ export default class GLTFMaterialsVariantsExtension {
      * @param object {THREE.Mesh}
      * @return {Promise}
      */
-    const ensureLoadVariants = object => {
+    const ensureLoadVariants = (object) => {
       const currentMaterial = object.material
       const { variantMaterials } = object.userData
       const pending = []
@@ -218,11 +218,11 @@ export default class GLTFMaterialsVariantsExtension {
         }
         const materialIndex = variantMaterial.gltfMaterialIndex
         pending.push(
-          parser.getDependency('material', materialIndex).then(material => {
+          parser.getDependency('material', materialIndex).then((material) => {
             object.material = material
             parser.assignFinalMaterial(object)
             variantMaterials[variantName].material = object.material
-          }),
+          })
         )
       }
       return Promise.all(pending).then(() => {
@@ -240,14 +240,14 @@ export default class GLTFMaterialsVariantsExtension {
       object,
       variantName,
       doTraverse = true,
-      onUpdate = null,
+      onUpdate = null
     ) => {
       const pending = []
       if (doTraverse) {
         object.traverse(
-          o =>
+          (o) =>
             compatibleObject(o) &&
-            pending.push(switchMaterial(o, variantName, onUpdate)),
+            pending.push(switchMaterial(o, variantName, onUpdate))
         )
       } else {
         compatibleObject(object) &&
@@ -265,7 +265,7 @@ export default class GLTFMaterialsVariantsExtension {
       const pending = []
       if (doTraverse) {
         object.traverse(
-          o => compatibleObject(o) && pending.push(ensureLoadVariants(o)),
+          (o) => compatibleObject(o) && pending.push(ensureLoadVariants(o))
         )
       } else {
         compatibleObject(object) && pending.push(ensureLoadVariants(object))

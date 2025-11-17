@@ -20,7 +20,7 @@ const DRACO_LOADER = new DRACOLoader(DefaultLoadingManager)
 const KTX2_LOADER = new KTX2Loader(DefaultLoadingManager)
 
 DRACO_LOADER.setDecoderPath(
-  'https://www.gstatic.com/draco/versioned/decoders/1.5.6/',
+  'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
 )
 DRACO_LOADER.setDecoderConfig({ type: 'js' })
 
@@ -28,7 +28,7 @@ GLTF_LOADER.setDRACOLoader(DRACO_LOADER)
 GLTF_LOADER.setKTX2Loader(KTX2_LOADER)
 GLTF_LOADER.setMeshoptDecoder(MeshoptDecoder)
 
-GLTF_LOADER.register(parser => new GLTFMaterialsVariantsExtension(parser))
+GLTF_LOADER.register((parser) => new GLTFMaterialsVariantsExtension(parser))
 
 const layer_names = {
   color1: 'color1',
@@ -38,7 +38,7 @@ const layer_names = {
 
 function create_customizable_textures(
   /** @type ReadonlyArray<Texture> */
-  textures,
+  textures
 ) {
   /** @type Map<string, Texture> */
   const base_textures = new Map()
@@ -59,7 +59,7 @@ function create_customizable_textures(
     const additional_textures = new Map()
     for (const layer_name of Object.values(layer_names)) {
       const layer_texture = textures.find(
-        tex => tex.name === `${base_texture_name}_${layer_name}`,
+        (tex) => tex.name === `${base_texture_name}_${layer_name}`
       )
       if (layer_texture) {
         additional_textures.set(layer_name, layer_texture)
@@ -78,7 +78,7 @@ function create_customizable_textures(
 
 function create_custom_colors_api(
   /** @type Object3D */ model,
-  /** @type ReadonlyArray<Texture> */ textures,
+  /** @type ReadonlyArray<Texture> */ textures
 ) {
   /** @type Map<string, CustomizableTexture> */
   const all_customizable_textures = create_customizable_textures(textures)
@@ -130,7 +130,7 @@ function create_custom_colors_api(
     for (const expected_layername of Object.values(layer_names)) {
       if (!customizable_texture.layerNames.includes(expected_layername)) {
         throw new Error(
-          `Customizable texture is supposed to have a layer named "${expected_layername}".`,
+          `Customizable texture is supposed to have a layer named "${expected_layername}".`
         )
       }
     }
@@ -138,14 +138,14 @@ function create_custom_colors_api(
 
   const set_layer_color = (
     /** @type string */ name,
-    /** @type Color */ color,
+    /** @type Color */ color
   ) => {
     for (const customizable_texture of used_customizable_textures.values()) {
       customizable_texture.setLayerColor(name, color)
     }
   }
 
-  const get_layer_color = name => {
+  const get_layer_color = (name) => {
     const customizable_texture = used_customizable_textures
       .values()
       .next().value
@@ -196,7 +196,7 @@ function create_custom_colors_api(
 
 export async function load(
   path,
-  { env_map_intensity = 0.5, mesh_name = 'Model' } = {},
+  { env_map_intensity = 0.5, mesh_name = 'Model' } = {}
 ) {
   const loaded = await GLTF_LOADER.loadAsync(path)
   // @ts-ignore
@@ -208,10 +208,10 @@ export async function load(
     parser.json.extensions?.KHR_materials_variants?.variants || []
   console.log(
     `Variants for ${path}:`,
-    variants.map(v => v.name),
+    variants.map((v) => v.name)
   )
 
-  scene.traverse(child => {
+  scene.traverse((child) => {
     // @ts-ignore
     // if (child.isBone) child.visible = false
 
@@ -240,7 +240,7 @@ export async function load(
         } catch (error) {
           console.error(
             `Failed to set variant "${variant}" for model "${path}":`,
-            error,
+            error
           )
         }
       },
@@ -250,10 +250,10 @@ export async function load(
         return {
           mixer,
           actions: Object.fromEntries(
-            animations.map(animation => [
+            animations.map((animation) => [
               animation.name,
               mixer.clipAction(animation),
-            ]),
+            ])
           ),
         }
       },

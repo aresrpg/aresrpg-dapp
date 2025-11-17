@@ -3,44 +3,44 @@ router-view
 </template>
 
 <script setup>
-import { onUnmounted, onMounted, provide, ref, reactive } from 'vue';
-import deep_equal from 'fast-deep-equal';
-import { get_max_health } from '@aresrpg/aresrpg-sdk/stats';
+import { onUnmounted, onMounted, provide, ref, reactive } from 'vue'
+import deep_equal from 'fast-deep-equal'
+import { get_max_health } from '@aresrpg/aresrpg-sdk/stats'
 
-import { decrease_loading, increase_loading } from './core/utils/loading.js';
-import { get_spells } from './core/game/spells_per_class.js';
-import toast from './toast.js';
-import { translate } from './i18n.js';
+import { decrease_loading, increase_loading } from './core/utils/loading.js'
+import { get_spells } from './core/game/spells_per_class.js'
+import toast from './toast.js'
+import { translate } from './i18n.js'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore
-const name = 'app';
+const name = 'app'
 
-const sidebar_reduced = ref(false);
-const game_visible = ref(false);
+const sidebar_reduced = ref(false)
+const game_visible = ref(false)
 
-const available_accounts = ref([]);
-const current_wallet = ref(null);
-const current_address = ref(null);
-const current_account = ref(null);
-const sui_balance = ref(null);
-const online = ref(false);
-const inventory_counter = ref(1);
+const available_accounts = ref([])
+const current_wallet = ref(null)
+const current_address = ref(null)
+const current_account = ref(null)
+const sui_balance = ref(null)
+const online = ref(false)
+const inventory_counter = ref(1)
 
 const server_info = reactive({
   online_players: 0,
   max_players: 0,
   online_characters: 0,
-});
+})
 
-const selected_character = ref(null);
-const owned_items = ref([]);
+const selected_character = ref(null)
+const owned_items = ref([])
 
-const in_fight = ref(false);
+const in_fight = ref(false)
 
-const selected_category = ref('equipment');
-const selected_item = ref(null);
-const edit_mode = ref(false);
+const selected_category = ref('equipment')
+const selected_item = ref(null)
+const edit_mode = ref(false)
 const edit_mode_equipment = reactive({
   relic_1: null,
   relic_2: null,
@@ -61,59 +61,59 @@ const edit_mode_equipment = reactive({
   dragged_item: null,
   dragg_started_from: null,
   equipments: [],
-});
+})
 
-const my_listings = ref([]);
-const message_history = ref([]);
-const typed_message_history = ref([]);
+const my_listings = ref([])
+const message_history = ref([])
+const typed_message_history = ref([])
 
-const vue_characters = ref([]);
+const vue_characters = ref([])
 
 const admin = reactive({
   character_profits: 0n,
   item_profits: 0n,
   admin_caps: [],
-});
+})
 
-const owned_tokens = ref([]);
-const finished_crafts = ref([]);
-const currently_listed_items_names = ref({});
-const recipes = ref([]);
+const owned_tokens = ref([])
+const finished_crafts = ref([])
+const currently_listed_items_names = ref({})
+const recipes = ref([])
 
-provide('typed_message_history', typed_message_history);
-provide('sidebar_reduced', sidebar_reduced);
-provide('game_visible', game_visible);
-provide('available_accounts', available_accounts);
-provide('current_wallet', current_wallet);
-provide('current_address', current_address);
-provide('current_account', current_account);
-provide('sui_balance', sui_balance);
-provide('online', online);
-provide('server_info', server_info);
-provide('selected_character', selected_character);
-provide('owned_items', owned_items);
-provide('inventory_counter', inventory_counter);
+provide('typed_message_history', typed_message_history)
+provide('sidebar_reduced', sidebar_reduced)
+provide('game_visible', game_visible)
+provide('available_accounts', available_accounts)
+provide('current_wallet', current_wallet)
+provide('current_address', current_address)
+provide('current_account', current_account)
+provide('sui_balance', sui_balance)
+provide('online', online)
+provide('server_info', server_info)
+provide('selected_character', selected_character)
+provide('owned_items', owned_items)
+provide('inventory_counter', inventory_counter)
 
-provide('in_fight', in_fight);
+provide('in_fight', in_fight)
 
-provide('selected_item', selected_item);
-provide('selected_category', selected_category);
-provide('edit_mode', edit_mode);
-provide('edit_mode_equipment', edit_mode_equipment);
-provide('my_listings', my_listings);
-provide('characters', vue_characters);
-provide('owned_tokens', owned_tokens);
+provide('selected_item', selected_item)
+provide('selected_category', selected_category)
+provide('edit_mode', edit_mode)
+provide('edit_mode_equipment', edit_mode_equipment)
+provide('my_listings', my_listings)
+provide('characters', vue_characters)
+provide('owned_tokens', owned_tokens)
 
-provide('admin', admin);
-provide('finished_crafts', finished_crafts);
-provide('message_history', message_history);
-provide('currently_listed_items_names', currently_listed_items_names);
+provide('admin', admin)
+provide('finished_crafts', finished_crafts)
+provide('message_history', message_history)
+provide('currently_listed_items_names', currently_listed_items_names)
 
-provide('recipes', recipes);
+provide('recipes', recipes)
 
 function update_all(
   state,
-  { current_three_character, current_sui_character, sui_get_policies_profit },
+  { current_three_character, current_sui_character, sui_get_policies_profit }
 ) {
   const {
     sui: {
@@ -129,82 +129,82 @@ function update_all(
     sui,
     selected_character_id,
     online: state_online,
-  } = state;
+  } = state
 
-  const selected_wallet = wallets[selected_wallet_name];
-  const accounts = selected_wallet?.accounts ?? [];
+  const selected_wallet = wallets[selected_wallet_name]
+  const accounts = selected_wallet?.accounts ?? []
   const accounts_addresses = accounts.filter(
-    ({ address }) => address !== selected_address,
-  );
+    ({ address }) => address !== selected_address
+  )
   const available_accounts_addresses = available_accounts.value.map(
-    ({ address }) => address,
-  );
+    ({ address }) => address
+  )
   const selected_account = accounts.find(
-    ({ address }) => address === selected_address,
-  );
+    ({ address }) => address === selected_address
+  )
 
   const characters_ids = characters
-    .map(character => character.id)
-    .filter(id => id !== selected_character_id);
+    .map((character) => character.id)
+    .filter((id) => id !== selected_character_id)
 
   const last_characters_ids = vue_characters.value.map(
-    character => character.id,
-  );
+    (character) => character.id
+  )
 
   if (characters_ids.join() !== last_characters_ids.join())
     vue_characters.value = characters.filter(
-      character => character.id !== selected_character_id,
-    );
+      (character) => character.id !== selected_character_id
+    )
 
   if (sui.finished_crafts.length !== finished_crafts.value.length)
-    finished_crafts.value = sui.finished_crafts;
+    finished_crafts.value = sui.finished_crafts
 
-  if (sui.recipes.length !== recipes.value.length) recipes.value = sui.recipes;
+  if (sui.recipes.length !== recipes.value.length) recipes.value = sui.recipes
 
-  const all_ids = characters.map(c => c.id);
+  const all_ids = characters.map((c) => c.id)
 
   // @ts-ignore
-  if (all_ids.join() !== vue_characters.value?.map(c => c.id).join())
-    vue_characters.value = characters;
+  if (all_ids.join() !== vue_characters.value?.map((c) => c.id).join())
+    vue_characters.value = characters
 
   if (
     selected_character_id &&
     // @ts-ignore
     selected_character.value?.id !== selected_character_id
   ) {
-    const sui_character = current_sui_character(state);
+    const sui_character = current_sui_character(state)
     selected_character.value = {
       ...sui_character,
       ...current_three_character(state),
       spells: get_spells(sui_character?.classe),
-    };
+    }
   } else if (!selected_character_id) {
-    selected_character.value = null;
+    selected_character.value = null
   }
 
   if (!deep_equal(items, owned_items.value)) {
     // @ts-ignore
-    owned_items.value = [...items];
+    owned_items.value = [...items]
 
     const selected = items.find(
       // @ts-ignore
-      item => item.id === selected_item.value?.id,
-    );
+      (item) => item.id === selected_item.value?.id
+    )
 
     if (selected) {
-      selected_item.value = selected;
+      selected_item.value = selected
     }
   }
 
   if (!deep_equal(items_for_sale, my_listings.value))
-    my_listings.value = items_for_sale;
+    my_listings.value = items_for_sale
 
   if (accounts_addresses.join() !== available_accounts_addresses.join())
     available_accounts.value = accounts.filter(
-      ({ address }) => address !== selected_address,
-    );
+      ({ address }) => address !== selected_address
+    )
 
-  if (balance !== sui_balance.value) sui_balance.value = balance;
+  if (balance !== sui_balance.value) sui_balance.value = balance
 
   if (
     tokens.map(({ amount }) => amount.toString()).join() !==
@@ -213,45 +213,45 @@ function update_all(
       .map(({ amount }) => amount.toString())
       .join()
   )
-    owned_tokens.value = tokens;
+    owned_tokens.value = tokens
 
   // @ts-ignore
   if (current_wallet.value?.name !== selected_wallet_name)
     // @ts-ignore
-    current_wallet.value = selected_wallet;
+    current_wallet.value = selected_wallet
 
   if (admin.admin_caps.length !== sui.admin_caps.length) {
-    admin.admin_caps = sui.admin_caps;
+    admin.admin_caps = sui.admin_caps
     if (sui.admin_caps.length)
       sui_get_policies_profit().then(({ character_profits, item_profits }) => {
-        admin.character_profits = character_profits;
-        admin.item_profits = item_profits;
-      });
+        admin.character_profits = character_profits
+        admin.item_profits = item_profits
+      })
     else {
-      admin.character_profits = 0n;
-      admin.item_profits = 0n;
+      admin.character_profits = 0n
+      admin.item_profits = 0n
     }
   }
 
   if (!selected_wallet) {
-    available_accounts.value = [];
-    current_address.value = null;
-    current_account.value = null;
+    available_accounts.value = []
+    current_address.value = null
+    current_account.value = null
   }
 
   if (selected_address !== current_address.value) {
-    current_address.value = selected_address;
-    current_account.value = { ...selected_account };
+    current_address.value = selected_address
+    current_account.value = { ...selected_account }
   }
 
   // @ts-ignore
   if (current_account.value?.alias !== selected_account?.alias)
-    current_account.value = selected_account;
+    current_account.value = selected_account
 
-  if (state_online !== online.value) online.value = state_online;
+  if (state_online !== online.value) online.value = state_online
 
   if (selected_character.value) {
-    const character = current_sui_character(state);
+    const character = current_sui_character(state)
     if (character) {
       const {
         relic_1,
@@ -279,7 +279,7 @@ function update_all(
         agility,
         experience,
         health,
-      } = character;
+      } = character
 
       // Update stats if any changed
       const stats_changed = Object.entries({
@@ -290,7 +290,7 @@ function update_all(
         intelligence,
         wisdom,
         agility,
-      }).some(([key, value]) => selected_character.value[key] !== value);
+      }).some(([key, value]) => selected_character.value[key] !== value)
 
       if (stats_changed) {
         Object.assign(selected_character.value, {
@@ -301,7 +301,7 @@ function update_all(
           intelligence,
           wisdom,
           agility,
-        });
+        })
       }
 
       // Check equipment changes
@@ -322,116 +322,116 @@ function update_all(
         hat,
         cloak,
         pet,
-      };
+      }
 
       const equipment_changed = Object.entries(equipment_fields).some(
         ([key, value]) => {
           if (value?.id !== selected_character.value[key]?.id) {
-            selected_character.value[key] = value;
-            return true;
+            selected_character.value[key] = value
+            return true
           }
-          return false;
-        },
-      );
+          return false
+        }
+      )
 
-      if (equipment_changed) inventory_counter.value++;
+      if (equipment_changed) inventory_counter.value++
 
       // Update experience and health
       if (selected_character.value.experience !== experience)
-        selected_character.value.experience = experience;
+        selected_character.value.experience = experience
       if (equipment_changed || selected_character.value.health !== health)
         selected_character.value.health = Math.min(
           health,
-          get_max_health(character),
-        );
+          get_max_health(character)
+        )
     }
   }
 }
 
-let server_info_timeout = null;
+let server_info_timeout = null
 
 function on_server_info(event) {
-  const { player_count, max_players } = event;
+  const { player_count, max_players } = event
 
-  clearTimeout(server_info_timeout);
+  clearTimeout(server_info_timeout)
 
-  server_info.online_players = player_count;
-  server_info.max_players = max_players;
+  server_info.online_players = player_count
+  server_info.max_players = max_players
 
   server_info_timeout = setTimeout(() => {
-    server_info.online_players = 0;
-    server_info.max_players = 0;
-  }, 1000 * 10);
+    server_info.online_players = 0
+    server_info.max_players = 0
+  }, 1000 * 10)
 }
 
-let game_module = null;
+let game_module = null
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function update_all_(state) {
-  if (game_module) update_all(state, game_module);
+  if (game_module) update_all(state, game_module)
 }
 
 onMounted(async () => {
-  document.documentElement.setAttribute('data-theme', 'dark');
+  document.documentElement.setAttribute('data-theme', 'dark')
 
-  increase_loading();
+  increase_loading()
 
   const interval = setInterval(() => {
-    const el = document.querySelector('.vs-loading__load');
+    const el = document.querySelector('.vs-loading__load')
     // @ts-ignore
-    if (!el?.style) return;
+    if (!el?.style) return
     // @ts-ignore
-    if (el?.style.transform === 'scale(1)') return;
+    if (el?.style.transform === 'scale(1)') return
 
     // @ts-ignore
-    el.style.transform = 'scale(1)';
-  }, 100);
+    el.style.transform = 'scale(1)'
+  }, 100)
 
   try {
     const timeout_promise = new Promise((resolve, reject) =>
       setTimeout(() => {
-        reject(new Error('Game import timeout'));
-      }, 5000),
-    );
+        reject(new Error('Game import timeout'))
+      }, 5000)
+    )
     const { context, current_sui_character, current_three_character } =
-      await Promise.race([import('./core/game/game.js'), timeout_promise]);
-    const { enoki_address, enoki_wallet } = await import('./core/sui/enoki.js');
-    const { sui_get_policies_profit } = await import('./core/sui/client.js');
+      await Promise.race([import('./core/game/game.js'), timeout_promise])
+    const { enoki_address, enoki_wallet } = await import('./core/sui/enoki.js')
+    const { sui_get_policies_profit } = await import('./core/sui/client.js')
 
     game_module = {
       context,
       current_three_character,
       current_sui_character,
       sui_get_policies_profit,
-    };
-    decrease_loading();
+    }
+    decrease_loading()
 
-    clearInterval(interval);
+    clearInterval(interval)
 
-    context.events.on('STATE_UPDATED', update_all_);
-    update_all_(context.get_state());
+    context.events.on('STATE_UPDATED', update_all_)
+    update_all_(context.get_state())
 
-    context.events.on('packet/serverInfo', on_server_info);
+    context.events.on('packet/serverInfo', on_server_info)
 
-    const address = enoki_address();
+    const address = enoki_address()
 
     if (address) {
       // @ts-ignore
-      context.dispatch('action/register_wallet', enoki_wallet());
-      context.dispatch('action/select_wallet', 'Enoki');
-      context.dispatch('action/select_address', address);
+      context.dispatch('action/register_wallet', enoki_wallet())
+      context.dispatch('action/select_wallet', 'Enoki')
+      context.dispatch('action/select_address', address)
     }
   } catch (error) {
-    console.error('Error loading game module', error);
+    console.error('Error loading game module', error)
   }
-});
+})
 
 onUnmounted(() => {
   if (game_module) {
-    game_module.context.events.off('STATE_UPDATED', update_all_);
-    game_module.context.events.off('packet/serverInfo', on_server_info);
+    game_module.context.events.off('STATE_UPDATED', update_all_)
+    game_module.context.events.off('packet/serverInfo', on_server_info)
   }
-});
+})
 // @ts-ignore
 </script>
 

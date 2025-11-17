@@ -51,39 +51,39 @@
 } -->
 
 <script setup>
-import { computed, inject } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { computed, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { NETWORK } from '../../env.js';
-import action_icon from '../../assets/statistics/action.png';
-import movement_icon from '../../assets/statistics/movement.png';
-import range_icon from '../../assets/statistics/range.png';
-import vitality_icon from '../../assets/statistics/vitality.png';
-import wisdom_icon from '../../assets/statistics/wisdom.png';
-import strength_icon from '../../assets/statistics/strength.png';
-import intelligence_icon from '../../assets/statistics/intelligence.png';
-import chance_icon from '../../assets/statistics/chance.png';
-import agility_icon from '../../assets/statistics/agility.png';
-import critical_icon from '../../assets/statistics/crit.png';
-import raw_damage_icon from '../../assets/statistics/raw_damage.png';
-import { experience_to_level } from '../../core/utils/game/experience.js';
-import { get_player_skin } from '../../core/utils/three/skin.js';
+import { NETWORK } from '../../env.js'
+import action_icon from '../../assets/statistics/action.png'
+import movement_icon from '../../assets/statistics/movement.png'
+import range_icon from '../../assets/statistics/range.png'
+import vitality_icon from '../../assets/statistics/vitality.png'
+import wisdom_icon from '../../assets/statistics/wisdom.png'
+import strength_icon from '../../assets/statistics/strength.png'
+import intelligence_icon from '../../assets/statistics/intelligence.png'
+import chance_icon from '../../assets/statistics/chance.png'
+import agility_icon from '../../assets/statistics/agility.png'
+import critical_icon from '../../assets/statistics/crit.png'
+import raw_damage_icon from '../../assets/statistics/raw_damage.png'
+import { experience_to_level } from '../../core/utils/game/experience.js'
+import { get_player_skin } from '../../core/utils/three/skin.js'
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const short_id = id => `${id.slice(0, 3)}..${id.slice(-3)}`;
+const short_id = (id) => `${id.slice(0, 3)}..${id.slice(-3)}`
 
-const open_explorer = id => {
-  window.open(`https://suiscan.xyz/${NETWORK}/object/${id}`, '_blank');
-};
+const open_explorer = (id) => {
+  window.open(`https://suiscan.xyz/${NETWORK}/object/${id}`, '_blank')
+}
 
-const item = inject('selected_item');
+const item = inject('selected_item')
 
 const change_skin = computed(() => {
   return (
     get_player_skin({ [item.value.item_category]: item.value }) !== undefined
-  );
-});
+  )
+})
 
 const stats = computed(() => {
   return [
@@ -122,8 +122,8 @@ const stats = computed(() => {
       value: item.value.air_resistance,
       icon: agility_icon,
     },
-  ].filter(stat => stat.value);
-});
+  ].filter((stat) => stat.value)
+})
 </script>
 
 <style lang="stylus" scoped>

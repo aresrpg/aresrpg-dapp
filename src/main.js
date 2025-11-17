@@ -20,11 +20,11 @@ registerStashedWallet('AresRPG', { origin: 'https://getstashed.com' })
 
 console.log(
   "%c You're curious, I like you 🤭🍑",
-  'color: #1565C0;font-weight:bold;font-size:22px;',
+  'color: #1565C0;font-weight:bold;font-size:22px;'
 )
 console.log(
   "%c but don't bother, i'm open-source!",
-  'color: #E67E22;font-size:18px;',
+  'color: #E67E22;font-size:18px;'
 )
 console.log('%c https://github.com/aresrpg/aresrpg-dapp', 'font-size:15px;')
 
@@ -73,7 +73,7 @@ registerSW({
         if (installing_worker && !new_user) {
           const notification = toast.tx(
             'Installing the new AresRPG version',
-            'Update Available',
+            'Update Available'
           )
 
           // Listen for state changes on the installing worker
@@ -92,7 +92,7 @@ registerSW({
                       notification.remove()
                       window.location.reload()
                     },
-                  },
+                  }
                 )
               }
             }

@@ -28,16 +28,16 @@ step_audio.setVolume(0.7)
 step_audio.duration = 0.3
 
 const audio_loader = new AudioLoader()
-const random_element = arr => arr[Math.floor(Math.random() * arr.length)]
+const random_element = (arr) => arr[Math.floor(Math.random() * arr.length)]
 
 // Load all step sounds
 const step_sounds = [step1, step2, step3, step4, step5, step6]
 const step_audio_buffers = []
 
 // Load and store buffers for all step sounds
-Promise.all(step_sounds.map(sound => audio_loader.loadAsync(sound)))
-  .then(buffers => step_audio_buffers.push(...buffers))
-  .catch(error => {
+Promise.all(step_sounds.map((sound) => audio_loader.loadAsync(sound)))
+  .then((buffers) => step_audio_buffers.push(...buffers))
+  .catch((error) => {
     console.error('Error loading step sounds:', error)
   })
 
@@ -121,7 +121,7 @@ async function transition_to_biome_theme(biome) {
     const original_volume = main_audio.getVolume()
     for (let i = 10; i >= 0; i--) {
       main_audio.setVolume((i / 10) * original_volume)
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise((resolve) => setTimeout(resolve, 200))
     }
     main_audio.stop()
   }
@@ -149,7 +149,7 @@ export default function () {
       })
 
       aiter(abortable(set_interval(5000, null, { signal }))).reduce(
-        async last_biome => {
+        async (last_biome) => {
           const position = current_three_character()?.position
 
           if (position) {
@@ -164,7 +164,7 @@ export default function () {
           }
 
           return last_biome
-        },
+        }
       )
 
       events.on('packet/characterPosition', ({ id, position }) => {
@@ -193,7 +193,7 @@ export default function () {
             if (step_audio_buffers.length && !other_character.audio.isPlaying) {
               // Choose a random step sound
               other_character.audio.setBuffer(
-                random_element(step_audio_buffers),
+                random_element(step_audio_buffers)
               )
               other_character.audio.play() // Play the sound
             }

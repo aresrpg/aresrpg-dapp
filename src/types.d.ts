@@ -13,7 +13,6 @@ declare module 'stream' {
 }
 
 declare module 'three/addons/capabilities/WebGL.js' {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   function isWebGLAvailable(): boolean
 }
 
@@ -73,7 +72,7 @@ declare namespace Type {
         color_2: import('three').Color
         color_3: import('three').Color
       },
-      renderer?: any,
+      renderer?: any
     ) => void
   }
 
@@ -125,7 +124,7 @@ declare namespace Type {
     signAndExecuteTransaction: (param: sigTransactionParams) => Promise
     signPersonalMessage: (
       message: string,
-      address: string,
+      address: string
     ) => Promise<{ bytes: string; signature: string }>
     signTransaction: (param: sigTransactionParams) => Promise
   }

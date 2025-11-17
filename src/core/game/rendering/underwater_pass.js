@@ -154,7 +154,7 @@ class UnderwaterPass extends Pass {
   render(
     /** @type WebGLRenderer */ renderer,
     /** @type WebGLRenderTarget */ write_buffer,
-    /** @type WebGLRenderTarget */ read_buffer /*, deltaTime, maskActive */,
+    /** @type WebGLRenderTarget */ read_buffer /*, deltaTime, maskActive */
   ) {
     const previous_state = {
       rendertarget: renderer.getRenderTarget(),
@@ -165,7 +165,7 @@ class UnderwaterPass extends Pass {
     this.#material.uniforms.uColor.value = new Color().lerpColors(
       this.color,
       new Color(0xffffff),
-      0.15,
+      0.15
     )
     this.#material.uniforms.uTime.value = performance.now() / 3000
     this.#material.uniforms.uAspectRatio.value =

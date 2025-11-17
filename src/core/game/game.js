@@ -304,7 +304,7 @@ export function current_three_character(state = get_state()) {
 /** @return {Type.SuiCharacter} */
 export function current_sui_character(state = get_state()) {
   return state.sui.characters.find(
-    ({ id }) => id === state.selected_character_id,
+    ({ id }) => id === state.selected_character_id
   )
 }
 
@@ -363,7 +363,7 @@ const MODULES = [
 
 function last_event_value(emitter, event, default_value = null) {
   let value = default_value
-  emitter.on(event, new_value => {
+  emitter.on(event, (new_value) => {
     value = new_value
   })
   return () => value
@@ -402,13 +402,13 @@ const composer = new EffectComposer(
     type: HalfFloatType,
     depthBuffer: true,
     depthTexture: new DepthTexture(renderer_size.x, renderer_size.y),
-  }),
+  })
 )
 const camera = new PerspectiveCamera(
   70, // Field of view
   window.innerWidth / window.innerHeight, // Aspect ratio
   0.1, // Near clipping plane
-  3000, // Far clipping plane
+  3000 // Far clipping plane
 )
 camera.layers.enableAll()
 
@@ -479,17 +479,17 @@ function connect_ws() {
           context.dispatch('action/set_online', false)
 
           const { visible_characters, visible_mobs_group } = context.get_state()
-          visible_characters.forEach(character => character.remove())
+          visible_characters.forEach((character) => character.remove())
           visible_characters.clear()
 
           visible_mobs_group.forEach(({ entities }) =>
-            entities.forEach(mob => mob.remove()),
+            entities.forEach((mob) => mob.remove())
           )
           visible_mobs_group.clear()
 
           if (context.get_state().sui.selected_address && should_reconnect)
             setTimeout(() => {
-              connect_ws().catch(error => {
+              connect_ws().catch((error) => {
                 console.error('Failed to reconnect:', error)
               })
             }, 1000)
@@ -504,7 +504,7 @@ function connect_ws() {
                 button_text: i18n.global.t('SERVER_RECONNECT_BUTTON'),
                 button_action: () => events.emit('RECONNECT_TO_SERVER'),
                 icon: 'sword',
-              },
+              }
             )
           }
 
@@ -514,7 +514,7 @@ function connect_ws() {
           const message = event.data
           ares_client?.notify_message(message)
         },
-        onConnected: ws => {
+        onConnected: (ws) => {
           ws.binaryType = 'arraybuffer'
           logger.SOCKET(`connected to ${server_url}`)
 
@@ -522,25 +522,25 @@ function connect_ws() {
 
           ares_client = create_client({
             socket_write: ws.send.bind(ws),
-            socket_end: message => ws.close(1000, message),
+            socket_end: (message) => ws.close(1000, message),
           })
 
           ares_client.stream.pipe(packets)
 
           connecting_toast.update(
             'success',
-            i18n.global.t('WS_CONNECTED_TO_SERVER'),
+            i18n.global.t('WS_CONNECTED_TO_SERVER')
           )
 
           resolve()
         },
-      },
+      }
     )
 
-    watch(status, value => {
+    watch(status, (value) => {
       ws_status.value = value
     })
-  }).catch(error => {
+  }).catch((error) => {
     console.error('Failed to connect:', error)
     connecting_toast?.update('error', i18n.global.t('WS_FAILED_TO_CONNECT'))
   })
@@ -555,7 +555,7 @@ const context = {
   camera_controls: new CustomCameraControls(
     camera,
     renderer.domElement,
-    voxelmap_collisions,
+    voxelmap_collisions
   ),
   /** @type {ReturnType<import("@aresrpg/aresrpg-protocol")["create_client"]>["send"]} */
   send_packet(type, payload) {
@@ -590,10 +590,10 @@ const context = {
   directional_light,
   signal: controller.signal,
   controller,
-  on_game_show: handler => {
+  on_game_show: (handler) => {
     game_visible_emitter.on('show', handler)
   },
-  on_game_hide: handler => {
+  on_game_hide: (handler) => {
     game_visible_emitter.on('hide', handler)
   },
   switch_to_isometric() {
@@ -627,12 +627,12 @@ const context = {
 
 listen_for_requests()
 
-const modules = MODULES.map(create => create())
+const modules = MODULES.map((create) => create())
 
 modules
   .map(({ observe }) => observe)
   .filter(Boolean)
-  .forEach(observe => observe(context))
+  .forEach((observe) => observe(context))
 
 // pipe the actions and packets through the reducers
 aiter(combine(actions, packets))
@@ -660,9 +660,9 @@ aiter(combine(actions, packets))
     },
     {
       ...INITIAL_STATE,
-    },
+    }
   )
-  .catch(error => {
+  .catch((error) => {
     console.error(error)
   })
 
@@ -674,7 +674,7 @@ let canvas_applied = false
 
 const reusable_matrix4 = new Matrix4()
 
-window.addEventListener('mousemove', event => {
+window.addEventListener('mousemove', (event) => {
   context.mouse_position.x = (event.clientX / window.innerWidth) * 2 - 1
   context.mouse_position.y = -(event.clientY / window.innerHeight) * 2 + 1
 })
@@ -690,13 +690,13 @@ function animate() {
     context.frustum.setFromProjectionMatrix(
       reusable_matrix4
         .identity()
-        .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+        .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
     )
 
     modules
       .map(({ tick }) => tick)
       .filter(Boolean)
-      .forEach(tick => tick(state, context, delta))
+      .forEach((tick) => tick(state, context, delta))
 
     renderer.info.reset()
 
@@ -711,7 +711,7 @@ function animate() {
     modules
       .map(({ post_render }) => post_render)
       .filter(Boolean)
-      .forEach(post_render => post_render(context))
+      .forEach((post_render) => post_render(context))
 
     const next_frame_duration = 1000 / state.settings.target_fps
 

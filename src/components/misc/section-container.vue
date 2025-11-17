@@ -5,13 +5,13 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n();
-const props = defineProps(['allow_offline']);
+const { t } = useI18n()
+const props = defineProps(['allow_offline'])
 
-const online = inject('online');
+const online = inject('online')
 </script>
 
 <style lang="stylus" scoped>

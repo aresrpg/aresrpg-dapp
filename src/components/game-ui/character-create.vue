@@ -1,136 +1,136 @@
 <script setup>
-import { inject, ref, watch, computed, provide, reactive } from 'vue';
-import Spells from '@aresrpg/aresrpg-sdk/spells';
-import { useI18n } from 'vue-i18n';
+import { inject, ref, watch, computed, provide, reactive } from 'vue'
+import Spells from '@aresrpg/aresrpg-sdk/spells'
+import { useI18n } from 'vue-i18n'
 
 import {
   sui_create_character,
   sui_is_character_name_taken,
-} from '../../core/sui/client.js';
-import toast from '../../toast.js';
-import { characters_references } from '../../core/utils/game/spells.js';
-import { character_colors } from '../../core/utils/character_colors.js';
+} from '../../core/sui/client.js'
+import toast from '../../toast.js'
+import { characters_references } from '../../core/utils/game/spells.js'
+import { character_colors } from '../../core/utils/character_colors.js'
 
-import characterCanvasDisplay from './character-canvas-display.vue';
-import SpellDisplay from './menu_spell_display.vue';
+import characterCanvasDisplay from './character-canvas-display.vue'
+import SpellDisplay from './menu_spell_display.vue'
 
-const name_error = ref('');
-const selected_class_type = ref('SENSHI_MALE');
-const create_button_disabled = ref(false);
+const name_error = ref('')
+const selected_class_type = ref('SENSHI_MALE')
+const create_button_disabled = ref(false)
 
-const new_character_name = ref('');
+const new_character_name = ref('')
 
-const new_character_dialog = inject('new_character_dialog');
+const new_character_dialog = inject('new_character_dialog')
 
-const emits = defineEmits(['cancel']);
-const { t } = useI18n();
+const emits = defineEmits(['cancel'])
+const { t } = useI18n()
 
-const create_character_colors = reactive(character_colors);
+const create_character_colors = reactive(character_colors)
 
-provide('create_character_colors', create_character_colors);
+provide('create_character_colors', create_character_colors)
 
 const classe_type = computed(() => {
-  const base = selected_class_type.value.split('_')[0].toLocaleLowerCase();
-  if (selected_class_type.value.includes('FEMALE')) return `${base}_female`;
-  return base;
-});
+  const base = selected_class_type.value.split('_')[0].toLocaleLowerCase()
+  if (selected_class_type.value.includes('FEMALE')) return `${base}_female`
+  return base
+})
 
 const color1 = computed({
   get: () => create_character_colors[classe_type.value][0],
-  set: value => (create_character_colors[classe_type.value][0] = value),
-});
+  set: (value) => (create_character_colors[classe_type.value][0] = value),
+})
 
 const color2 = computed({
   get: () => create_character_colors[classe_type.value][1],
-  set: value => (create_character_colors[classe_type.value][1] = value),
-});
+  set: (value) => (create_character_colors[classe_type.value][1] = value),
+})
 
 const color3 = computed({
   get: () => create_character_colors[classe_type.value][2],
-  set: value => (create_character_colors[classe_type.value][2] = value),
-});
+  set: (value) => (create_character_colors[classe_type.value][2] = value),
+})
 
 function get_character_skin({ classe, female }) {
   if (classe === 'SENSHI')
     return female
       ? 'https://assets.aresrpg.world/classe/senshi_female.jpg'
-      : 'https://assets.aresrpg.world/classe/senshi_male.jpg';
+      : 'https://assets.aresrpg.world/classe/senshi_male.jpg'
   if (classe === 'yajin')
     return female
       ? 'https://assets.aresrpg.world/classe/yajin_female.jpg'
-      : 'https://assets.aresrpg.world/classe/yajin_male.jpg';
+      : 'https://assets.aresrpg.world/classe/yajin_male.jpg'
 }
 
 const selected_class_data = computed(() => {
   const character = characters_references.find(
-    character => character.type === selected_class_type.value,
-  );
+    (character) => character.type === selected_class_type.value
+  )
 
-  if (!character?.class) throw new Error('Invalid character type');
+  if (!character?.class) throw new Error('Invalid character type')
 
   return {
     ...character,
     spells: Spells[character.class],
-  };
-});
+  }
+})
 
 const name_too_long = computed(
-  () => new_character_name.value.trim().length > 20,
-);
+  () => new_character_name.value.trim().length > 20
+)
 const name_invalid = computed(
-  () => !new_character_name.value.trim().match(/^[a-zA-Z0-9-_]+$/),
-);
+  () => !new_character_name.value.trim().match(/^[a-zA-Z0-9-_]+$/)
+)
 const name_white_space = computed(
-  () => !new_character_name.value.match(/^[a-zA-Z0-9-_]+$/),
-);
+  () => !new_character_name.value.match(/^[a-zA-Z0-9-_]+$/)
+)
 
 function on_server_error({ code }) {
   switch (code) {
     case 'CREATE_CHARACTER_NAME_TAKEN':
-      name_error.value = 'This name is already taken';
-      break;
+      name_error.value = 'This name is already taken'
+      break
     default:
-      break;
+      break
   }
 }
 
-watch(new_character_dialog, value => {
+watch(new_character_dialog, (value) => {
   if (!value) {
-    new_character_name.value = '';
-    name_error.value = '';
+    new_character_name.value = ''
+    name_error.value = ''
   }
-});
+})
 
-watch(new_character_name, value => {
+watch(new_character_name, (value) => {
   if (value.length > 2 && name_too_long.value) {
-    name_error.value = t('APP_CHARACTER_NAME_TOO_LONG');
+    name_error.value = t('APP_CHARACTER_NAME_TOO_LONG')
   } else if (value.length > 2 && name_invalid.value) {
-    name_error.value = t('APP_CHARACTER_NAME_INVALID');
+    name_error.value = t('APP_CHARACTER_NAME_INVALID')
   } else if (value.length > 2 && name_white_space.value) {
-    name_error.value = t('APP_CHARACTER_NAME_WHITE_SPACE');
-  } else if (value) name_error.value = '';
-});
+    name_error.value = t('APP_CHARACTER_NAME_WHITE_SPACE')
+  } else if (value) name_error.value = ''
+})
 
 async function create_character() {
-  create_button_disabled.value = true;
-  const female = selected_class_type.value.includes('FEMALE');
+  create_button_disabled.value = true
+  const female = selected_class_type.value.includes('FEMALE')
   const classe = selected_class_type.value.includes('SENSHI')
     ? 'senshi'
-    : 'yajin';
+    : 'yajin'
 
   if (await sui_is_character_name_taken(new_character_name.value)) {
-    name_error.value = t('APP_CHARACTER_NAME_TAKEN');
-    create_button_disabled.value = false;
-    return;
+    name_error.value = t('APP_CHARACTER_NAME_TAKEN')
+    create_button_disabled.value = false
+    return
   }
 
-  const tx = toast.tx(t('APP_CHARACTER_CREATE_TX'), new_character_name.value);
+  const tx = toast.tx(t('APP_CHARACTER_CREATE_TX'), new_character_name.value)
 
   try {
-    cancel();
+    cancel()
     const [color_1, color_2, color_3] =
-      create_character_colors[`${classe}${female ? '_female' : ''}`];
-    console.log('colors are', color_1, color_2, color_3);
+      create_character_colors[`${classe}${female ? '_female' : ''}`]
+    console.log('colors are', color_1, color_2, color_3)
     await sui_create_character({
       name: new_character_name.value,
       type: classe,
@@ -138,26 +138,26 @@ async function create_character() {
       color_1,
       color_2,
       color_3,
-    });
-    tx.update('success', t('APP_CHARACTER_CREATE_OK'));
+    })
+    tx.update('success', t('APP_CHARACTER_CREATE_OK'))
 
-    new_character_name.value = '';
+    new_character_name.value = ''
   } catch (error) {
-    if (error) tx.update('error', t('APP_CHARACTER_CREATE_ERROR'));
-    else tx.remove();
+    if (error) tx.update('error', t('APP_CHARACTER_CREATE_ERROR'))
+    else tx.remove()
   }
-  create_button_disabled.value = false;
+  create_button_disabled.value = false
 }
 
 const is_character_name_valid = computed(
   () =>
     new_character_name.value.length > 3 &&
     new_character_name.value.length <= 20 &&
-    new_character_name.value.match(/^[a-zA-Z0-9-_]+$/),
-);
+    new_character_name.value.match(/^[a-zA-Z0-9-_]+$/)
+)
 
 function cancel() {
-  emits('cancel');
+  emits('cancel')
 }
 </script>
 

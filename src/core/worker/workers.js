@@ -24,7 +24,7 @@ const [LOD_WORKER_POOL, TERRAIN_WORKER_POOL, DEFAULT_WORKER_POOL] =
     create_worker_pool('lod'),
     create_worker_pool(
       'chunks',
-      Math.min(navigator.hardwareConcurrency, 4), // limit workers to avoid eating CPU resources, and timeout bug
+      Math.min(navigator.hardwareConcurrency, 4) // limit workers to avoid eating CPU resources, and timeout bug
     ),
     create_worker_pool('default'),
   ])

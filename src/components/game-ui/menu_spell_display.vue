@@ -1,8 +1,8 @@
 <script setup>
-import { spell_icons } from './spell_icons.js';
-import SpellCard from './spell_card.vue';
+import { spell_icons } from './spell_icons.js'
+import SpellCard from './spell_card.vue'
 
-const props = defineProps(['spells']);
+const props = defineProps(['spells'])
 </script>
 
 <template lang="pug">

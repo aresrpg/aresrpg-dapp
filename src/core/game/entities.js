@@ -43,7 +43,7 @@ function fade_to_animation(from, to, duration = 0.3) {
 function entity_spawner(
   /** @type {() => Promise<ReturnType<Awaited<ReturnType<typeof import("../utils/three/load_model.js")["load"]>>>>} */
   load_model,
-  { height, radius, scale = 1, hair = null },
+  { height, radius, scale = 1, hair = null }
 ) {
   return async ({ id, name = '', scene_override = null, scale_factor = 1 }) => {
     const { model, compute_animations, set_variant, variants, custom_colors } =
@@ -53,7 +53,7 @@ function entity_spawner(
     model.scale.set(
       scale * scale_factor,
       scale * scale_factor,
-      scale * scale_factor,
+      scale * scale_factor
     )
 
     const origin = new Group()
@@ -67,7 +67,7 @@ function entity_spawner(
     title.layers.set(CartoonRenderpass.non_outlined_layer)
 
     const hitbox = new Mesh(
-      new BoxGeometry(radius, height, radius),
+      new BoxGeometry(radius, height, radius)
       // new MeshBasicMaterial({ color: 0x00ff00, wireframe: true }),
     )
 
@@ -140,7 +140,7 @@ function entity_spawner(
 
     function set_colors(
       { color_1, color_2, color_3 },
-      renderer = context.renderer,
+      renderer = context.renderer
     ) {
       if (!custom_colors)
         throw new Error('This entity does not support custom colors')
@@ -181,7 +181,7 @@ function entity_spawner(
         // Calculate the target quaternion: this rotates modelForward to align with flatMovement
         const quaternion = new Quaternion().setFromUnitVectors(
           MODEL_FORWARD,
-          flat_movement,
+          flat_movement
         )
         origin.quaternion.copy(quaternion)
       },

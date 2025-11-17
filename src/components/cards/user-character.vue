@@ -29,60 +29,60 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { isValidSuiAddress } from '@mysten/sui/utils';
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { isValidSuiAddress } from '@mysten/sui/utils'
 
-import characterCanvasDisplay from '../game-ui/character-canvas-display.vue';
-import { experience_to_level } from '../../core/utils/game/experience.js';
-import { sui_delete_character } from '../../core/sui/client.js';
-import toast from '../../toast.js';
-import { NETWORK } from '../../env.js';
+import characterCanvasDisplay from '../game-ui/character-canvas-display.vue'
+import { experience_to_level } from '../../core/utils/game/experience.js'
+import { sui_delete_character } from '../../core/sui/client.js'
+import toast from '../../toast.js'
+import { NETWORK } from '../../env.js'
 
-const { t } = useI18n();
-const props = defineProps(['character', 'locked']);
+const { t } = useI18n()
+const props = defineProps(['character', 'locked'])
 
 const genrer_icon = computed(() =>
-  props.character.sex === 'male' ? 'bx-male-sign' : 'bx-female-sign',
-);
+  props.character.sex === 'male' ? 'bx-male-sign' : 'bx-female-sign'
+)
 const character_explorer_link = computed(
-  () => `https://suiscan.xyz/${NETWORK}/object/${props.character.id}`,
-);
+  () => `https://suiscan.xyz/${NETWORK}/object/${props.character.id}`
+)
 
 const is_valid_sui_address = computed(() => {
-  const is_alias = send_to.value.includes('@');
-  return is_alias || isValidSuiAddress(send_to.value);
-});
+  const is_alias = send_to.value.includes('@')
+  return is_alias || isValidSuiAddress(send_to.value)
+})
 
-const delete_dialog = ref(false);
-const delete_loading = ref(false);
+const delete_dialog = ref(false)
+const delete_loading = ref(false)
 
-const edit_dialog = ref(false);
+const edit_dialog = ref(false)
 
-const send_dialog = ref(false);
-const send_to = ref('');
-const send_loading = ref(false);
+const send_dialog = ref(false)
+const send_to = ref('')
+const send_loading = ref(false)
 
 async function delete_character() {
   const { update, remove } = toast.tx(
     t('APP_USER_DELETING'),
-    props.character.name,
-  );
+    props.character.name
+  )
   try {
     if (has_equipment(props.character)) {
-      update('error', t('APP_USER_HAS_EQUIPMENT'));
-      delete_dialog.value = false;
-      return;
+      update('error', t('APP_USER_HAS_EQUIPMENT'))
+      delete_dialog.value = false
+      return
     }
-    delete_loading.value = true;
-    delete_dialog.value = false;
-    await sui_delete_character(props.character);
-    update('success', t('APP_USER_DELETED'));
+    delete_loading.value = true
+    delete_dialog.value = false
+    await sui_delete_character(props.character)
+    update('success', t('APP_USER_DELETED'))
   } catch (error) {
-    if (error) update('error', t('APP_USER_DELETE_FAILED'));
-    else remove();
+    if (error) update('error', t('APP_USER_DELETE_FAILED'))
+    else remove()
   } finally {
-    delete_loading.value = false;
+    delete_loading.value = false
   }
 }
 
@@ -104,7 +104,7 @@ function has_equipment(character) {
     character.relic_4 ||
     character.relic_5 ||
     character.relic_6
-  );
+  )
 }
 </script>
 

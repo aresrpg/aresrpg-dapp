@@ -1,34 +1,34 @@
 <script setup>
 // chat-gpt generated code
-import { ref, onMounted, nextTick } from 'vue';
-const props = defineProps(['tabs', 'nobg', 'scroll', 'noborder']);
-const active_tab = ref(Object.keys(props.tabs)[0]);
-const border_style = ref({});
+import { ref, onMounted, nextTick } from 'vue'
+const props = defineProps(['tabs', 'nobg', 'scroll', 'noborder'])
+const active_tab = ref(Object.keys(props.tabs)[0])
+const border_style = ref({})
 
-const tabs_container_ref = ref(null);
+const tabs_container_ref = ref(null)
 
-const update_border_style = tab_element => {
+const update_border_style = (tab_element) => {
   border_style.value = {
     width: `${tab_element.offsetWidth}px`,
     transform: `translateX(${tab_element.offsetLeft}px)`,
-  };
-};
+  }
+}
 
 const set_active_tab = (tab, event) => {
-  active_tab.value = tab;
-  update_border_style(event.currentTarget);
-};
+  active_tab.value = tab
+  update_border_style(event.currentTarget)
+}
 
 onMounted(async () => {
   // Wait for the next DOM update cycle to ensure all elements are rendered
-  await nextTick();
+  await nextTick()
   const active_tab_element =
     // @ts-ignore
-    tabs_container_ref.value.querySelector('.tab.active');
+    tabs_container_ref.value.querySelector('.tab.active')
   if (active_tab_element) {
-    update_border_style(active_tab_element);
+    update_border_style(active_tab_element)
   }
-});
+})
 </script>
 
 <template lang="pug">

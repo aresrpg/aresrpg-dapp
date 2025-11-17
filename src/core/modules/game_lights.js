@@ -46,7 +46,7 @@ export default function () {
 
       function update_directional_light_position(
         /** @type Vector3 */ light_position,
-        /** @type Vector3 */ player_position,
+        /** @type Vector3 */ player_position
       ) {
         const light_target_position = player_position.clone
           ? player_position.clone()
@@ -90,7 +90,7 @@ export default function () {
             last_player_position,
             last_water_color,
           },
-          state,
+          state
         ) => {
           const lights_changed =
             state.settings.sky.lights.version !== last_sky_lights_version ||
@@ -115,7 +115,7 @@ export default function () {
                 .clone()
                 .multiply(last_water_color)
                 .multiplyScalar(
-                  Math.min(1, state.settings.sky.lights.ambient.intensity),
+                  Math.min(1, state.settings.sky.lights.ambient.intensity)
                 )
             }
 
@@ -129,7 +129,7 @@ export default function () {
             if (lights_changed || player_moved) {
               update_directional_light_position(
                 state.settings.sky.lights.directional.position,
-                last_player_position,
+                last_player_position
               )
             }
           }
@@ -146,7 +146,7 @@ export default function () {
           last_camera_is_underwater: false,
           last_player_position: null,
           last_water_color: null,
-        },
+        }
       )
     },
   }

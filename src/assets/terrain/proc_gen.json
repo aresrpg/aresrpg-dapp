@@ -1,32 +1,32 @@
 {
-    "controller": { "width": 400, "height": 300 },
-    "noise_panels": [
-      {
-        "seed": 0,
-        "period": 128,
-        "interpolation": "smoother",
-        "spline": [
-          { "x": 0, "y": 0 },
-          { "x": 1, "y": 0.9 },
-          { "x": 0.18, "y": 0.05 },
-          { "x": 0.26, "y": 0.21 },
-          { "x": 0.33, "y": 0.23 },
-          { "x": 0.48, "y": 0.42 },
-          { "x": 0.71, "y": 0.52 },
-          { "x": 0.9, "y": 0.76 },
-          { "x": 0.95, "y": 0.92 }
-        ],
-        "harmonics": 5,
-        "harmonic_spread": 2,
-        "harmonic_gain": 0.5,
-        "negative": false,
-        "blend_mode": "addition",
-        "blend_weight": 1.8,
-        "offset_x": 0,
-        "offset_y": 0,
-        "scale_x": 1,
-        "scale_y": 1,
-        "spread": 1.42
-      }
-    ]
-  }
+  "controller": { "width": 400, "height": 300 },
+  "noise_panels": [
+    {
+      "seed": 0,
+      "period": 128,
+      "interpolation": "smoother",
+      "spline": [
+        { "x": 0, "y": 0 },
+        { "x": 1, "y": 0.9 },
+        { "x": 0.18, "y": 0.05 },
+        { "x": 0.26, "y": 0.21 },
+        { "x": 0.33, "y": 0.23 },
+        { "x": 0.48, "y": 0.42 },
+        { "x": 0.71, "y": 0.52 },
+        { "x": 0.9, "y": 0.76 },
+        { "x": 0.95, "y": 0.92 }
+      ],
+      "harmonics": 5,
+      "harmonic_spread": 2,
+      "harmonic_gain": 0.5,
+      "negative": false,
+      "blend_mode": "addition",
+      "blend_weight": 1.8,
+      "offset_x": 0,
+      "offset_y": 0,
+      "scale_x": 1,
+      "scale_y": 1,
+      "spread": 1.42
+    }
+  ]
+}

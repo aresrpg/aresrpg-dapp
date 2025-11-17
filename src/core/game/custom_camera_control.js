@@ -16,7 +16,7 @@ export class CustomCameraControls extends CameraControls {
   constructor(
     /** @type PerspectiveCamera */ camera,
     /** @type HTMLElement */ dom_element,
-    /** @type VoxelmapCollisions */ voxelmap_collisions,
+    /** @type VoxelmapCollisions */ voxelmap_collisions
   ) {
     super(camera, dom_element)
     this.voxelmap_collisions = voxelmap_collisions
@@ -53,7 +53,7 @@ export class CustomCameraControls extends CameraControls {
           missingVoxels: {
             considerAsBlocking: false,
           },
-        },
+        }
       )
       if (
         raycasting_result &&

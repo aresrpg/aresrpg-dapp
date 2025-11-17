@@ -30,20 +30,20 @@
     </template>
 
 <script setup>
-import { ref, inject, reactive, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { ref, inject, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { context, current_sui_character } from '../../core/game/game.js';
+import { context, current_sui_character } from '../../core/game/game.js'
 
 // @ts-ignore
-import RadixIconsCross2 from '~icons/radix-icons/cross-2';
+import RadixIconsCross2 from '~icons/radix-icons/cross-2'
 // @ts-ignore
-import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
+import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular'
 
-const selected_character = inject('selected_character');
-const character = current_sui_character(context.get_state());
+const selected_character = inject('selected_character')
+const character = current_sui_character(context.get_state())
 
-const { t } = useI18n();
+const { t } = useI18n()
 
 const timeline = ref([
   {
@@ -74,65 +74,65 @@ const timeline = ref([
     secondTeam: true,
     name: 'Sceat_3',
   },
-]);
+])
 
-const myself = computed(() => timeline.value.find(player => player.myself));
+const myself = computed(() => timeline.value.find((player) => player.myself))
 
 const current_player = computed(() =>
-  timeline.value.find(player => player.isCurrent),
-);
+  timeline.value.find((player) => player.isCurrent)
+)
 
-const time = ref(Date.now());
-const fight_state = ref({ state: 'NOTHING' });
-const in_fight = inject('in_fight');
-const fight_character_overview = inject('fight_character_overview');
+const time = ref(Date.now())
+const fight_state = ref({ state: 'NOTHING' })
+const in_fight = inject('in_fight')
+const fight_character_overview = inject('fight_character_overview')
 
 const start_fight = () => {
   // render_board_container
-  console.log(character);
-  const position = character.position;
+  console.log(character)
+  const position = character.position
   // setup_board_container(position)
   // in_fight.value = true
-  fight_state.value = { state: 'PREPARE', nextStepTime: Date.now() + 5000 };
-};
+  fight_state.value = { state: 'PREPARE', nextStepTime: Date.now() + 5000 }
+}
 const ready_fight = () => {
   // in_fight.value = !in_fight
   // fight_state.value = {state: 'PREPARE', nextStepTime: Date.now() + 5000}
-};
+}
 
 const next_turn = () => {
-  fight_state.value = { state: 'FIGHT', nextStepTime: Date.now() + 5000 };
+  fight_state.value = { state: 'FIGHT', nextStepTime: Date.now() + 5000 }
 
   const currentPlayerIndex = timeline.value.findIndex(
-    player => player.isCurrent,
-  );
-  timeline.value[currentPlayerIndex].isCurrent = false;
+    (player) => player.isCurrent
+  )
+  timeline.value[currentPlayerIndex].isCurrent = false
   timeline.value[(currentPlayerIndex + 1) % timeline.value.length].isCurrent =
-    true;
-};
+    true
+}
 
 /**
  * Each 5 seconds, update the current player
  */
 setInterval(async () => {
   if (fight_state.value.state == 'PREPARE') {
-    in_fight.value = true;
+    in_fight.value = true
     if (fight_state.value.nextStepTime < Date.now()) {
-      fight_state.value = { state: 'FIGHT', nextStepTime: Date.now() + 5000 };
-      timeline.value[0].isCurrent = true;
+      fight_state.value = { state: 'FIGHT', nextStepTime: Date.now() + 5000 }
+      timeline.value[0].isCurrent = true
     }
-    return;
+    return
   }
   if (fight_state.value.state == 'FIGHT') {
     if (fight_state.value.nextStepTime < Date.now()) {
-      next_turn();
+      next_turn()
     }
   }
-}, 100);
+}, 100)
 
 setInterval(() => {
-  time.value = Date.now();
-}, 10);
+  time.value = Date.now()
+}, 10)
 </script>
 
 <style lang="stylus" scoped>

@@ -4,7 +4,7 @@ function logger({ header, strong, light }) {
       console.groupCollapsed(
         `%c${header}%c ${message}`,
         `background: ${strong}; color: white; padding: 2px 4px; border-radius: 2px`,
-        `font-weight: 800; color: ${light}`,
+        `font-weight: 800; color: ${light}`
       )
       console.log(payload)
       console.groupEnd()
@@ -12,7 +12,7 @@ function logger({ header, strong, light }) {
       console.log(
         `%c${header}%c ${message}`,
         `background: ${strong}; color: white; padding: 2px 4px; border-radius: 2px`,
-        `font-weight: 800; color: ${light}`,
+        `font-weight: 800; color: ${light}`
       )
     }
   }

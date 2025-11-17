@@ -78,10 +78,10 @@ APP_ITEM_RAW_DAMAGE: damages
 APP_ITEM_ACTION: AP
 APP_ITEM_MOVEMENT: MP
 APP_ITEM_RANGE: range
-APP_ITEM_EARTH_RESISTANCE: "% earth resistance"
-APP_ITEM_FIRE_RESISTANCE: "% fire resistance"
-APP_ITEM_WATER_RESISTANCE: "% water resistance"
-APP_ITEM_AIR_RESISTANCE: "% air resistance"
+APP_ITEM_EARTH_RESISTANCE: '% earth resistance'
+APP_ITEM_FIRE_RESISTANCE: '% fire resistance'
+APP_ITEM_WATER_RESISTANCE: '% water resistance'
+APP_ITEM_AIR_RESISTANCE: '% air resistance'
 APP_ITEM_EFFECTS: Effects
 APP_ITEM_CONSUMABLE_EFFECT: This item seem to have some effects but who knows what it does ? Be brave and try it out!
 APP_ITEM_STOMACH: in stomach
@@ -252,7 +252,6 @@ APP_CHARACTER_LEVELUP_TITLE: Informations
 APP_CHARACTER_LEVELUP_INFO: You are now level {level}
 APP_CHARACTER_LEVELUP_CLOSE: Close
 
-
 APP_GAME_CHAT_COPY_ADDRESS: Copy address
 APP_GAME_CHAT_COPIED: Address copied to clipboard
 APP_GAME_CHAT_NO_CHARACTER: You must select a character first
@@ -312,7 +311,7 @@ APP_WALLET_NO_WALLET: It seem you don't have any wallet, please install one. You
 
 WALLET_PLEASE_SWITCH_NETWORK: Please switch to the Sui
 WALLET_CONFIG: Wallet configuration error
-WALLET_SIGN_MESSAGE: "[AresRPG] This is a verification message to prove that you own this address. It will allow you to connect to the server"
+WALLET_SIGN_MESSAGE: '[AresRPG] This is a verification message to prove that you own this address. It will allow you to connect to the server'
 
 SUI_ENOKI_SALT: Enoki failed to deliver the transaction (salt failure). Please try again.
 SUI_NO_GAS: You need Sui in your wallet to perform this action

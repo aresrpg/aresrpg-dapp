@@ -89,7 +89,7 @@ export default function () {
           text_object.position.set(
             target_object.x + 2 * (Math.random() - 0.5),
             target_object.y + Math.random(),
-            target_object.z + 2 * (Math.random() - 0.5),
+            target_object.z + 2 * (Math.random() - 0.5)
           )
 
           const text_particle = {
@@ -103,7 +103,7 @@ export default function () {
             text_particles_list.push(text_particle)
             scene.add(text_object)
           })
-        },
+        }
       )
 
       // window.addEventListener('keyup', event => {

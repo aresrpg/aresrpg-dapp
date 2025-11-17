@@ -66,9 +66,9 @@ export default function () {
       if (type === 'action/sui_data_update') {
         if (payload.characters) {
           // some fields might be often updated by the server, so we don't want to override them with on chain data
-          payload.characters.forEach(character => {
+          payload.characters.forEach((character) => {
             const existing_character = state.sui.characters.find(
-              ({ id }) => id === character.id,
+              ({ id }) => id === character.id
             )
 
             if (existing_character?.health)
@@ -78,7 +78,7 @@ export default function () {
           // @ts-ignore
           payload.items = [
             ...payload?.items,
-            ...payload.characters.map(character => ({
+            ...payload.characters.map((character) => ({
               ...character,
               image_url: `https://assets.aresrpg.world/classe/${character.classe}_${character.sex}.jpg`,
             })),
@@ -95,7 +95,7 @@ export default function () {
       }
       if (type === 'action/character_update') {
         const character = state.sui.characters.find(
-          ({ id }) => id === payload.id,
+          ({ id }) => id === payload.id
         )
         if (character)
           return {
@@ -125,12 +125,12 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            items: state.sui.items.filter(item => item.id !== payload),
+            items: state.sui.items.filter((item) => item.id !== payload),
             items_for_sale: state.sui.items_for_sale.filter(
-              item => item.id !== payload,
+              (item) => item.id !== payload
             ),
             characters: state.sui.characters.filter(
-              character => character.id !== payload,
+              (character) => character.id !== payload
             ),
           },
         }
@@ -140,8 +140,8 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            items: state.sui.items.map(item =>
-              item.id === payload.id ? payload : item,
+            items: state.sui.items.map((item) =>
+              item.id === payload.id ? payload : item
             ),
           },
         }
@@ -158,9 +158,11 @@ export default function () {
                 list_price: payload.list_price,
               },
             ],
-            items: state.sui.items.filter(item => item.id !== payload.item.id),
+            items: state.sui.items.filter(
+              (item) => item.id !== payload.item.id
+            ),
             characters: state.sui.characters.filter(
-              character => character.id !== payload.item.id,
+              (character) => character.id !== payload.item.id
             ),
           },
         }
@@ -169,7 +171,7 @@ export default function () {
         if (payload.keep) {
           if (payload.character_id) {
             const character = state.sui.items_for_sale.find(
-              item => item.id === payload.character_id,
+              (item) => item.id === payload.character_id
             )
             // @ts-ignore
             state.sui.characters.push(character)
@@ -182,9 +184,8 @@ export default function () {
           sui: {
             ...state.sui,
             items_for_sale: state.sui.items_for_sale.filter(
-              item =>
-                item.id !== payload.item?.id &&
-                item.id !== payload.character_id,
+              (item) =>
+                item.id !== payload.item?.id && item.id !== payload.character_id
             ),
           },
         }
@@ -214,9 +215,9 @@ export default function () {
           sui: {
             ...state.sui,
             characters: state.sui.characters.filter(
-              character => character.id !== payload,
+              (character) => character.id !== payload
             ),
-            items: state.sui.items.filter(item => item.id !== payload),
+            items: state.sui.items.filter((item) => item.id !== payload),
           },
         }
       }
@@ -227,7 +228,7 @@ export default function () {
           sui: {
             ...state.sui,
             finished_crafts: state.sui.finished_crafts.filter(
-              craft => craft.id !== payload,
+              (craft) => craft.id !== payload
             ),
           },
         }
@@ -236,7 +237,7 @@ export default function () {
         const { slot, item, character_id } = payload
 
         const character = state.sui.characters.find(
-          character => character.id === character_id,
+          (character) => character.id === character_id
         )
         assert(character, 'Character not found')
 
@@ -246,7 +247,7 @@ export default function () {
           ...state,
           sui: {
             ...state.sui,
-            items: state.sui.items.filter(i => i.id !== item.id),
+            items: state.sui.items.filter((i) => i.id !== item.id),
           },
         }
       }
@@ -254,7 +255,7 @@ export default function () {
         const { character_id, slot } = payload
 
         const character = state.sui.characters.find(
-          character => character.id === character_id,
+          (character) => character.id === character_id
         )
         const item = character[slot]
 
@@ -344,7 +345,7 @@ export default function () {
             // If I'm the seller
             if (seller === state.sui.selected_address) {
               const my_listing = state.sui.items_for_sale.find(
-                listing => listing.id === character_id,
+                (listing) => listing.id === character_id
               )
 
               // if the price isn't 0
@@ -353,7 +354,7 @@ export default function () {
                 `${my_listing.name} ${t('SUI_ITEM_SOLD')}`,
                 // @ts-ignore
                 `+${pretty_print_mists(my_listing.list_price)} Sui`,
-                EmojioneMoneyBag,
+                EmojioneMoneyBag
               )
               context.dispatch('action/sui_remove_item_for_sale', {
                 character_id,
@@ -416,7 +417,7 @@ export default function () {
             // If I'm the seller
             if (seller === state.sui.selected_address) {
               const my_listing = state.sui.items_for_sale.find(
-                listing => listing.id === item.id,
+                (listing) => listing.id === item.id
               )
 
               // if the price isn't 0
@@ -425,7 +426,7 @@ export default function () {
                 `${my_listing.name} ${t('SUI_ITEM_SOLD')}`,
                 // @ts-ignore
                 `+${pretty_print_mists(my_listing.list_price)} Sui`,
-                EmojioneMoneyBag,
+                EmojioneMoneyBag
               )
               context.dispatch('action/sui_remove_item_for_sale', {
                 item,
@@ -443,7 +444,7 @@ export default function () {
             toast.info(
               translate('APP_RECIPE_LEARNED', [recipe.name]),
               '',
-              TwemojiScroll,
+              TwemojiScroll
             )
             context.dispatch('action/add_recipe', recipe)
           },
@@ -460,7 +461,7 @@ export default function () {
               admin_caps: [
                 ...context
                   .get_state()
-                  .sui.admin_caps.filter(cap => cap.id !== id),
+                  .sui.admin_caps.filter((cap) => cap.id !== id),
                 { id },
               ],
             })
@@ -469,7 +470,7 @@ export default function () {
             context.dispatch('action/sui_data_update', {
               admin_caps: context
                 .get_state()
-                .sui.admin_caps.filter(cap => cap.id !== id),
+                .sui.admin_caps.filter((cap) => cap.id !== id),
             })
           },
         },
@@ -491,9 +492,9 @@ export default function () {
               ]).then(([balance, tokens]) => ({
                 balance,
                 tokens,
-              })),
+              }))
             )
-        },
+        }
       )
 
       async function connect_and_fetch(selected_address) {
@@ -518,14 +519,14 @@ export default function () {
           if (result.address !== selected_address) {
             await_connection_success_toast.update(
               'error',
-              t('SUI_SIGNATURE_ADDRESS_MISMATCH'),
+              t('SUI_SIGNATURE_ADDRESS_MISMATCH')
             )
             return selected_address
           }
 
           await_connection_success_toast.update(
             'success',
-            t('SUI_SIGNATURE_SUCCESS'),
+            t('SUI_SIGNATURE_SUCCESS')
           )
 
           if (tx) tx.remove()
@@ -537,34 +538,34 @@ export default function () {
             Object.assign(
               {},
               ...(await Promise.all([
-                sui_get_admin_caps().then(result => ({
+                sui_get_admin_caps().then((result) => ({
                   admin_caps: result,
                 })),
-                sui_get_characters().then(characters => {
+                sui_get_characters().then((characters) => {
                   return {
                     characters,
                   }
                 }),
-                sui_get_recipes().then(result => ({
+                sui_get_recipes().then((result) => ({
                   recipes: result,
                 })),
-                sui_get_sui_balance().then(result => ({
+                sui_get_sui_balance().then((result) => ({
                   balance: result,
                 })),
-                sui_get_items().then(items => {
+                sui_get_items().then((items) => {
                   return { items }
                 }),
-                sui_get_my_listings().then(result => ({
+                sui_get_my_listings().then((result) => ({
                   items_for_sale: result,
                 })),
-                sui_get_supported_tokens().then(result => ({
+                sui_get_supported_tokens().then((result) => ({
                   tokens: result,
                 })),
-                sui_get_finished_crafts().then(result => ({
+                sui_get_finished_crafts().then((result) => ({
                   finished_crafts: result,
                 })),
-              ])),
-            ),
+              ]))
+            )
           )
 
           tx.update('success', t('SUI_DATA_FETCHED'))
@@ -589,8 +590,8 @@ export default function () {
 
       events.on('RECONNECT_TO_SERVER', () =>
         connect_and_fetch(context.get_state().sui.selected_address).catch(
-          error => console.error(error),
-        ),
+          (error) => console.error(error)
+        )
       )
 
       state_iterator().reduce(
@@ -603,7 +604,7 @@ export default function () {
           }
 
           return selected_address
-        },
+        }
       )
     },
   }

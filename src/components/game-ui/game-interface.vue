@@ -20,55 +20,55 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue'
 
-import characterSelectVue from './character-select.vue';
-import zoneVue from './zone.vue';
-import gameChat from './game-chat.vue';
-import gameHealth from './game-health.vue';
-import gameSpellbar from './game-spellbar.vue';
-import gameInventory from './game-inventory.vue';
-import gameCharacteristic from './game-characteristic.vue';
-import gameSpell from './game-spells.vue';
-import gamePopupLevelup from './game-popup-levelup.vue';
-import { context } from '../../core/game/game';
+import characterSelectVue from './character-select.vue'
+import zoneVue from './zone.vue'
+import gameChat from './game-chat.vue'
+import gameHealth from './game-health.vue'
+import gameSpellbar from './game-spellbar.vue'
+import gameInventory from './game-inventory.vue'
+import gameCharacteristic from './game-characteristic.vue'
+import gameSpell from './game-spells.vue'
+import gamePopupLevelup from './game-popup-levelup.vue'
+import { context } from '../../core/game/game'
 
-const stats_opened = ref(false);
-const spells_opened = ref(false);
-const inventory_opened = ref(false);
-const levelup_dialog = ref(false);
-const levelup_details = ref({});
+const stats_opened = ref(false)
+const spells_opened = ref(false)
+const inventory_opened = ref(false)
+const levelup_dialog = ref(false)
+const levelup_details = ref({})
 
 function open_inventory() {
-  if (stats_opened.value) stats_opened.value = false;
-  if (spells_opened.value) spells_opened.value = false;
-  inventory_opened.value = !inventory_opened.value;
+  if (stats_opened.value) stats_opened.value = false
+  if (spells_opened.value) spells_opened.value = false
+  inventory_opened.value = !inventory_opened.value
 }
 
 function open_stats() {
-  if (inventory_opened.value) inventory_opened.value = false;
-  if (spells_opened.value) spells_opened.value = false;
-  stats_opened.value = !stats_opened.value;
+  if (inventory_opened.value) inventory_opened.value = false
+  if (spells_opened.value) spells_opened.value = false
+  stats_opened.value = !stats_opened.value
 }
 
 function open_spells() {
-  if (inventory_opened.value) inventory_opened.value = false;
-  if (stats_opened.value) stats_opened.value = false;
-  spells_opened.value = !spells_opened.value;
+  if (inventory_opened.value) inventory_opened.value = false
+  if (stats_opened.value) stats_opened.value = false
+  spells_opened.value = !spells_opened.value
 }
 
 function open_popup_levelup(details) {
-  levelup_details.value = details;
-  levelup_dialog.value = true;
+  levelup_details.value = details
+  levelup_dialog.value = true
 }
 
 onMounted(() => {
-  context.events.on('LEVEL_UP', open_popup_levelup);
-});
+  context.events.on('LEVEL_UP', open_popup_levelup)
+})
 
 onUnmounted(() => {
-  context.events.off('LEVEL_UP', open_popup_levelup);
-});
+  context.events.off('LEVEL_UP', open_popup_levelup)
+})
 </script>
 
 <style lang="stylus" scoped>

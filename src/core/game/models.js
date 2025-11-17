@@ -114,20 +114,20 @@ export const MODELS = new Proxy(/** @type {any} */ ({}), {
       }
       loaded_models.set(
         prop,
-        load(model_url).catch(error =>
-          console.error('Failed to load model', prop, error),
-        ),
+        load(model_url).catch((error) =>
+          console.error('Failed to load model', prop, error)
+        )
       )
     }
 
-    return loaded_models.get(prop).then(clone_model => clone_model())
+    return loaded_models.get(prop).then((clone_model) => clone_model())
   },
 })
 
 /** @type {(origin: Type.Object3D, name: string) => Type.Object3D} */
 export function find_bone(origin, name) {
   let bone = null
-  origin.traverse(child => {
+  origin.traverse((child) => {
     // @ts-ignore
     if (child.isBone && child.name.toLowerCase().includes(name.toLowerCase()))
       bone = child

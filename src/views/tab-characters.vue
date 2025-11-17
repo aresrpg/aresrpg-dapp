@@ -1,24 +1,24 @@
 <script setup>
-import { useI18n } from 'vue-i18n';
-import { ref, provide, inject, defineAsyncComponent } from 'vue';
+import { useI18n } from 'vue-i18n'
+import { ref, provide, inject, defineAsyncComponent } from 'vue'
 
-import sectionHeader from '../components/misc/section-header.vue';
-import sectionContainer from '../components/misc/section-container.vue';
-import { NETWORK } from '../env.js';
+import sectionHeader from '../components/misc/section-header.vue'
+import sectionContainer from '../components/misc/section-container.vue'
+import { NETWORK } from '../env.js'
 
 const UserCharacter = defineAsyncComponent(
-  () => import('../components/cards/user-character.vue'),
-);
+  () => import('../components/cards/user-character.vue')
+)
 const CharacterCreateVue = defineAsyncComponent(
-  () => import('../components/game-ui/character-create.vue'),
-);
-const { t } = useI18n();
+  () => import('../components/game-ui/character-create.vue')
+)
+const { t } = useI18n()
 
-const new_character_dialog = ref(false);
+const new_character_dialog = ref(false)
 
-const characters = inject('characters');
+const characters = inject('characters')
 
-provide('new_character_dialog', new_character_dialog);
+provide('new_character_dialog', new_character_dialog)
 </script>
 
 <template lang="pug">

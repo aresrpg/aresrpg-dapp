@@ -70,55 +70,55 @@ sectionContainer
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
-import { inject, ref, provide, computed, onMounted, onUnmounted } from 'vue';
-import { BigNumber as BN } from 'bignumber.js';
-import { MIST_PER_SUI } from '@mysten/sui/utils';
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { inject, ref, provide, computed, onMounted, onUnmounted } from 'vue'
+import { BigNumber as BN } from 'bignumber.js'
+import { MIST_PER_SUI } from '@mysten/sui/utils'
 
-import sectionContainer from '../components/misc/section-container.vue';
-import sectionHeader from '../components/misc/section-header.vue';
-import itemDescription from '../components/cards/item-description.vue';
-import itemInventory from '../components/cards/item-inventory.vue';
-import tabs from '../components/game-ui/tabs.vue';
-import marketCategories from '../components/cards/market-categories.vue';
-import marketListings from '../components/cards/market-listings.vue';
-import marketMyListings from '../components/cards/market-my-listings.vue';
-import mintCard from '../components/cards/mint-card.vue';
-import { sdk, sui_list_item } from '../core/sui/client.js';
-import { context } from '../core/game/game.js';
-import faucetCard from '../components/cards/faucet-card.vue';
-import toast from '../toast.js';
-import { NETWORK } from '../env.js';
-import { sui_get_vaporeon_mint } from '../core/sui/temp_vaporeon_mint.js';
-import { SUI_EMITTER } from '../core/modules/sui_data.js';
+import sectionContainer from '../components/misc/section-container.vue'
+import sectionHeader from '../components/misc/section-header.vue'
+import itemDescription from '../components/cards/item-description.vue'
+import itemInventory from '../components/cards/item-inventory.vue'
+import tabs from '../components/game-ui/tabs.vue'
+import marketCategories from '../components/cards/market-categories.vue'
+import marketListings from '../components/cards/market-listings.vue'
+import marketMyListings from '../components/cards/market-my-listings.vue'
+import mintCard from '../components/cards/mint-card.vue'
+import { sdk, sui_list_item } from '../core/sui/client.js'
+import { context } from '../core/game/game.js'
+import faucetCard from '../components/cards/faucet-card.vue'
+import toast from '../toast.js'
+import { NETWORK } from '../env.js'
+import { sui_get_vaporeon_mint } from '../core/sui/temp_vaporeon_mint.js'
+import { SUI_EMITTER } from '../core/modules/sui_data.js'
 
 // @ts-ignore
-import TokenSui from '~icons/token/sui';
+import TokenSui from '~icons/token/sui'
 
-const { t } = useI18n();
-const router = useRouter();
+const { t } = useI18n()
+const router = useRouter()
 
-const filtered_category = ref('relic');
+const filtered_category = ref('relic')
 
-provide('filtered_category', filtered_category);
+provide('filtered_category', filtered_category)
 
-const selected_item = inject('selected_item');
-const selected_category = inject('selected_category');
-const online = inject('online');
+const selected_item = inject('selected_item')
+const selected_category = inject('selected_category')
+const online = inject('online')
 
-const mints = ref([]);
-const reveal_dialog = ref(false);
-const reveal_shiny = ref(false);
+const mints = ref([])
+const reveal_dialog = ref(false)
+const reveal_shiny = ref(false)
 
 function reveal_mint({ item, shiny }) {
-  selected_item.value = item;
-  reveal_dialog.value = true;
-  reveal_shiny.value = shiny;
+  selected_item.value = item
+  reveal_dialog.value = true
+  reveal_shiny.value = shiny
 }
 
 onMounted(async () => {
-  const minted = await sui_get_vaporeon_mint();
+  const minted = await sui_get_vaporeon_mint()
   // @ts-ignore
   mints.value.push({
     name: 'Vaporeon',
@@ -127,82 +127,82 @@ onMounted(async () => {
     contract: sdk.VAPOREON.split('::')[0],
     minted,
     max_mint: 1000,
-  });
+  })
 
-  SUI_EMITTER.on('VaporeonMintEvent', reveal_mint);
-});
+  SUI_EMITTER.on('VaporeonMintEvent', reveal_mint)
+})
 
 onUnmounted(() => {
-  SUI_EMITTER.off('VaporeonMintEvent', reveal_mint);
-});
+  SUI_EMITTER.off('VaporeonMintEvent', reveal_mint)
+})
 
 const shop_tabs = {
   buy: {},
   sell: {},
   ...(NETWORK === 'testnet' && { faucet: {} }),
   mint: {},
-};
+}
 
-const faucet_tokens = Object.values(sdk.SUPPORTED_TOKENS);
+const faucet_tokens = Object.values(sdk.SUPPORTED_TOKENS)
 
-const selected_item_type = ref(null);
-const requested_price = ref(1);
+const selected_item_type = ref(null)
+const requested_price = ref(1)
 
-provide('selected_item_type', selected_item_type);
+provide('selected_item_type', selected_item_type)
 
 const show_sell_buttons = computed(() => {
-  return selected_item && !selected_item.value?.price;
-});
+  return selected_item && !selected_item.value?.price
+})
 
 function get_item_total_amount(item) {
   return (
     item.amount +
     context.get_state().sui.items.reduce((acc, { id, item_type, amount }) => {
-      if (item.id !== id && item.item_type === item_type) return acc + amount;
-      return acc;
+      if (item.id !== id && item.item_type === item_type) return acc + amount
+      return acc
     }, 0)
-  );
+  )
 }
 
 const is_price_valid = computed(() => {
   try {
-    const price = requested_price.value;
-    BigInt(new BN(price).multipliedBy(MIST_PER_SUI.toString()).toString());
-    return price >= 0.01 && price <= 1000000;
+    const price = requested_price.value
+    BigInt(new BN(price).multipliedBy(MIST_PER_SUI.toString()).toString())
+    return price >= 0.01 && price <= 1000000
   } catch (error) {
-    return false;
+    return false
   }
-});
+})
 
-const currently_listing = ref([]);
+const currently_listing = ref([])
 
 const selected_currently_listing = computed(() =>
   // @ts-ignore
-  currently_listing.value.includes(selected_item.value?.id),
-);
+  currently_listing.value.includes(selected_item.value?.id)
+)
 
 async function sell(quantity) {
-  if (!selected_item.value) return;
+  if (!selected_item.value) return
 
-  const listed_id = selected_item.value.id;
+  const listed_id = selected_item.value.id
 
-  const tx = toast.tx(t('APP_TAB_SHOP_LISTING'), selected_item.value.name);
+  const tx = toast.tx(t('APP_TAB_SHOP_LISTING'), selected_item.value.name)
   // @ts-ignore
-  currently_listing.value.push(selected_item.value.id);
+  currently_listing.value.push(selected_item.value.id)
   try {
     await sui_list_item({
       item: selected_item.value,
       amount: quantity,
       price: requested_price.value,
-    });
-    tx.update('success', t('APP_TAB_SHOP_LISTED'));
+    })
+    tx.update('success', t('APP_TAB_SHOP_LISTED'))
   } catch (error) {
-    tx.update('error', t('APP_TAB_SHOP_FAILED_TO_LIST'));
-    console.error(error);
+    tx.update('error', t('APP_TAB_SHOP_FAILED_TO_LIST'))
+    console.error(error)
   } finally {
     currently_listing.value = currently_listing.value.filter(
-      id => id !== listed_id,
-    );
+      (id) => id !== listed_id
+    )
   }
 }
 </script>

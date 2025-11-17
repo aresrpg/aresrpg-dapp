@@ -9,7 +9,7 @@ function create_fullscreen_quad() {
   const quad_geometry = new BufferGeometry()
   quad_geometry.setAttribute(
     'aCorner',
-    new Float32BufferAttribute([-1, +1, +1, +1, -1, -1, +1, -1], 2),
+    new Float32BufferAttribute([-1, +1, +1, +1, -1, -1, +1, -1], 2)
   )
   quad_geometry.setIndex(new Uint16BufferAttribute([0, 2, 1, 2, 3, 1], 1))
   const fullscreen_quad = new Mesh(quad_geometry)

@@ -4,17 +4,17 @@ transition(name="fade" mode="out-in")
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed } from 'vue'
 
-const props = defineProps(['status']);
+const props = defineProps(['status'])
 
 const status_class = computed(() => {
   return {
     'loading_icon--loading': props.status === 'loading',
     'loading_icon--success': props.status === 'success',
     'loading_icon--error': props.status === 'error',
-  };
-});
+  }
+})
 </script>
 
 <style lang="stylus" scoped>

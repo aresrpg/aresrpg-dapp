@@ -57,7 +57,7 @@ export async function spawn_crescent_sword(fight, scene) {
         model.rotation.z += Math.random() * 0.02 - 0.01 // Slight inclination during the first rotation
       },
     },
-    '<',
+    '<'
   ) // Align with the previous animation
 
   // Slow downward movement according to time left

@@ -101,7 +101,7 @@ class VolumetricFogRenderpass extends Pass {
 
   constructor(
     /** @type PerspectiveCamera */ camera,
-    /** @type import("three").LightShadow */ light_shadow,
+    /** @type import("three").LightShadow */ light_shadow
   ) {
     super()
 
@@ -325,7 +325,7 @@ class VolumetricFogRenderpass extends Pass {
   render(
     /** @type WebGLRenderer */ renderer,
     /** @type WebGLRenderTarget */ write_buffer,
-    /** @type WebGLRenderTarget */ read_buffer /* deltaTime, maskActive */,
+    /** @type WebGLRenderTarget */ read_buffer /* deltaTime, maskActive */
   ) {
     const previous_state = {
       rendertarget: renderer.getRenderTarget(),
@@ -349,7 +349,7 @@ class VolumetricFogRenderpass extends Pass {
     ) {
       this.#rendertarget.setSize(
         ideal_rendertarget_size.x,
-        ideal_rendertarget_size.y,
+        ideal_rendertarget_size.y
       )
     }
 
@@ -376,7 +376,7 @@ class VolumetricFogRenderpass extends Pass {
     this.#material_fog.uniforms.uShadowCameraVP.value =
       new Matrix4().multiplyMatrices(
         this.light_shadow.camera.projectionMatrix,
-        this.light_shadow.camera.matrixWorldInverse,
+        this.light_shadow.camera.matrixWorldInverse
       )
     renderer.getSize(this.#material_fog.uniforms.uRendertargetSize.value)
     this.#material_fog.uniforms.uRandom.value = Math.random()

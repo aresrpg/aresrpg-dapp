@@ -46,7 +46,7 @@ export async function* abortable(iterator) {
 }
 
 export function state_iterator() {
-  return aiter(typed_on(context.events, 'STATE_UPDATED')).map(state => state)
+  return aiter(typed_on(context.events, 'STATE_UPDATED')).map((state) => state)
 }
 
 export const async_iterable = {
@@ -72,7 +72,7 @@ export const async_iterable = {
             for await (const item of this.iterable) {
               yield await mapper(item)
             }
-          }.call(this),
+          }.call(this)
         )
       },
 
@@ -97,7 +97,7 @@ export const async_iterable = {
                 }
               }
             }
-          }.call(this),
+          }.call(this)
         )
       },
 
@@ -114,7 +114,7 @@ export const async_iterable = {
                 yield item
               }
             }
-          }.call(this),
+          }.call(this)
         )
       },
 
@@ -169,7 +169,7 @@ export const async_iterable = {
       })()
     }
     throw new TypeError(
-      'Input must be an Iterable, AsyncIterable, or AsyncIterator.',
+      'Input must be an Iterable, AsyncIterable, or AsyncIterator.'
     )
   },
 }

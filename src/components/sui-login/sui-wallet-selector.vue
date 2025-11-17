@@ -20,47 +20,47 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
-import toast from '../../toast';
-import { context } from '../../core/game/game.js';
+import toast from '../../toast'
+import { context } from '../../core/game/game.js'
 
-const { t } = useI18n();
-const emits = defineEmits(['connection_done']);
+const { t } = useI18n()
+const emits = defineEmits(['connection_done'])
 
-const registered_wallets = ref([]);
+const registered_wallets = ref([])
 
 const no_wallet = computed(() => {
-  const [first_wallet, second_wallet] = registered_wallets.value;
-  if (second_wallet) return false;
-  return first_wallet?.name === 'Stashed';
-});
+  const [first_wallet, second_wallet] = registered_wallets.value
+  if (second_wallet) return false
+  return first_wallet?.name === 'Stashed'
+})
 
 function update_wallets({ sui: { wallets } }) {
-  const wallets_names = Object.keys(wallets);
+  const wallets_names = Object.keys(wallets)
 
   if (wallets_names.join() !== registered_wallets.value.join())
-    registered_wallets.value = Object.values(wallets);
+    registered_wallets.value = Object.values(wallets)
 }
 
 onMounted(async () => {
-  context.events.on('STATE_UPDATED', update_wallets);
-  update_wallets(context.get_state());
-});
+  context.events.on('STATE_UPDATED', update_wallets)
+  update_wallets(context.get_state())
+})
 
 onUnmounted(() => {
-  context.events.off('STATE_UPDATED', update_wallets);
-});
+  context.events.off('STATE_UPDATED', update_wallets)
+})
 
 async function connect_to_wallet(wallet) {
   try {
-    await wallet.connect();
+    await wallet.connect()
   } catch (error) {
-    console.error(error);
-    toast.error(t('APP_WALLET_CONNECT_REFUSED'), 'Hey !');
+    console.error(error)
+    toast.error(t('APP_WALLET_CONNECT_REFUSED'), 'Hey !')
   } finally {
-    emits('connection_done');
+    emits('connection_done')
   }
 }
 </script>

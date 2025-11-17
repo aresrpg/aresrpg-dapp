@@ -7,7 +7,7 @@ export default function () {
       const { minimap } = voxel_engine
 
       const player = state.characters.find(
-        character => character.id === state.selected_character_id,
+        (character) => character.id === state.selected_character_id
       )
       if (player) {
         minimap.centerPosition.copy(player.position)
@@ -38,7 +38,7 @@ export default function () {
       const update_screen_position = () => {
         minimap.screenPosition.set(
           window.innerWidth - 650,
-          window.innerHeight - 300,
+          window.innerHeight - 300
         )
       }
 

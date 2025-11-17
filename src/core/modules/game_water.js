@@ -161,18 +161,18 @@ export default function () {
               0,
               mesh_size,
             ],
-            3,
-          ),
+            3
+          )
         )
         geometry.setAttribute(
           'uv',
-          new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 1, 1], 2),
+          new Float32BufferAttribute([0, 0, 1, 0, 0, 1, 1, 1], 2)
         )
         geometry.setIndex([0, 1, 3, 0, 3, 2])
         return geometry
       }
 
-      material.onBeforeCompile = parameters => {
+      material.onBeforeCompile = (parameters) => {
         parameters.uniforms = {
           ...parameters.uniforms,
           ...material_uniforms,
@@ -186,14 +186,14 @@ export default function () {
 
           void main() {
             vUv = uv;
-        `,
+        `
         )
         parameters.vertexShader = parameters.vertexShader.replace(
           '#include <worldpos_vertex>',
           `
           #include <worldpos_vertex>
           vWorldPosition = worldPosition.xyz;
-        `,
+        `
         )
 
         parameters.fragmentShader = parameters.fragmentShader.replace(
@@ -246,14 +246,14 @@ export default function () {
           }
 
           void main() {
-        `,
+        `
         )
         parameters.fragmentShader = parameters.fragmentShader.replace(
           '#include <normal_fragment_begin>',
           `
           vec3 normal = worldNormal;
           vec3 nonPerturbedNormal = normal;
-        `,
+        `
         )
         parameters.fragmentShader = parameters.fragmentShader.replace(
           '#include <map_fragment>',
@@ -284,7 +284,7 @@ export default function () {
           alpha = clamp(alpha, 0.0, 1.0);
 
           diffuseColor = vec4(surfaceColor, alpha);
-        `,
+        `
         )
       }
 
@@ -297,7 +297,7 @@ export default function () {
 
       const get_patch_water_color = (
         /** @type number */ patch_x,
-        /** @type number */ patch_z,
+        /** @type number */ patch_z
       ) => {
         return [41, 182, 246]
       }
@@ -331,18 +331,18 @@ export default function () {
         mesh.position.set(
           water_origin_patch_id.x * patch_size,
           water_data.map.waterLevel,
-          water_origin_patch_id.z * patch_size,
+          water_origin_patch_id.z * patch_size
         )
 
         const water_color = get_patch_water_color(
           player_patch_id.x,
-          player_patch_id.z,
+          player_patch_id.z
         )
         dispatch('action/water_changed', {
           color: new Color(
             water_color[0] / 255,
             water_color[1] / 255,
-            water_color[2] / 255,
+            water_color[2] / 255
           ),
         })
 

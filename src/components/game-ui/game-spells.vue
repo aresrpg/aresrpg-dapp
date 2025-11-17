@@ -44,92 +44,89 @@
 </template>
 
 <script setup>
-import { ref, inject, reactive, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { ref, inject, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { spell_icons } from './spell_icons.js';
-import Spells from '@aresrpg/aresrpg-sdk/spells';
-import SpellCard from './spell_card.vue';
+import { spell_icons } from './spell_icons.js'
+import Spells from '@aresrpg/aresrpg-sdk/spells'
+import SpellCard from './spell_card.vue'
 
-import { characters_references } from '../../core/utils/game/spells.js';
+import { characters_references } from '../../core/utils/game/spells.js'
 
-import { context, current_sui_character } from '../../core/game/game.js';
-import {
-  decrease_loading,
-  increase_loading,
-} from '../../core/utils/loading.js';
+import { context, current_sui_character } from '../../core/game/game.js'
+import { decrease_loading, increase_loading } from '../../core/utils/loading.js'
 
 // @ts-ignore
-import RadixIconsCross2 from '~icons/radix-icons/cross-2';
+import RadixIconsCross2 from '~icons/radix-icons/cross-2'
 // @ts-ignore
-import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
+import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular'
 
-const selected_character = inject('selected_character');
-const character = current_sui_character(context.get_state());
+const selected_character = inject('selected_character')
+const character = current_sui_character(context.get_state())
 
 const selected_class_data = computed(() => {
   const character_ref = characters_references.find(
-    character => character.type === selected_character.value._type,
-  );
+    (character) => character.type === selected_character.value._type
+  )
 
   return {
     selected_character,
     ...character_ref,
     ...character,
     spells: Spells[selected_character.value.classe],
-  };
-});
+  }
+})
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const focus_spell = ref(null);
+const focus_spell = ref(null)
 
-const accept_loading = ref(false);
+const accept_loading = ref(false)
 
-const pa = ref(-1);
-const pm = ref(-1);
-const allocated_spells = reactive({});
+const pa = ref(-1)
+const pm = ref(-1)
+const allocated_spells = reactive({})
 
-const spells_dialog = ref(false);
+const spells_dialog = ref(false)
 
 function get_spell_by_level(spell, level) {
-  return spell.levels?.[level] || {};
+  return spell.levels?.[level] || {}
 }
 
 function add_pending_allocated_spell(spell, amount) {
-  allocated_spells[spell] = allocated_spells[spell] + amount || amount;
+  allocated_spells[spell] = allocated_spells[spell] + amount || amount
 }
 
 function cancel_pending_allocated_spells() {
-  Object.assign(allocated_spells, {});
+  Object.assign(allocated_spells, {})
 }
 
 const has_pending_allocated_spells = computed(() =>
-  Object.values(allocated_spells).some(Boolean),
-);
+  Object.values(allocated_spells).some(Boolean)
+)
 
 function get_pending_allocated_spell(spell) {
-  return allocated_spells[spell] ?? 0;
+  return allocated_spells[spell] ?? 0
 }
 
 const pending_allocated_spells_count = computed(() =>
-  Object.values(allocated_spells).reduce((acc, value) => acc + value, 0),
-);
+  Object.values(allocated_spells).reduce((acc, value) => acc + value, 0)
+)
 
 const can_upgrade = computed(() => {
-  const { available_spell_points } = selected_character.value;
+  const { available_spell_points } = selected_character.value
 
-  return available_spell_points - pending_allocated_spells_count.value > 0;
-});
+  return available_spell_points - pending_allocated_spells_count.value > 0
+})
 
 function open_spells_dialog() {
-  spells_dialog.value = true;
+  spells_dialog.value = true
 }
 
 async function commit_spells() {
-  spells_dialog.value = false;
-  accept_loading.value = true;
-  increase_loading();
+  spells_dialog.value = false
+  accept_loading.value = true
+  increase_loading()
 
   try {
     // await sui_add_spells({
@@ -137,13 +134,13 @@ async function commit_spells() {
     //   spells: allocated_spells,
     // });
   } catch (error) {
-    console.error(error);
+    console.error(error)
   } finally {
-    decrease_loading();
-    accept_loading.value = false;
+    decrease_loading()
+    accept_loading.value = false
   }
 
-  Object.assign(allocated_spells, {});
+  Object.assign(allocated_spells, {})
 }
 </script>
 

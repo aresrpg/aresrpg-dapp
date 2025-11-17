@@ -8,7 +8,7 @@ import { execute, sdk, sui_enforce_personal_kiosk } from './client.js'
 
 function get_vaporeon_package_id() {
   const [package_id_raw] = Object.entries(sdk.SUPPORTED_NFTS).find(
-    ([, { item_type }]) => item_type === 'vaporeon',
+    ([, { item_type }]) => item_type === 'vaporeon'
   )
 
   const [package_id] = package_id_raw.split('::')

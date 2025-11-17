@@ -30,7 +30,7 @@ function init_board_handler(board_data) {
     const size = { x: board_size.x, z: board_size.y }
     const origin = asVect3(board_data.bounds.min, board_data.elevation)
     const squares = []
-    board_data.content.forEach(block_cat => {
+    board_data.content.forEach((block_cat) => {
       const square = {
         type: block_cat, // dummy
         category: Math.max(0, block_cat - 1),
@@ -58,23 +58,23 @@ export async function create_board(position = new Vector3()) {
   // and it will erase the previous instance
   const board_cache_provider = new BoardCacheProvider(
     DEFAULT_WORKER_POOL,
-    world_settings,
+    world_settings
   )
   const board_processor = new BoardProvider(
     position,
     board_cache_provider,
-    world_settings,
+    world_settings
   )
 
   const board = await board_processor.genBoardContent()
   const board_chunks = board_processor
     .overrideOriginalChunksContent(board.chunk)
     .toArray()
-    .map(chunk => chunk.toStub())
+    .map((chunk) => chunk.toStub())
   const original_chunks = board_processor
     .restoreOriginalChunksContent()
     .toArray()
-    .map(chunk => chunk.toStub())
+    .map((chunk) => chunk.toStub())
   const board_data = board.patch.toStub()
 
   board_data.elevation = board_processor.boardElevation
@@ -84,13 +84,13 @@ export async function create_board(position = new Vector3()) {
   const board_size = board_data.bounds.getSize(new Vector2())
   const border_blocks = FightBoards.extract_border_blocks(board_data)
   const origin = asVect3(board_data.bounds.min, position.y)
-  const squares = Array.from(board_data.content).map(type => ({
+  const squares = Array.from(board_data.content).map((type) => ({
     type, // dummy
     category: Math.max(0, type - 1),
   }))
   const sorted_border_blocks = FightBoards.sort_by_side(
     border_blocks,
-    board_data,
+    board_data
   )
   const start_overlay = new BoardOverlaysHandler({
     board: {
@@ -104,7 +104,7 @@ export async function create_board(position = new Vector3()) {
       origin,
     },
   })
-  const to_local_pos = pos => ({
+  const to_local_pos = (pos) => ({
     x: pos.x - board_data.bounds.min.x,
     z: pos.y - board_data.bounds.min.y,
   })
@@ -117,8 +117,8 @@ export async function create_board(position = new Vector3()) {
     max_team_size: MAX_TEAM_SIZE,
   })
 
-  const team_1_positions = team_1.map(block => to_local_pos(block.pos))
-  const team_2_positions = team_2.map(block => to_local_pos(block.pos))
+  const team_1_positions = team_1.map((block) => to_local_pos(block.pos))
+  const team_2_positions = team_2.map((block) => to_local_pos(block.pos))
 
   return {
     /** @type {ReturnType<ChunkContainer['toStub']>[]} */
@@ -139,11 +139,11 @@ export async function create_board(position = new Vector3()) {
       context.scene.remove(start_overlay.container)
     },
     show_edges() {
-      const first_player_side = sorted_border_blocks.first.map(block =>
-        to_local_pos(block.pos),
+      const first_player_side = sorted_border_blocks.first.map((block) =>
+        to_local_pos(block.pos)
       )
-      const second_player_side = sorted_border_blocks.second.map(block =>
-        to_local_pos(block.pos),
+      const second_player_side = sorted_border_blocks.second.map((block) =>
+        to_local_pos(block.pos)
       )
 
       edge_overlay.clearSquares()
@@ -171,7 +171,7 @@ export default function () {
     reduce(state, { type, payload }) {
       if (type === 'action/join_fight') {
         const character = state.characters.find(
-          ({ id }) => id === payload.character_id,
+          ({ id }) => id === payload.character_id
         )
 
         if (character) character.current_fight_id = payload.fight_id
@@ -206,8 +206,8 @@ export default function () {
                 new Vector3(
                   fight.position.x,
                   fight.position.y,
-                  fight.position.z,
-                ),
+                  fight.position.z
+                )
               )
 
               // remove sword after the fight started
@@ -231,11 +231,11 @@ export default function () {
         {
           last_fight_id: undefined,
           original_chunks: undefined,
-        },
+        }
       )
 
       // this handles joining a fight when the character is already selected
-      context.events.on('packet/fightSpawn', async fight => {
+      context.events.on('packet/fightSpawn', async (fight) => {
         const { visible_fights } = context.get_state()
 
         fight.start_time = +fight.start_time
@@ -257,7 +257,7 @@ export default function () {
         try {
           fight_swords.set(
             fight.id,
-            await spawn_crescent_sword(fight, context.scene),
+            await spawn_crescent_sword(fight, context.scene)
           )
         } catch (error) {
           console.error('Failed to spawn fight sword', error)
@@ -267,7 +267,7 @@ export default function () {
       context.events.on('packet/fightsDespawn', ({ ids }) => {
         const { visible_fights } = context.get_state()
 
-        ids.forEach(id => {
+        ids.forEach((id) => {
           visible_fights.delete(id)
           const dispose = fight_swords.get(id)
           if (dispose) {
@@ -283,17 +283,17 @@ export default function () {
         (last_characters_ids, { visible_fights, characters }) => {
           const ids = characters.map(({ id }) => id)
           const newly_added = ids.filter(
-            id => !last_characters_ids.includes(id),
+            (id) => !last_characters_ids.includes(id)
           )
-          const removed = last_characters_ids.filter(id => !ids.includes(id))
+          const removed = last_characters_ids.filter((id) => !ids.includes(id))
 
           if (removed.length) {
             // TODO: maybe handle when a character is removed ? if needed
           }
 
           if (newly_added.length) {
-            newly_added.forEach(id => {
-              visible_fights.forEach(fight => {
+            newly_added.forEach((id) => {
+              visible_fights.forEach((fight) => {
                 if (
                   is_in_team(fight.team1, id) ||
                   is_in_team(fight.team2, id) ||
@@ -311,12 +311,12 @@ export default function () {
 
           return ids
         },
-        [],
+        []
       )
 
-      state_iterator().forEach(state => {
+      state_iterator().forEach((state) => {
         if (!state.online) {
-          fight_swords.forEach(dispose => dispose())
+          fight_swords.forEach((dispose) => dispose())
           fight_swords.clear()
 
           state.visible_fights.clear()
