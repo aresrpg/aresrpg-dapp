@@ -25,76 +25,73 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref, onUnmounted, inject } from 'vue';
-import ContextMenu from '@imengyu/vue3-context-menu';
-import { useI18n } from 'vue-i18n';
+import { nextTick, onMounted, ref, onUnmounted, inject } from 'vue'
+import ContextMenu from '@imengyu/vue3-context-menu'
+import { useI18n } from 'vue-i18n'
 
-import toast from '../../toast.js';
-import { context, current_sui_character } from '../../core/game/game.js';
+import toast from '../../toast.js'
+import { context, current_sui_character } from '../../core/game/game.js'
 import {
   get_alias,
   sui_get_character_name,
   sui_console_command,
-} from '../../core/sui/client.js';
-import {
-  decrease_loading,
-  increase_loading,
-} from '../../core/utils/loading.js';
+} from '../../core/sui/client.js'
+import { decrease_loading, increase_loading } from '../../core/utils/loading.js'
 
-const history = inject('message_history');
-const msg_container = ref(null);
-const auto_scroll = ref(true);
-const hidden = ref(false);
-const wide = ref(false);
-const current_message = ref('');
-const online = inject('online');
-const { t } = useI18n();
+const history = inject('message_history')
+const msg_container = ref(null)
+const auto_scroll = ref(true)
+const hidden = ref(false)
+const wide = ref(false)
+const current_message = ref('')
+const online = inject('online')
+const { t } = useI18n()
 
-const typed_message_history = inject('typed_message_history');
-const history_index = ref(-1);
-const saved_message = ref('');
+const typed_message_history = inject('typed_message_history')
+const history_index = ref(-1)
+const saved_message = ref('')
 
-const handle_keydown = event => {
+const handle_keydown = (event) => {
   // Handle up arrow
   if (event.key === 'ArrowUp') {
-    event.preventDefault();
+    event.preventDefault()
     if (history_index.value === -1) {
-      saved_message.value = current_message.value;
+      saved_message.value = current_message.value
     }
     if (
       typed_message_history.value.length > 0 &&
       history_index.value < typed_message_history.value.length - 1
     ) {
-      history_index.value++;
+      history_index.value++
       current_message.value = typed_message_history.value.at(
-        -(history_index.value + 1),
-      );
+        -(history_index.value + 1)
+      )
     }
-    return;
+    return
   }
 
   // Handle down arrow
   if (event.key === 'ArrowDown') {
-    event.preventDefault();
+    event.preventDefault()
     if (history_index.value <= 0) {
-      history_index.value = -1;
-      current_message.value = saved_message.value;
-      return;
+      history_index.value = -1
+      current_message.value = saved_message.value
+      return
     }
-    history_index.value--;
+    history_index.value--
     current_message.value = typed_message_history.value.at(
-      -(history_index.value + 1),
-    );
+      -(history_index.value + 1)
+    )
   }
-};
+}
 
 function add_to_history(msg) {
-  typed_message_history.value = [...typed_message_history.value.slice(-9), msg];
-  history_index.value = -1;
+  typed_message_history.value = [...typed_message_history.value.slice(-9), msg]
+  history_index.value = -1
 }
 
 function on_right_click_id(event, id) {
-  event.preventDefault();
+  event.preventDefault()
   ContextMenu.showContextMenu({
     x: event.x,
     y: event.y,
@@ -103,114 +100,114 @@ function on_right_click_id(event, id) {
       {
         label: t('APP_GAME_CHAT_COPY_ADDRESS'),
         onClick: () => {
-          navigator.clipboard.writeText(id);
-          toast.success(t('APP_GAME_CHAT_COPIED'));
+          navigator.clipboard.writeText(id)
+          toast.success(t('APP_GAME_CHAT_COPIED'))
         },
       },
     ],
-  });
+  })
 }
 
 function set_wide(value) {
-  wide.value = value;
+  wide.value = value
   if (!value) {
     setTimeout(() => {
-      scroll_to_bottom();
-    }, 300);
+      scroll_to_bottom()
+    }, 300)
   }
 }
 
 async function send_message() {
-  const msg = current_message.value.trim();
-  if (!msg) return;
+  const msg = current_message.value.trim()
+  if (!msg) return
 
   if (!online.value) {
-    toast.error(t('APP_GAME_CHAT_NO_ONLINE'));
-    return;
+    toast.error(t('APP_GAME_CHAT_NO_ONLINE'))
+    return
   }
 
-  const id = context.get_state().selected_character_id;
+  const id = context.get_state().selected_character_id
   if (!id) {
-    toast.error(t('APP_GAME_CHAT_NO_CHARACTER'));
-    return;
+    toast.error(t('APP_GAME_CHAT_NO_CHARACTER'))
+    return
   }
 
-  add_to_history(msg);
-  current_message.value = '';
+  add_to_history(msg)
+  current_message.value = ''
 
   if (msg.startsWith('/')) {
     if (msg.startsWith('/teleport') || msg.startsWith('/tp')) {
-      const [x, y, z] = msg.split(' ').slice(1);
-      if (!x || !y || !z) toast.error('Invalid teleport command');
+      const [x, y, z] = msg.split(' ').slice(1)
+      if (!x || !y || !z) toast.error('Invalid teleport command')
       else
         context.send_packet('packet/serverCommand', {
           command: 'teleport',
           args: [current_sui_character().id, x, y, z],
-        });
-      return;
+        })
+      return
     }
 
-    increase_loading();
+    increase_loading()
     try {
-      const [command, ...args] = msg.slice(1).split(' ');
-      await sui_console_command(command, args);
+      const [command, ...args] = msg.slice(1).split(' ')
+      await sui_console_command(command, args)
     } catch (error) {
-      console.error('Unable to send console command', error);
+      console.error('Unable to send console command', error)
     } finally {
-      decrease_loading();
+      decrease_loading()
     }
-    return;
+    return
   }
 
-  context.send_packet('packet/chatMessage', { id, address: '', message: msg });
+  context.send_packet('packet/chatMessage', { id, address: '', message: msg })
 }
 
 function address_display(address) {
   if (address.includes('@')) {
-    if (address.length > 15) return `${address.slice(-5)}..`;
-    return address;
+    if (address.length > 15) return `${address.slice(-5)}..`
+    return address
   }
-  return `${address.slice(0, 4)}...${address.slice(-2)}`;
+  return `${address.slice(0, 4)}...${address.slice(-2)}`
 }
 
 function on_scroll() {
-  const container = msg_container.value;
+  const container = msg_container.value
   if (
     // @ts-ignore
     container.scrollTop + container.clientHeight + 10 <
     // @ts-ignore
     container.scrollHeight
   ) {
-    auto_scroll.value = false;
+    auto_scroll.value = false
   } else {
-    auto_scroll.value = true;
+    auto_scroll.value = true
   }
 }
 
 function scroll_to_bottom() {
   // @ts-ignore
-  msg_container.value.scrollTop = msg_container.value.scrollHeight;
+  msg_container.value.scrollTop = msg_container.value.scrollHeight
 }
 
 async function handle_message({ id, message, address }) {
   try {
-    const alias = await get_alias(address);
-    const name = await sui_get_character_name(id);
+    const alias = await get_alias(address)
+    const name = await sui_get_character_name(id)
     // @ts-ignore
     history.value.push({
       name,
       message,
       alias: address_display(alias),
       me: address === context.get_state().sui.selected_address,
-    });
+    })
     if (history.value.length > 100) {
-      history.value.shift();
+      history.value.shift()
     }
     nextTick(() => {
-      if (auto_scroll.value) scroll_to_bottom();
-    });
+      if (auto_scroll.value) scroll_to_bottom()
+    })
   } catch (error) {
-    console.error('Unable to send message', error);
+    console.error('Unable to send message', error)
   }
 }
 
@@ -221,25 +218,25 @@ function handle_system_message(message) {
     message,
     alias: 'System',
     me: false,
-  });
+  })
   if (history.value.length > 100) {
-    history.value.shift();
+    history.value.shift()
   }
   nextTick(() => {
-    if (auto_scroll.value) scroll_to_bottom();
-  });
+    if (auto_scroll.value) scroll_to_bottom()
+  })
 }
 
 onMounted(() => {
-  context.events.on('packet/chatMessage', handle_message);
-  context.events.on('SYSTEM_MESSAGE', handle_system_message);
-  scroll_to_bottom();
-});
+  context.events.on('packet/chatMessage', handle_message)
+  context.events.on('SYSTEM_MESSAGE', handle_system_message)
+  scroll_to_bottom()
+})
 
 onUnmounted(() => {
-  context.events.off('packet/chatMessage', handle_message);
-  context.events.off('SYSTEM_MESSAGE', handle_system_message);
-});
+  context.events.off('packet/chatMessage', handle_message)
+  context.events.off('SYSTEM_MESSAGE', handle_system_message)
+})
 </script>
 
 <style lang="stylus" scoped>

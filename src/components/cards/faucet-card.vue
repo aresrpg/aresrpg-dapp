@@ -4,34 +4,34 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { sui_faucet_mint } from '../../core/sui/client.js';
-import toast from '../../toast.js';
+import { sui_faucet_mint } from '../../core/sui/client.js'
+import toast from '../../toast.js'
 
-const { t } = useI18n();
-const props = defineProps(['token']);
+const { t } = useI18n()
+const props = defineProps(['token'])
 
 const background_image = computed(() => {
-  return `url(${props.token?.iconUrl})` || '';
-});
+  return `url(${props.token?.iconUrl})` || ''
+})
 
-const allow_claim = ref(true);
+const allow_claim = ref(true)
 
 async function claim() {
-  const tx = toast.tx(t('APP_FAUCET_CLAIMING'), `$${props.token.symbol}`);
+  const tx = toast.tx(t('APP_FAUCET_CLAIMING'), `$${props.token.symbol}`)
   try {
-    allow_claim.value = false;
-    const result = await sui_faucet_mint(props.token.symbol.toLowerCase());
-    if (result === 'WAIT_A_MINUTE') tx.remove();
-    else tx.update('success', t('APP_FAUCET_CLAIMED'));
+    allow_claim.value = false
+    const result = await sui_faucet_mint(props.token.symbol.toLowerCase())
+    if (result === 'WAIT_A_MINUTE') tx.remove()
+    else tx.update('success', t('APP_FAUCET_CLAIMED'))
   } catch (error) {
-    console.error(error);
-    tx.update('error', t('APP_FAUCET_FAILED'));
+    console.error(error)
+    tx.update('error', t('APP_FAUCET_FAILED'))
   }
 
-  allow_claim.value = true;
+  allow_claim.value = true
 }
 </script>
 

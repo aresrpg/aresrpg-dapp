@@ -22,10 +22,10 @@ export const chunk_size = { xz: 64, y: 64 }
 const altitude = { min: -1, max: 400 }
 
 const blocks_color_mapping = Object.values(BLOCKS_COLOR_MAPPING)
-const voxel_materials_list = blocks_color_mapping.map(material =>
+const voxel_materials_list = blocks_color_mapping.map((material) =>
   typeof material === 'object'
     ? { color: new Color(material.color), emissiveness: material.emission ?? 1 }
-    : { color: new Color(material), emissiveness: 0 },
+    : { color: new Color(material), emissiveness: 0 }
 )
 
 // use dedicated workerpool for LOD
@@ -50,7 +50,7 @@ export function create_voxel_engine() {
     waterLevel: 0,
     getWaterColorForPatch(
       /** @type number */ patch_x,
-      /** @type number */ patch_z,
+      /** @type number */ patch_z
     ) {
       const /** @type [number, number, number] */ color = [41, 182, 246]
       return color
@@ -64,12 +64,12 @@ export function create_voxel_engine() {
           pending_sampleheightmap_tasks.add(blocks_request)
           blocks_request
             .delegate(LOD_WORKER_POOL)
-            .then(lod_data => {
+            .then((lod_data) => {
               if (!lod_data) {
                 reject(
                   new Error(
-                    'Request was in success but returned an invalid result',
-                  ),
+                    'Request was in success but returned an invalid result'
+                  )
                 )
               }
 
@@ -80,7 +80,7 @@ export function create_voxel_engine() {
 
               resolve(result)
             })
-            .catch(reason => {
+            .catch((reason) => {
               reject(new Error(`Request was in error: ${reason}`))
             })
         } finally {

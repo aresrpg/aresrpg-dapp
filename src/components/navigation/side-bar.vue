@@ -40,49 +40,49 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
-import pkg from '../../../package.json';
-import serverInfo from '../cards/server-info.vue';
-import { context } from '../../core/game/game';
+import pkg from '../../../package.json'
+import serverInfo from '../cards/server-info.vue'
+import { context } from '../../core/game/game'
 
-const lang_dialog = inject('lang_dialog');
-const { t } = useI18n();
+const lang_dialog = inject('lang_dialog')
+const { t } = useI18n()
 
-const router = useRouter();
-const route = useRoute();
-const active_sidebar = ref('world');
+const router = useRouter()
+const route = useRoute()
+const active_sidebar = ref('world')
 
-const sidebar_reduced = inject('sidebar_reduced');
-const admin_policies = inject('admin');
+const sidebar_reduced = inject('sidebar_reduced')
+const admin_policies = inject('admin')
 
-const characters = inject('characters');
-const account = inject('current_account');
+const characters = inject('characters')
+const account = inject('current_account')
 
 const is_world_visible = computed(
   () =>
     !account.value ||
-    characters.value?.filter(({ id }) => id !== 'default').length > 0,
-);
+    characters.value?.filter(({ id }) => id !== 'default').length > 0
+)
 
 watch(
   route,
   () => {
     // @ts-ignore
-    active_sidebar.value = route.name;
+    active_sidebar.value = route.name
   },
-  { immediate: true },
-);
+  { immediate: true }
+)
 
 const open_discord = () => {
-  window.open('https://discord.gg/aresrpg', '_blank');
-};
+  window.open('https://discord.gg/aresrpg', '_blank')
+}
 
 const open_twitter = () => {
-  window.open('https://twitter.com/aresrpg', '_blank');
-};
+  window.open('https://twitter.com/aresrpg', '_blank')
+}
 </script>
 
 <style lang="stylus" scoped>

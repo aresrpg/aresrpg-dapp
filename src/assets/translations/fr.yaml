@@ -79,10 +79,10 @@ APP_ITEM_RAW_DAMAGE: dégâts
 APP_ITEM_ACTION: PA
 APP_ITEM_MOVEMENT: PM
 APP_ITEM_RANGE: portée
-APP_ITEM_EARTH_RESISTANCE: "% résistance terre"
-APP_ITEM_FIRE_RESISTANCE: "% résistance feu"
-APP_ITEM_WATER_RESISTANCE: "% résistance eau"
-APP_ITEM_AIR_RESISTANCE: "% résistance air"
+APP_ITEM_EARTH_RESISTANCE: '% résistance terre'
+APP_ITEM_FIRE_RESISTANCE: '% résistance feu'
+APP_ITEM_WATER_RESISTANCE: '% résistance eau'
+APP_ITEM_AIR_RESISTANCE: '% résistance air'
 APP_ITEM_EFFECTS: Effets
 APP_ITEM_CONSUMABLE_EFFECT: Cet item semble avoir des effets mais qui sait ce qu'il fait ? Soit courageux et essaye-le !
 APP_ITEM_STOMACH: dans l'estomac
@@ -248,8 +248,6 @@ APP_CHARACTER_SPELL_CONFIRM: Attribuer maintenant
 APP_CHARACTER_SPELL_USE_DIALOG_TITLE: Confirmer l'attribution des sorts
 APP_CHARACTER_SPELL_DESC: Êtes-vous sûr de vouloir attribuer {0} point(s) de capital ?
 
-
-
 APP_CHARACTER_LEVELUP_DESC: Vous gagnez {points} points pour améliorer vos caractéristiques et {spellPoints} point(s) pour vos sorts
 APP_CHARACTER_LEVELUP_TITLE: Informations
 APP_CHARACTER_LEVELUP_INFO: Vous passez niveau {level}
@@ -314,7 +312,7 @@ APP_WALLET_NO_WALLET: Il semble que vous n'ayez aucun portefeuille, veuillez en 
 
 WALLET_PLEASE_SWITCH_NETWORK: Veuillez passer au réseau Sui
 WALLET_CONFIG: Erreur de configuration du portefeuille
-WALLET_SIGN_MESSAGE: "[AresRPG] Ceci est un message de vérification pour prouver que vous possédez cette adresse. Cela vous permettra de vous connecter au serveur"
+WALLET_SIGN_MESSAGE: '[AresRPG] Ceci est un message de vérification pour prouver que vous possédez cette adresse. Cela vous permettra de vous connecter au serveur'
 
 SUI_ENOKI_SALT: Échec de la transaction par Enoki (échec du salt). Veuillez réessayer.
 SUI_NO_GAS: Vous avez besoin de Sui dans votre portefeuille pour effectuer cette action

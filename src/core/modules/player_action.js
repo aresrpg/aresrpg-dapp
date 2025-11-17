@@ -7,7 +7,7 @@ export default function () {
     reduce(state, { type, payload }) {
       if (type === 'action/character_action') {
         const target_character = state.characters.find(
-          character => character.id === payload.id,
+          (character) => character.id === payload.id
         )
         if (target_character) target_character.action = payload.action
       }
@@ -15,7 +15,7 @@ export default function () {
         const { settings } = state
         if (settings.keymap.get(payload) === 'dance') {
           const target_character = state.characters.find(
-            character => character.id === state.selected_character_id,
+            (character) => character.id === state.selected_character_id
           )
           if (target_character) target_character.action = 'DANCE'
         }
@@ -26,7 +26,7 @@ export default function () {
 
     observe() {
       state_iterator()
-        .filter(state => state.online)
+        .filter((state) => state.online)
         .reduce((last_actions, state) => {
           const character = current_three_character(state)
 

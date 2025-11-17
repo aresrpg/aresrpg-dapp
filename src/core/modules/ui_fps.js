@@ -53,7 +53,7 @@ export default function () {
         stats_memory.dom,
         stats_mesh.dom,
         stats_draw_calls.dom,
-      ].forEach(dom => {
+      ].forEach((dom) => {
         if (document.body.contains(dom)) {
           document.body.removeChild(dom)
         }
@@ -63,7 +63,7 @@ export default function () {
 
   function count_meshes(scene) {
     let count = 0
-    scene.traverse(child => {
+    scene.traverse((child) => {
       if (child.isMesh) count++
     })
     return count

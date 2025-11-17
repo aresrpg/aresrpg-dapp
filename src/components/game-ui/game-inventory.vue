@@ -12,27 +12,27 @@
 </template>
 
 <script setup>
-import { ref, inject, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { ref, inject, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import itemDescription from '../cards/item-description.vue';
-import itemInventory from '../cards/item-inventory.vue';
-import itemEquipments from '../cards/item-equipments.vue';
+import itemDescription from '../cards/item-description.vue'
+import itemInventory from '../cards/item-inventory.vue'
+import itemEquipments from '../cards/item-equipments.vue'
 
-const owned_items = inject('owned_items');
-const selected_category = inject('selected_category');
-const selected_item = inject('selected_item');
+const owned_items = inject('owned_items')
+const selected_category = inject('selected_category')
+const selected_item = inject('selected_item')
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const claim_loading = ref(false);
+const claim_loading = ref(false)
 
-watch(owned_items, items => {
+watch(owned_items, (items) => {
   if (selected_item.value) {
-    const target_item = items.find(item => item.id === selected_item.value.id);
-    if (target_item) selected_item.value = target_item;
+    const target_item = items.find((item) => item.id === selected_item.value.id)
+    if (target_item) selected_item.value = target_item
   }
-});
+})
 </script>
 
 <style lang="stylus" scoped>

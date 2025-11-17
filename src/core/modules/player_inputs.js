@@ -52,24 +52,24 @@ export default function () {
     observe({ dispatch, signal }) {
       // @ts-ignore
       aiter(on(window, 'keydown', { signal })).forEach(([{ code }]) =>
-        dispatch('action/keydown', code),
+        dispatch('action/keydown', code)
       )
       // @ts-ignore
       aiter(on(window, 'keyup', { signal })).forEach(([{ code }]) =>
-        dispatch('action/keyup', code),
+        dispatch('action/keyup', code)
       )
       // @ts-ignore
       aiter(on(window, 'mouseup', { signal })).forEach(([{ button }]) =>
-        dispatch('action/mouseup', button),
+        dispatch('action/mouseup', button)
       )
       // @ts-ignore
       aiter(on(window, 'mousedown', { signal })).forEach(([{ button }]) =>
-        dispatch('action/mousedown', button),
+        dispatch('action/mousedown', button)
       )
 
       // @ts-ignore
       aiter(on(window, 'blur', { signal })).forEach(() =>
-        dispatch('action/window_focus', false),
+        dispatch('action/window_focus', false)
       )
     },
   }

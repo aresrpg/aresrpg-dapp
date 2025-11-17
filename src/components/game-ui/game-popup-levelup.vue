@@ -11,15 +11,15 @@
   </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const props = defineProps(['isOpen', 'details']);
-const emit = defineEmits(['update:isOpen']);
+const props = defineProps(['isOpen', 'details'])
+const emit = defineEmits(['update:isOpen'])
 
 function closeModal() {
-  emit('update:isOpen', false);
+  emit('update:isOpen', false)
 }
 </script>
 

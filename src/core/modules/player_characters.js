@@ -70,57 +70,61 @@ export default function () {
           }
 
           const removed = last_characters.filter(
-            last_character =>
-              !characters.some(character => character.id === last_character.id),
+            (last_character) =>
+              !characters.some(
+                (character) => character.id === last_character.id
+              )
           )
 
           const added = characters.filter(
-            character =>
+            (character) =>
               !last_characters.some(
-                last_character => last_character.id === character.id,
-              ),
+                (last_character) => last_character.id === character.id
+              )
           )
 
-          removed.forEach(sui_character => {
+          removed.forEach((sui_character) => {
             context.dispatch('action/remove_character', sui_character.id)
           })
 
-          added.forEach(sui_character => {
+          added.forEach((sui_character) => {
             ENTITIES.from_character(sui_character)
-              .then(async three_character => {
+              .then(async (three_character) => {
                 context.dispatch('action/add_character', {
                   sui_character,
                   three_character,
                 })
               })
-              .catch(error => {
+              .catch((error) => {
                 console.error('Error adding character', sui_character, error)
               })
           })
 
           return characters
         },
-        /** @type {Type.SuiCharacter[]} */ [],
+        /** @type {Type.SuiCharacter[]} */ []
       )
 
       state_iterator().reduce(
         (
           /** @type {Type.ThreeEntity[]} */
           last_characters,
-          { characters },
+          { characters }
         ) => {
           const removed = last_characters.filter(
-            last_character =>
-              !characters.some(character => character.id === last_character.id),
+            (last_character) =>
+              !characters.some(
+                (character) => character.id === last_character.id
+              )
           )
 
-          removed.forEach(three_entity => {
+          removed.forEach((three_entity) => {
             three_entity.remove()
           })
 
           return characters
         },
-        [],
+        []
       )
     },
   }

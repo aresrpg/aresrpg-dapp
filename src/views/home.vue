@@ -1,60 +1,60 @@
 <script setup>
-import { onMounted, inject, ref, provide, defineAsyncComponent } from 'vue';
-import { useI18n } from 'vue-i18n';
-import useBreakpoints from 'vue-next-breakpoints';
+import { onMounted, inject, ref, provide, defineAsyncComponent } from 'vue'
+import { useI18n } from 'vue-i18n'
+import useBreakpoints from 'vue-next-breakpoints'
 
-import bubbles from '../components/misc/floating-bubbles.vue';
-import SideBar from '../components/navigation/side-bar.vue';
-import serverInfo from '../components/cards/server-info.vue';
-import { i18n } from '../i18n.js';
+import bubbles from '../components/misc/floating-bubbles.vue'
+import SideBar from '../components/navigation/side-bar.vue'
+import serverInfo from '../components/cards/server-info.vue'
+import { i18n } from '../i18n.js'
 
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const TopBar = defineAsyncComponent(
-  () => import('../components/navigation/top-bar.vue'),
-);
-const { t, locale } = useI18n();
+  () => import('../components/navigation/top-bar.vue')
+)
+const { t, locale } = useI18n()
 
 const breakpoints = useBreakpoints({
   mobile: 1000,
-});
+})
 
-const lang = ref('');
-const sidebar_reduced = inject('sidebar_reduced');
-const lang_dialog = ref(false);
-const show_topbar = ref(true);
-const in_maintenance = ref(false);
+const lang = ref('')
+const sidebar_reduced = inject('sidebar_reduced')
+const lang_dialog = ref(false)
+const show_topbar = ref(true)
+const in_maintenance = ref(false)
 
-provide('show_topbar', show_topbar);
+provide('show_topbar', show_topbar)
 
 const langs = {
   fr: 'Français',
   en: 'English',
   jp: '日本語',
-};
+}
 
-provide('lang_dialog', lang_dialog);
+provide('lang_dialog', lang_dialog)
 
-const selected = ref(langs[i18n.global.locale.value]);
-const select = lang => {
+const selected = ref(langs[i18n.global.locale.value])
+const select = (lang) => {
   // @ts-ignore
   i18n.global.locale.value = Object.keys(langs).find(
-    key => langs[key] === lang,
-  );
-  lang_dialog.value = false;
+    (key) => langs[key] === lang
+  )
+  lang_dialog.value = false
 
-  localStorage.setItem('lang', i18n.global.locale.value);
-};
+  localStorage.setItem('lang', i18n.global.locale.value)
+}
 
 onMounted(() => {
   // set lang from localstorage
   if (localStorage.getItem('lang')) {
     // @ts-ignore
-    i18n.global.locale.value = localStorage.getItem('lang');
+    i18n.global.locale.value = localStorage.getItem('lang')
   }
 
-  selected.value = langs[i18n.global.locale.value];
-});
+  selected.value = langs[i18n.global.locale.value]
+})
 </script>
 
 <template lang="pug">

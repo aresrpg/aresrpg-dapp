@@ -33,7 +33,7 @@ export default function () {
                 ...state.settings.terrain,
                 view_distance: Math.max(
                   VIEW_DISTANCE_MIN,
-                  Math.min(VIEW_DISTANCE_MAX, payload),
+                  Math.min(VIEW_DISTANCE_MAX, payload)
                 ),
               },
             },

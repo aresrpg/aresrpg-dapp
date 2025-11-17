@@ -140,7 +140,7 @@ export default function () {
       rain.setParticlesCount(5000)
 
       weather_container.layers.set(CartoonRenderpass.non_outlined_layer)
-      weather_container.traverse(child => {
+      weather_container.traverse((child) => {
         child.layers.set(CartoonRenderpass.non_outlined_layer)
       })
 
@@ -166,7 +166,7 @@ export default function () {
 
           context.events.emit(
             'UPDATE_FOG',
-            FOG_BIOMES[biome] || FOG_BIOMES.default,
+            FOG_BIOMES[biome] || FOG_BIOMES.default
           )
           update_weather(biome, snow, rain)
 
@@ -175,7 +175,7 @@ export default function () {
         {
           last_chunk_position: { x: 0, z: 0 },
           current_biome: BiomeType.Grassland,
-        },
+        }
       )
 
       aiter(abortable(setInterval(10000, null, { signal }))).forEach(() => {
@@ -188,7 +188,7 @@ export default function () {
           update_weather(
             context.world.biomes.getBiomeType(character.position),
             snow,
-            rain,
+            rain
           )
         }
 
@@ -196,7 +196,7 @@ export default function () {
           update_weather(
             context.world.biomes.getBiomeType(character.position),
             snow,
-            rain,
+            rain
           )
         }
       })

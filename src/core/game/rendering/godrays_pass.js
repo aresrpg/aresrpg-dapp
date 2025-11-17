@@ -256,7 +256,7 @@ class GodraysPass extends Pass {
   render(
     /** @type WebGLRenderer */ renderer,
     /** @type WebGLRenderTarget */ write_buffer,
-    /** @type WebGLRenderTarget */ read_buffer /*, deltaTime, maskActive */,
+    /** @type WebGLRenderTarget */ read_buffer /*, deltaTime, maskActive */
   ) {
     const previous_state = {
       rendertarget: renderer.getRenderTarget(),
@@ -294,7 +294,7 @@ class GodraysPass extends Pass {
       .project(this.camera)
     this.#material_blur.uniforms.uLightPositionScreenspace.value.set(
       light_position.x,
-      light_position.y,
+      light_position.y
     )
     this.#material_blur.uniforms.uLightTexture.value =
       this.#rendertarget1.texture

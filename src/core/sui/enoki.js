@@ -74,7 +74,7 @@ export function enoki_wallet() {
 
       return {
         ...(await keypair.signPersonalMessage(
-          new TextEncoder().encode(message),
+          new TextEncoder().encode(message)
         )),
       }
     },
@@ -88,7 +88,7 @@ export function enoki_wallet() {
       const { bytes, signature } = await keypair.signTransaction(
         await transaction.build({
           client: sdk.sui_client,
-        }),
+        })
       )
 
       return { signature, bytes }

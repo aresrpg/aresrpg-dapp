@@ -1,4 +1,5 @@
-.eslintrc
-types
-assets
-models
+coverage/
+node_modules/
+dist/
+dist-demo/
+*.log

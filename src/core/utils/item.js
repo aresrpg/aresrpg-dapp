@@ -15,8 +15,8 @@ export function key_from_item({
   // return rest and sort keys
   return JSON.stringify(
     Object.fromEntries(
-      Object.entries(rest).sort(([a], [b]) => a.localeCompare(b)),
-    ),
+      Object.entries(rest).sort(([a], [b]) => a.localeCompare(b))
+    )
   )
 }
 

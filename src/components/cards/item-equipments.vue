@@ -29,57 +29,50 @@
 </template>
 
 <script setup>
-import { inject, computed, ref, onMounted, watch } from 'vue';
+import { inject, computed, ref, onMounted, watch } from 'vue'
 // @ts-ignore
-import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items';
+import { ITEM_CATEGORY } from '@aresrpg/aresrpg-sdk/items'
 
 // @ts-ignore
-import slot_relic from '../../assets/ui/slot_relic.png';
+import slot_relic from '../../assets/ui/slot_relic.png'
 // @ts-ignore
-import slot_title from '../../assets/ui/slot_title.png';
+import slot_title from '../../assets/ui/slot_title.png'
 // @ts-ignore
-import slot_amulet from '../../assets/ui/slot_amulet.png';
+import slot_amulet from '../../assets/ui/slot_amulet.png'
 // @ts-ignore
-import slot_weapon from '../../assets/ui/slot_weapon.png';
+import slot_weapon from '../../assets/ui/slot_weapon.png'
 // @ts-ignore
-import slot_ring from '../../assets/ui/slot_ring.png';
+import slot_ring from '../../assets/ui/slot_ring.png'
 // @ts-ignore
-import slot_belt from '../../assets/ui/slot_belt.png';
+import slot_belt from '../../assets/ui/slot_belt.png'
 // @ts-ignore
-import slot_boots from '../../assets/ui/slot_boots.png';
+import slot_boots from '../../assets/ui/slot_boots.png'
 // @ts-ignore
-import slot_hat from '../../assets/ui/slot_hat.png';
+import slot_hat from '../../assets/ui/slot_hat.png'
 // @ts-ignore
-import slot_cloak from '../../assets/ui/slot_cloak.png';
+import slot_cloak from '../../assets/ui/slot_cloak.png'
 // @ts-ignore
-import slot_pet from '../../assets/ui/slot_pet.png';
-import {
-  is_consumable,
-  is_resource,
-  is_weapon,
-} from '../../core/utils/item.js';
-import { sui_equip_items } from '../../core/sui/client.js';
-import {
-  decrease_loading,
-  increase_loading,
-} from '../../core/utils/loading.js';
+import slot_pet from '../../assets/ui/slot_pet.png'
+import { is_consumable, is_resource, is_weapon } from '../../core/utils/item.js'
+import { sui_equip_items } from '../../core/sui/client.js'
+import { decrease_loading, increase_loading } from '../../core/utils/loading.js'
 
-import equipmentSlot from './equipment-slot.vue';
+import equipmentSlot from './equipment-slot.vue'
 
 // @ts-ignore
-import BxsLock from '~icons/bxs/lock';
+import BxsLock from '~icons/bxs/lock'
 // @ts-ignore
-import RadixIconsCross2 from '~icons/radix-icons/cross-2';
+import RadixIconsCross2 from '~icons/radix-icons/cross-2'
 // @ts-ignore
-import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular';
+import FluentCheckmark12Regular from '~icons/fluent/checkmark-12-regular'
 
-const selected_character = inject('selected_character');
-const selected_item = inject('selected_item');
-const edit_mode_equipment = inject('edit_mode_equipment');
-const edit_mode = inject('edit_mode');
-const owned_items = inject('owned_items');
+const selected_character = inject('selected_character')
+const selected_item = inject('selected_item')
+const edit_mode_equipment = inject('edit_mode_equipment')
+const edit_mode = inject('edit_mode')
+const owned_items = inject('owned_items')
 const real_equipment = computed(() => {
-  if (!selected_character.value) return {};
+  if (!selected_character.value) return {}
   const {
     relic_1,
     relic_2,
@@ -97,7 +90,7 @@ const real_equipment = computed(() => {
     hat,
     cloak,
     pet,
-  } = selected_character.value;
+  } = selected_character.value
   return {
     relic_1,
     relic_2,
@@ -115,58 +108,58 @@ const real_equipment = computed(() => {
     hat,
     cloak,
     pet,
-  };
-});
+  }
+})
 
-const accept_loading = ref(false);
+const accept_loading = ref(false)
 
 function start_edit_equipment() {
-  edit_mode.value = true;
+  edit_mode.value = true
 }
 
 onMounted(() => {
-  Object.assign(edit_mode_equipment, real_equipment.value);
-});
+  Object.assign(edit_mode_equipment, real_equipment.value)
+})
 
 function cancel_edit_equipment() {
-  edit_mode.value = false;
-  Object.assign(edit_mode_equipment, real_equipment.value);
-  edit_mode_equipment.dragged_item = null;
+  edit_mode.value = false
+  Object.assign(edit_mode_equipment, real_equipment.value)
+  edit_mode_equipment.dragged_item = null
   edit_mode_equipment.equipments = owned_items.value.filter(
-    item => !is_consumable(item) && !is_resource(item) && !is_equipped(item),
-  );
+    (item) => !is_consumable(item) && !is_resource(item) && !is_equipped(item)
+  )
 }
 
 async function accept_edit_equipment() {
   // find differences between real_equipment and edit_mode_equipment, then use equip_items & unequip_items
-  const to_equip = [];
-  const to_unequip = [];
+  const to_equip = []
+  const to_unequip = []
 
   Object.entries(real_equipment.value).forEach(([slot, item]) => {
     if (edit_mode_equipment[slot] !== item) {
       if (edit_mode_equipment[slot])
-        to_equip.push({ item: edit_mode_equipment[slot], slot });
-      if (item) to_unequip.push({ item, slot });
+        to_equip.push({ item: edit_mode_equipment[slot], slot })
+      if (item) to_unequip.push({ item, slot })
     }
-  });
+  })
 
-  accept_loading.value = true;
-  increase_loading();
+  accept_loading.value = true
+  increase_loading()
 
   try {
     await sui_equip_items({
       character: selected_character.value,
       to_equip,
       to_unequip,
-    });
+    })
   } catch (error) {
-    console.error(error);
+    console.error(error)
   } finally {
-    decrease_loading();
-    accept_loading.value = false;
+    decrease_loading()
+    accept_loading.value = false
   }
 
-  edit_mode.value = false;
+  edit_mode.value = false
 }
 
 function is_equipped(item) {
@@ -187,61 +180,53 @@ function is_equipped(item) {
     item.id === selected_character.value.relic_4?.id ||
     item.id === selected_character.value.relic_5?.id ||
     item.id === selected_character.value.relic_6?.id
-  );
+  )
 }
 
 const is_dragging_relic = computed(() => {
-  return (
-    edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.RELIC
-  );
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.RELIC
+})
 
 const is_dragging_title = computed(() => {
-  return (
-    edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.TITLE
-  );
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.TITLE
+})
 
 const is_dragging_amulet = computed(() => {
   return (
     edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.AMULET
-  );
-});
+  )
+})
 
 const is_dragging_weapon = computed(() => {
   return (
     edit_mode_equipment.dragged_item &&
     is_weapon(edit_mode_equipment.dragged_item)
-  );
-});
+  )
+})
 
 const is_dragging_ring = computed(() => {
-  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.RING;
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.RING
+})
 
 const is_dragging_belt = computed(() => {
-  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.BELT;
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.BELT
+})
 
 const is_dragging_boots = computed(() => {
-  return (
-    edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.BOOTS
-  );
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.BOOTS
+})
 
 const is_dragging_hat = computed(() => {
-  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.HAT;
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.HAT
+})
 
 const is_dragging_cloak = computed(() => {
-  return (
-    edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.CLOAK
-  );
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.CLOAK
+})
 
 const is_dragging_pet = computed(() => {
-  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.PET;
-});
+  return edit_mode_equipment.dragged_item?.item_category === ITEM_CATEGORY.PET
+})
 </script>
 
 <style lang="stylus" scoped>

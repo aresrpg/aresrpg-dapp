@@ -63,7 +63,7 @@ export default function () {
                   considerAsBlocking: true,
                   exportAsList: false,
                 },
-              },
+              }
             )
 
             if (mob_collisions.computationStatus === 'partial') {
@@ -99,12 +99,12 @@ export default function () {
       const { visible_mobs_group } = context.get_state()
 
       aiter(
-        abortable(setInterval(MOVE_INTERVAL, null, { signal: context.signal })),
+        abortable(setInterval(MOVE_INTERVAL, null, { signal: context.signal }))
       ).forEach(async () =>
         async_iterable
           .from(visible_mobs_group.values())
           .flat_map(({ entities }) => entities)
-          .for_each(async mob => {
+          .for_each(async (mob) => {
             // 10% chance to move the mob
             const should_move = Math.random() < MOVE_PROBABILITY
             if (should_move) {
@@ -127,7 +127,7 @@ export default function () {
                 y: surface_block.y + mob.height * 0.5,
               }
             }
-          }),
+          })
       )
     },
   }

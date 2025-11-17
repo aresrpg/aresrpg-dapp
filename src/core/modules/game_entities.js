@@ -63,12 +63,12 @@ export default function () {
           const new_position = new Vector3().lerpVectors(
             character.position,
             character.target_position,
-            lerp_factor,
+            lerp_factor
           )
 
           const movement = new Vector3().subVectors(
             character.target_position,
-            new_position,
+            new_position
           )
 
           character.move(new_position)
@@ -97,7 +97,7 @@ export default function () {
         if (!visible_characters.has(id) && !character_is_mine) {
           try {
             const default_three_character = await ENTITIES.from_character(
-              DEFAULT_SUI_CHARACTER(),
+              DEFAULT_SUI_CHARACTER()
             )
 
             // it's okay to manipulate visible_characters without dispatching action
@@ -143,7 +143,7 @@ export default function () {
       events.on('packet/charactersDespawn', ({ ids }) => {
         const { visible_characters } = get_state()
 
-        ids.forEach(id => {
+        ids.forEach((id) => {
           const character = visible_characters.get(id)
 
           if (character) {
@@ -158,17 +158,17 @@ export default function () {
 
       events.on('packet/entityGroupsDespawn', ({ ids }) => {
         const { visible_mobs_group } = get_state()
-        ids.forEach(id => {
+        ids.forEach((id) => {
           if (entities_to_spawn.has(id)) entities_to_spawn.delete(id)
           if (visible_mobs_group.has(id)) {
             const pos = visible_mobs_group.get(id).position
-            visible_mobs_group.get(id).entities.forEach(mob => mob.remove())
+            visible_mobs_group.get(id).entities.forEach((mob) => mob.remove())
             visible_mobs_group.delete(id)
           }
         })
       })
 
-      events.on('packet/entityGroupSpawn', async payload => {
+      events.on('packet/entityGroupSpawn', async (payload) => {
         if (payload.position.y < 20) alert('Mob spawned underground')
         entities_to_spawn.set(payload.id, payload)
       })
@@ -178,8 +178,8 @@ export default function () {
           new Vector3(
             near_position.x + Math.random() * 6 - 2,
             near_position.y,
-            near_position.z + Math.random() * 6 - 2,
-          ),
+            near_position.z + Math.random() * 6 - 2
+          )
         )
       }
 
@@ -219,11 +219,11 @@ export default function () {
                   new Vector3(
                     surface_block.x,
                     surface_block.y + spawned_mob.height * 0.5,
-                    surface_block.z,
-                  ),
+                    surface_block.z
+                  )
                 )
                 return spawned_mob
-              }),
+              })
             ),
           })
 
@@ -280,7 +280,7 @@ export default function () {
         const player_position = current_three_character(state)?.position
 
         if (player_position) {
-          visible_characters.forEach(entity => {
+          visible_characters.forEach((entity) => {
             const { position } = entity
             const distance = player_position.distanceTo(position)
 
@@ -314,7 +314,7 @@ export default function () {
       })
 
       aiter(
-        abortable(typed_on(SUI_EMITTER, 'ItemEquipEvent', { signal })),
+        abortable(typed_on(SUI_EMITTER, 'ItemEquipEvent', { signal }))
       ).forEach(async ({ item, character_id, slot }) => {
         try {
           const { visible_characters } = get_state()
@@ -348,7 +348,7 @@ export default function () {
         } catch (error) {
           console.error(
             'Error handling ItemEquipEvent (for other players):',
-            error,
+            error
           )
         }
       })

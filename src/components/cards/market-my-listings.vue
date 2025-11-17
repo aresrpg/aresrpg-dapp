@@ -16,42 +16,42 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { BigNumber as BN } from 'bignumber.js';
-import { MIST_PER_SUI } from '@mysten/sui/utils';
+import { inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { BigNumber as BN } from 'bignumber.js'
+import { MIST_PER_SUI } from '@mysten/sui/utils'
 
-import { mists_to_sui, sui_delist_item } from '../../core/sui/client.js';
-import toast from '../../toast.js';
+import { mists_to_sui, sui_delist_item } from '../../core/sui/client.js'
+import toast from '../../toast.js'
 
 // @ts-ignore
-import TokenBrandedSui from '~icons/token-branded/sui';
+import TokenBrandedSui from '~icons/token-branded/sui'
 
-const { t } = useI18n();
-const selected_item = inject('selected_item');
-const my_listings = inject('my_listings');
+const { t } = useI18n()
+const selected_item = inject('selected_item')
+const my_listings = inject('my_listings')
 
 function select_item(item) {
-  selected_item.value = item;
+  selected_item.value = item
 }
 
-const delisting_items = ref([]);
+const delisting_items = ref([])
 
 async function delist_item(item) {
-  const tx = toast.tx(t('APP_MARKET_DELISTING'), item.name);
-  delisting_items.value.push(item.id);
+  const tx = toast.tx(t('APP_MARKET_DELISTING'), item.name)
+  delisting_items.value.push(item.id)
   try {
-    await sui_delist_item(item);
-    tx.update('success', t('APP_MARKET_DELISTED'));
+    await sui_delist_item(item)
+    tx.update('success', t('APP_MARKET_DELISTED'))
   } catch (error) {
-    console.error(error);
-    tx.update('error', t('APP_MARKET_FAILED_TO_DELIST'));
+    console.error(error)
+    tx.update('error', t('APP_MARKET_FAILED_TO_DELIST'))
   }
-  delisting_items.value = delisting_items.value.filter(id => id !== item.id);
+  delisting_items.value = delisting_items.value.filter((id) => id !== item.id)
 }
 
 function final_item_price(item) {
-  return new BN(item.list_price).dividedBy(MIST_PER_SUI.toString());
+  return new BN(item.list_price).dividedBy(MIST_PER_SUI.toString())
 }
 </script>
 

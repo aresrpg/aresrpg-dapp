@@ -12,7 +12,7 @@ import { sdk } from './client.js'
 export const wallet_emitter = new EventEmitter()
 const internal_emitter = new EventEmitter()
 
-const is_sui_wallet = wallet =>
+const is_sui_wallet = (wallet) =>
   isWalletWithRequiredFeatureSet(wallet, ['sui:signPersonalMessage']) &&
   ('sui:signTransaction' in wallet.features ||
     'sui:signTransactionBlock' in wallet.features)
@@ -102,7 +102,7 @@ export async function initialize_wallets(last_selected_wallet_name) {
                   client: sdk.sui_client,
                 }),
             },
-          },
+          }
         )
       },
     }))
@@ -151,11 +151,11 @@ export async function initialize_wallets(last_selected_wallet_name) {
           })
         }
       })
-    },
+    }
   )
 
   if (last_selected_wallet_name) {
-    const wallet = wallets.find(w => w.name === last_selected_wallet_name)
+    const wallet = wallets.find((w) => w.name === last_selected_wallet_name)
     if (wallet) await wallet.connect()
   }
 }

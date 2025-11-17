@@ -25,7 +25,7 @@ function compute_inputs_horizontal_movement(camera, inputs) {
     Number(inputs.right) - Number(inputs.left),
     0,
     Number(inputs.forward || (inputs.mouse_left && inputs.mouse_right)) -
-      Number(inputs.backward),
+      Number(inputs.backward)
   )
   const has_inputs_horizontal_movement =
     inputs_horizontal_movement_camera.lengthSq() > 0
@@ -44,11 +44,11 @@ function compute_inputs_horizontal_movement(camera, inputs) {
   const inputs_horizontal_movement_world = new Vector3()
   inputs_horizontal_movement_world.addScaledVector(
     camera_forward,
-    inputs_horizontal_movement_camera.z,
+    inputs_horizontal_movement_camera.z
   )
   inputs_horizontal_movement_world.addScaledVector(
     camera_right,
-    inputs_horizontal_movement_camera.x,
+    inputs_horizontal_movement_camera.x
   )
   return inputs_horizontal_movement_world
 }
@@ -71,7 +71,7 @@ export default function () {
   return {
     tick(state, { camera, physics }, delta) {
       const player = state.characters.find(
-        character => character.id === state.selected_character_id,
+        (character) => character.id === state.selected_character_id
       )
       if (!player) return
       const { inputs } = state
@@ -102,7 +102,7 @@ export default function () {
             considerAsBlocking: true,
             exportAsList: false,
           },
-        },
+        }
       )
 
       if (player_collisions.computationStatus === 'partial') {
@@ -123,7 +123,7 @@ export default function () {
 
       const inputs_horizontal_movement = compute_inputs_horizontal_movement(
         camera,
-        inputs,
+        inputs
       )
       const has_inputs_horizontal_movement =
         inputs_horizontal_movement.lengthSq() > 0
@@ -177,7 +177,7 @@ export default function () {
           } else {
             max_altitude_since_left_ground = Math.max(
               player.position.y,
-              max_altitude_since_left_ground,
+              max_altitude_since_left_ground
             )
           }
         }
@@ -239,7 +239,7 @@ export default function () {
         payload.id === state.selected_character_id
       ) {
         const target_character = state.characters.find(
-          character => character.id === payload.id,
+          (character) => character.id === payload.id
         )
         // and if it's the current controlled character
         if (target_character) {
@@ -250,7 +250,7 @@ export default function () {
     },
     observe({ signal, dispatch, send_packet }) {
       aiter(abortable(setInterval(50, null, { signal }))).reduce(
-        last_position => {
+        (last_position) => {
           const state = context.get_state()
           if (!state.online) return last_position
 
@@ -282,7 +282,7 @@ export default function () {
 
           return { x, y, z }
         },
-        { x: 0, y: 0, z: 0 },
+        { x: 0, y: 0, z: 0 }
       )
 
       // @ts-ignore

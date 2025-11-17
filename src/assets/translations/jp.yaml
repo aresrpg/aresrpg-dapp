@@ -78,10 +78,10 @@ APP_ITEM_RAW_DAMAGE: ダメージ
 APP_ITEM_ACTION: 行動ポイント
 APP_ITEM_MOVEMENT: 移動ポイント
 APP_ITEM_RANGE: 射程
-APP_ITEM_EARTH_RESISTANCE: "% 地耐性"
-APP_ITEM_FIRE_RESISTANCE: "% 火耐性"
-APP_ITEM_WATER_RESISTANCE: "% 水耐性"
-APP_ITEM_AIR_RESISTANCE: "% 風耐性"
+APP_ITEM_EARTH_RESISTANCE: '% 地耐性'
+APP_ITEM_FIRE_RESISTANCE: '% 火耐性'
+APP_ITEM_WATER_RESISTANCE: '% 水耐性'
+APP_ITEM_AIR_RESISTANCE: '% 風耐性'
 APP_ITEM_EFFECTS: 効果
 APP_ITEM_CONSUMABLE_EFFECT: このアイテムには何らかの効果がありそうだが、いったい何をするのだろう？勇気を出して使ってみよう！
 APP_ITEM_STOMACH: 胃の中
@@ -131,7 +131,7 @@ APP_ITEM_DELETE: アイテムを削除する
 APP_ITEM_USE: アイテムを使用する
 APP_ITEM_DELETE_CONFIRM: 削除
 APP_ITEM_CANCEL: キャンセル
-APP_ITEM_DELETE_DESC: "{0} を削除してもよろしいですか？この操作は取り消せません。"
+APP_ITEM_DELETE_DESC: '{0} を削除してもよろしいですか？この操作は取り消せません。'
 APP_ITEM_DELETING: アイテムを削除中
 APP_ITEM_DELETED: アイテムが削除されました！
 APP_ITEM_USING: アイテムを使用中
@@ -151,7 +151,7 @@ APP_MARKET_LISTED: 上場
 APP_MARKET_FLOOR: フロア
 APP_MARKET_BUY: 買う
 APP_MARKET_BUY_CONFIRM: 購入確認
-APP_MARKET_CONFIRM_DESC: "{0} を{1} で購入してもよろしいですか？"
+APP_MARKET_CONFIRM_DESC: '{0} を{1} で購入してもよろしいですか？'
 APP_MARKET_CANCEL: キャンセル
 APP_MARKET_CONFIRM: 今すぐ支払う
 APP_MARKET_BUY_SUCCESS: 購入成功
@@ -177,7 +177,7 @@ APP_RECIPE_TAILOR: 裁縫師
 APP_RECIPE_CRAFT: クラフト
 APP_RECIPE_REVEAL: 明らかにする
 APP_RECIPE_CRAFT_TITLE: アイテムをクラフトする
-APP_RECIPE_CRAFT_DESC: "{0} をクラフトしてもよろしいですか？"
+APP_RECIPE_CRAFT_DESC: '{0} をクラフトしてもよろしいですか？'
 APP_RECIPE_CANCEL: キャンセル
 APP_RECIPE_CRAFTING: アイテムをクラフト中
 APP_RECIPE_CRAFTED: アイテムがクラフトされました
@@ -231,7 +231,7 @@ APP_CHARACTER_STAT_ENERGY: エネルギー
 APP_CHARACTER_STAT_LEVEL: レベル
 APP_CHARACTER_STAT_CHARACTERISTICS: 特性
 APP_CHARACTER_STAT_CAPITAL: キャピタル
-APP_CHARACTER_STAT_DESC: "{0}ポイントのキャピタルを割り当ててもよろしいですか？"
+APP_CHARACTER_STAT_DESC: '{0}ポイントのキャピタルを割り当ててもよろしいですか？'
 APP_CHARACTER_STAT_CANCEL: キャンセル
 APP_CHARACTER_STAT_CONFIRM: 今すぐ割り当てる
 APP_CHARACTER_STAT_USE_DIALOG_TITLE: 特性の割り当てを確認する
@@ -244,7 +244,7 @@ APP_CHARACTER_SPELL_NEXT_COST: 次のレベルのコスト
 APP_CHARACTER_SPELL_CANCEL: キャンセル
 APP_CHARACTER_SPELL_CONFIRM: 今すぐ割り当てる
 APP_CHARACTER_SPELL_USE_DIALOG_TITLE: 呪文の割り当てを確認
-APP_CHARACTER_SPELL_DESC: "{0} ポイントの資本を割り当てますか？"
+APP_CHARACTER_SPELL_DESC: '{0} ポイントの資本を割り当てますか？'
 
 APP_CHARACTER_LEVELUP_DESC: 特性をアップグレードするための{points}ポイントと、呪文のための{spellPoints}ポイントを獲得しました
 APP_CHARACTER_LEVELUP_TITLE: レベルアップ
@@ -310,7 +310,7 @@ APP_WALLET_NO_WALLET: ウォレットがないようです。公式のものを�
 
 WALLET_PLEASE_SWITCH_NETWORK: Suiネットワークに切り替えてください
 WALLET_CONFIG: ウォレット設定エラー
-WALLET_SIGN_MESSAGE: "[AresRPG] これはこのアドレスを所有していることを証明するための確認メッセージです。これによりサーバーに接続できます。"
+WALLET_SIGN_MESSAGE: '[AresRPG] これはこのアドレスを所有していることを証明するための確認メッセージです。これによりサーバーに接続できます。'
 
 SUI_ENOKI_SALT: Enokiのトランザクションに失敗しました（塩の失敗）。もう一度お試しください。
 SUI_NO_GAS: このアクションを実行するにはウォレットにSuiが必要です。

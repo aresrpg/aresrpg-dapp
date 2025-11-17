@@ -15,7 +15,7 @@ export default function () {
   const visible_equipment = new Map()
   return {
     observe() {
-      state_iterator().forEach(async state => {
+      state_iterator().forEach(async (state) => {
         const character = current_sui_character(state)
         const three_character = current_three_character(state)
 

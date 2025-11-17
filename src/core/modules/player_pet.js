@@ -14,7 +14,7 @@ export function tick_pet(
   character,
   pet,
   delta,
-  /** @type VoxelmapCollisions | null */ voxelmap_collisions,
+  /** @type VoxelmapCollisions | null */ voxelmap_collisions
 ) {
   if (character) {
     const distance_to_player = pet.position.distanceTo(character.position)
@@ -28,7 +28,7 @@ export function tick_pet(
       let need_to_recompute_target_position = true
       if (pet.target_position) {
         const distance_target_to_player = pet.target_position.distanceTo(
-          character.position,
+          character.position
         )
         need_to_recompute_target_position = distance_target_to_player > 7
       }
@@ -51,7 +51,7 @@ export function tick_pet(
     if (pet.target_position && delta > 0) {
       const to_target_position = new Vector3().subVectors(
         pet.target_position,
-        pet.position,
+        pet.position
       )
 
       if (!is_underwater) {
@@ -61,7 +61,7 @@ export function tick_pet(
       const distance_to_target = to_target_position.length()
       velocity.addScaledVector(
         to_target_position.normalize(),
-        Math.min(distance_to_target / delta, PET_SPEED),
+        Math.min(distance_to_target / delta, PET_SPEED)
       )
     }
 
@@ -82,7 +82,7 @@ export function tick_pet(
           considerAsBlocking: true,
           exportAsList: false,
         },
-      },
+      }
     )
 
     if (pet_collisions.computationStatus === 'partial') {
@@ -132,12 +132,12 @@ export default function () {
     observe() {
       state_iterator().reduce((last_address, { sui: { selected_address } }) => {
         if (last_address !== selected_address) {
-          pets.forEach(pet => pet.remove())
+          pets.forEach((pet) => pet.remove())
           pets.clear()
         }
         return selected_address
       })
-      state_iterator().forEach(async state => {
+      state_iterator().forEach(async (state) => {
         const character = current_sui_character(state)
 
         if (!character) return

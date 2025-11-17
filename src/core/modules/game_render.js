@@ -27,16 +27,16 @@ function apply_fog_settings(target, settings) {
   target.fog_color = new Color(
     settings.fog_color_r,
     settings.fog_color_g,
-    settings.fog_color_b,
+    settings.fog_color_b
   )
   target.light_color = new Color(
     settings.light_color_r,
     settings.light_color_g,
-    settings.light_color_b,
+    settings.light_color_b
   )
 }
 
-const build_fog_settings = biome_settings => ({
+const build_fog_settings = (biome_settings) => ({
   uniformity: biome_settings.uniformity,
   smoothness: biome_settings.smoothness,
   fog_density: biome_settings.fog_density,
@@ -85,7 +85,7 @@ export default function () {
         new Vector2(window.innerWidth, window.innerHeight),
         1.5,
         0.4,
-        0.85,
+        0.85
       )
       bloompass.threshold = 0.9
       bloompass.strength = 0.2
@@ -97,7 +97,7 @@ export default function () {
       const godrays_pass = new GodraysPass(camera)
       const volumetric_fog_pass = new VolumetricFogRenderpass(
         camera,
-        directional_light.shadow,
+        directional_light.shadow
       )
 
       composer.addPass(renderpass)
@@ -109,7 +109,7 @@ export default function () {
       composer.addPass(gamma_correction)
       composer.addPass(smaapass)
 
-      context.events.on('UPDATE_FOG', to_biome_settings => {
+      context.events.on('UPDATE_FOG', (to_biome_settings) => {
         if (current_fog_tween_fade_in || current_fog_tween_fade_out) {
           current_fog_tween_fade_in?.stop()
           current_fog_tween_fade_out?.stop()
@@ -151,15 +151,15 @@ export default function () {
             Object.assign(settings.postprocessing.volumetric_fog_pass, {
               ...to_biome_settings,
               fog_color: Number(
-                '0x' + to_biome_settings.fog_color.getHexString(),
+                '0x' + to_biome_settings.fog_color.getHexString()
               ),
               light_color: Number(
-                '0x' + to_biome_settings.light_color.getHexString(),
+                '0x' + to_biome_settings.light_color.getHexString()
               ),
             })
             context.dispatch(
               'action/postprocessing_changed',
-              settings.postprocessing,
+              settings.postprocessing
             )
             context.events.emit('UPDATE_DAT_GUI', null)
           })
@@ -177,7 +177,7 @@ export default function () {
 
             last_sky_lights_version,
           },
-          state,
+          state
         ) => {
           const { postprocessing } = state.settings
           const camera_is_underwater = state.settings.camera.is_underwater
@@ -212,10 +212,10 @@ export default function () {
             volumetric_fog_pass.fog_density =
               postprocessing.volumetric_fog_pass.fog_density
             volumetric_fog_pass.fog_color.set(
-              postprocessing.volumetric_fog_pass.fog_color,
+              postprocessing.volumetric_fog_pass.fog_color
             )
             volumetric_fog_pass.light_color.set(
-              postprocessing.volumetric_fog_pass.light_color,
+              postprocessing.volumetric_fog_pass.light_color
             )
             volumetric_fog_pass.ambient_light_intensity =
               postprocessing.volumetric_fog_pass.ambient_light_intensity
@@ -263,7 +263,7 @@ export default function () {
           last_water_color: null,
 
           last_sky_lights_version: 0,
-        },
+        }
       )
 
       signal.addEventListener(
@@ -279,7 +279,7 @@ export default function () {
           composer.removePass(smaapass)
           // composer.removePass(outputpass)
         },
-        { once: true },
+        { once: true }
       )
     },
   }

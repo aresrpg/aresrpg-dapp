@@ -5,10 +5,10 @@ sectionContainer(allow_offline="true")
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
 
-import gameCanvas from '../components/game-canvas.vue';
-import sectionContainer from '../components/misc/section-container.vue';
+import gameCanvas from '../components/game-canvas.vue'
+import sectionContainer from '../components/misc/section-container.vue'
 
-const { t } = useI18n();
+const { t } = useI18n()
 </script>

@@ -41,7 +41,7 @@ export const sdk = await SDK({
 sdk.kiosk_client.addRuleResolver({
   rule: `${sdk.PACKAGE_ID}::amount_rule::Rule`,
   packageId: sdk.LATEST_PACKAGE_ID,
-  resolveRuleFunction: params => {
+  resolveRuleFunction: (params) => {
     const { transaction, transferRequest, packageId, purchasedItem } = params
 
     transaction.moveCall({
@@ -92,7 +92,7 @@ async function create_server_transaction(type, data) {
   const id = crypto.randomUUID()
 
   const promise = new Promise((resolve, reject) =>
-    current_pending_transactions.set(id, { resolve, reject }),
+    current_pending_transactions.set(id, { resolve, reject })
   )
   context.send_packet('packet/transactionCreate', {
     id,
@@ -105,7 +105,7 @@ async function indexer_request(type, payload) {
   const id = crypto.randomUUID()
 
   let resolve_promise = null
-  const promise = new Promise(resolve => (resolve_promise = resolve))
+  const promise = new Promise((resolve) => (resolve_promise = resolve))
   current_server_requests.set(id, resolve_promise)
   context.send_packet('packet/requestResponse', {
     id,
@@ -165,7 +165,7 @@ export async function sign_transaction(bytes) {
     toast.error(
       t('WALLET_PLEASE_SWITCH_NETWORK') + ' ' + NETWORK,
       t('WALLET_CONFIG'),
-      MaterialSymbolsLightRuleSettings,
+      MaterialSymbolsLightRuleSettings
     )
     throw new Error('WRONG_NETWORK')
   }
@@ -180,7 +180,7 @@ export async function sign_transaction(bytes) {
 }
 
 /** @param {Transaction} transaction */
-export const execute = async transaction => {
+export const execute = async (transaction) => {
   const sender = get_address()
   if (!sender) {
     toast.error(t('APP_LOGIN_AGAIN'), t('APP_WALLET_NOT_FOUND'))
@@ -194,7 +194,7 @@ export const execute = async transaction => {
       toast.error(
         t('WALLET_PLEASE_SWITCH_NETWORK') + ' ' + NETWORK,
         t('WALLET_CONFIG'),
-        MaterialSymbolsLightRuleSettings,
+        MaterialSymbolsLightRuleSettings
       )
       return
     }
@@ -386,7 +386,7 @@ export async function sui_enforce_personal_kiosk(tx) {
       kiosk.id,
       await sdk.kiosk_client
         .getOwnedKiosks({ address: get_address() })
-        .then(k => k.kioskOwnerCaps.find(k => k.kioskId === kiosk.id)),
+        .then((k) => k.kioskOwnerCaps.find((k) => k.kioskId === kiosk.id))
     )
   }
 
@@ -460,16 +460,16 @@ export async function sui_get_kiosks_profits() {
   })
 
   const kiosks = await Promise.all(
-    kioskIds.map(async id =>
+    kioskIds.map(async (id) =>
       sdk.kiosk_client.getKiosk({
         id,
         options: { withKioskFields: true },
-      }),
-    ),
+      })
+    )
   )
 
   return kiosks
-    .map(kiosk => BigInt(kiosk.kiosk.profits))
+    .map((kiosk) => BigInt(kiosk.kiosk.profits))
     .reduce((acc, profits) => acc + profits, 0n)
 }
 
@@ -479,7 +479,7 @@ export async function sui_get_aresrpg_kiosk() {
   if (!known_kiosks.has(get_address())) {
     known_kiosks.set(
       get_address(),
-      await indexer_request('sui_get_aresrpg_kiosk', get_address()),
+      await indexer_request('sui_get_aresrpg_kiosk', get_address())
     )
   }
   return known_kiosks.get(get_address())
@@ -526,7 +526,6 @@ export async function sui_send({ amount, recipient }) {
   return execute(tx)
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const TransferPolicyType = bcs.struct(TRANSFER_POLICY_TYPE, {
   id: bcs.Address,
   balance: bcs.u64(),
@@ -556,7 +555,7 @@ export async function sui_buy_item(item) {
 
   const parsed_policy = TransferPolicyType.parse(
     // @ts-ignore
-    fromBase64(raw_policy.data.bcs.bcsBytes),
+    fromBase64(raw_policy.data.bcs.bcsBytes)
   )
 
   const policy = {
@@ -581,7 +580,7 @@ export async function sui_buy_item(item) {
 
   for (const rule of policy.rules) {
     const rule_definition = sdk.kiosk_client.rules.find(
-      x => get_normalize_rule(x.rule) === get_normalize_rule(rule),
+      (x) => get_normalize_rule(x.rule) === get_normalize_rule(rule)
     )
     if (!rule_definition)
       throw new Error(`No resolver for the following rule: ${rule}.`)
@@ -664,7 +663,7 @@ export async function sui_sign_payload(message) {
   const address = get_address()
   const { bytes, signature } = await get_wallet().signPersonalMessage(
     message,
-    address,
+    address
   )
 
   context.send_packet('packet/signatureResponse', {
@@ -690,7 +689,7 @@ export async function sui_sign_payload(message) {
 function replace_rule(rule, new_rule) {
   const rule_package_id = sdk.kiosk_client.getRulePackageId(rule)
   const rule_index = sdk.kiosk_client.rules.findIndex(
-    ({ rule }) => rule === `${rule_package_id}${new_rule.rule}`,
+    ({ rule }) => rule === `${rule_package_id}${new_rule.rule}`
   )
 
   if (rule_index === -1) throw new Error(`Rule ${rule} not found`)

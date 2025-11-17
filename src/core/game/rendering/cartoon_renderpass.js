@@ -235,7 +235,7 @@ class CartoonRenderpass extends Pass {
   setSize(/** @type number */ width, /** @type number */ height) {
     this.#outline_material.uniforms.uTexelSize.value = new Vector2(
       1 / width,
-      1 / height,
+      1 / height
     )
     this.#rendertarget.setSize(width, height)
   }
@@ -243,7 +243,7 @@ class CartoonRenderpass extends Pass {
   render(
     /** @type WebGLRenderer */ renderer,
     /** @type WebGLRenderTarget */ _write_buffer,
-    /** @type WebGLRenderTarget */ read_buffer /*, deltaTime, maskActive */,
+    /** @type WebGLRenderTarget */ read_buffer /*, deltaTime, maskActive */
   ) {
     const previous_state = {
       rendertarget: renderer.getRenderTarget(),

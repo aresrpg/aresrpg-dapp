@@ -21,31 +21,31 @@ Dropdown(:border="false" ref="dropdown")
 </template>
 
 <script setup>
-import Dropdown from 'v-dropdown';
-import { ref, inject } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import Dropdown from 'v-dropdown'
+import { ref, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
-import { context } from '../../core/game/game.js';
+import { context } from '../../core/game/game.js'
 
-const dropdown = ref(null);
+const dropdown = ref(null)
 
-const router = useRouter();
-const characters = inject('characters');
-const selected_character = inject('selected_character');
+const router = useRouter()
+const characters = inject('characters')
+const selected_character = inject('selected_character')
 
 function go_to_characters() {
-  router.push('/characters');
+  router.push('/characters')
 }
 
 function select_character(character) {
-  context.dispatch('action/select_character', character.id);
-  context.send_packet('packet/selectCharacter', { id: character.id });
+  context.dispatch('action/select_character', character.id)
+  context.send_packet('packet/selectCharacter', { id: character.id })
   // @ts-ignore
-  dropdown.value.close();
+  dropdown.value.close()
 }
 
-const { t } = useI18n();
+const { t } = useI18n()
 </script>
 
 <style lang="stylus" scoped>

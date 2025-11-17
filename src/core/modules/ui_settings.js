@@ -47,7 +47,7 @@ export default function () {
       const camera_folder = gui.addFolder('Camera Settings')
       const postprocessing_folder = gui.addFolder('Postprocessing Settings')
 
-      const handle_change = name => value => {
+      const handle_change = (name) => (value) => {
         dispatch(name, value)
       }
 
@@ -84,7 +84,7 @@ export default function () {
                 const target_position = new Vector3(
                   Math.floor(x),
                   300,
-                  Math.floor(z),
+                  Math.floor(z)
                 )
 
                 const surface_block =
@@ -98,7 +98,7 @@ export default function () {
               }
             },
           },
-          'teleport',
+          'teleport'
         )
         .name('Reset player position')
 
@@ -108,7 +108,7 @@ export default function () {
             set_time: () =>
               events.emit('SKY_CYCLE_CHANGED', { value: 0.7, fromUi: true }),
           },
-          'set_time',
+          'set_time'
         )
         .name('Set day')
 
@@ -124,26 +124,26 @@ export default function () {
               const theme = document.documentElement.getAttribute('data-theme')
               document.documentElement.setAttribute(
                 'data-theme',
-                theme === 'light' ? 'dark' : 'light',
+                theme === 'light' ? 'dark' : 'light'
               )
             },
           },
-          'set_theme',
+          'set_theme'
         )
         .name('Change theme')
 
       daytime_folder
         .add(settings.sky, 'paused')
         .name('Pause cycle')
-        .onChange(paused => {
+        .onChange((paused) => {
           events.emit('SKY_CYCLE_PAUSED', paused)
         })
 
       const daytime_value_control = daytime_folder
         .add(settings.sky, 'value', 0, 1, 0.001)
         .name('Time')
-        .onChange(value =>
-          events.emit('SKY_CYCLE_CHANGED', { value, fromUi: true }),
+        .onChange((value) =>
+          events.emit('SKY_CYCLE_CHANGED', { value, fromUi: true })
         )
 
       events.on('SKY_CYCLE_CHANGED', ({ value, fromUi }) => {
@@ -159,7 +159,7 @@ export default function () {
           'view_distance',
           VIEW_DISTANCE_MIN,
           VIEW_DISTANCE_MAX,
-          1,
+          1
         )
         .name('View distance')
         .onFinishChange(handle_change('action/view_distance'))
@@ -167,7 +167,7 @@ export default function () {
       terrain_folder
         .add(settings.terrain, 'use_lod')
         .name('enable LOD')
-        .onFinishChange(value => {
+        .onFinishChange((value) => {
           dispatch('action/terrain_settings', { use_lod: value })
         })
 
@@ -188,7 +188,7 @@ export default function () {
       terrain_folder
         .add(settings.terrain, 'chunk_generation', { ...chunk_rendering_mode })
         .name('Chunk processing mode')
-        .onFinishChange(value => {
+        .onFinishChange((value) => {
           dispatch('action/terrain_settings', { chunk_generation: value })
         })
 
@@ -203,8 +203,8 @@ export default function () {
                     new Vector3(
                       player.position.x,
                       player.position.y,
-                      player.position.z,
-                    ),
+                      player.position.z
+                    )
                   )
                 console.log('emit ', board_chunks)
                 context.events.emit('FORCE_RENDER_CHUNKS', board_chunks)
@@ -215,7 +215,7 @@ export default function () {
               }
             },
           },
-          'show_board',
+          'show_board'
         )
         .name('Create fight board')
 
@@ -253,7 +253,7 @@ export default function () {
           'light_size',
           0,
           0.01,
-          0.0005,
+          0.0005
         )
         .name('Light size')
         .onFinishChange(dispatch_postprocessing_change)
@@ -319,7 +319,7 @@ export default function () {
           'ambient_light_intensity',
           0,
           2,
-          0.01,
+          0.01
         )
         .name('Ambient light')
         .onFinishChange(dispatch_postprocessing_change)
@@ -329,7 +329,7 @@ export default function () {
           'direct_light_intensity',
           0,
           2,
-          0.01,
+          0.01
         )
         .name('Direct light')
         .onFinishChange(dispatch_postprocessing_change)
@@ -338,7 +338,7 @@ export default function () {
           settings.postprocessing.volumetric_fog_pass,
           'raymarching_step',
           0.1,
-          2,
+          2
         )
         .name('Raymarch step')
         .onFinishChange(dispatch_postprocessing_change)
@@ -348,7 +348,7 @@ export default function () {
           'downscaling',
           1,
           4,
-          1,
+          1
         )
         .name('Downscaling')
         .onFinishChange(dispatch_postprocessing_change)

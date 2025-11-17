@@ -152,8 +152,8 @@ export default function () {
               smoothstep(
                 sun_position.y,
                 curr_color.threshold,
-                prev_color.threshold,
-              ),
+                prev_color.threshold
+              )
             )
             break
           }
@@ -166,7 +166,7 @@ export default function () {
         const sun_position = new Vector3().setFromSphericalCoords(
           1,
           0.00001 + 1.99999 * Math.PI * day_time,
-          0.1,
+          0.1
         )
         material.uniforms.uSunDirection.value = sun_position
 
@@ -177,7 +177,7 @@ export default function () {
 
         material.uniforms.uNightRotation.value = new Matrix4().makeRotationAxis(
           night_rotation_axis,
-          Math.PI * day_time,
+          Math.PI * day_time
         )
 
         sky_lights_version = (sky_lights_version + 1) % 1000
@@ -185,12 +185,12 @@ export default function () {
         const fog_color = new Color().lerpColors(
           new Color(0x61455),
           new Color(0xa1bdeb),
-          smoothstep(sun_position.y, -0.12, 0.15),
+          smoothstep(sun_position.y, -0.12, 0.15)
         )
         fog_color.lerpColors(
           new Color(0xffab71),
           fog_color,
-          smoothstep(Math.abs(sun_position.y - 0.0), 0, 0.15),
+          smoothstep(Math.abs(sun_position.y - 0.0), 0, 0.15)
         )
         fog_color_uniform.value = fog_color
 
@@ -202,7 +202,7 @@ export default function () {
           color: new Color().lerpColors(
             moon_color,
             sun_color,
-            smoothstep(sun_position.y, -0.1, 1.0),
+            smoothstep(sun_position.y, -0.1, 1.0)
           ),
           intensity:
             smoothstep(Math.abs(sun_position.y), -0.1, 0.05) * (1 + 2 * is_day),
@@ -218,7 +218,7 @@ export default function () {
           color: new Color().lerpColors(
             ambient_color_night,
             ambient_color_day,
-            is_day,
+            is_day
           ),
           intensity: 0.2 + 0.2 * is_day,
         }
@@ -272,7 +272,7 @@ export default function () {
         cube_camera.update(renderer, skybox_mesh)
       })
 
-      events.once('STATE_UPDATED', state => {
+      events.once('STATE_UPDATED', (state) => {
         day_autoupdate_paused = state.settings.sky.paused
         set_day_time(state.settings.sky.value)
         update_sun_size(0.0004)
@@ -280,8 +280,8 @@ export default function () {
 
       aiter(
         abortable(
-          setInterval(day_autoupdate_delay_in_milliseconds, null, { signal }),
-        ),
+          setInterval(day_autoupdate_delay_in_milliseconds, null, { signal })
+        )
       ).forEach(update_day_time)
     },
     reduce(state, { type, payload }) {

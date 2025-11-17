@@ -55,11 +55,11 @@ export default function () {
       wallet_emitter.on(
         'wallet',
         /** @param {Type.Wallet} wallet */
-        async wallet => {
+        async (wallet) => {
           try {
             await iter(wallet.accounts)
               .toAsyncIterator()
-              .forEach(async account => {
+              .forEach(async (account) => {
                 try {
                   account.alias = await get_alias(account.address)
                 } catch (error) {
@@ -71,10 +71,10 @@ export default function () {
           } catch (error) {
             console.error('Unable to handle the wallet event,', error)
           }
-        },
+        }
       )
 
-      wallet_emitter.on('switch_wallet', name => {
+      wallet_emitter.on('switch_wallet', (name) => {
         if (!name) {
           context.dispatch('action/select_wallet', null)
           context.dispatch('action/select_address', null)
@@ -98,12 +98,12 @@ export default function () {
             selected_wallet_name,
             wallets,
             selected_address,
-          }),
+          })
         )
         .reduce(
           (
             last_wallet_name,
-            { selected_wallet_name, wallets, selected_address },
+            { selected_wallet_name, wallets, selected_address }
           ) => {
             if (
               selected_wallet_name &&
@@ -114,7 +114,7 @@ export default function () {
                 localStorage.getItem('last_selected_address')
               const selected_wallet = wallets[selected_wallet_name]
               const available_addresses = selected_wallet?.accounts.map(
-                ({ address }) => address,
+                ({ address }) => address
               )
 
               // here we try to select the address depending on last choices or the first one
@@ -126,17 +126,17 @@ export default function () {
               } else {
                 context.dispatch(
                   'action/select_address',
-                  available_addresses[0],
+                  available_addresses[0]
                 )
                 localStorage.setItem(
                   'last_selected_address',
-                  available_addresses[0],
+                  available_addresses[0]
                 )
               }
             }
 
             return selected_wallet_name
-          },
+          }
         )
     },
   }

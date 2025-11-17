@@ -6,26 +6,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject, computed } from 'vue';
+import { ref, onMounted, inject, computed } from 'vue'
 
-import stats from '../../assets/ui/stats.png';
-import spells from '../../assets/ui/spells.png';
-import inventory from '../../assets/ui/inventory.png';
+import stats from '../../assets/ui/stats.png'
+import spells from '../../assets/ui/spells.png'
+import inventory from '../../assets/ui/inventory.png'
 
-const in_fight = inject('in_fight');
+const in_fight = inject('in_fight')
 
-const selected_character = inject('selected_character');
+const selected_character = inject('selected_character')
 const items = computed(() => {
-  const spells = selected_character.value?.spells ?? [];
-  const value = [...spells];
+  const spells = selected_character.value?.spells ?? []
+  const value = [...spells]
 
   if (value.length < 20) {
     for (let i = value.length; i < 20; i++) {
-      value.push({ name: 'empty', icon: '' });
+      value.push({ name: 'empty', icon: '' })
     }
   }
-  return value;
-});
+  return value
+})
 </script>
 
 <style lang="stylus" scoped>

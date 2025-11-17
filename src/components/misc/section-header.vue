@@ -7,7 +7,7 @@ section.section-header
 </template>
 
 <script setup>
-const props = defineProps(['title', 'desc', 'color', 'rows']);
+const props = defineProps(['title', 'desc', 'color', 'rows'])
 </script>
 
 <style lang="stylus" scoped>

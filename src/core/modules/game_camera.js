@@ -73,7 +73,7 @@ export default function () {
 
       // let is_dragging = false
 
-      const set_distance = distance => {
+      const set_distance = (distance) => {
         distance = clamp(distance, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE)
         distance = Math.round(distance)
         camera_controls.dollyTo(distance, true)
@@ -85,10 +85,10 @@ export default function () {
         renderer.domElement.requestPointerLock()
       }
 
-      const on_mouse_wheel = event => {
+      const on_mouse_wheel = (event) => {
         const delta_abs = Math.max(
           CAMERA_DISTANCE_STEP,
-          0.35 * camera_controls.distance,
+          0.35 * camera_controls.distance
         )
         const delta = delta_abs * Math.sign(event.deltaY)
         set_distance(camera_controls.distance + delta)
@@ -108,7 +108,7 @@ export default function () {
               camera_controls.minDistance = 0
               renderer.domElement.removeEventListener(
                 'mousedown',
-                on_mouse_down,
+                on_mouse_down
               )
               renderer.domElement.removeEventListener('wheel', on_mouse_wheel)
               // @ts-ignore
@@ -132,7 +132,7 @@ export default function () {
             }
           }
           return free_camera
-        },
+        }
       )
 
       state_iterator().reduce((was_in_fight, { current_fight }) => {
@@ -152,7 +152,7 @@ export default function () {
             document.exitPointerLock()
           }
         },
-        { signal },
+        { signal }
       )
     },
   }

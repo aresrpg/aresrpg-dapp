@@ -18,14 +18,14 @@ div.notification-loader
 
 <script setup>
 // @ts-ignore
-import { VsButton } from 'vuesax-alpha';
+import { VsButton } from 'vuesax-alpha'
 
-import { NETWORK } from '../../env.js';
+import { NETWORK } from '../../env.js'
 
-import LoadingSpinner from './control-spinner.vue';
+import LoadingSpinner from './control-spinner.vue'
 
 // @ts-ignore
-import GameIconsCrocSword from '~icons/game-icons/croc-sword';
+import GameIconsCrocSword from '~icons/game-icons/croc-sword'
 
 const props = defineProps({
   status: String,
@@ -48,7 +48,7 @@ const props = defineProps({
     type: String,
     default: '',
   },
-});
+})
 </script>
 
 <style lang="stylus" scoped>

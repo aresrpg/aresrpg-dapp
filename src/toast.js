@@ -57,7 +57,7 @@ function create_notification({
         button_text = '',
         button_action = () => {},
         digest = null,
-      } = {},
+      } = {}
     ) {
       if (removed) return
 
@@ -91,7 +91,7 @@ export default {
       button_action = null,
       icon = null,
       duration = 'none',
-    } = {},
+    } = {}
   ) {
     return create_notification({
       initial_status: 'loading',
@@ -118,7 +118,7 @@ export default {
     content,
     title = 'Oh no!',
     icon = FluentEmojiHighContrastFly,
-    duration = 7000,
+    duration = 7000
   ) {
     VsNotification({
       flat: true,

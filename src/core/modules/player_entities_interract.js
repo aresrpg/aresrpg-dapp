@@ -17,7 +17,7 @@ export default function () {
     remove_text()
 
     const total_lvl = entities.reduce((acc, mob) => acc + mob.level, 0)
-    const names = entities.map(mob => `${mob.name} (${mob.level})`).join('\n')
+    const names = entities.map((mob) => `${mob.name} (${mob.level})`).join('\n')
 
     current_text = create_billboard_text()
     current_text.position.x = position.x
@@ -54,8 +54,8 @@ export default function () {
       const mobs_in_frame = [...visible_mobs_group.values()]
         .map(({ entities }) => entities)
         .flat()
-        .filter(mob =>
-          frustum.intersectsObject(mob.object3d.getObjectByName('hitbox')),
+        .filter((mob) =>
+          frustum.intersectsObject(mob.object3d.getObjectByName('hitbox'))
         )
 
       if (mobs_in_frame.length) {
@@ -65,7 +65,7 @@ export default function () {
 
         for (const mob of mobs_in_frame) {
           const intersects = mouse_raycaster.intersectObject(
-            mob.object3d.getObjectByName('hitbox'),
+            mob.object3d.getObjectByName('hitbox')
           )
 
           if (intersects.length) {
@@ -94,13 +94,13 @@ export default function () {
         if (current_hovered_group) {
           const state = context.get_state()
           const hovered_group = state.visible_mobs_group.get(
-            current_hovered_group,
+            current_hovered_group
           )
 
           if (hovered_group) {
             const character = current_three_character(state)
             const distance = character.position.distanceTo(
-              hovered_group.position,
+              hovered_group.position
             )
             if (distance < 10) {
               console.log('Attack mob group', hovered_group)
@@ -115,7 +115,7 @@ export default function () {
 
       document.addEventListener('click', on_click, { signal })
 
-      state_iterator().forEach(state => {
+      state_iterator().forEach((state) => {
         if (
           !state.online ||
           !state.visible_mobs_group.has(current_hovered_group)

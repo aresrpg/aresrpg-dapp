@@ -3,7 +3,7 @@ sectionContainer
 </template>
 
 <script setup>
-import sectionContainer from '../components/misc/section-container.vue';
+import sectionContainer from '../components/misc/section-container.vue'
 </script>
 
 <style lang="stylus" scoped>

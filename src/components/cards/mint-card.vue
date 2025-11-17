@@ -18,47 +18,47 @@ vs-card
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import toast from '../../toast.js';
-import { pretty_print_mists } from '../../core/sui/client.js';
+import toast from '../../toast.js'
+import { pretty_print_mists } from '../../core/sui/client.js'
 import {
   sui_mint_vaporeon,
   sui_get_vaporeon_mint_keys,
-} from '../../core/sui/temp_vaporeon_mint.js';
-import { SUI_EMITTER } from '../../core/modules/sui_data.js';
+} from '../../core/sui/temp_vaporeon_mint.js'
+import { SUI_EMITTER } from '../../core/modules/sui_data.js'
 
 // @ts-ignore
-import TokenSui from '~icons/token/sui';
+import TokenSui from '~icons/token/sui'
 
-const { t } = useI18n();
-const props = defineProps(['mint']);
-const allow_mint = ref(true);
+const { t } = useI18n()
+const props = defineProps(['mint'])
+const allow_mint = ref(true)
 
-const mint_keys = ref([]);
+const mint_keys = ref([])
 
 async function claim() {
-  const tx = toast.tx(t('APP_MINT_CARD_MINTING'), `${props.mint.name}`);
+  const tx = toast.tx(t('APP_MINT_CARD_MINTING'), `${props.mint.name}`)
   try {
-    allow_mint.value = false;
-    const result = await sui_mint_vaporeon(mint_keys.value.pop());
-    if (result) tx.update('success', t('APP_MINT_CARD_MINTED'));
+    allow_mint.value = false
+    const result = await sui_mint_vaporeon(mint_keys.value.pop())
+    if (result) tx.update('success', t('APP_MINT_CARD_MINTED'))
     else {
-      console.error('Failed to mint');
-      tx.remove();
+      console.error('Failed to mint')
+      tx.remove()
     }
   } catch (error) {
-    console.error(error);
-    tx.update('error', t('APP_MINT_CARD_FAILED_TO_MINT'));
+    console.error(error)
+    tx.update('error', t('APP_MINT_CARD_FAILED_TO_MINT'))
   }
 
-  allow_mint.value = true;
+  allow_mint.value = true
 }
 
 onMounted(async () => {
-  mint_keys.value = await sui_get_vaporeon_mint_keys();
-});
+  mint_keys.value = await sui_get_vaporeon_mint_keys()
+})
 </script>
 
 <style lang="stylus" scoped>
