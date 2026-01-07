@@ -8,6 +8,10 @@ export default createRouter({
       redirect: '/characters',
     },
     {
+      path: '/toast-test',
+      component: () => import('./views/toast_test.vue'),
+    },
+    {
       path: '/enoki',
       component: () => import('./views/enoki.vue'),
     },

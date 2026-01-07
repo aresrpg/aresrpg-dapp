@@ -45,6 +45,18 @@ export default [
 
       // Import rules
       'import/order': ['error', { 'newlines-between': 'always' }],
+      // Block direct node_modules path imports
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/node_modules/**'],
+              message: 'Direct node_modules imports are forbidden. Use package.json dependencies.',
+            },
+          ],
+        },
+      ],
 
       // Disable strict TypeScript rules for migration
       '@typescript-eslint/no-unused-vars': 'off', // Vue <script setup>
